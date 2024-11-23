@@ -37,9 +37,13 @@ export class MatrixDisplay {
 
     private worldWidth: number;
     private worldHeight: number;
+    private readonly scale: number;
 
     constructor(options: DisplayOptions) {
         console.log('Initializing MatrixDisplay with options:', options);
+        
+        // Calculate DPI scale first
+        this.scale = window.devicePixelRatio || 1;
         
         // Main display canvas
         this.displayCanvas = document.getElementById(options.elementId) as HTMLCanvasElement;
@@ -61,19 +65,30 @@ export class MatrixDisplay {
         this.renderCtx = this.renderCanvas.getContext('2d')!;
         
         // Set dimensions
-        this.cellSize = options.cellSize;
+        this.cellSize = options.cellSize * this.scale;
         
         // Display canvas is viewport size
-        this.displayCanvas.width = options.viewportWidth * options.cellSize;
-        this.displayCanvas.height = options.viewportHeight * options.cellSize;
+        this.displayCanvas.width = options.viewportWidth * this.cellSize;
+        this.displayCanvas.height = options.viewportHeight * this.cellSize;
         
         // World buffer is full world size
-        this.worldCanvas.width = options.worldWidth * options.cellSize;
-        this.worldCanvas.height = options.worldHeight * options.cellSize;
+        this.worldCanvas.width = options.worldWidth * this.cellSize;
+        this.worldCanvas.height = options.worldHeight * this.cellSize;
         
         // Render buffer matches display size
         this.renderCanvas.width = this.displayCanvas.width;
         this.renderCanvas.height = this.displayCanvas.height;
+
+        // Set CSS size (logical pixels)
+        this.displayCanvas.style.width = `${options.viewportWidth * options.cellSize}px`;
+        this.displayCanvas.style.height = `${options.viewportHeight * options.cellSize}px`;
+
+        // Disable smoothing on all contexts
+        [this.displayCtx, this.worldCtx, this.renderCtx].forEach(ctx => {
+            ctx.imageSmoothingEnabled = false;
+            // @ts-ignore (textRendering might not be in types)
+            ctx.textRendering = 'geometricPrecision';
+        });
 
         // Initialize viewport
         this.viewport = {
@@ -129,14 +144,16 @@ export class MatrixDisplay {
 
     private setupFont(defaultFont?: string, customFont?: string) {
         const fontFamily = customFont || defaultFont || 'monospace';
-        // Use 80% of cell size for font to ensure containment
         const fontSize = Math.floor(this.cellSize * 0.8);
-        this.displayCtx.font = `${fontSize}px ${fontFamily}`;
-        this.worldCtx.font = `${fontSize}px ${fontFamily}`;
-        this.displayCtx.textAlign = 'center';
-        this.displayCtx.textBaseline = 'middle';
-        this.worldCtx.textAlign = 'center';
-        this.worldCtx.textBaseline = 'middle';
+        
+        [this.displayCtx, this.worldCtx, this.renderCtx].forEach(ctx => {
+            ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fontKerning = 'none';
+            // @ts-ignore (textRendering might not be in types)
+            ctx.textRendering = 'geometricPrecision';
+        });
     }
 
     public setTile(x: number, y: number, tile: Tile) {
@@ -156,6 +173,12 @@ export class MatrixDisplay {
     }
 
     public setOverlay(x: number, y: number, color: Color) {
+        // Add bounds checking
+        if (x < 0 || x >= this.worldWidth || y < 0 || y >= this.worldHeight) {
+            console.warn(`Attempted to set overlay outside world bounds: (${x},${y})`);
+            return;
+        }
+
         this.cells[y][x].overlay = color;
         this.cells[y][x].isDirty = true;
         this.dirtyRects.add(`${x},${y}`);
@@ -376,5 +399,21 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             return this.cells[y][x];
         }
         return null;
+    }
+
+    public getWorldWidth(): number {
+        return this.worldWidth;
+    }
+
+    public getWorldHeight(): number {
+        return this.worldHeight;
+    }
+
+    public getViewportWidth(): number {
+        return this.viewport.width;
+    }
+
+    public getViewportHeight(): number {
+        return this.viewport.height;
     }
 } 

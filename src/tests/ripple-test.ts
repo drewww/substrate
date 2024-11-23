@@ -15,6 +15,16 @@ export class RippleTest extends BaseTest {
     private readonly FADE_RATE = 0.02;
     private timeSinceLastRipple: number = 0;
     
+    constructor() {
+        super({
+            worldWidth: 25,
+            worldHeight: 25,
+            viewportWidth: 25,
+            viewportHeight: 25,
+            cellSize: 24
+        });
+    }
+
     getName(): string {
         return "ripple";
     }
@@ -24,11 +34,14 @@ export class RippleTest extends BaseTest {
     }
 
     private addRipple() {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+
         const ripple: Ripple = {
-            centerX: Math.floor(Math.random() * 50),
-            centerY: Math.floor(Math.random() * 50),
+            centerX: Math.floor(Math.random() * width),
+            centerY: Math.floor(Math.random() * height),
             radius: 0,
-            maxRadius: 15 + Math.random() * 10,
+            maxRadius: 8 + Math.random() * 5,
             intensity: 1.0
         };
         this.ripples.push(ripple);
@@ -37,9 +50,12 @@ export class RippleTest extends BaseTest {
     private updateRipples() {
         if (!this.isRunning) return;
 
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+
         // Clear all overlays
-        for (let y = 0; y < 50; y++) {
-            for (let x = 0; x < 50; x++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 this.display.setOverlay(x, y, '#00000000');
             }
         }
@@ -54,8 +70,8 @@ export class RippleTest extends BaseTest {
             }
 
             // Draw the ripple
-            for (let y = 0; y < 50; y++) {
-                for (let x = 0; x < 50; x++) {
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
                     const distance = Math.sqrt(
                         Math.pow(x - ripple.centerX, 2) + 
                         Math.pow(y - ripple.centerY, 2)

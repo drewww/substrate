@@ -36,14 +36,8 @@ export class RandomScanTest extends BaseTest {
 
         this.display.setTile(this.currentX, this.currentY, tile);
         
-        this.currentX++;
-        if (this.currentX >= 50) {
-            this.currentX = 0;
-            this.currentY++;
-            if (this.currentY >= 50) {
-                this.currentY = 0;
-            }
-        }
+        this.currentX = Math.floor(Math.random() * 25);
+        this.currentY = Math.floor(Math.random() * 25);
 
         this.display.render();
 

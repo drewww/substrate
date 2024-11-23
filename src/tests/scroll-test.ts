@@ -15,10 +15,11 @@ export class ScrollTest extends BaseTest {
     
     constructor() {
         super({
-            worldWidth: 100,
-            worldHeight: 100,
-            viewportWidth: 50,
-            viewportHeight: 50
+            worldWidth: 50,
+            worldHeight: 50,
+            viewportWidth: 25,
+            viewportHeight: 25,
+            cellSize: 24
         });
     }
 
@@ -56,8 +57,11 @@ export class ScrollTest extends BaseTest {
     }
 
     private fillWorld() {
-        for (let y = 0; y < this.WORLD_SIZE; y++) {
-            for (let x = 0; x < this.WORLD_SIZE; x++) {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 const tile: Tile = {
                     symbol: this.getRandomASCII(),
                     fgColor: '#FFFFFFFF',
@@ -71,18 +75,13 @@ export class ScrollTest extends BaseTest {
     }
 
     private getNewTarget(): Point {
-        let newTarget: Point;
-        do {
-            newTarget = {
-                x: Math.floor(Math.random() * (this.WORLD_SIZE - 50)), // Adjust for viewport size
-                y: Math.floor(Math.random() * (this.WORLD_SIZE - 50))
-            };
-        } while (
-            Math.abs(newTarget.x - this.currentPos.x) < this.MIN_DISTANCE &&
-            Math.abs(newTarget.y - this.currentPos.y) < this.MIN_DISTANCE
-        );
-        console.log(`New target: (${newTarget.x}, ${newTarget.y})`);
-        return newTarget;
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
+        return {
+            x: Math.floor(Math.random() * width),
+            y: Math.floor(Math.random() * height)
+        };
     }
 
     private moveTowardsTarget() {

@@ -9,18 +9,19 @@ interface Entity {
 }
 
 export class ZIndexTest extends BaseTest {
-    private readonly ENTITY_COUNT = 10;
+    private readonly ENTITY_COUNT = 5;
     private readonly BACKGROUND_SYMBOLS = [',', '.', '-', '=', '_'];
     private entities: Entity[] = [];
     private frameCount: number = 0;
-    private readonly FRAMES_PER_MOVE = 30; // At 60fps, this is one move every 0.5 seconds
+    private readonly FRAMES_PER_MOVE = 30;
     
     constructor() {
         super({
-            worldWidth: 50,
-            worldHeight: 50,
-            viewportWidth: 50,
-            viewportHeight: 50
+            worldWidth: 25,
+            worldHeight: 25,
+            viewportWidth: 25,
+            viewportHeight: 25,
+            cellSize: 24
         });
     }
 
@@ -39,9 +40,11 @@ export class ZIndexTest extends BaseTest {
     }
 
     private initializeBackground() {
-        // Set empty background
-        for (let y = 0; y < 50; y++) {
-            for (let x = 0; x < 50; x++) {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 // Background tile with no symbol
                 const bgTile: Tile = {
                     symbol: '',
@@ -64,11 +67,14 @@ export class ZIndexTest extends BaseTest {
     }
 
     private initializeEntities() {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
         this.entities = [];
         for (let i = 0; i < this.ENTITY_COUNT; i++) {
             this.entities.push({
-                x: Math.floor(Math.random() * 50),
-                y: Math.floor(Math.random() * 50),
+                x: Math.floor(Math.random() * width),
+                y: Math.floor(Math.random() * height),
                 dx: 0,
                 dy: 0
             });
@@ -76,17 +82,19 @@ export class ZIndexTest extends BaseTest {
     }
 
     private updateEntities() {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
         if (!this.isRunning) return;
 
         this.frameCount++;
 
-        // Only move entities every FRAMES_PER_MOVE frames
         if (this.frameCount >= this.FRAMES_PER_MOVE) {
             this.frameCount = 0;
 
             // Clear previous entity positions
-            for (let y = 0; y < 50; y++) {
-                for (let x = 0; x < 50; x++) {
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
                     const cell = this.display.getCell(x, y);
                     if (cell) {
                         const backgroundTiles = cell.tiles.filter(t => t.zIndex < 2);
@@ -97,23 +105,20 @@ export class ZIndexTest extends BaseTest {
 
             // Update and render entities
             this.entities.forEach(entity => {
-                // Always change direction when we move
-                entity.dx = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
-                entity.dy = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+                entity.dx = Math.floor(Math.random() * 3) - 1;
+                entity.dy = Math.floor(Math.random() * 3) - 1;
 
-                // Update position
-                entity.x = (entity.x + entity.dx + 50) % 50; // Wrap around
-                entity.y = (entity.y + entity.dy + 50) % 50; // Wrap around
+                // Update position with new bounds
+                entity.x = (entity.x + entity.dx + width) % width;
+                entity.y = (entity.y + entity.dy + height) % height;
 
-                // Get existing tiles
                 const cell = this.display.getCell(entity.x, entity.y);
                 const existingTiles = cell ? cell.tiles : [];
 
-                // Add entity tile
                 const entityTile: Tile = {
                     symbol: '@',
-                    fgColor: '#FFFF00FF', // Yellow
-                    bgColor: null, // Inherit from below
+                    fgColor: '#FFFF00FF',
+                    bgColor: null,
                     zIndex: 2
                 };
 

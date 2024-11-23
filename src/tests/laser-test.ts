@@ -13,6 +13,16 @@ export class LaserTest extends BaseTest {
     private readonly FADE_SPEED = 0.05;
     private timeSinceLastLaser: number = 0;
     
+    constructor() {
+        super({
+            worldWidth: 25,
+            worldHeight: 25,
+            viewportWidth: 25,
+            viewportHeight: 25,
+            cellSize: 24
+        });
+    }
+
     getName(): string {
         return "laser";
     }
@@ -52,11 +62,13 @@ export class LaserTest extends BaseTest {
     }
 
     private addLaser() {
-        console.log('Adding new laser');
-        const startX = Math.floor(Math.random() * 50);
-        const startY = Math.floor(Math.random() * 50);
-        const endX = Math.floor(Math.random() * 50);
-        const endY = Math.floor(Math.random() * 50);
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
+        const startX = Math.floor(Math.random() * width);
+        const startY = Math.floor(Math.random() * height);
+        const endX = Math.floor(Math.random() * width);
+        const endY = Math.floor(Math.random() * height);
 
         const laser: LaserBeam = {
             points: this.computeLaserPath(startX, startY, endX, endY),
@@ -71,14 +83,17 @@ export class LaserTest extends BaseTest {
     private updateLasers() {
         if (!this.isRunning) return;
 
-        console.log(`Updating lasers. Count: ${this.lasers.length}`);
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
 
         // Clear all overlays
-        for (let y = 0; y < 50; y++) {
-            for (let x = 0; x < 50; x++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 this.display.setOverlay(x, y, '#00000000');
             }
         }
+
+        console.log(`Updating lasers. Count: ${this.lasers.length}`);
 
         // Update and render each laser
         this.lasers = this.lasers.filter(laser => {

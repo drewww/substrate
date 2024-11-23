@@ -8,11 +8,11 @@ export abstract class BaseTest {
         // Default configuration
         const config: MatrixDisplayConfig = {
             elementId: 'display',
-            cellSize: 12,
-            worldWidth: 50,
-            worldHeight: 50,
-            viewportWidth: 50,
-            viewportHeight: 50,
+            cellSize: 24,
+            worldWidth: 25,
+            worldHeight: 25,
+            viewportWidth: 25,
+            viewportHeight: 25,
             ...defaultConfig  // Override with any provided config
         };
 

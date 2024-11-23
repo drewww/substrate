@@ -3,20 +3,32 @@ import { Color, Tile } from '../types';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;
-    
+    private readonly WIPE_SPEED = 1;
+    private isWiping: boolean = false;
+
+    constructor() {
+        super({
+            worldWidth: 25,
+            worldHeight: 25,
+            viewportWidth: 25,
+            viewportHeight: 25,
+            cellSize: 24
+        });
+    }
+
     getName(): string {
         return "wipe";
     }
 
     getDescription(): string {
-        return "Fills screen with random symbols then wipes left-to-right with black overlay";
+        return "Wipes a black overlay across random background";
     }
 
     private getRandomASCII(): string {
         return String.fromCharCode(33 + Math.floor(Math.random() * 94));
     }
 
-    private getRandomColor(): Color {
+    private getRandomColor(): string {
         const r = Math.floor(Math.random() * 256);
         const g = Math.floor(Math.random() * 256);
         const b = Math.floor(Math.random() * 256);
@@ -24,56 +36,59 @@ export class WipeTest extends BaseTest {
     }
 
     private fillRandomBackground() {
-        for (let y = 0; y < 50; y++) {
-            for (let x = 0; x < 50; x++) {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+
+        // Set random background tiles
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 const tile: Tile = {
                     symbol: this.getRandomASCII(),
                     fgColor: this.getRandomColor(),
                     bgColor: this.getRandomColor(),
                     zIndex: 1
                 };
-                this.display.setTile(x, y, tile);
+                this.display.setTiles(x, y, [tile]);
             }
         }
         this.display.render();
     }
 
     private updateWipe() {
-        if (!this.isRunning) return;
+        if (!this.isRunning || !this.isWiping) return;
 
-        // Set 50% opacity black overlay for current column
-        for (let y = 0; y < 50; y++) {
-            // 80 in hex is ~50% opacity
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+
+        // Apply black overlay to current column
+        for (let y = 0; y < height; y++) {
             this.display.setOverlay(this.currentX, y, '#00000080');
         }
 
-        this.display.render();
-        
-        this.currentX++;
-        
-        if (this.currentX >= 50) {
-            this.isRunning = false;
+        // Move to next column
+        this.currentX += this.WIPE_SPEED;
+
+        // Check if wipe is complete after setting the overlay
+        if (this.currentX >= width) {
+            this.isWiping = false;
+            this.display.render();
             return;
         }
 
-        if (this.isRunning) {
-            requestAnimationFrame(() => this.updateWipe());
-        }
+        this.display.render();
+        requestAnimationFrame(() => this.updateWipe());
     }
 
     protected run(): void {
         this.currentX = 0;
-        
-        // Clear everything first
-        this.display.clear();
-        
-        // Then set up our new background
+        this.isWiping = true;
+        this.display.clearOverlays(); // Clear any existing overlays
         this.fillRandomBackground();
         this.updateWipe();
     }
 
     protected cleanup(): void {
-        // Don't reset or clear anything in cleanup
-        // This allows us to maintain the final state when stopped
+        this.currentX = 0;
+        this.isWiping = false;
     }
 } 
