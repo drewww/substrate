@@ -1,4 +1,3 @@
-import { MatrixDisplay } from '../matrix-display';
 import { DebugOverlay } from '../debug-overlay';
 import { BaseTest } from './base-test';
 import { RandomScanTest } from './random-scan';
@@ -8,41 +7,24 @@ import { RippleTest } from './ripple-test';
 import { LaserTest } from './laser-test';
 
 export class TestManager {
-    private display: MatrixDisplay;
+    public currentTest: BaseTest | null = null;
+    public availableTests: BaseTest[];
     public debugOverlay: DebugOverlay;
-    private currentTest: BaseTest | null = null;
-    private availableTests: BaseTest[];
 
     constructor() {
         console.log('Initializing TestManager');
-        this.display = new MatrixDisplay({
-            elementId: 'display',
-            cellSize: 12,
-            worldWidth: 50,
-            worldHeight: 50,
-            viewportWidth: 50,
-            viewportHeight: 50
-        });
-        
-        this.debugOverlay = new DebugOverlay(this.display);
         
         // Initialize available tests
         this.availableTests = [
-            new RandomScanTest(this.display),
-            new WipeTest(this.display),
-            new ScrollTest(this.display),
-            new RippleTest(this.display),
-            new LaserTest(this.display),
+            new RandomScanTest(),
+            new WipeTest(),
+            new LaserTest(),
+            new RippleTest(),
+            new ScrollTest()
         ];
 
-        console.log('TestManager initialization complete');
-    }
-
-    public getAvailableTests(): Array<{name: string, description: string}> {
-        return this.availableTests.map(test => ({
-            name: test.getName(),
-            description: test.getDescription()
-        }));
+        // Initialize debug overlay with first test's display
+        this.debugOverlay = new DebugOverlay(this.availableTests[0].getDisplay());
     }
 
     public selectTest(testName: string) {
@@ -53,11 +35,13 @@ export class TestManager {
             this.currentTest.stop();
         }
 
-        // Clear display
-        this.display.clear();
-        
         // Find and set new test
         this.currentTest = this.availableTests.find(test => test.getName() === testName) || null;
+        
+        // Update debug overlay to use new test's display
+        if (this.currentTest) {
+            this.debugOverlay = new DebugOverlay(this.currentTest.getDisplay());
+        }
     }
 
     public toggleCurrentTest() {

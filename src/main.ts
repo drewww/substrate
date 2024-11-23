@@ -11,10 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Set up test selector
         const testSelect = document.getElementById('testSelect') as HTMLSelectElement;
-        manager.getAvailableTests().forEach(test => {
+        manager.availableTests.forEach(test => {
             const option = document.createElement('option');
-            option.value = test.name;
-            option.text = `${test.name} - ${test.description}`;
+            option.value = test.getName();
+            option.text = `${test.getName()} - ${test.getDescription()}`;
             testSelect.add(option);
         });
 
@@ -23,7 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Select first test by default
-        manager.selectTest(manager.getAvailableTests()[0].name);
+        if (manager.availableTests.length > 0) {
+            manager.selectTest(manager.availableTests[0].getName());
+        }
 
         // Set up control buttons
         document.getElementById('toggleTest')!.onclick = () => {
@@ -31,7 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         document.getElementById('toggleDebug')!.onclick = () => {
-            manager.debugOverlay.toggle();
+            if (manager.currentTest) {
+                manager.debugOverlay.toggle();
+            }
         };
 
         // Keyboard controls
@@ -39,7 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === ' ') {
                 manager.toggleCurrentTest();
             } else if (e.key === 'F3') {
-                manager.debugOverlay.toggle();
+                if (manager.currentTest) {
+                    manager.debugOverlay.toggle();
+                }
             }
         });
 

@@ -11,6 +11,17 @@ interface PerformanceMetrics {
     frameCount: number;
 }
 
+export interface MatrixDisplayConfig {
+    elementId: string;
+    cellSize: number;
+    worldWidth: number;
+    worldHeight: number;
+    viewportWidth: number;
+    viewportHeight: number;
+    defaultFont?: string;
+    customFont?: string;
+}
+
 export class MatrixDisplay {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private displayCtx: CanvasRenderingContext2D;
@@ -145,9 +156,27 @@ export class MatrixDisplay {
     }
 
     public setViewport(x: number, y: number) {
-        this.viewport.x = Math.max(0, Math.min(x, this.worldCanvas.width - this.viewport.width));
-        this.viewport.y = Math.max(0, Math.min(y, this.worldCanvas.height - this.viewport.height));
-        this.render(); // Full render needed when viewport changes
+        console.log(`Setting viewport to (${x},${y})`);
+        
+        // Store old position for dirty rect calculation
+        const oldX = this.viewport.x;
+        const oldY = this.viewport.y;
+        
+        // Update viewport position
+        this.viewport.x = Math.max(0, Math.min(x, this.worldCanvas.width / this.cellSize - this.viewport.width));
+        this.viewport.y = Math.max(0, Math.min(y, this.worldCanvas.height / this.cellSize - this.viewport.height));
+
+        // Mark all viewport cells as dirty since we need to redraw everything
+        for (let vy = 0; vy < this.viewport.height; vy++) {
+            for (let vx = 0; vx < this.viewport.width; vx++) {
+                const worldX = vx + this.viewport.x;
+                const worldY = vy + this.viewport.y;
+                this.dirtyRects.add(`${worldX},${worldY}`);
+            }
+        }
+
+        // Force immediate render since viewport changed
+        this.render();
     }
 
     private renderCell(x: number, y: number) {
@@ -225,7 +254,7 @@ export class MatrixDisplay {
             const [x, y] = key.split(',').map(Number);
             minX = Math.min(minX, x);
             minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x + 1); // +1 because we want the right/bottom edge
+            maxX = Math.max(maxX, x + 1);
             maxY = Math.max(maxY, y + 1);
         }
 
@@ -236,42 +265,30 @@ export class MatrixDisplay {
         }
         this.dirtyRects.clear();
 
-        // Convert world coordinates to viewport-relative coordinates
-        const viewMinX = Math.max(0, minX - this.viewport.x);
-        const viewMinY = Math.max(0, minY - this.viewport.y);
-        const viewMaxX = Math.min(this.viewport.width, maxX - this.viewport.x);
-        const viewMaxY = Math.min(this.viewport.height, maxY - this.viewport.y);
+        // Always copy the entire viewport region to the display
+        const srcX = this.viewport.x * this.cellSize;
+        const srcY = this.viewport.y * this.cellSize;
+        const srcWidth = this.viewport.width * this.cellSize;
+        const srcHeight = this.viewport.height * this.cellSize;
 
-        // If the dirty region is completely outside viewport, we're done
-        if (viewMaxX <= 0 || viewMaxY <= 0 || 
-            viewMinX >= this.viewport.width || viewMinY >= this.viewport.height) {
-            return;
-        }
+        // Clear the entire render buffer
+        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
-        // Calculate pixel coordinates and dimensions for the dirty region
-        const srcX = (Math.max(this.viewport.x, minX)) * this.cellSize;
-        const srcY = (Math.max(this.viewport.y, minY)) * this.cellSize;
-        const srcWidth = (viewMaxX - viewMinX) * this.cellSize;
-        const srcHeight = (viewMaxY - viewMinY) * this.cellSize;
-        const destX = viewMinX * this.cellSize;
-        const destY = viewMinY * this.cellSize;
-
-        // Clear only the affected region in the render buffer
-        this.renderCtx.clearRect(destX, destY, srcWidth, srcHeight);
-
-        // Copy only the dirty region from world buffer to render buffer
+        // Copy viewport region from world buffer to render buffer
         this.renderCtx.drawImage(
             this.worldCanvas,
             srcX, srcY, srcWidth, srcHeight,  // Source rectangle
-            destX, destY, srcWidth, srcHeight // Destination rectangle
+            0, 0, srcWidth, srcHeight         // Destination rectangle (starts at 0,0)
         );
 
-        // Copy only the affected region to the display canvas
-        this.displayCtx.clearRect(destX, destY, srcWidth, srcHeight);
+        // Clear the display canvas
+        this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
+
+        // Copy from render buffer to display canvas
         this.displayCtx.drawImage(
             this.renderCanvas,
-            destX, destY, srcWidth, srcHeight,  // Source rectangle
-            destX, destY, srcWidth, srcHeight   // Destination rectangle
+            0, 0, srcWidth, srcHeight,        // Source rectangle
+            0, 0, srcWidth, srcHeight         // Destination rectangle
         );
 
         this.updateMetrics(renderStart);
