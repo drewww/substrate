@@ -1,12 +1,37 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- <script type="module" src="src/game.ts"></script> -->
-        <style></style>
-
-        <title>matrix-display</title>
-    </head>
-    <body onload="" style="background-color: black; margin: 0px"></body>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Matrix Display Tests</title>
+    <style>
+        body {
+            background: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #display {
+            border: 1px solid #666;
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="display"></canvas>
+    <div class="controls">
+        <button id="toggleTest">Start/Stop Test</button>
+        <button id="toggleDebug">Toggle Debug Info</button>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+</body>
 </html>
