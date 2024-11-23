@@ -35,6 +35,9 @@ export class MatrixDisplay {
     private dirtyRects: Set<string>; // Store "x,y" strings for dirty cells
     private metrics: PerformanceMetrics;
 
+    private worldWidth: number;
+    private worldHeight: number;
+
     constructor(options: DisplayOptions) {
         console.log('Initializing MatrixDisplay with options:', options);
         
@@ -83,6 +86,9 @@ export class MatrixDisplay {
         // Initialize cells
         this.cells = this.initializeCells(options.worldWidth, options.worldHeight);
         this.dirtyRects = new Set();
+
+        this.worldWidth = options.worldWidth;
+        this.worldHeight = options.worldHeight;
 
         // Set up font
         this.setupFont(options.defaultFont, options.customFont);
@@ -157,11 +163,7 @@ export class MatrixDisplay {
 
     public setViewport(x: number, y: number) {
         console.log(`Setting viewport to (${x},${y})`);
-        
-        // Store old position for dirty rect calculation
-        const oldX = this.viewport.x;
-        const oldY = this.viewport.y;
-        
+                
         // Update viewport position
         this.viewport.x = Math.max(0, Math.min(x, this.worldCanvas.width / this.cellSize - this.viewport.width));
         this.viewport.y = Math.max(0, Math.min(y, this.worldCanvas.height / this.cellSize - this.viewport.height));
@@ -367,5 +369,12 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             }
         }
         this.render();
+    }
+
+    public getCell(x: number, y: number): Cell | null {
+        if (x >= 0 && x < this.worldWidth && y >= 0 && y < this.worldHeight) {
+            return this.cells[y][x];
+        }
+        return null;
     }
 } 
