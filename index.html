@@ -23,12 +23,20 @@
             background: rgba(0, 0, 0, 0.8);
             padding: 10px;
             border-radius: 5px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        select {
+            padding: 5px;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
     <canvas id="display"></canvas>
     <div class="controls">
+        <select id="testSelect"></select>
         <button id="toggleTest">Start/Stop Test</button>
         <button id="toggleDebug">Toggle Debug Info</button>
     </div>

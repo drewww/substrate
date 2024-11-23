@@ -288,4 +288,33 @@ Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.av
 Dirty Rects: ${this.metrics.dirtyRectCount}
 Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
     }
+
+    public clear() {
+        console.log('Clearing display');
+        
+        // Clear all cells back to default state
+        for (let y = 0; y < this.cells.length; y++) {
+            for (let x = 0; x < this.cells[y].length; x++) {
+                this.cells[y][x] = {
+                    overlay: '#00000000',
+                    tiles: [],
+                    background: {
+                        symbol: '.',
+                        fgColor: '#AAAAAAFF',
+                        bgColor: '#000000FF'
+                    },
+                    isDirty: true
+                };
+                this.dirtyRects.add(`${x},${y}`);
+            }
+        }
+
+        // Clear all canvases
+        this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
+        this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
+        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+
+        // Render the cleared state
+        this.render();
+    }
 } 

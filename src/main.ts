@@ -1,4 +1,4 @@
-import { TestRunner } from './tests/test-runner';
+import { TestManager } from './tests/test-manager';
 
 console.log('main.ts starting');
 
@@ -6,33 +6,40 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded');
     
     try {
-        const runner = new TestRunner();
-        console.log('TestRunner created');
+        const manager = new TestManager();
+        console.log('TestManager created');
 
-        const toggleTestButton = document.getElementById('toggleTest');
-        const toggleDebugButton = document.getElementById('toggleDebug');
+        // Set up test selector
+        const testSelect = document.getElementById('testSelect') as HTMLSelectElement;
+        manager.getAvailableTests().forEach(test => {
+            const option = document.createElement('option');
+            option.value = test.name;
+            option.text = `${test.name} - ${test.description}`;
+            testSelect.add(option);
+        });
 
-        if (!toggleTestButton || !toggleDebugButton) {
-            console.error('Could not find required buttons');
-            return;
-        }
+        testSelect.onchange = () => {
+            manager.selectTest(testSelect.value);
+        };
 
-        toggleTestButton.onclick = () => {
-            console.log('Toggle test button clicked');
-            runner.toggle();
+        // Select first test by default
+        manager.selectTest(manager.getAvailableTests()[0].name);
+
+        // Set up control buttons
+        document.getElementById('toggleTest')!.onclick = () => {
+            manager.toggleCurrentTest();
         };
         
-        toggleDebugButton.onclick = () => {
-            console.log('Toggle debug button clicked');
-            runner.debugOverlay.toggle();
+        document.getElementById('toggleDebug')!.onclick = () => {
+            manager.debugOverlay.toggle();
         };
 
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            console.log('Key pressed:', e.key);
             if (e.key === ' ') {
-                runner.toggle();
+                manager.toggleCurrentTest();
             } else if (e.key === 'F3') {
-                runner.debugOverlay.toggle();
+                manager.debugOverlay.toggle();
             }
         });
 
