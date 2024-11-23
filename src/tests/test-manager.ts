@@ -5,6 +5,7 @@ import { WipeTest } from './wipe-test';
 import { ScrollTest } from './scroll-test';
 import { RippleTest } from './ripple-test';
 import { LaserTest } from './laser-test';
+import { RainTest } from './rain-test';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;
@@ -20,7 +21,8 @@ export class TestManager {
             new WipeTest(),
             new LaserTest(),
             new RippleTest(),
-            new ScrollTest()
+            new ScrollTest(),
+            new RainTest()
         ];
 
         // Initialize debug overlay with first test's display
