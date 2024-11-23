@@ -112,8 +112,10 @@ export class MatrixDisplay {
 
     private setupFont(defaultFont?: string, customFont?: string) {
         const fontFamily = customFont || defaultFont || 'monospace';
-        this.displayCtx.font = `${this.cellSize}px ${fontFamily}`;
-        this.worldCtx.font = `${this.cellSize}px ${fontFamily}`;
+        // Use 80% of cell size for font to ensure containment
+        const fontSize = Math.floor(this.cellSize * 0.8);
+        this.displayCtx.font = `${fontSize}px ${fontFamily}`;
+        this.worldCtx.font = `${fontSize}px ${fontFamily}`;
         this.displayCtx.textAlign = 'center';
         this.displayCtx.textBaseline = 'middle';
         this.worldCtx.textAlign = 'center';
@@ -153,6 +155,17 @@ export class MatrixDisplay {
         const px = x * this.cellSize;
         const py = y * this.cellSize;
 
+        // Save context state
+        this.worldCtx.save();
+        
+        // Create clipping path for this cell
+        this.worldCtx.beginPath();
+        this.worldCtx.rect(px, py, this.cellSize, this.cellSize);
+        this.worldCtx.clip();
+
+        // Clear the cell area first
+        this.worldCtx.clearRect(px, py, this.cellSize, this.cellSize);
+
         // Compute final appearance
         let finalSymbol = cell.background.symbol;
         let finalFgColor = cell.background.fgColor;
@@ -183,6 +196,9 @@ export class MatrixDisplay {
             this.worldCtx.fillStyle = cell.overlay;
             this.worldCtx.fillRect(px, py, this.cellSize, this.cellSize);
         }
+
+        // Restore context (removes clipping)
+        this.worldCtx.restore();
 
         cell.isDirty = false;
     }
@@ -315,6 +331,24 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
         // Render the cleared state
+        this.render();
+    }
+
+    public setTiles(x: number, y: number, tiles: Tile[]) {
+        this.cells[y][x].tiles = tiles;
+        this.cells[y][x].isDirty = true;
+        this.dirtyRects.add(`${x},${y}`);
+    }
+
+    public clearOverlays() {
+        console.log('Clearing all overlays');
+        for (let y = 0; y < this.cells.length; y++) {
+            for (let x = 0; x < this.cells[y].length; x++) {
+                this.cells[y][x].overlay = '#00000000';
+                this.cells[y][x].isDirty = true;
+                this.dirtyRects.add(`${x},${y}`);
+            }
+        }
         this.render();
     }
 } 

@@ -23,6 +23,5 @@ export abstract class BaseTest {
         console.log(`Stopping test: ${this.getName()}`);
         this.isRunning = false;
         this.cleanup();
-        this.display.clear();
     }
 } 

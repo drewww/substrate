@@ -2,6 +2,10 @@ import { MatrixDisplay } from '../matrix-display';
 import { DebugOverlay } from '../debug-overlay';
 import { BaseTest } from './base-test';
 import { RandomScanTest } from './random-scan';
+import { WipeTest } from './wipe-test';
+import { ScrollTest } from './scroll-test';
+import { RippleTest } from './ripple-test';
+import { LaserTest } from './laser-test';
 
 export class TestManager {
     private display: MatrixDisplay;
@@ -24,7 +28,11 @@ export class TestManager {
         
         // Initialize available tests
         this.availableTests = [
-            new RandomScanTest(this.display)
+            new RandomScanTest(this.display),
+            new WipeTest(this.display),
+            new ScrollTest(this.display),
+            new RippleTest(this.display),
+            new LaserTest(this.display),
         ];
 
         console.log('TestManager initialization complete');
