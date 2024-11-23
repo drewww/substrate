@@ -4,6 +4,7 @@ export class DebugOverlay {
     private element: HTMLDivElement;
 
     constructor(display: MatrixDisplay) {
+        console.log('Initializing DebugOverlay');
         this.element = document.createElement('div');
         this.element.style.cssText = `
             position: fixed;
@@ -24,9 +25,11 @@ export class DebugOverlay {
         setInterval(() => {
             this.element.textContent = display.getDebugString();
         }, 100);
+        console.log('DebugOverlay initialization complete');
     }
 
     public toggle() {
+        console.log('Toggling debug overlay');
         this.element.style.display = 
             this.element.style.display === 'none' ? 'block' : 'none';
     }

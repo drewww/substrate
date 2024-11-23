@@ -25,9 +25,18 @@ export class MatrixDisplay {
     private metrics: PerformanceMetrics;
 
     constructor(options: DisplayOptions) {
+        console.log('Initializing MatrixDisplay with options:', options);
+        
         // Main display canvas
         this.displayCanvas = document.getElementById(options.elementId) as HTMLCanvasElement;
         this.displayCtx = this.displayCanvas.getContext('2d')!;
+
+        if (!this.displayCanvas) {
+            console.error('Failed to find canvas element with id:', options.elementId);
+            throw new Error('Canvas element not found');
+        }
+        
+        console.log('Found canvas element:', this.displayCanvas);
         
         // World buffer (stores the entire world state)
         this.worldCanvas = document.createElement('canvas');
@@ -77,6 +86,8 @@ export class MatrixDisplay {
             lastFpsUpdate: performance.now(),
             frameCount: 0
         };
+
+        console.log('MatrixDisplay initialization complete');
     }
 
     private initializeCells(width: number, height: number): Cell[][] {
@@ -110,6 +121,7 @@ export class MatrixDisplay {
     }
 
     public setTile(x: number, y: number, tile: Tile) {
+        console.log(`Setting tile at (${x},${y}):`, tile);
         const cell = this.cells[y][x];
         
         // Find the correct position to insert the tile based on z-index
@@ -176,6 +188,7 @@ export class MatrixDisplay {
     }
 
     public render() {
+        console.log(`Rendering frame. Dirty rects: ${this.dirtyRects.size}`);
         const renderStart = performance.now();
         this.metrics.totalRenderCalls++;
         this.metrics.frameCount++;

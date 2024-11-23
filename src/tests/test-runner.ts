@@ -10,16 +10,23 @@ export class TestRunner {
     private currentY: number = 0;
 
     constructor() {
-        this.display = new MatrixDisplay({
-            elementId: 'display',
-            cellSize: 12,
-            worldWidth: 50,
-            worldHeight: 50,
-            viewportWidth: 50,
-            viewportHeight: 50
-        });
-        
-        this.debugOverlay = new DebugOverlay(this.display);
+        console.log('Initializing TestRunner');
+        try {
+            this.display = new MatrixDisplay({
+                elementId: 'display',
+                cellSize: 12,
+                worldWidth: 50,
+                worldHeight: 50,
+                viewportWidth: 50,
+                viewportHeight: 50
+            });
+            
+            this.debugOverlay = new DebugOverlay(this.display);
+            console.log('TestRunner initialization complete');
+        } catch (error) {
+            console.error('Failed to initialize TestRunner:', error);
+            throw error;
+        }
     }
 
     private getRandomColor(): Color {
@@ -35,13 +42,14 @@ export class TestRunner {
     }
 
     private updateNextTile() {
-        const tile: Tile = {
+        const tile = {
             symbol: this.getRandomASCII(),
             fgColor: this.getRandomColor(),
             bgColor: this.getRandomColor(),
             zIndex: 1
         };
 
+        console.log(`Updating tile at (${this.currentX},${this.currentY}):`, tile);
         this.display.setTile(this.currentX, this.currentY, tile);
         
         // Move to next position
@@ -62,15 +70,18 @@ export class TestRunner {
     }
 
     public start() {
+        console.log('Starting test');
         this.isRunning = true;
         this.updateNextTile();
     }
 
     public stop() {
+        console.log('Stopping test');
         this.isRunning = false;
     }
 
     public toggle() {
+        console.log('Toggling test:', !this.isRunning);
         if (this.isRunning) {
             this.stop();
         } else {
