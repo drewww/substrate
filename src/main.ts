@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         document.getElementById('toggleDebug')!.onclick = () => {
-            if (manager.currentTest) {
+            if (manager.currentTest && manager.debugOverlay) {
                 manager.debugOverlay.toggle();
             }
         };
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === ' ') {
                 manager.toggleCurrentTest();
             } else if (e.key === 'F3') {
-                if (manager.currentTest) {
+                if (manager.currentTest && manager.debugOverlay) {
                     manager.debugOverlay.toggle();
                 }
             }

@@ -11,7 +11,7 @@ import { ZIndexTest } from './zindex-test';
 export class TestManager {
     public currentTest: BaseTest | null = null;
     public availableTests: BaseTest[];
-    public debugOverlay: DebugOverlay;
+    public debugOverlay: DebugOverlay | null = null;
 
     constructor() {
         console.log('Initializing TestManager');
@@ -39,10 +39,19 @@ export class TestManager {
             this.currentTest.stop();
         }
 
+        // Clean up old debug overlay
+        if (this.debugOverlay) {
+            console.log('Removing old debug overlay');
+            this.debugOverlay.remove();
+            const overlayElements = document.querySelectorAll('div[style*="position: fixed"]');
+            console.log(`Found ${overlayElements.length} overlay elements after remove`);
+            this.debugOverlay = null;
+        }
+
         // Find and set new test
         this.currentTest = this.availableTests.find(test => test.getName() === testName) || null;
         
-        // Update debug overlay to use new test's display
+        // Create new debug overlay
         if (this.currentTest) {
             this.debugOverlay = new DebugOverlay(this.currentTest.getDisplay());
         }

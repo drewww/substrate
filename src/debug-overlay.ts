@@ -33,4 +33,8 @@ export class DebugOverlay {
         this.element.style.display = 
             this.element.style.display === 'none' ? 'block' : 'none';
     }
+
+    public remove(): void {
+        this.element.remove();
+    }
 } 
