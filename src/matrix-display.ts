@@ -226,8 +226,6 @@ export class MatrixDisplay {
 
     private renderCell(x: number, y: number): void {
         const cell = this.cells[y][x];
-        
-        // Calculate pixel coordinates
         const pixelX = x * this.cellSize;
         const pixelY = y * this.cellSize;
         
@@ -239,10 +237,8 @@ export class MatrixDisplay {
         this.worldCtx.rect(pixelX, pixelY, this.cellSize, this.cellSize);
         this.worldCtx.clip();
         
-        // Clear the cell area
+        // Clear and draw background
         this.worldCtx.clearRect(pixelX, pixelY, this.cellSize, this.cellSize);
-        
-        // Draw background if specified
         if (cell.background) {
             this.worldCtx.fillStyle = cell.background.bgColor;
             this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
@@ -250,37 +246,35 @@ export class MatrixDisplay {
         
         // Draw tiles in order
         cell.tiles.forEach(tile => {
-            // Draw background if specified
             if (tile.bgColor) {
                 this.worldCtx.fillStyle = tile.bgColor;
                 this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
             }
             
-            // Draw symbol if specified
             if (tile.symbol && tile.fgColor) {
                 this.worldCtx.fillStyle = tile.fgColor;
-                // Use a slightly smaller font size to ensure characters fit
                 const fontSize = Math.floor(this.cellSize * 0.8);
                 this.worldCtx.font = `${fontSize}px monospace`;
+                
+                // Use bottom alignment with minimal padding
                 this.worldCtx.textAlign = 'center';
-                this.worldCtx.textBaseline = 'middle';
-                // Add padding at top and bottom for even distribution
-                const verticalPadding = (this.cellSize - fontSize) / 2;
+                this.worldCtx.textBaseline = 'bottom';
+                
+                const bottomPadding = Math.floor(this.cellSize * 0.05); // Reduced to 5% of cell height
                 this.worldCtx.fillText(
                     tile.symbol,
                     pixelX + (this.cellSize / 2),
-                    pixelY + verticalPadding + (fontSize / 2)
+                    pixelY + this.cellSize - bottomPadding
                 );
             }
         });
         
-        // Draw overlay if specified
+        // Draw overlay
         if (cell.overlay && cell.overlay !== '#00000000') {
             this.worldCtx.fillStyle = cell.overlay;
             this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
         }
         
-        // Restore context state (removes clipping)
         this.worldCtx.restore();
     }
 
