@@ -1,5 +1,4 @@
 import { BaseTest } from './base-test';
-import { Color } from '../types';
 
 interface Ripple {
     centerX: number;

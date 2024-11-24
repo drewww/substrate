@@ -10,7 +10,6 @@ export class ScrollTest extends BaseTest {
     private currentPos: Point = { x: 0, y: 0 };
     private targetPos: Point = { x: 0, y: 0 };
     private readonly WORLD_SIZE = 100;
-    private readonly MIN_DISTANCE = 10;
     private readonly MOVE_SPEED = 1;
     
     constructor() {
