@@ -1,5 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, Tile } from '../types';
+import { Tile } from '../types';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;

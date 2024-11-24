@@ -259,13 +259,17 @@ export class MatrixDisplay {
             // Draw symbol if specified
             if (tile.symbol && tile.fgColor) {
                 this.worldCtx.fillStyle = tile.fgColor;
-                this.worldCtx.font = `${this.cellSize}px monospace`;
+                // Use a slightly smaller font size to ensure characters fit
+                const fontSize = Math.floor(this.cellSize * 0.8);
+                this.worldCtx.font = `${fontSize}px monospace`;
                 this.worldCtx.textAlign = 'center';
                 this.worldCtx.textBaseline = 'middle';
+                // Add padding at top and bottom for even distribution
+                const verticalPadding = (this.cellSize - fontSize) / 2;
                 this.worldCtx.fillText(
                     tile.symbol,
                     pixelX + (this.cellSize / 2),
-                    pixelY + (this.cellSize / 2)
+                    pixelY + verticalPadding + (fontSize / 2)
                 );
             }
         });
