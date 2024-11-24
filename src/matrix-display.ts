@@ -127,6 +127,7 @@ export class MatrixDisplay {
         // Set up font
         this.setupFont(options.defaultFont, options.customFont);
 
+        // Initialize metrics with safe default values
         this.metrics = {
             lastRenderTime: 0,
             averageRenderTime: 0,
@@ -335,17 +336,27 @@ export class MatrixDisplay {
     }
 
     private updateMetrics(renderStart: number) {
-        // Update render time metrics
         const renderTime = performance.now() - renderStart;
         this.metrics.lastRenderTime = renderTime;
-        this.metrics.averageRenderTime = (this.metrics.averageRenderTime * 
-            (this.metrics.totalRenderCalls - 1) + renderTime) / this.metrics.totalRenderCalls;
+        
+        // Update average render time
+        if (this.metrics.totalRenderCalls === 0) {
+            this.metrics.averageRenderTime = renderTime;
+        } else {
+            this.metrics.averageRenderTime = (
+                (this.metrics.averageRenderTime * this.metrics.totalRenderCalls + renderTime) / 
+                (this.metrics.totalRenderCalls + 1)
+            );
+        }
+        
+        this.metrics.totalRenderCalls++;
+        this.metrics.frameCount++;
 
         // Update FPS every second
         const now = performance.now();
-        const elapsed = now - this.metrics.lastFpsUpdate;
-        if (elapsed >= 1000) {
-            this.metrics.fps = (this.metrics.frameCount / elapsed) * 1000;
+        const timeSinceLastUpdate = now - this.metrics.lastFpsUpdate;
+        if (timeSinceLastUpdate >= 1000) {
+            this.metrics.fps = (this.metrics.frameCount / timeSinceLastUpdate) * 1000;
             this.metrics.frameCount = 0;
             this.metrics.lastFpsUpdate = now;
         }
