@@ -3,7 +3,7 @@ import { Color, Tile } from '../types';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;
-    private readonly WIPE_SPEED = 1;
+    private readonly WIPE_SPEED = 1.0;
     private isWiping: boolean = false;
 
     constructor() {
@@ -62,7 +62,7 @@ export class WipeTest extends BaseTest {
 
         // Apply black overlay to current column
         for (let y = 0; y < height; y++) {
-            this.display.setOverlay(this.currentX, y, '#00000080');
+            this.display.setOverlay(this.currentX, y, '#000000AA');
         }
 
         // Move to next column
