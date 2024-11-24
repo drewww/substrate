@@ -45,25 +45,44 @@ export class MatrixDisplay {
         // Calculate DPI scale first
         this.scale = window.devicePixelRatio || 1;
         
+        // Initialize dimensions
+        this.worldWidth = options.worldWidth;
+        this.worldHeight = options.worldHeight;
+        this.cellSize = options.cellSize;
+        
         // Main display canvas
         this.displayCanvas = document.getElementById(options.elementId) as HTMLCanvasElement;
-        this.displayCtx = this.displayCanvas.getContext('2d')!;
-
         if (!this.displayCanvas) {
-            console.error('Failed to find canvas element with id:', options.elementId);
-            throw new Error('Canvas element not found');
+            throw new Error(`Canvas element not found: ${options.elementId}`);
         }
+
+        // Get display context first
+        this.displayCtx = this.displayCanvas.getContext('2d')!;
         
-        console.log('Found canvas element:', this.displayCanvas);
-        
-        // World buffer (stores the entire world state)
+        // Create buffer canvases and contexts
         this.worldCanvas = document.createElement('canvas');
         this.worldCtx = this.worldCanvas.getContext('2d')!;
         
-        // Render buffer (for compositing updates before display)
         this.renderCanvas = document.createElement('canvas');
         this.renderCtx = this.renderCanvas.getContext('2d')!;
-        
+
+        // Calculate pixel dimensions
+        const displayWidth = options.viewportWidth * options.cellSize;
+        const displayHeight = options.viewportHeight * options.cellSize;
+
+        // Set both CSS and canvas dimensions for all canvases
+        [this.displayCanvas, this.worldCanvas, this.renderCanvas].forEach(canvas => {
+            canvas.style.width = `${displayWidth}px`;
+            canvas.style.height = `${displayHeight}px`;
+            canvas.width = displayWidth * this.scale;
+            canvas.height = displayHeight * this.scale;
+        });
+
+        // Scale all contexts for DPI
+        [this.displayCtx, this.worldCtx, this.renderCtx].forEach(ctx => {
+            ctx.scale(this.scale, this.scale);
+        });
+
         // Set dimensions
         this.cellSize = options.cellSize * this.scale;
         
@@ -204,66 +223,68 @@ export class MatrixDisplay {
         this.render();
     }
 
-    private renderCell(x: number, y: number) {
+    private renderCell(x: number, y: number): void {
         const cell = this.cells[y][x];
-        const px = x * this.cellSize;
-        const py = y * this.cellSize;
-
+        
+        // Calculate pixel coordinates
+        const pixelX = x * this.cellSize;
+        const pixelY = y * this.cellSize;
+        
         // Save context state
         this.worldCtx.save();
         
         // Create clipping path for this cell
         this.worldCtx.beginPath();
-        this.worldCtx.rect(px, py, this.cellSize, this.cellSize);
+        this.worldCtx.rect(pixelX, pixelY, this.cellSize, this.cellSize);
         this.worldCtx.clip();
-
-        // Clear the cell area first
-        this.worldCtx.clearRect(px, py, this.cellSize, this.cellSize);
-
-        // Compute final appearance
-        let finalSymbol = cell.background.symbol;
-        let finalFgColor = cell.background.fgColor;
-        let finalBgColor = cell.background.bgColor;
-
-        // Apply tiles in z-order
-        for (const tile of cell.tiles) {
-            if (tile.symbol) finalSymbol = tile.symbol;
-            if (tile.fgColor) finalFgColor = tile.fgColor;
-            if (tile.bgColor) finalBgColor = tile.bgColor;
+        
+        // Clear the cell area
+        this.worldCtx.clearRect(pixelX, pixelY, this.cellSize, this.cellSize);
+        
+        // Draw background if specified
+        if (cell.background) {
+            this.worldCtx.fillStyle = cell.background.bgColor;
+            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
         }
-
-        // Draw to world buffer
-        this.worldCtx.fillStyle = finalBgColor;
-        this.worldCtx.fillRect(px, py, this.cellSize, this.cellSize);
-
-        if (this.cellSize >= 10) {
-            this.worldCtx.fillStyle = finalFgColor;
-            this.worldCtx.fillText(
-                finalSymbol,
-                px + this.cellSize / 2,
-                py + this.cellSize / 2
-            );
-        }
-
-        // Apply overlay
-        if (cell.overlay !== '#00000000') {
+        
+        // Draw tiles in order
+        cell.tiles.forEach(tile => {
+            // Draw background if specified
+            if (tile.bgColor) {
+                this.worldCtx.fillStyle = tile.bgColor;
+                this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
+            }
+            
+            // Draw symbol if specified
+            if (tile.symbol && tile.fgColor) {
+                this.worldCtx.fillStyle = tile.fgColor;
+                this.worldCtx.font = `${this.cellSize}px monospace`;
+                this.worldCtx.textAlign = 'center';
+                this.worldCtx.textBaseline = 'middle';
+                this.worldCtx.fillText(
+                    tile.symbol,
+                    pixelX + (this.cellSize / 2),
+                    pixelY + (this.cellSize / 2)
+                );
+            }
+        });
+        
+        // Draw overlay if specified
+        if (cell.overlay && cell.overlay !== '#00000000') {
             this.worldCtx.fillStyle = cell.overlay;
-            this.worldCtx.fillRect(px, py, this.cellSize, this.cellSize);
+            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
         }
-
-        // Restore context (removes clipping)
+        
+        // Restore context state (removes clipping)
         this.worldCtx.restore();
-
-        cell.isDirty = false;
     }
 
-    public render() {
-        console.log(`Rendering frame. Dirty rects: ${this.dirtyRects.size}`);
+    public render(): void {
         const renderStart = performance.now();
-        this.metrics.totalRenderCalls++;
-        this.metrics.frameCount++;
-        
+        console.log('Starting render, dirty rects:', this.dirtyRects.size);
+
         if (this.dirtyRects.size === 0) {
+            console.log('No dirty rects, skipping render');
             this.updateMetrics(renderStart);
             return;
         }
@@ -283,36 +304,30 @@ export class MatrixDisplay {
             maxY = Math.max(maxY, y + 1);
         }
 
+        console.log(`Dirty rect bounds: (${minX},${minY}) to (${maxX},${maxY})`);
+
         // Render dirty cells to world buffer
         for (const key of this.dirtyRects) {
             const [x, y] = key.split(',').map(Number);
             this.renderCell(x, y);
         }
+        console.log('Rendered dirty cells');
         this.dirtyRects.clear();
 
-        // Always copy the entire viewport region to the display
+        // Copy to display
+        console.log('Copying to display canvas');
         const srcX = this.viewport.x * this.cellSize;
         const srcY = this.viewport.y * this.cellSize;
         const srcWidth = this.viewport.width * this.cellSize;
         const srcHeight = this.viewport.height * this.cellSize;
 
-        // Clear the entire render buffer
-        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
-
-        // Copy viewport region from world buffer to render buffer
-        this.renderCtx.drawImage(
-            this.worldCanvas,
-            srcX, srcY, srcWidth, srcHeight,  // Source rectangle
-            0, 0, srcWidth, srcHeight         // Destination rectangle (starts at 0,0)
-        );
-
         // Clear the display canvas
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
 
-        // Copy from render buffer to display canvas
+        // Copy from world buffer to display canvas
         this.displayCtx.drawImage(
-            this.renderCanvas,
-            0, 0, srcWidth, srcHeight,        // Source rectangle
+            this.worldCanvas,
+            srcX, srcY, srcWidth, srcHeight,  // Source rectangle
             0, 0, srcWidth, srcHeight         // Destination rectangle
         );
 

@@ -12,29 +12,46 @@
             align-items: center;
             min-height: 100vh;
         }
-        #display {
-            border: 1px solid #666;
+        #display-container {
+            position: relative;
+            width: 1440px;
+            height: 600px;
+            margin: auto;
+        }
+        #display-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
         }
         .controls {
             position: fixed;
             bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 20px;
             background: rgba(0, 0, 0, 0.8);
             padding: 10px;
             border-radius: 5px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+            color: white;
+            z-index: 1000;
         }
         select {
             padding: 5px;
             border-radius: 3px;
+            margin-right: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <canvas id="display"></canvas>
+    <div id="display-container">
+        <canvas id="display"></canvas>
+    </div>
     <div class="controls">
         <select id="testSelect"></select>
         <button id="toggleTest">Start/Stop Test</button>

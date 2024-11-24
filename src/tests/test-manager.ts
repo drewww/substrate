@@ -26,9 +26,6 @@ export class TestManager {
             new RainTest(),
             new ZIndexTest()
         ];
-
-        // Initialize debug overlay with first test's display
-        this.debugOverlay = new DebugOverlay(this.availableTests[0].getDisplay());
     }
 
     public selectTest(testName: string) {
@@ -43,16 +40,16 @@ export class TestManager {
         if (this.debugOverlay) {
             console.log('Removing old debug overlay');
             this.debugOverlay.remove();
-            const overlayElements = document.querySelectorAll('div[style*="position: fixed"]');
-            console.log(`Found ${overlayElements.length} overlay elements after remove`);
             this.debugOverlay = null;
         }
 
         // Find and set new test
         this.currentTest = this.availableTests.find(test => test.getName() === testName) || null;
         
-        // Create new debug overlay
+        // Start the test (which will create its display)
         if (this.currentTest) {
+            this.currentTest.start();
+            // Create new debug overlay after display is created
             this.debugOverlay = new DebugOverlay(this.currentTest.getDisplay());
         }
     }
@@ -69,4 +66,4 @@ export class TestManager {
             this.currentTest.start();
         }
     }
-} 
+}

@@ -5,6 +5,16 @@ export class RandomScanTest extends BaseTest {
     private currentX: number = 0;
     private currentY: number = 0;
 
+    constructor() {
+        super({
+            worldWidth: 60,
+            worldHeight: 25,
+            viewportWidth: 60,
+            viewportHeight: 25,
+            cellSize: 24
+        });
+    }
+
     getName(): string {
         return "random-scan";
     }
@@ -36,7 +46,8 @@ export class RandomScanTest extends BaseTest {
 
         this.display.setTile(this.currentX, this.currentY, tile);
         
-        this.currentX = Math.floor(Math.random() * 25);
+        // Use the full world width (60) for random positions
+        this.currentX = Math.floor(Math.random() * 60);
         this.currentY = Math.floor(Math.random() * 25);
 
         this.display.render();
