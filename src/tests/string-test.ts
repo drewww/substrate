@@ -5,7 +5,8 @@ export class StringTest extends BaseTest {
     private activeStrings: Array<{
         groupId: string,
         text: string,
-        color: Color
+        color: Color,
+        zIndex: number
     }> = [];
 
     constructor() {
@@ -31,16 +32,23 @@ export class StringTest extends BaseTest {
         this.display.setBackground('.', '#AAAAAAFF', '#222222FF');
 
         const strings = [
-            { text: "Hello, Matrix Display!", color: '#FF0000FF' },
-            { text: "Lorem ipsum dolor sit amet", color: '#00FF00FF' },
-            { text: "This is a very long string", color: '#0088FFFF' },
-            { text: "Short text", color: '#FFFF00FF' },
-            { text: "Another string here", color: '#FF00FFFF' }
+            { text: "Hello, Matrix Display!", color: '#FF0000FF', zIndex: 5 },
+            { text: "Lorem ipsum dolor sit amet", color: '#00FF00FF', zIndex: 4 },
+            { text: "This is a very long string", color: '#0088FFFF', zIndex: 3 },
+            { text: "Short text", color: '#FFFF00FF', zIndex: 2 },
+            { text: "Another string here", color: '#FF00FFFF', zIndex: 1 }
         ];
 
         // Add initial strings
         strings.forEach((str, index) => {
-            const groupId = this.display.renderString(2, index * 3 + 2, str.text, str.color, "#000000FF");
+            const groupId = this.display.renderString(
+                2, 
+                index * 3 + 2, 
+                str.text, 
+                str.color, 
+                "#000000FF",
+                str.zIndex
+            );
             this.activeStrings.push({ groupId, ...str });
         });
 

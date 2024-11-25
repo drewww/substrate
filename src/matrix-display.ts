@@ -459,7 +459,14 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         return Math.random().toString(36).substring(2, 15);
     }
 
-    public renderString(x: number, y: number, text: string, fgColor: Color | null = '#FFFFFFFF', bgColor: Color | null = '#000000FF'): string {
+    public renderString(
+        x: number, 
+        y: number, 
+        text: string, 
+        fgColor: Color | null = '#FFFFFFFF', 
+        bgColor: Color | null = '#000000FF',
+        zIndex: number = 1
+    ): string {
         const groupId = this.generateGroupId();
         const positions: Array<{x: number, y: number}> = [];
         
@@ -468,13 +475,12 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         chars.forEach((char, index) => {
             const worldX = x + index;
             
-            // Check both X and Y bounds for array access
             if (worldX >= 0 && worldX < this.worldWidth && y >= 0 && y < this.worldHeight) {
                 const tile: Tile = {
                     symbol: char,
                     fgColor,
                     bgColor,
-                    zIndex: 1,
+                    zIndex,
                     groupId
                 };
                 
@@ -511,7 +517,10 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
     public moveTileGroup(groupId: string, newX: number, newY: number): void {
         const group = this.tileGroups.get(groupId);
-        if (!group) return;
+        if (!group) {
+            console.warn(`Tile group not found: ${groupId}`);
+            return;
+        }
 
         // Get all tiles from the group
         const tiles: Array<{tile: Tile, originalX: number}> = [];

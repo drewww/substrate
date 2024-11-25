@@ -6,6 +6,7 @@ interface Entity {
     y: number;
     dx: number;
     dy: number;
+    groupId: string;
 }
 
 export class ZIndexTest extends BaseTest {
@@ -34,26 +35,18 @@ export class ZIndexTest extends BaseTest {
     }
 
     private getNearlyBlack(): Color {
-        // Generate a very dark color
-        const value = Math.floor(Math.random() * 32); // 0-31 for dark colors
+        const value = Math.floor(Math.random() * 32);
         return `#${value.toString(16).padStart(2, '0')}${value.toString(16).padStart(2, '0')}${value.toString(16).padStart(2, '0')}FF`;
     }
 
     private initializeBackground() {
+        this.display.setBackground('.', '#666666FF', '#000000FF');
+
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
         
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                // Background tile with no symbol
-                const bgTile: Tile = {
-                    symbol: '',
-                    fgColor: null,
-                    bgColor: '#000000FF',
-                    zIndex: 0
-                };
-
-                // Noise tile with symbol
                 const noiseTile: Tile = {
                     symbol: this.BACKGROUND_SYMBOLS[Math.floor(Math.random() * this.BACKGROUND_SYMBOLS.length)],
                     fgColor: '#FFFFFFFF',
@@ -61,7 +54,7 @@ export class ZIndexTest extends BaseTest {
                     zIndex: 1
                 };
 
-                this.display.setTiles(x, y, [bgTile, noiseTile]);
+                this.display.setTile(x, y, noiseTile);
             }
         }
     }
@@ -72,11 +65,17 @@ export class ZIndexTest extends BaseTest {
         
         this.entities = [];
         for (let i = 0; i < this.ENTITY_COUNT; i++) {
+            const x = Math.floor(Math.random() * width);
+            const y = Math.floor(Math.random() * height);
+            
+            const groupId = this.display.renderString(x, y, '@', '#FFFF00FF', null, 2);
+            
             this.entities.push({
-                x: Math.floor(Math.random() * width),
-                y: Math.floor(Math.random() * height),
+                x,
+                y,
                 dx: 0,
-                dy: 0
+                dy: 0,
+                groupId
             });
         }
     }
@@ -92,41 +91,17 @@ export class ZIndexTest extends BaseTest {
         if (this.frameCount >= this.FRAMES_PER_MOVE) {
             this.frameCount = 0;
 
-            // Clear previous entity positions
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const cell = this.display.getCell(x, y);
-                    if (cell) {
-                        const backgroundTiles = cell.tiles.filter(t => t.zIndex < 2);
-                        this.display.setTiles(x, y, backgroundTiles);
-                    }
-                }
-            }
-
-            // Update and render entities
             this.entities.forEach(entity => {
                 entity.dx = Math.floor(Math.random() * 3) - 1;
                 entity.dy = Math.floor(Math.random() * 3) - 1;
 
-                // Update position with new bounds
                 entity.x = (entity.x + entity.dx + width) % width;
                 entity.y = (entity.y + entity.dy + height) % height;
 
-                const cell = this.display.getCell(entity.x, entity.y);
-                const existingTiles = cell ? cell.tiles : [];
-
-                const entityTile: Tile = {
-                    symbol: '@',
-                    fgColor: '#FFFF00FF',
-                    bgColor: null,
-                    zIndex: 2
-                };
-
-                this.display.setTiles(entity.x, entity.y, [...existingTiles, entityTile]);
+                this.display.moveTileGroup(entity.groupId, entity.x, entity.y);
             });
         }
 
-        this.display.render();
         requestAnimationFrame(() => this.updateEntities());
     }
 
@@ -138,6 +113,9 @@ export class ZIndexTest extends BaseTest {
     }
 
     protected cleanup(): void {
+        this.entities.forEach(entity => {
+            this.display.removeTileGroup(entity.groupId);
+        });
         this.entities = [];
     }
 } 

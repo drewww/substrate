@@ -12,5 +12,5 @@ Display
     - consider something for smoke dissipating?
  - Add string rendering
     - consider different sizing? for not following the cell grid at all??
-    
+
 
