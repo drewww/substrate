@@ -1,10 +1,11 @@
 import { BaseTest } from './base-test';
-import { Tile } from '../types';
+import { Color, TileId } from '../types';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;
     private readonly WIPE_SPEED = 1.0;
     private isWiping: boolean = false;
+    private tileIds: TileId[] = [];  // Track created tiles for cleanup
 
     constructor() {
         super({
@@ -28,7 +29,7 @@ export class WipeTest extends BaseTest {
         return String.fromCharCode(33 + Math.floor(Math.random() * 94));
     }
 
-    private getRandomColor(): string {
+    private getRandomColor(): Color {
         const r = Math.floor(Math.random() * 256);
         const g = Math.floor(Math.random() * 256);
         const b = Math.floor(Math.random() * 256);
@@ -39,19 +40,20 @@ export class WipeTest extends BaseTest {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
 
-        // Set random background tiles
+        // Create random background tiles
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                const tile: Tile = {
-                    symbol: this.getRandomASCII(),
-                    fgColor: this.getRandomColor(),
-                    bgColor: this.getRandomColor(),
-                    zIndex: 1
-                };
-                this.display.setTiles(x, y, [tile]);
+                const tileId = this.display.createTile(
+                    x,
+                    y,
+                    this.getRandomASCII(),
+                    this.getRandomColor(),
+                    this.getRandomColor(),
+                    1
+                );
+                this.tileIds.push(tileId);
             }
         }
-        this.display.render();
     }
 
     private updateWipe() {
@@ -71,11 +73,9 @@ export class WipeTest extends BaseTest {
         // Check if wipe is complete after setting the overlay
         if (this.currentX >= width) {
             this.isWiping = false;
-            this.display.render();
             return;
         }
 
-        this.display.render();
         requestAnimationFrame(() => this.updateWipe());
     }
 
@@ -88,7 +88,12 @@ export class WipeTest extends BaseTest {
     }
 
     protected cleanup(): void {
+        // Remove all created tiles
+        this.tileIds.forEach(id => this.display.removeTile(id));
+        this.tileIds = [];
+        
         this.currentX = 0;
         this.isWiping = false;
+        this.display.clearOverlays();
     }
 } 

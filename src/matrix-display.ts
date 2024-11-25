@@ -40,6 +40,7 @@ export class MatrixDisplay {
     private readonly scale: number;
     private tileMap: Map<TileId, Tile> = new Map();
     private tileIdCounter: number = 0;
+    private autoRender: boolean = true;
 
     constructor(options: DisplayOptions) {
         console.log('Initializing MatrixDisplay with options:', options);
@@ -191,6 +192,7 @@ export class MatrixDisplay {
         
         this.tileMap.set(id, tile);
         this.setTileInCell(tile);
+        this.renderIfAuto();
         
         return id;
     }
@@ -211,7 +213,7 @@ export class MatrixDisplay {
 
         // Add to new position
         this.setTileInCell(tile);
-        this.render();
+        this.renderIfAuto();
     }
 
     public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
@@ -237,7 +239,7 @@ export class MatrixDisplay {
             const cell = this.cells[tile.y][tile.x];
             cell.isDirty = true;
             this.dirtyRects.add(`${tile.x},${tile.y}`);
-            this.render();
+            this.renderIfAuto();
         }
     }
 
@@ -257,7 +259,7 @@ export class MatrixDisplay {
 
         // Remove from tile map
         this.tileMap.delete(tileId);
-        this.render();
+        this.renderIfAuto();
     }
 
     public removeTiles(tileIds: TileId[]): void {
@@ -292,6 +294,7 @@ export class MatrixDisplay {
         this.cells[y][x].overlay = color;
         this.cells[y][x].isDirty = true;
         this.dirtyRects.add(`${x},${y}`);
+        this.renderIfAuto();
     }
 
     public setViewport(x: number, y: number) {
@@ -311,7 +314,7 @@ export class MatrixDisplay {
         }
 
         // Force immediate render since viewport changed
-        this.render();
+        this.renderIfAuto();
     }
 
     private renderCell(x: number, y: number): void {
@@ -497,7 +500,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
         // Render the cleared state
-        this.render();
+        this.renderIfAuto();
     }
 
     public setTiles(x: number, y: number, tiles: Tile[]) {
@@ -515,7 +518,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 this.dirtyRects.add(`${x},${y}`);
             }
         }
-        this.render();
+        this.renderIfAuto();
     }
 
     public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {
@@ -531,7 +534,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 this.dirtyRects.add(`${x},${y}`);
             }
         }
-        this.render();
+        this.renderIfAuto();
     }
 
     public getWorldWidth(): number {
@@ -559,5 +562,15 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
     public getTile(tileId: TileId): Tile | undefined {
         return this.tileMap.get(tileId);
+    }
+
+    public setAutoRender(enabled: boolean): void {
+        this.autoRender = enabled;
+    }
+
+    private renderIfAuto(): void {
+        if (this.autoRender) {
+            this.render();
+        }
     }
 } 

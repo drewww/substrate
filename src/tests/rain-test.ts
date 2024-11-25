@@ -1,5 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../types';
+import { TileId } from '../types';
 
 interface Raindrop {
     tileId: TileId;

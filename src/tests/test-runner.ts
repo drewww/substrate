@@ -1,6 +1,6 @@
 import { MatrixDisplay } from '../matrix-display';
 import { DebugOverlay } from '../debug-overlay';
-import { Color, Tile } from '../types';
+import { Color } from '../types';
 
 export class TestRunner {
     private display: MatrixDisplay;
@@ -42,15 +42,16 @@ export class TestRunner {
     }
 
     private updateNextTile() {
-        const tile = {
-            symbol: this.getRandomASCII(),
-            fgColor: this.getRandomColor(),
-            bgColor: this.getRandomColor(),
-            zIndex: 1
-        };
-
-        console.log(`Updating tile at (${this.currentX},${this.currentY}):`, tile);
-        this.display.setTile(this.currentX, this.currentY, tile);
+        const tileId = this.display.createTile(
+            this.currentX,
+            this.currentY,
+            this.getRandomASCII(),
+            this.getRandomColor(),
+            this.getRandomColor(),
+            1
+        );
+        
+        console.log(`Created tile at (${this.currentX},${this.currentY}):`, tileId);
         
         // Move to next position
         this.currentX++;
@@ -61,8 +62,6 @@ export class TestRunner {
                 this.currentY = 0;
             }
         }
-
-        this.display.render();
 
         if (this.isRunning) {
             requestAnimationFrame(() => this.updateNextTile());
