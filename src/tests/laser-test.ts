@@ -1,5 +1,4 @@
 import { BaseTest } from './base-test';
-import { Color } from '../types';
 
 interface LaserBeam {
     points: Array<{x: number, y: number}>;

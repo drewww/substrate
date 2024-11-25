@@ -7,6 +7,7 @@ import { RippleTest } from './ripple-test';
 import { LaserTest } from './laser-test';
 import { RainTest } from './rain-test';
 import { ZIndexTest } from './zindex-test';
+import { StringTest } from './string-test';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;
@@ -24,7 +25,8 @@ export class TestManager {
             new RippleTest(),
             new ScrollTest(),
             new RainTest(),
-            new ZIndexTest()
+            new ZIndexTest(),
+            new StringTest()
         ];
     }
 

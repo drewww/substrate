@@ -1,4 +1,4 @@
-import { Cell, Color, DisplayOptions, Tile, Viewport } from './types';
+import { Cell, Color, DisplayOptions, Tile, Viewport, TileGroup } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -38,6 +38,7 @@ export class MatrixDisplay {
     private worldWidth: number;
     private worldHeight: number;
     private readonly scale: number;
+    private tileGroups: Map<string, TileGroup> = new Map();
 
     constructor(options: DisplayOptions) {
         console.log('Initializing MatrixDisplay with options:', options);
@@ -229,22 +230,36 @@ export class MatrixDisplay {
         const pixelX = x * this.cellSize;
         const pixelY = y * this.cellSize;
         
-        // Save context state
         this.worldCtx.save();
         
-        // Create clipping path for this cell
+        // Create clipping path
         this.worldCtx.beginPath();
         this.worldCtx.rect(pixelX, pixelY, this.cellSize, this.cellSize);
         this.worldCtx.clip();
         
-        // Clear and draw background
+        // Clear and draw the cell's background first
         this.worldCtx.clearRect(pixelX, pixelY, this.cellSize, this.cellSize);
         if (cell.background) {
+            // Draw background color
             this.worldCtx.fillStyle = cell.background.bgColor;
             this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
+            
+            // Draw background symbol if it exists
+            if (cell.background.symbol && cell.background.fgColor) {
+                this.worldCtx.fillStyle = cell.background.fgColor;
+                this.worldCtx.font = `${Math.floor(this.cellSize * 0.8)}px monospace`;
+                this.worldCtx.textAlign = 'center';
+                this.worldCtx.textBaseline = 'bottom';
+                const bottomPadding = Math.floor(this.cellSize * 0.05);
+                this.worldCtx.fillText(
+                    cell.background.symbol,
+                    pixelX + (this.cellSize / 2),
+                    pixelY + this.cellSize - bottomPadding
+                );
+            }
         }
         
-        // Draw tiles in order
+        // Then draw tiles
         cell.tiles.forEach(tile => {
             if (tile.bgColor) {
                 this.worldCtx.fillStyle = tile.bgColor;
@@ -253,14 +268,10 @@ export class MatrixDisplay {
             
             if (tile.symbol && tile.fgColor) {
                 this.worldCtx.fillStyle = tile.fgColor;
-                const fontSize = Math.floor(this.cellSize * 0.8);
-                this.worldCtx.font = `${fontSize}px monospace`;
-                
-                // Use bottom alignment with minimal padding
+                this.worldCtx.font = `${Math.floor(this.cellSize * 0.8)}px monospace`;
                 this.worldCtx.textAlign = 'center';
                 this.worldCtx.textBaseline = 'bottom';
-                
-                const bottomPadding = Math.floor(this.cellSize * 0.05); // Reduced to 5% of cell height
+                const bottomPadding = Math.floor(this.cellSize * 0.05);
                 this.worldCtx.fillText(
                     tile.symbol,
                     pixelX + (this.cellSize / 2),
@@ -268,12 +279,6 @@ export class MatrixDisplay {
                 );
             }
         });
-        
-        // Draw overlay
-        if (cell.overlay && cell.overlay !== '#00000000') {
-            this.worldCtx.fillStyle = cell.overlay;
-            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
-        }
         
         this.worldCtx.restore();
     }
@@ -418,11 +423,20 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         this.render();
     }
 
-    public getCell(x: number, y: number): Cell | null {
-        if (x >= 0 && x < this.worldWidth && y >= 0 && y < this.worldHeight) {
-            return this.cells[y][x];
+    public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {
+        // Set background for all cells
+        for (let y = 0; y < this.worldHeight; y++) {
+            for (let x = 0; x < this.worldWidth; x++) {
+                this.cells[y][x].background = {
+                    symbol,
+                    fgColor,
+                    bgColor
+                };
+                this.cells[y][x].isDirty = true;
+                this.dirtyRects.add(`${x},${y}`);
+            }
         }
-        return null;
+        this.render();
     }
 
     public getWorldWidth(): number {
@@ -439,5 +453,99 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
     public getViewportHeight(): number {
         return this.viewport.height;
+    }
+
+    private generateGroupId(): string {
+        return Math.random().toString(36).substring(2, 15);
+    }
+
+    public renderString(x: number, y: number, text: string, fgColor: Color | null = '#FFFFFFFF', bgColor: Color | null = '#000000FF'): string {
+        const groupId = this.generateGroupId();
+        const positions: Array<{x: number, y: number}> = [];
+        
+        const chars = Array.from(text);
+        
+        chars.forEach((char, index) => {
+            const worldX = x + index;
+            
+            // Check both X and Y bounds for array access
+            if (worldX >= 0 && worldX < this.worldWidth && y >= 0 && y < this.worldHeight) {
+                const tile: Tile = {
+                    symbol: char,
+                    fgColor,
+                    bgColor,
+                    zIndex: 1,
+                    groupId
+                };
+                
+                this.setTile(worldX, y, tile);
+                positions.push({x: worldX, y});
+            }
+        });
+
+        this.tileGroups.set(groupId, {
+            id: groupId,
+            positions
+        });
+
+        this.render();
+        return groupId;
+    }
+
+    public removeTileGroup(groupId: string): void {
+        const group = this.tileGroups.get(groupId);
+        if (!group) return;
+
+        // Clear all tiles in the group
+        group.positions.forEach(({x, y}) => {
+            const cell = this.cells[y][x];
+            cell.tiles = cell.tiles.filter(tile => tile.groupId !== groupId);
+            cell.isDirty = true;
+            this.dirtyRects.add(`${x},${y}`);
+        });
+
+        // Remove the group tracking
+        this.tileGroups.delete(groupId);
+        this.render();
+    }
+
+    public moveTileGroup(groupId: string, newX: number, newY: number): void {
+        const group = this.tileGroups.get(groupId);
+        if (!group) return;
+
+        // Get all tiles from the group
+        const tiles: Array<{tile: Tile, originalX: number}> = [];
+        group.positions.forEach(({x, y}) => {
+            const cell = this.cells[y][x];
+            const tile = cell.tiles.find(t => t.groupId === groupId);
+            if (tile) {
+                tiles.push({tile: {...tile}, originalX: x});
+                // Just remove the tile, leave background alone
+                cell.tiles = cell.tiles.filter(t => t.groupId !== groupId);
+                cell.isDirty = true;
+                this.dirtyRects.add(`${x},${y}`);
+            }
+        });
+
+        // Calculate relative positions and place at new location
+        const newPositions: Array<{x: number, y: number}> = [];
+        tiles.forEach(({tile, originalX}, index) => {
+            const relativeX = originalX - group.positions[0].x;
+            const worldX = newX + relativeX;
+            
+            // Check bounds for array access
+            if (worldX >= 0 && worldX < this.worldWidth && newY >= 0 && newY < this.worldHeight) {
+                this.setTile(worldX, newY, tile);
+                newPositions.push({x: worldX, y: newY});
+            }
+        });
+
+        // Update group positions
+        this.tileGroups.set(groupId, {
+            id: groupId,
+            positions: newPositions
+        });
+
+        this.render();
     }
 } 
