@@ -1,4 +1,4 @@
-import { Cell, Color, DisplayOptions, Tile, Viewport, TileGroup } from './types';
+import { Cell, Color, DisplayOptions, Tile, TileId, Viewport } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -38,7 +38,8 @@ export class MatrixDisplay {
     private worldWidth: number;
     private worldHeight: number;
     private readonly scale: number;
-    private tileGroups: Map<string, TileGroup> = new Map();
+    private tileMap: Map<TileId, Tile> = new Map();
+    private tileIdCounter: number = 0;
 
     constructor(options: DisplayOptions) {
         console.log('Initializing MatrixDisplay with options:', options);
@@ -177,20 +178,108 @@ export class MatrixDisplay {
         });
     }
 
-    public setTile(x: number, y: number, tile: Tile) {
-        console.log(`Setting tile at (${x},${y}):`, tile);
-        const cell = this.cells[y][x];
+    public createTile(
+        x: number, 
+        y: number, 
+        symbol: string, 
+        fgColor: Color | null = '#FFFFFFFF',
+        bgColor: Color | null = '#000000FF',
+        zIndex: number = 1
+    ): TileId {
+        const id = this.generateTileId();
+        const tile: Tile = { id, x, y, symbol, fgColor, bgColor, zIndex };
         
-        // Find the correct position to insert the tile based on z-index
-        const insertIndex = cell.tiles.findIndex(t => t.zIndex <= tile.zIndex);
-        if (insertIndex === -1) {
-            cell.tiles.push(tile);
+        this.tileMap.set(id, tile);
+        this.setTileInCell(tile);
+        
+        return id;
+    }
+
+    public moveTile(tileId: TileId, newX: number, newY: number): void {
+        const tile = this.tileMap.get(tileId);
+        if (!tile) return;
+
+        // Remove from old position
+        const oldCell = this.cells[tile.y][tile.x];
+        oldCell.tiles = oldCell.tiles.filter(t => t.id !== tileId);
+        oldCell.isDirty = true;
+        this.dirtyRects.add(`${tile.x},${tile.y}`);
+
+        // Update position
+        tile.x = newX;
+        tile.y = newY;
+
+        // Add to new position
+        this.setTileInCell(tile);
+        this.render();
+    }
+
+    public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
+        tileIds.forEach(tileId => {
+            const tile = this.tileMap.get(tileId);
+            if (tile) {
+                this.moveTile(tileId, tile.x + dx, tile.y + dy);
+            }
+        });
+    }
+
+    public updateTile(tileId: TileId, updates: Partial<Omit<Tile, 'id'>>): void {
+        const tile = this.tileMap.get(tileId);
+        if (!tile) return;
+
+        Object.assign(tile, updates);
+        
+        // If position changed, handle move
+        if ('x' in updates || 'y' in updates) {
+            this.moveTile(tileId, tile.x, tile.y);
         } else {
-            cell.tiles.splice(insertIndex, 0, tile);
+            // Just mark current position as dirty
+            const cell = this.cells[tile.y][tile.x];
+            cell.isDirty = true;
+            this.dirtyRects.add(`${tile.x},${tile.y}`);
+            this.render();
         }
-        
+    }
+
+    public updateTiles(tileIds: TileId[], updates: Partial<Omit<Tile, 'id'>>): void {
+        tileIds.forEach(tileId => this.updateTile(tileId, updates));
+    }
+
+    public removeTile(tileId: TileId): void {
+        const tile = this.tileMap.get(tileId);
+        if (!tile) return;
+
+        // Remove from cell
+        const cell = this.cells[tile.y][tile.x];
+        cell.tiles = cell.tiles.filter(t => t.id !== tileId);
         cell.isDirty = true;
-        this.dirtyRects.add(`${x},${y}`);
+        this.dirtyRects.add(`${tile.x},${tile.y}`);
+
+        // Remove from tile map
+        this.tileMap.delete(tileId);
+        this.render();
+    }
+
+    public removeTiles(tileIds: TileId[]): void {
+        tileIds.forEach(tileId => this.removeTile(tileId));
+    }
+
+    private setTileInCell(tile: Tile): void {
+        if (tile.x >= 0 && tile.x < this.worldWidth && 
+            tile.y >= 0 && tile.y < this.worldHeight) {
+            const cell = this.cells[tile.y][tile.x];
+            
+            // Insert maintaining z-order (higher z-index should be rendered later/on top)
+            const insertIndex = cell.tiles.findIndex(t => t.zIndex > tile.zIndex);
+            if (insertIndex === -1) {
+                cell.tiles.push(tile);  // Add to end if highest z-index
+            } else {
+                cell.tiles.splice(insertIndex, 0, tile);  // Insert before higher z-index
+            }
+            
+            cell.isDirty = true;
+            this.dirtyRects.add(`${tile.x},${tile.y}`);
+        }
     }
 
     public setOverlay(x: number, y: number, color: Color) {
@@ -279,6 +368,12 @@ export class MatrixDisplay {
                 );
             }
         });
+
+        // Draw overlay on top of everything
+        if (cell.overlay && cell.overlay !== '#00000000') {
+            this.worldCtx.fillStyle = cell.overlay;
+            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
+        }
         
         this.worldCtx.restore();
     }
@@ -455,106 +550,14 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         return this.viewport.height;
     }
 
-    private generateGroupId(): string {
-        return Math.random().toString(36).substring(2, 15);
+    private generateTileId(): TileId {
+        // Format: t_[timestamp]_[counter]
+        const timestamp = Date.now();
+        const id = `t_${timestamp}_${this.tileIdCounter++}`;
+        return id;
     }
 
-    public renderString(
-        x: number, 
-        y: number, 
-        text: string, 
-        fgColor: Color | null = '#FFFFFFFF', 
-        bgColor: Color | null = '#000000FF',
-        zIndex: number = 1
-    ): string {
-        const groupId = this.generateGroupId();
-        const positions: Array<{x: number, y: number}> = [];
-        
-        const chars = Array.from(text);
-        
-        chars.forEach((char, index) => {
-            const worldX = x + index;
-            
-            if (worldX >= 0 && worldX < this.worldWidth && y >= 0 && y < this.worldHeight) {
-                const tile: Tile = {
-                    symbol: char,
-                    fgColor,
-                    bgColor,
-                    zIndex,
-                    groupId
-                };
-                
-                this.setTile(worldX, y, tile);
-                positions.push({x: worldX, y});
-            }
-        });
-
-        this.tileGroups.set(groupId, {
-            id: groupId,
-            positions
-        });
-
-        this.render();
-        return groupId;
-    }
-
-    public removeTileGroup(groupId: string): void {
-        const group = this.tileGroups.get(groupId);
-        if (!group) return;
-
-        // Clear all tiles in the group
-        group.positions.forEach(({x, y}) => {
-            const cell = this.cells[y][x];
-            cell.tiles = cell.tiles.filter(tile => tile.groupId !== groupId);
-            cell.isDirty = true;
-            this.dirtyRects.add(`${x},${y}`);
-        });
-
-        // Remove the group tracking
-        this.tileGroups.delete(groupId);
-        this.render();
-    }
-
-    public moveTileGroup(groupId: string, newX: number, newY: number): void {
-        const group = this.tileGroups.get(groupId);
-        if (!group) {
-            console.warn(`Tile group not found: ${groupId}`);
-            return;
-        }
-
-        // Get all tiles from the group
-        const tiles: Array<{tile: Tile, originalX: number}> = [];
-        group.positions.forEach(({x, y}) => {
-            const cell = this.cells[y][x];
-            const tile = cell.tiles.find(t => t.groupId === groupId);
-            if (tile) {
-                tiles.push({tile: {...tile}, originalX: x});
-                // Just remove the tile, leave background alone
-                cell.tiles = cell.tiles.filter(t => t.groupId !== groupId);
-                cell.isDirty = true;
-                this.dirtyRects.add(`${x},${y}`);
-            }
-        });
-
-        // Calculate relative positions and place at new location
-        const newPositions: Array<{x: number, y: number}> = [];
-        tiles.forEach(({tile, originalX}, index) => {
-            const relativeX = originalX - group.positions[0].x;
-            const worldX = newX + relativeX;
-            
-            // Check bounds for array access
-            if (worldX >= 0 && worldX < this.worldWidth && newY >= 0 && newY < this.worldHeight) {
-                this.setTile(worldX, newY, tile);
-                newPositions.push({x: worldX, y: newY});
-            }
-        });
-
-        // Update group positions
-        this.tileGroups.set(groupId, {
-            id: groupId,
-            positions: newPositions
-        });
-
-        this.render();
+    public getTile(tileId: TileId): Tile | undefined {
+        return this.tileMap.get(tileId);
     }
 } 

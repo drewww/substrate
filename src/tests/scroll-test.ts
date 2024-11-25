@@ -1,5 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, Tile } from '../types';
+import { Color, TileId } from '../types';
 
 interface Point {
     x: number;
@@ -11,6 +11,7 @@ export class ScrollTest extends BaseTest {
     private targetPos: Point = { x: 0, y: 0 };
     private readonly WORLD_SIZE = 100;
     private readonly MOVE_SPEED = 1;
+    private tileIds: TileId[] = [];
     
     constructor() {
         super({
@@ -37,7 +38,7 @@ export class ScrollTest extends BaseTest {
     private getPositionBasedColor(x: number, y: number): Color {
         // Map x to hue (0-360)
         const hue = (x / this.WORLD_SIZE) * 360;
-        // Map y to saturation (40-100%), fix the calculation
+        // Map y to saturation (40-100%)
         const saturation = Math.floor(40 + (y / this.WORLD_SIZE) * 60);
         console.log(`Position (${x},${y}) -> HSL(${hue}, ${saturation}%, 50%)`);
         return this.hslToHex(hue, saturation, 50);
@@ -61,16 +62,17 @@ export class ScrollTest extends BaseTest {
         
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                const tile: Tile = {
-                    symbol: this.getRandomASCII(),
-                    fgColor: '#FFFFFFFF',
-                    bgColor: this.getPositionBasedColor(x, y),
-                    zIndex: 1
-                };
-                this.display.setTile(x, y, tile);
+                const tileId = this.display.createTile(
+                    x,
+                    y,
+                    this.getRandomASCII(),
+                    '#FFFFFFFF',
+                    this.getPositionBasedColor(x, y),
+                    1
+                );
+                this.tileIds.push(tileId);
             }
         }
-        this.display.render();
     }
 
     private getNewTarget(): Point {
@@ -102,7 +104,6 @@ export class ScrollTest extends BaseTest {
             
             // Update viewport position
             this.display.setViewport(this.currentPos.x, this.currentPos.y);
-            this.display.render();
         }
 
         // If we've reached the target, get a new one
@@ -125,6 +126,11 @@ export class ScrollTest extends BaseTest {
     }
 
     protected cleanup(): void {
+        // Remove all tiles
+        this.tileIds.forEach(id => this.display.removeTile(id));
+        this.tileIds = [];
+        
+        // Reset viewport position
         this.currentPos = { x: 0, y: 0 };
         this.targetPos = { x: 0, y: 0 };
         this.display.setViewport(0, 0);

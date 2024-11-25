@@ -1,13 +1,15 @@
 import { BaseTest } from './base-test';
-import { Color } from '../types';
+import { Color, TileId } from '../types';
+
+interface ActiveString {
+    tileIds: TileId[];
+    text: string;
+    color: Color;
+    zIndex: number;
+}
 
 export class StringTest extends BaseTest {
-    private activeStrings: Array<{
-        groupId: string,
-        text: string,
-        color: Color,
-        zIndex: number
-    }> = [];
+    private activeStrings: ActiveString[] = [];
 
     constructor() {
         super({
@@ -24,7 +26,26 @@ export class StringTest extends BaseTest {
     }
 
     getDescription(): string {
-        return "Renders and removes text strings";
+        return "Renders and moves text strings";
+    }
+
+    private createString(x: number, y: number, text: string, color: Color, zIndex: number): TileId[] {
+        const tileIds: TileId[] = [];
+        
+        // Create a tile for each character
+        Array.from(text).forEach((char, index) => {
+            const tileId = this.display.createTile(
+                x + index,
+                y,
+                char,
+                color,
+                "#000000FF",
+                zIndex
+            );
+            tileIds.push(tileId);
+        });
+
+        return tileIds;
     }
 
     protected run(): void {
@@ -41,15 +62,8 @@ export class StringTest extends BaseTest {
 
         // Add initial strings
         strings.forEach((str, index) => {
-            const groupId = this.display.renderString(
-                2, 
-                index * 3 + 2, 
-                str.text, 
-                str.color, 
-                "#000000FF",
-                str.zIndex
-            );
-            this.activeStrings.push({ groupId, ...str });
+            const tileIds = this.createString(2, index * 3 + 2, str.text, str.color, str.zIndex);
+            this.activeStrings.push({ tileIds, ...str });
         });
 
         // Set up periodic movement
@@ -60,9 +74,16 @@ export class StringTest extends BaseTest {
         if (!this.isRunning) return;
 
         this.activeStrings.forEach(str => {
-            const newX = Math.floor(Math.random() * (this.display.getWorldWidth() - 10));
+            const newX = Math.floor(Math.random() * (this.display.getWorldWidth() - str.text.length));
             const newY = Math.floor(Math.random() * this.display.getWorldHeight());
-            this.display.moveTileGroup(str.groupId, newX, newY);
+            
+            // Calculate movement delta
+            const firstTile = this.display.getTile(str.tileIds[0]);
+            if (firstTile) {
+                const dx = newX - firstTile.x;
+                const dy = newY - firstTile.y;
+                this.display.moveTiles(str.tileIds, dx, dy);
+            }
         });
 
         // Schedule next movement
@@ -71,7 +92,7 @@ export class StringTest extends BaseTest {
 
     protected cleanup(): void {
         this.activeStrings.forEach(str => {
-            this.display.removeTileGroup(str.groupId);
+            this.display.removeTiles(str.tileIds);
         });
         this.activeStrings = [];
     }

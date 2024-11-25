@@ -1,18 +1,19 @@
 import { BaseTest } from './base-test';
-import { Color, Tile } from '../types';
+import { Color, TileId } from '../types';
 
 interface Entity {
     x: number;
     y: number;
     dx: number;
     dy: number;
-    groupId: string;
+    tileId: TileId;
 }
 
 export class ZIndexTest extends BaseTest {
     private readonly ENTITY_COUNT = 5;
     private readonly BACKGROUND_SYMBOLS = [',', '.', '-', '=', '_'];
     private entities: Entity[] = [];
+    private backgroundTileIds: TileId[] = [];
     private frameCount: number = 0;
     private readonly FRAMES_PER_MOVE = 30;
     
@@ -47,14 +48,15 @@ export class ZIndexTest extends BaseTest {
         
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                const noiseTile: Tile = {
-                    symbol: this.BACKGROUND_SYMBOLS[Math.floor(Math.random() * this.BACKGROUND_SYMBOLS.length)],
-                    fgColor: '#FFFFFFFF',
-                    bgColor: this.getNearlyBlack(),
-                    zIndex: 1
-                };
-
-                this.display.setTile(x, y, noiseTile);
+                const tileId = this.display.createTile(
+                    x,
+                    y,
+                    this.BACKGROUND_SYMBOLS[Math.floor(Math.random() * this.BACKGROUND_SYMBOLS.length)],
+                    '#FFFFFFFF',
+                    this.getNearlyBlack(),
+                    1
+                );
+                this.backgroundTileIds.push(tileId);
             }
         }
     }
@@ -63,19 +65,25 @@ export class ZIndexTest extends BaseTest {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
         
-        this.entities = [];
         for (let i = 0; i < this.ENTITY_COUNT; i++) {
             const x = Math.floor(Math.random() * width);
             const y = Math.floor(Math.random() * height);
             
-            const groupId = this.display.renderString(x, y, '@', '#FFFF00FF', null, 2);
+            const tileId = this.display.createTile(
+                x,
+                y,
+                '@',
+                '#FFFF00FF',
+                null,
+                2
+            );
             
             this.entities.push({
                 x,
                 y,
                 dx: 0,
                 dy: 0,
-                groupId
+                tileId
             });
         }
     }
@@ -98,7 +106,7 @@ export class ZIndexTest extends BaseTest {
                 entity.x = (entity.x + entity.dx + width) % width;
                 entity.y = (entity.y + entity.dy + height) % height;
 
-                this.display.moveTileGroup(entity.groupId, entity.x, entity.y);
+                this.display.moveTile(entity.tileId, entity.x, entity.y);
             });
         }
 
@@ -114,8 +122,13 @@ export class ZIndexTest extends BaseTest {
 
     protected cleanup(): void {
         this.entities.forEach(entity => {
-            this.display.removeTileGroup(entity.groupId);
+            this.display.removeTile(entity.tileId);
         });
         this.entities = [];
+
+        this.backgroundTileIds.forEach(tileId => {
+            this.display.removeTile(tileId);
+        });
+        this.backgroundTileIds = [];
     }
 } 

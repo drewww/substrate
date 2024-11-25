@@ -1,11 +1,15 @@
 export type Color = string; // CSS color string in #RRGGBBAA format
 
+export type TileId = string;
+
 export interface Tile {
-    symbol: string | null;
+    id: TileId;
+    symbol: string;
     fgColor: Color | null;
     bgColor: Color | null;
     zIndex: number;
-    groupId?: string;
+    x: number;
+    y: number;
 }
 
 export interface Background {
@@ -38,8 +42,3 @@ export interface DisplayOptions {
     defaultFont?: string;
     customFont?: string;
 }
-
-export interface TileGroup {
-    id: string;
-    positions: Array<{x: number, y: number}>;
-} 

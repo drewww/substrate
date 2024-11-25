@@ -1,9 +1,10 @@
 import { BaseTest } from './base-test';
-import { Color, Tile } from '../types';
+import { Color, TileId } from '../types';
 
 export class RandomScanTest extends BaseTest {
     private currentX: number = 0;
     private currentY: number = 0;
+    private tileIds: TileId[] = [];  // Track all tiles for cleanup
 
     constructor() {
         super({
@@ -20,7 +21,7 @@ export class RandomScanTest extends BaseTest {
     }
 
     getDescription(): string {
-        return "Scans through all tiles, replacing each with random characters and colors";
+        return "Scans through all tiles, adding random characters and colors";
     }
 
     private getRandomColor(): Color {
@@ -37,21 +38,24 @@ export class RandomScanTest extends BaseTest {
     private updateNextTile() {
         if (!this.isRunning) return;
 
-        const tile: Tile = {
-            symbol: this.getRandomASCII(),
-            fgColor: this.getRandomColor(),
-            bgColor: this.getRandomColor(),
-            zIndex: 1
-        };
-
-        this.display.setTile(this.currentX, this.currentY, tile);
+        // Create new tile at random position
+        const tileId = this.display.createTile(
+            this.currentX,
+            this.currentY,
+            this.getRandomASCII(),
+            this.getRandomColor(),
+            this.getRandomColor(),
+            1
+        );
+        
+        this.tileIds.push(tileId);
         
         // Use the full world width (60) for random positions
         this.currentX = Math.floor(Math.random() * 60);
         this.currentY = Math.floor(Math.random() * 25);
 
         this.display.render();
-
+        
         if (this.isRunning) {
             requestAnimationFrame(() => this.updateNextTile());
         }
@@ -60,10 +64,13 @@ export class RandomScanTest extends BaseTest {
     protected run(): void {
         this.currentX = 0;
         this.currentY = 0;
+        this.tileIds = [];
         this.updateNextTile();
     }
 
     protected cleanup(): void {
-        // Nothing specific to clean up
+        // Remove all tiles when stopping
+        this.tileIds.forEach(id => this.display.removeTile(id));
+        this.tileIds = [];
     }
 } 

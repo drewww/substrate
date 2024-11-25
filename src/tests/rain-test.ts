@@ -1,29 +1,27 @@
 import { BaseTest } from './base-test';
-import { Color, Tile } from '../types';
+import { Color, TileId } from '../types';
 
 interface Raindrop {
+    tileId: TileId;
     x: number;
     y: number;
     speed: number;
-    length: number;
-    color: Color;
 }
 
 export class RainTest extends BaseTest {
-    private raindrops: Raindrop[] = [];
-    private readonly MAX_DROPS = 100;
+    private readonly DROP_COUNT = 100;
     private readonly MIN_SPEED = 0.2;
-    private readonly MAX_SPEED = 0.8;
-    private readonly MIN_LENGTH = 3;
-    private readonly MAX_LENGTH = 8;
-    private readonly SPAWN_CHANCE = 0.2;
+    private readonly MAX_SPEED = 1.0;
+    private readonly DROP_SYMBOLS = ['|', '│', '║'];
+    private raindrops: Raindrop[] = [];
     
     constructor() {
         super({
-            worldWidth: 50,
-            worldHeight: 50,
-            viewportWidth: 50,
-            viewportHeight: 50
+            worldWidth: 60,
+            worldHeight: 30,
+            viewportWidth: 60,
+            viewportHeight: 30,
+            cellSize: 24
         });
     }
 
@@ -32,68 +30,75 @@ export class RainTest extends BaseTest {
     }
 
     getDescription(): string {
-        return "Digital rain effect";
+        return "Simulates falling rain with varying speeds";
     }
 
-    private createRaindrop(): Raindrop {
-        return {
-            x: Math.floor(Math.random() * 50),
-            y: 0,
-            speed: this.MIN_SPEED + Math.random() * (this.MAX_SPEED - this.MIN_SPEED),
-            length: this.MIN_LENGTH + Math.floor(Math.random() * (this.MAX_LENGTH - this.MIN_LENGTH)),
-            color: '#00FF00FF'
-        };
+    private getRandomDropSymbol(): string {
+        return this.DROP_SYMBOLS[Math.floor(Math.random() * this.DROP_SYMBOLS.length)];
+    }
+
+    private createRaindrop(x: number, y: number): Raindrop {
+        const speed = this.MIN_SPEED + Math.random() * (this.MAX_SPEED - this.MIN_SPEED);
+        const tileId = this.display.createTile(
+            x,
+            y,
+            this.getRandomDropSymbol(),
+            '#8888FFFF',
+            null,
+            2
+        );
+        
+        return { tileId, x, y, speed };
+    }
+
+    private initializeRain() {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+
+        // Create initial raindrops
+        for (let i = 0; i < this.DROP_COUNT; i++) {
+            const x = Math.floor(Math.random() * width);
+            const y = Math.floor(Math.random() * height);
+            this.raindrops.push(this.createRaindrop(x, y));
+        }
     }
 
     private updateRain() {
         if (!this.isRunning) return;
 
-        // Clear previous frame
-        this.display.clear();
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
 
-        // Spawn new raindrops
-        if (this.raindrops.length < this.MAX_DROPS && Math.random() < this.SPAWN_CHANCE) {
-            this.raindrops.push(this.createRaindrop());
-        }
-
-        // Update and render existing raindrops
-        this.raindrops = this.raindrops.filter(drop => {
-            // Update position
+        // Update each raindrop
+        this.raindrops.forEach(drop => {
             drop.y += drop.speed;
 
-            // Render raindrop trail
-            for (let i = 0; i < drop.length; i++) {
-                const y = Math.floor(drop.y) - i;
-                if (y >= 0 && y < 50) {
-                    // Fade out based on position in trail
-                    const alpha = Math.floor(255 * (1 - i / drop.length)).toString(16).padStart(2, '0');
-                    const color = `#00FF00${alpha}`;
-                    
-                    const tile: Tile = {
-                        symbol: String.fromCharCode(33 + Math.floor(Math.random() * 94)),
-                        fgColor: color,
-                        bgColor: '#000000FF',
-                        zIndex: 1
-                    };
-                    this.display.setTile(Math.floor(drop.x), y, tile);
-                }
+            // If raindrop goes off bottom, reset to top
+            if (drop.y >= height) {
+                drop.y = 0;
+                drop.x = Math.floor(Math.random() * width);
             }
 
-            // Remove drops that have fallen off the bottom
-            return drop.y - drop.length < 50;
+            // Update tile position
+            this.display.moveTile(drop.tileId, Math.floor(drop.x), Math.floor(drop.y));
         });
 
-        this.display.render();
         requestAnimationFrame(() => this.updateRain());
     }
 
     protected run(): void {
-        this.raindrops = [];
-        this.display.clear();
+        // Set dark background
+        this.display.setBackground('.', '#666666FF', '#222222FF');
+        
+        this.initializeRain();
         this.updateRain();
     }
 
     protected cleanup(): void {
+        // Remove all raindrops
+        this.raindrops.forEach(drop => {
+            this.display.removeTile(drop.tileId);
+        });
         this.raindrops = [];
     }
 } 
