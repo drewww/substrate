@@ -52,41 +52,36 @@ export class RippleTest extends BaseTest {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
 
-        // Clear all overlays
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                this.display.setOverlay(x, y, '#00000000');
-            }
-        }
+        this.display.clearOverlays();
 
-        // Update and render each ripple
         this.ripples = this.ripples.filter(ripple => {
             ripple.radius += this.RIPPLE_SPEED;
             ripple.intensity -= this.FADE_RATE;
+            return ripple.intensity > 0 && ripple.radius < ripple.maxRadius;
+        });
 
-            if (ripple.intensity <= 0 || ripple.radius >= ripple.maxRadius) {
-                return false;
-            }
-
-            // Draw the ripple
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                let maxIntensity = 0;
+                
+                this.ripples.forEach(ripple => {
                     const distance = Math.sqrt(
                         Math.pow(x - ripple.centerX, 2) + 
                         Math.pow(y - ripple.centerY, 2)
                     );
                     
                     if (Math.abs(distance - ripple.radius) < 1.5) {
-                        const alpha = Math.floor(ripple.intensity * 255).toString(16).padStart(2, '0');
-                        this.display.setOverlay(x, y, `#FFFFFF${alpha}`);
+                        maxIntensity = Math.max(maxIntensity, ripple.intensity);
                     }
+                });
+
+                if (maxIntensity > 0) {
+                    const alpha = Math.floor(maxIntensity * 255).toString(16).padStart(2, '0');
+                    this.display.setOverlay(x, y, `#FFFFFF${alpha}`);
                 }
             }
+        }
 
-            return true;
-        });
-
-        // Add new ripple occasionally
         this.timeSinceLastRipple++;
         if (this.timeSinceLastRipple > 30) {
             this.addRipple();
@@ -98,6 +93,8 @@ export class RippleTest extends BaseTest {
     }
 
     protected run(): void {
+        this.display.setAutoRender(false);
+        
         this.display.clear();
         this.ripples = [];
         this.timeSinceLastRipple = 0;

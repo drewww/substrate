@@ -8,15 +8,15 @@ interface LaserBeam {
 
 export class LaserTest extends BaseTest {
     private lasers: LaserBeam[] = [];
-    private readonly LASER_SPEED = 0.6; // Speed along the path
-    private readonly FADE_SPEED = 0.05;
+    private readonly LASER_SPEED = 0.2; // Speed along the path
+    private readonly FADE_SPEED = 0.02;
     private timeSinceLastLaser: number = 0;
     
     constructor() {
         super({
-            worldWidth: 25,
+            worldWidth: 50,
             worldHeight: 25,
-            viewportWidth: 25,
+            viewportWidth: 50,
             viewportHeight: 25,
             cellSize: 24
         });
@@ -82,24 +82,11 @@ export class LaserTest extends BaseTest {
     private updateLasers() {
         if (!this.isRunning) return;
 
-        const width = this.display.getWorldWidth();
-        const height = this.display.getWorldHeight();
+        this.display.clearOverlays();
 
-        // Clear all overlays
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                this.display.setOverlay(x, y, '#00000000');
-            }
-        }
-
-        console.log(`Updating lasers. Count: ${this.lasers.length}`);
-
-        // Update and render each laser
         this.lasers = this.lasers.filter(laser => {
-            console.log(`Laser progress: ${laser.progress}, fadeStart: ${laser.fadeStart}, points: ${laser.points.length}`);
-            
             // Remove if fade is complete
-            if (laser.fadeStart > 0 && laser.fadeStart <= 0.1) { // Small threshold to avoid floating point issues
+            if (laser.fadeStart > 0 && laser.fadeStart <= 0.1) {
                 return false;
             }
 
@@ -108,21 +95,18 @@ export class LaserTest extends BaseTest {
                 laser.progress += this.LASER_SPEED;
                 
                 // When we reach the end, start fading
-                if (laser.progress >= laser.points.length - 1) { // Changed to length - 1
+                if (laser.progress >= laser.points.length - 1) {
                     laser.fadeStart = 1.0;
+                    laser.progress = laser.points.length - 1; // Stay at end point
                 }
             } else if (laser.fadeStart > 0) {
+                // Just decrease fade intensity, don't move progress
                 laser.fadeStart -= this.FADE_SPEED;
             }
 
-            // Calculate the current tip position
-            const tipIndex = Math.min(
-                Math.floor(laser.progress), 
-                laser.points.length - 1
-            );
-
             if (laser.fadeStart === -1) {
                 // Normal laser rendering during growth phase
+                const tipIndex = Math.min(Math.floor(laser.progress), laser.points.length - 1);
                 for (let i = Math.max(0, tipIndex - 4); i <= tipIndex; i++) {
                     const distanceFromTip = tipIndex - i;
                     const opacity = 1 - (distanceFromTip * 0.2);
@@ -131,12 +115,13 @@ export class LaserTest extends BaseTest {
                     this.display.setOverlay(point.x, point.y, `#FF0000${alpha}`);
                 }
             } else {
-                // Fade out the entire laser trail
-                const lastFivePoints = laser.points.slice(-5);
-                for (let i = 0; i < lastFivePoints.length; i++) {
-                    const opacity = laser.fadeStart * (1 - (i * 0.2));
+                // Fade out the last 5 points of the path
+                const endIndex = laser.points.length - 1;
+                for (let i = endIndex; i > endIndex - 5 && i >= 0; i--) {
+                    const distanceFromEnd = endIndex - i;
+                    const opacity = laser.fadeStart * (1 - (distanceFromEnd * 0.2));
                     const alpha = Math.floor(Math.max(0, opacity * 255)).toString(16).padStart(2, '0');
-                    const point = lastFivePoints[i];
+                    const point = laser.points[i];
                     this.display.setOverlay(point.x, point.y, `#FF0000${alpha}`);
                 }
             }
@@ -144,18 +129,23 @@ export class LaserTest extends BaseTest {
             return true;
         });
 
+        // Add new laser if needed
         this.timeSinceLastLaser++;
-        if (this.timeSinceLastLaser > 60) {
+        if (this.timeSinceLastLaser > 120) {
             this.addLaser();
             this.timeSinceLastLaser = 0;
         }
 
+        // Single render call per frame
         this.display.render();
         requestAnimationFrame(() => this.updateLasers());
     }
 
     protected run(): void {
         console.log('Starting laser test');
+        // Disable auto-render at start
+        this.display.setAutoRender(false);
+        
         this.display.clear();
         this.lasers = [];
         this.timeSinceLastLaser = 0;
