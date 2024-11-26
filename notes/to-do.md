@@ -14,5 +14,5 @@ Display
  - DONE Add string rendering
     - consider different sizing? for not following the cell grid at all??
  - test small versions
-
+ - delete buffer canvas, not sure why we're triple buffered right now. seems not to be used for anything.
 

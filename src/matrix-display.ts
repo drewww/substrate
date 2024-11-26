@@ -355,7 +355,7 @@ export class MatrixDisplay {
         cell.tiles.forEach(tile => {
             if (tile.bgColor) {
                 this.worldCtx.fillStyle = tile.bgColor;
-                this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
+                this.worldCtx.fillRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
             }
             
             if (tile.symbol && tile.fgColor) {
@@ -366,7 +366,8 @@ export class MatrixDisplay {
                 const bottomPadding = Math.floor(this.cellSize * 0.05);
                 this.worldCtx.fillText(
                     tile.symbol,
-                    pixelX + (this.cellSize / 2),
+                    pixelX + this.cellSize/4,
+                    // pixelX,
                     pixelY + this.cellSize - bottomPadding
                 );
             }
