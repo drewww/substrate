@@ -331,25 +331,6 @@ export class MatrixDisplay {
         
         // Clear and draw the cell's background first
         this.worldCtx.clearRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
-        if (cell.background) {
-            // Draw background color
-            this.worldCtx.fillStyle = cell.background.bgColor;
-            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
-            
-            // Draw background symbol if it exists
-            if (cell.background.symbol && cell.background.fgColor) {
-                this.worldCtx.fillStyle = cell.background.fgColor;
-                this.worldCtx.font = `${Math.floor(this.cellSize * 0.8)}px monospace`;
-                this.worldCtx.textAlign = 'center';
-                this.worldCtx.textBaseline = 'bottom';
-                const bottomPadding = Math.floor(this.cellSize * 0.05);
-                this.worldCtx.fillText(
-                    cell.background.symbol,
-                    pixelX + (this.cellSize / 2),
-                    pixelY + this.cellSize - bottomPadding
-                );
-            }
-        }
         
         // Then draw tiles
         cell.tiles.forEach(tile => {
