@@ -15,9 +15,9 @@ export class ScrollTest extends BaseTest {
     
     constructor() {
         super({
-            worldWidth: 50,
+            worldWidth: 100,
             worldHeight: 50,
-            viewportWidth: 25,
+            viewportWidth: 70,
             viewportHeight: 25,
             cellSize: 24
         });

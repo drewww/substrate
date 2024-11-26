@@ -9,9 +9,9 @@ export class WipeTest extends BaseTest {
 
     constructor() {
         super({
-            worldWidth: 25,
+            worldWidth: 70,
             worldHeight: 25,
-            viewportWidth: 25,
+            viewportWidth: 70,
             viewportHeight: 25,
             cellSize: 24
         });
