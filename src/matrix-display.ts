@@ -153,11 +153,6 @@ export class MatrixDisplay {
                 cells[y][x] = {
                     overlay: '#00000000',
                     tiles: [],
-                    background: {
-                        symbol: '.',
-                        fgColor: '#AAAAAAFF',
-                        bgColor: '#000000FF'
-                    },
                     isDirty: true
                 };
             }
@@ -465,11 +460,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 this.cells[y][x] = {
                     overlay: '#00000000',
                     tiles: [],
-                    background: {
-                        symbol: '.',
-                        fgColor: '#AAAAAAFF',
-                        bgColor: '#000000FF'
-                    },
                     isDirty: true
                 };
                 this.dirtyRects.add(`${x},${y}`);
@@ -507,11 +497,22 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         // Set background for all cells
         for (let y = 0; y < this.worldHeight; y++) {
             for (let x = 0; x < this.worldWidth; x++) {
-                this.cells[y][x].background = {
-                    symbol,
-                    fgColor,
-                    bgColor
+                // Create a background tile with z-index -1
+                const backgroundTile: Tile = {
+                    id: this.generateTileId(),
+                    x: x,
+                    y: y,
+                    symbol: symbol,
+                    fgColor: fgColor,
+                    bgColor: bgColor,
+                    zIndex: -1
                 };
+
+                // Remove any existing tiles with z-index -1
+                this.cells[y][x].tiles = this.cells[y][x].tiles.filter(t => t.zIndex !== -1);
+                
+                // Add the new background tile
+                this.cells[y][x].tiles.push(backgroundTile);
                 this.cells[y][x].isDirty = true;
                 this.dirtyRects.add(`${x},${y}`);
             }

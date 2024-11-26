@@ -12,16 +12,9 @@ export interface Tile {
     y: number;
 }
 
-export interface Background {
-    symbol: string;
-    fgColor: Color;
-    bgColor: Color;
-}
-
 export interface Cell {
     overlay: Color;
     tiles: Tile[];
-    background: Background;
     isDirty: boolean;
 }
 
