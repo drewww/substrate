@@ -319,7 +319,7 @@ export class MatrixDisplay {
 
     private renderCell(x: number, y: number): void {
         const cell = this.cells[y][x];
-        const pixelX = x * this.cellSize;
+        const pixelX = x * this.cellSize/2;
         const pixelY = y * this.cellSize;
         
         this.worldCtx.save();
@@ -330,7 +330,7 @@ export class MatrixDisplay {
         this.worldCtx.clip();
         
         // Clear and draw the cell's background first
-        this.worldCtx.clearRect(pixelX, pixelY, this.cellSize, this.cellSize);
+        this.worldCtx.clearRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
         if (cell.background) {
             // Draw background color
             this.worldCtx.fillStyle = cell.background.bgColor;
