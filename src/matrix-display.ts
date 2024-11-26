@@ -352,7 +352,7 @@ export class MatrixDisplay {
         // Draw overlay on top of everything
         if (cell.overlay && cell.overlay !== '#00000000') {
             this.worldCtx.fillStyle = cell.overlay;
-            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize, this.cellSize);
+            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
         }
         
         this.worldCtx.restore();
