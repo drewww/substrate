@@ -27,8 +27,6 @@ export class MatrixDisplay {
     private displayCtx: CanvasRenderingContext2D;
     private worldCanvas: HTMLCanvasElement;      // Full world buffer
     private worldCtx: CanvasRenderingContext2D;
-    private renderCanvas: HTMLCanvasElement;     // Intermediate render buffer
-    private renderCtx: CanvasRenderingContext2D;
     private cells: Cell[][];
     private viewport: Viewport;
     private cellSize: number;
@@ -65,24 +63,21 @@ export class MatrixDisplay {
         // Create buffer canvases and contexts
         this.worldCanvas = document.createElement('canvas');
         this.worldCtx = this.worldCanvas.getContext('2d')!;
-        
-        this.renderCanvas = document.createElement('canvas');
-        this.renderCtx = this.renderCanvas.getContext('2d')!;
 
         // Calculate pixel dimensions
         const displayWidth = options.viewportWidth * options.cellSize;
         const displayHeight = options.viewportHeight * options.cellSize;
 
-        // Set both CSS and canvas dimensions for all canvases
-        [this.displayCanvas, this.worldCanvas, this.renderCanvas].forEach(canvas => {
+        // Set dimensions for display and world canvases only
+        [this.displayCanvas, this.worldCanvas].forEach(canvas => {
             canvas.style.width = `${displayWidth}px`;
             canvas.style.height = `${displayHeight}px`;
             canvas.width = displayWidth * this.scale;
             canvas.height = displayHeight * this.scale;
         });
 
-        // Scale all contexts for DPI
-        [this.displayCtx, this.worldCtx, this.renderCtx].forEach(ctx => {
+        // Scale contexts for DPI
+        [this.displayCtx, this.worldCtx].forEach(ctx => {
             ctx.scale(this.scale, this.scale);
         });
 
@@ -97,16 +92,12 @@ export class MatrixDisplay {
         this.worldCanvas.width = options.worldWidth * this.cellSize;
         this.worldCanvas.height = options.worldHeight * this.cellSize;
         
-        // Render buffer matches display size
-        this.renderCanvas.width = this.displayCanvas.width;
-        this.renderCanvas.height = this.displayCanvas.height;
-
         // Set CSS size (logical pixels)
         this.displayCanvas.style.width = `${options.viewportWidth * options.cellSize}px`;
         this.displayCanvas.style.height = `${options.viewportHeight * options.cellSize}px`;
 
         // Disable smoothing on all contexts
-        [this.displayCtx, this.worldCtx, this.renderCtx].forEach(ctx => {
+        [this.displayCtx, this.worldCtx].forEach(ctx => {
             ctx.imageSmoothingEnabled = false;
             // @ts-ignore (textRendering might not be in types)
             ctx.textRendering = 'geometricPrecision';
@@ -164,7 +155,7 @@ export class MatrixDisplay {
         const fontFamily = customFont || defaultFont || 'monospace';
         const fontSize = Math.floor(this.cellSize * 0.8);
         
-        [this.displayCtx, this.worldCtx, this.renderCtx].forEach(ctx => {
+        [this.displayCtx, this.worldCtx].forEach(ctx => {
             ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -395,9 +386,9 @@ export class MatrixDisplay {
 
         // Copy to display
         console.log('Copying to display canvas');
-        const srcX = this.viewport.x * this.cellSize;
+        const srcX = this.viewport.x * this.cellSize/2;
         const srcY = this.viewport.y * this.cellSize;
-        const srcWidth = this.viewport.width * this.cellSize;
+        const srcWidth = this.viewport.width * this.cellSize/2;
         const srcHeight = this.viewport.height * this.cellSize;
 
         // Clear the display canvas
@@ -469,7 +460,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         // Clear all canvases
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
         this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
-        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
         // Render the cleared state
         this.renderIfAuto();
