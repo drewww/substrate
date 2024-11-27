@@ -39,15 +39,37 @@ export class StringTest extends BaseTest {
                 text: "{r}Hello{/}, {b}Matrix{/} {g}Display!{/}", 
                 options: {
                     zIndex: 5,
-                    backgroundColor: '#333333FF',
-                    fillBox: true,
-                    padding: 1
+                    textBackgroundColor: '#331111FF'
                 }
             },
-            { text: "{g}Lorem ipsum{/} {y}dolor{/} {r}sit amet{/}" },
-            { text: "{b}This is a {y}very{/} long string{/}" },
-            { text: "{y}Short{/} {m}text{/}" },
-            { text: "{#FF00FF}Custom{/} {r}colored{/} {b}string{/" }
+            { 
+                text: "{g}Lorem ipsum{/} {y}dolor{/} {r}sit amet{/}",
+                options: {
+                    textBackgroundColor: '#331111FF',
+                    zIndex: 3
+                }
+            },
+            { 
+                text: "{b}This is a {y}very{/} long string{/}",
+                options: {
+                    textBackgroundColor: '#331111FF',
+                    zIndex: 2
+                }
+            },
+            { 
+                text: "{y}Short{/} {m}text{/}",
+                options: {
+                    textBackgroundColor: '#331111FF',
+                    zIndex: 2
+                }
+            },
+            { 
+                text: "{#FF00FF}Custom{/} {r}colored{/} {b}string{/}",
+                options: {
+                    textBackgroundColor: '#331111FF',
+                    zIndex: 2
+                }
+            }
         ];
 
         // Add initial strings
@@ -73,16 +95,16 @@ export class StringTest extends BaseTest {
             2,
             2,
             20,
-            5,
+            6,
             wrappedText,
             {
-                zIndex: 5,
+                zIndex: 1,  // Lower z-index so other strings appear above
                 backgroundColor: '#331111FF',
                 fillBox: true,
                 padding: 1
             }
         );
-        this.activeStrings.push({ tileIds, text: wrappedText, zIndex: 5 });
+        this.activeStrings.push({ tileIds, text: wrappedText, zIndex: 1 });
 
         // Set up periodic movement
         this.moveStringsRandomly();

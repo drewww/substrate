@@ -712,13 +712,11 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         let currentLineWords: { tileIds: TileId[]; text: string; }[] = [];
 
         segments.forEach(segment => {
-            // Split segment into words, preserving spaces
             const words = segment.text.split(/(\s+)/);
             
             words.forEach(word => {
                 if (!word.length) return;
 
-                // Create tiles for this word (temporarily)
                 const wordTileIds: TileId[] = [];
                 Array.from(word).forEach(char => {
                     const tileId = this.createTile(
@@ -738,13 +736,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     currentY++;
                     currentX = x;
                     lineStart = x;
-
-                    // Check height bounds
-                    if (currentY >= y + height) {
-                        // Clean up tiles if we've exceeded height
-                        wordTileIds.forEach(id => this.removeTile(id));
-                        return;
-                    }
 
                     // Reset line tracking
                     currentLineWords = [];
