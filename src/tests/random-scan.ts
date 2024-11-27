@@ -40,22 +40,26 @@ export class RandomScanTest extends BaseTest {
     private updateNextTile() {
         if (!this.isRunning) return;
 
-        // Create new tile at random position
+        // Generate new random position first
+        this.currentX = Math.floor(Math.random() * 60);
+        this.currentY = Math.floor(Math.random() * 25);
+
+        // Clear any existing tiles at this position
+        this.display.emptyCell(this.currentX, this.currentY);
+
+        // Create new tile at random position with random background height
         const tileId = this.display.createTile(
             this.currentX,
             this.currentY,
             this.getRandomASCII(),
             this.getRandomColor(),
             this.getRandomColor(),
-            1
+            1,
+            Math.random()  // Random background percentage between 0 and 1
         );
         
         this.tileIds.push(tileId);
         
-        // Use the full world width (60) for random positions
-        this.currentX = Math.floor(Math.random() * 60);
-        this.currentY = Math.floor(Math.random() * 25);
-
         this.display.render();
         
         if (this.isRunning) {

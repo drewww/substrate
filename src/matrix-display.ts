@@ -210,14 +210,24 @@ export class MatrixDisplay {
     public createTile(
         x: number, 
         y: number, 
-        symbol: string, 
-        fgColor: Color | null = '#FFFFFFFF',
-        bgColor: Color | null = '#000000FF',
-        zIndex: number = 1
+        char: string, 
+        color: Color, 
+        backgroundColor: Color, 
+        zIndex: number = 1, 
+        bgPercent: number = 1
     ): TileId {
         const id = this.generateTileId();
         this.log.verbose(`Creating tile ${id} at (${x},${y})`);
-        const tile: Tile = { id, x, y, symbol, fgColor, bgColor, zIndex };
+        const tile: Tile = {
+            id,
+            x,
+            y,
+            char,
+            color,
+            backgroundColor,
+            zIndex,
+            bgPercent
+        };
         
         this.tileMap.set(id, tile);
         this.setTileInCell(tile);
@@ -364,8 +374,7 @@ export class MatrixDisplay {
         this.renderIfAuto();
     }
 
-    private renderCell(x: number, y: number): void {
-        const cell = this.cells[y][x];
+    private renderCell(cell: Cell, x: number, y: number): void {
         const pixelX = x * this.cellSize/2;
         const pixelY = y * this.cellSize;
         
@@ -379,23 +388,35 @@ export class MatrixDisplay {
         // Clear and draw the cell's background first
         this.worldCtx.clearRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
         
-        // Then draw tiles
-        cell.tiles.forEach(tile => {
-            if (tile.bgColor) {
-                this.worldCtx.fillStyle = tile.bgColor;
-                this.worldCtx.fillRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
+        // Sort tiles by z-index
+        const sortedTiles = Array.from(cell.tiles.values()).sort((a, b) => a.zIndex - b.zIndex);
+
+        sortedTiles.forEach(tile => {
+            // Draw background if it has one
+            if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
+                const bgPercent = tile.bgPercent ?? 1;  // Default to 1 if not specified
+                if (bgPercent > 0) {
+                    this.worldCtx.fillStyle = tile.backgroundColor;
+                    const bgHeight = this.cellSize * bgPercent;
+                    const yOffset = this.cellSize - bgHeight;  // Start from bottom
+                    this.worldCtx.fillRect(
+                        pixelX,
+                        pixelY + yOffset,
+                        this.cellSize/2,  // Match the cell width
+                        bgHeight
+                    );
+                }
             }
             
-            if (tile.symbol && tile.fgColor) {
-                this.worldCtx.fillStyle = tile.fgColor;
+            if (tile.char && tile.color) {
+                this.worldCtx.fillStyle = tile.color;
                 this.worldCtx.font = `${Math.floor(this.cellSize * 0.8)}px monospace`;
                 this.worldCtx.textAlign = 'center';
                 this.worldCtx.textBaseline = 'bottom';
                 const bottomPadding = Math.floor(this.cellSize * 0.05);
                 this.worldCtx.fillText(
-                    tile.symbol,
+                    tile.char,
                     pixelX + this.cellSize/4,
-                    // pixelX,
                     pixelY + this.cellSize - bottomPadding
                 );
             }
@@ -439,7 +460,7 @@ export class MatrixDisplay {
         // Render dirty cells
         for (const key of this.dirtyRects) {
             const [x, y] = key.split(',').map(Number);
-            this.renderCell(x, y);
+            this.renderCell(this.cells[y][x], x, y);
         }
         this.log.verbose('Rendered dirty cells');
         this.dirtyRects.clear();
@@ -552,9 +573,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     id: this.generateTileId(),
                     x: x,
                     y: y,
-                    symbol: symbol,
-                    fgColor: fgColor,
-                    bgColor: bgColor,
+                    char: symbol,
+                    color: fgColor,
+                    backgroundColor: bgColor,
                     zIndex: -1
                 };
 
@@ -756,5 +777,17 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         });
         
         return tileIds;
+    }
+
+    public emptyCell(x: number, y: number): void {
+        if (x < 0 || x >= this.worldWidth || y < 0 || y >= this.worldHeight) {
+            this.log.warn(`Attempted to empty cell outside world bounds: (${x},${y})`);
+            return;
+        }
+
+        // Get all tile IDs in this cell and remove them
+        const cell = this.cells[y][x];
+        const tileIds = cell.tiles.map(t => t.id);
+        tileIds.forEach(id => this.removeTile(id));
     }
 } 

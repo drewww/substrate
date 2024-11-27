@@ -14,5 +14,7 @@ Display
  - DONE Add string rendering
     - consider different sizing? for not following the cell grid at all??
  - test small versions
- - delete buffer canvas, not sure why we're triple buffered right now. seems not to be used for anything.
-
+ - DONE delete buffer canvas, not sure why we're triple buffered right now. seems not to be used for anything.
+ - Refactor overlays to use the same logic as any other cell. 
+ - Look into blend modes and decide whether/how we want to do that.
+ 

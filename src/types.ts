@@ -4,12 +4,13 @@ export type TileId = string;
 
 export interface Tile {
     id: TileId;
-    symbol: string;
-    fgColor: Color | null;
-    bgColor: Color | null;
-    zIndex: number;
     x: number;
     y: number;
+    char: string;
+    color: Color;
+    backgroundColor: Color;
+    zIndex: number;
+    bgPercent?: number;
 }
 
 export interface Cell {
