@@ -44,7 +44,7 @@ export class StringTest extends BaseTest {
 
         // Add initial strings
         strings.forEach((str, index) => {
-            const tileIds = this.display.createColoredString(
+            const tileIds = this.display.createString(
                 2, 
                 index * 3 + 2, 
                 str.text,
@@ -52,6 +52,17 @@ export class StringTest extends BaseTest {
             );
             this.activeStrings.push({ tileIds, text: str.text, zIndex: str.zIndex });
         });
+
+        const wrappedText = "{r}This is a very long string that will {g}automatically wrap{/} at word boundaries when it reaches the edge of its container{/}";
+        const tileIds = this.display.createWrappedString(
+            2,  // x
+            2,  // y
+            20, // width in cells
+            5,  // height in cells
+            wrappedText,
+            5   // zIndex
+        );
+        this.activeStrings.push({ tileIds, text: wrappedText, zIndex: 5 });
 
         // Set up periodic movement
         this.moveStringsRandomly();
@@ -61,14 +72,28 @@ export class StringTest extends BaseTest {
         if (!this.isRunning) return;
 
         this.activeStrings.forEach(str => {
-            const newX = Math.floor(Math.random() * (this.display.getWorldWidth() - str.text.length));
-            const newY = Math.floor(Math.random() * this.display.getWorldHeight());
+            // Get current position of first tile
+            const firstTile = this.display.getTile(str.tileIds[0]);
+            if (!firstTile) return;
+
+            // Calculate string dimensions
+            const stringLength = str.tileIds.length;
+            
+            // Calculate safe bounds for movement
+            const maxX = this.display.getWorldWidth() - stringLength;
+            const maxY = this.display.getWorldHeight() - 1;
+            
+            // Generate new position within safe bounds
+            const newX = Math.max(0, Math.min(maxX, Math.floor(Math.random() * maxX)));
+            const newY = Math.max(0, Math.min(maxY, Math.floor(Math.random() * maxY)));
             
             // Calculate movement delta
-            const firstTile = this.display.getTile(str.tileIds[0]);
-            if (firstTile) {
-                const dx = newX - firstTile.x;
-                const dy = newY - firstTile.y;
+            const dx = newX - firstTile.x;
+            const dy = newY - firstTile.y;
+            
+            // Only move if the new position is valid
+            if (newX >= 0 && newX + stringLength <= this.display.getWorldWidth() && 
+                newY >= 0 && newY < this.display.getWorldHeight()) {
                 this.display.moveTiles(str.tileIds, dx, dy);
             }
         });

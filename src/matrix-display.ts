@@ -221,6 +221,13 @@ export class MatrixDisplay {
             this.log.warn(`Attempted to move non-existent tile: ${tileId}`);
             return;
         }
+
+        // Add bounds checking
+        if (newX < 0 || newX >= this.worldWidth || newY < 0 || newY >= this.worldHeight) {
+            this.log.warn(`Attempted to move tile outside bounds: (${newX},${newY})`);
+            return;
+        }
+
         this.log.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
 
         // Remove from old position
@@ -612,7 +619,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         }
     };
 
-    public createColoredString(
+    public createString(
         x: number,
         y: number,
         text: string,
@@ -633,6 +640,77 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     zIndex
                 );
                 tileIds.push(tileId);
+            });
+        });
+
+        return tileIds;
+    }
+
+    public createWrappedString(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        text: string,
+        zIndex: number = 1
+    ): TileId[] {
+        const segments = this.textParser.parse(text);
+        const tileIds: TileId[] = [];
+        let currentX = x;
+        let currentY = y;
+        let lineStart = x;
+        let currentLineWords: { tileIds: TileId[]; text: string; }[] = [];
+
+        segments.forEach(segment => {
+            // Split segment into words, preserving spaces
+            const words = segment.text.split(/(\s+)/);
+            
+            words.forEach(word => {
+                if (!word.length) return;
+
+                // Create tiles for this word (temporarily)
+                const wordTileIds: TileId[] = [];
+                Array.from(word).forEach(char => {
+                    const tileId = this.createTile(
+                        currentX + wordTileIds.length,
+                        currentY,
+                        char,
+                        segment.color,
+                        "#000000FF",
+                        zIndex
+                    );
+                    wordTileIds.push(tileId);
+                });
+
+                // Check if adding this word would exceed the width
+                if (currentX - lineStart + word.length > width && currentLineWords.length > 0) {
+                    // Move to next line
+                    currentY++;
+                    currentX = x;
+                    lineStart = x;
+
+                    // Check height bounds
+                    if (currentY >= y + height) {
+                        // Clean up tiles if we've exceeded height
+                        wordTileIds.forEach(id => this.removeTile(id));
+                        return;
+                    }
+
+                    // Reset line tracking
+                    currentLineWords = [];
+                }
+
+                // Move word to current position
+                wordTileIds.forEach((tileId, i) => {
+                    this.moveTile(tileId, currentX + i, currentY);
+                });
+
+                // Add to tracking
+                currentLineWords.push({ tileIds: wordTileIds, text: word });
+                tileIds.push(...wordTileIds);
+
+                // Update position for next word
+                currentX += word.length;
             });
         });
 
