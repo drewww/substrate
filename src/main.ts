@@ -1,5 +1,7 @@
 import { TestManager } from './tests/test-manager';
 
+const SELECTED_TEST_KEY = 'matrix-display-selected-test';
+
 console.log('main.ts starting');
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,11 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         testSelect.onchange = () => {
-            manager.selectTest(testSelect.value);
+            const selectedTest = testSelect.value;
+            manager.selectTest(selectedTest);
+            // Save selection to localStorage
+            localStorage.setItem(SELECTED_TEST_KEY, selectedTest);
         };
 
-        // Select first test by default
-        if (manager.availableTests.length > 0) {
+        // Try to restore previously selected test, fall back to first test
+        const savedTest = localStorage.getItem(SELECTED_TEST_KEY);
+        if (savedTest && manager.availableTests.some(test => test.getName() === savedTest)) {
+            testSelect.value = savedTest;
+            manager.selectTest(savedTest);
+        } else if (manager.availableTests.length > 0) {
             manager.selectTest(manager.availableTests[0].getName());
         }
 
