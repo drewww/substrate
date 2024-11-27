@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { LogLevel } from '../matrix-display';
+import { LogLevel, FillDirection } from '../matrix-display';
 
 export class RandomScanTest extends BaseTest {
     private currentX: number = 0;
@@ -37,6 +37,16 @@ export class RandomScanTest extends BaseTest {
         return String.fromCharCode(33 + Math.floor(Math.random() * 94));
     }
 
+    private getRandomDirection(): FillDirection {
+        const directions = [
+            FillDirection.TOP,
+            FillDirection.RIGHT,
+            FillDirection.BOTTOM,
+            FillDirection.LEFT
+        ];
+        return directions[Math.floor(Math.random() * directions.length)];
+    }
+
     private updateNextTile() {
         if (!this.isRunning) return;
 
@@ -47,7 +57,7 @@ export class RandomScanTest extends BaseTest {
         // Clear any existing tiles at this position
         this.display.emptyCell(this.currentX, this.currentY);
 
-        // Create new tile at random position with random background height
+        // Create new tile at random position with random background height and direction
         const tileId = this.display.createTile(
             this.currentX,
             this.currentY,
@@ -55,7 +65,8 @@ export class RandomScanTest extends BaseTest {
             this.getRandomColor(),
             this.getRandomColor(),
             1,
-            Math.random()  // Random background percentage between 0 and 1
+            Math.random(),  // Random background percentage between 0 and 1
+            this.getRandomDirection()  // Random fill direction
         );
         
         this.tileIds.push(tileId);

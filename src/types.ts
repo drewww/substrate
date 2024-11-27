@@ -1,3 +1,5 @@
+import { FillDirection } from "./matrix-display";
+
 export type Color = string; // CSS color string in #RRGGBBAA format
 
 export type TileId = string;
@@ -10,7 +12,8 @@ export interface Tile {
     color: Color;
     backgroundColor: Color;
     zIndex: number;
-    bgPercent?: number;
+    bgPercent: number;
+    fillDirection: FillDirection;
 }
 
 export interface Cell {

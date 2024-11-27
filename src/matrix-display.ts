@@ -44,6 +44,13 @@ export interface StringConfig {
     };
 }
 
+export enum FillDirection {
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT
+}
+
 export class MatrixDisplay {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private displayCtx: CanvasRenderingContext2D;
@@ -214,7 +221,8 @@ export class MatrixDisplay {
         color: Color, 
         backgroundColor: Color, 
         zIndex: number = 1, 
-        bgPercent: number = 1
+        bgPercent: number = 1,
+        fillDirection: FillDirection = FillDirection.BOTTOM
     ): TileId {
         const id = this.generateTileId();
         this.log.verbose(`Creating tile ${id} at (${x},${y})`);
@@ -226,7 +234,8 @@ export class MatrixDisplay {
             color,
             backgroundColor,
             zIndex,
-            bgPercent
+            bgPercent,
+            fillDirection
         };
         
         this.tileMap.set(id, tile);
@@ -397,14 +406,43 @@ export class MatrixDisplay {
                 const bgPercent = tile.bgPercent ?? 1;  // Default to 1 if not specified
                 if (bgPercent > 0) {
                     this.worldCtx.fillStyle = tile.backgroundColor;
-                    const bgHeight = this.cellSize * bgPercent;
-                    const yOffset = this.cellSize - bgHeight;  // Start from bottom
-                    this.worldCtx.fillRect(
-                        pixelX,
-                        pixelY + yOffset,
-                        this.cellSize/2,  // Match the cell width
-                        bgHeight
-                    );
+                    const cellWidth = this.cellSize/2;
+                    const cellHeight = this.cellSize;
+
+                    switch (tile.fillDirection) {
+                        case FillDirection.TOP:
+                            this.worldCtx.fillRect(
+                                pixelX,
+                                pixelY,
+                                cellWidth,
+                                cellHeight * bgPercent
+                            );
+                            break;
+                        case FillDirection.RIGHT:
+                            this.worldCtx.fillRect(
+                                pixelX + cellWidth * (1 - bgPercent),
+                                pixelY,
+                                cellWidth * bgPercent,
+                                cellHeight
+                            );
+                            break;
+                        case FillDirection.BOTTOM:
+                            this.worldCtx.fillRect(
+                                pixelX,
+                                pixelY + cellHeight * (1 - bgPercent),
+                                cellWidth,
+                                cellHeight * bgPercent
+                            );
+                            break;
+                        case FillDirection.LEFT:
+                            this.worldCtx.fillRect(
+                                pixelX,
+                                pixelY,
+                                cellWidth * bgPercent,
+                                cellHeight
+                            );
+                            break;
+                    }
                 }
             }
             
@@ -576,7 +614,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     char: symbol,
                     color: fgColor,
                     backgroundColor: bgColor,
-                    zIndex: -1
+                    zIndex: -1,
+                    bgPercent: 1,
+                    fillDirection: FillDirection.BOTTOM
                 };
 
                 // Remove any existing tiles with z-index -1
@@ -669,7 +709,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     char,
                     segment.color,
                     "#000000FF",  // Default background
-                    zIndex
+                    zIndex,
+                    1,  // Default bgPercent
+                    FillDirection.BOTTOM  // Default fillDirection
                 );
                 tileIds.push(tileId);
             });
@@ -718,7 +760,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                         ' ',  // Empty space for background
                         '#00000000',  // Transparent foreground
                         backgroundColor,
-                        zIndex - 1  // Place background behind text
+                        zIndex - 1,  // Place background behind text
+                        1,  // Full background
+                        FillDirection.BOTTOM
                     );
                     tileIds.push(tileId);
                 }
@@ -746,7 +790,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                         char,
                         segment.color,
                         textBackgroundColor,
-                        zIndex
+                        zIndex,
+                        1,  // Full background
+                        FillDirection.BOTTOM
                     );
                     wordTileIds.push(tileId);
                 });
