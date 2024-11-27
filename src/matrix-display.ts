@@ -1,4 +1,4 @@
-import { Cell, Color, DisplayOptions, Tile, TileId, Viewport } from './types';
+import { Cell, Color, Tile, TileId, Viewport } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -11,8 +11,17 @@ interface PerformanceMetrics {
     frameCount: number;
 }
 
+export enum LogLevel {
+    NONE = 0,
+    ERROR = 1,
+    WARN = 2,
+    INFO = 3,
+    DEBUG = 4,
+    VERBOSE = 5
+}
+
 export interface MatrixDisplayConfig {
-    elementId: string;
+    elementId?: string;
     cellSize: number;
     worldWidth: number;
     worldHeight: number;
@@ -20,6 +29,7 @@ export interface MatrixDisplayConfig {
     viewportHeight: number;
     defaultFont?: string;
     customFont?: string;
+    logLevel?: LogLevel;
 }
 
 export class MatrixDisplay {
@@ -39,9 +49,12 @@ export class MatrixDisplay {
     private tileMap: Map<TileId, Tile> = new Map();
     private tileIdCounter: number = 0;
     private autoRender: boolean = true;
+    private logLevel: LogLevel;
 
-    constructor(options: DisplayOptions) {
-        console.log('Initializing MatrixDisplay with options:', options);
+    constructor(options: MatrixDisplayConfig) {
+        this.logLevel = options.logLevel ?? LogLevel.WARN;
+        
+        this.log.info('Initializing MatrixDisplay with options:', options);
         
         // Calculate DPI scale first
         this.scale = window.devicePixelRatio || 1;
@@ -52,8 +65,14 @@ export class MatrixDisplay {
         this.cellSize = options.cellSize;
         
         // Main display canvas
+        if (!options.elementId) {
+            this.log.error('elementId is required');
+            throw new Error('elementId is required in MatrixDisplayConfig');
+        }
+        
         this.displayCanvas = document.getElementById(options.elementId) as HTMLCanvasElement;
         if (!this.displayCanvas) {
+            this.log.error(`Canvas element not found: ${options.elementId}`);
             throw new Error(`Canvas element not found: ${options.elementId}`);
         }
 
@@ -133,7 +152,7 @@ export class MatrixDisplay {
             frameCount: 0
         };
 
-        console.log('MatrixDisplay initialization complete');
+        this.log.info('MatrixDisplay initialization complete');
     }
 
     private initializeCells(width: number, height: number): Cell[][] {
@@ -174,6 +193,7 @@ export class MatrixDisplay {
         zIndex: number = 1
     ): TileId {
         const id = this.generateTileId();
+        this.log.verbose(`Creating tile ${id} at (${x},${y})`);
         const tile: Tile = { id, x, y, symbol, fgColor, bgColor, zIndex };
         
         this.tileMap.set(id, tile);
@@ -185,7 +205,11 @@ export class MatrixDisplay {
 
     public moveTile(tileId: TileId, newX: number, newY: number): void {
         const tile = this.tileMap.get(tileId);
-        if (!tile) return;
+        if (!tile) {
+            this.log.warn(`Attempted to move non-existent tile: ${tileId}`);
+            return;
+        }
+        this.log.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
 
         // Remove from old position
         const oldCell = this.cells[tile.y][tile.x];
@@ -213,7 +237,11 @@ export class MatrixDisplay {
 
     public updateTile(tileId: TileId, updates: Partial<Omit<Tile, 'id'>>): void {
         const tile = this.tileMap.get(tileId);
-        if (!tile) return;
+        if (!tile) {
+            this.log.warn(`Attempted to update non-existent tile: ${tileId}`);
+            return;
+        }
+        this.log.verbose(`Updating tile ${tileId}`, updates);
 
         Object.assign(tile, updates);
         
@@ -235,7 +263,11 @@ export class MatrixDisplay {
 
     public removeTile(tileId: TileId): void {
         const tile = this.tileMap.get(tileId);
-        if (!tile) return;
+        if (!tile) {
+            this.log.warn(`Attempted to remove non-existent tile: ${tileId}`);
+            return;
+        }
+        this.log.verbose(`Removing tile ${tileId}`);
 
         // Remove from cell
         const cell = this.cells[tile.y][tile.x];
@@ -271,9 +303,8 @@ export class MatrixDisplay {
     }
 
     public setOverlay(x: number, y: number, color: Color) {
-        // Add bounds checking
         if (x < 0 || x >= this.worldWidth || y < 0 || y >= this.worldHeight) {
-            console.warn(`Attempted to set overlay outside world bounds: (${x},${y})`);
+            this.log.warn(`Attempted to set overlay outside world bounds: (${x},${y})`);
             return;
         }
 
@@ -284,7 +315,7 @@ export class MatrixDisplay {
     }
 
     public setViewport(x: number, y: number) {
-        console.log(`Setting viewport to (${x},${y})`);
+        this.log.debug(`Setting viewport to (${x},${y})`);
                 
         // Update viewport position
         this.viewport.x = Math.max(0, Math.min(x, this.worldCanvas.width / this.cellSize - this.viewport.width));
@@ -351,18 +382,17 @@ export class MatrixDisplay {
 
     public render(): void {
         const renderStart = performance.now();
-        console.log('Starting render, dirty rects:', this.dirtyRects.size);
+        this.log.verbose('Starting render, dirty rects:', this.dirtyRects.size);
 
         if (this.dirtyRects.size === 0) {
-            console.log('No dirty rects, skipping render');
+            this.log.debug('No dirty rects, skipping render');
             this.updateMetrics(renderStart);
             return;
         }
 
-        // Track metrics for this render
         this.metrics.dirtyRectCount = this.dirtyRects.size;
-
-        // Calculate the bounds of dirty rectangles in world coordinates
+        
+        // Calculate bounds
         let minX = Infinity, minY = Infinity;
         let maxX = -Infinity, maxY = -Infinity;
         
@@ -374,18 +404,18 @@ export class MatrixDisplay {
             maxY = Math.max(maxY, y + 1);
         }
 
-        console.log(`Dirty rect bounds: (${minX},${minY}) to (${maxX},${maxY})`);
+        this.log.debug(`Dirty rect bounds: (${minX},${minY}) to (${maxX},${maxY})`);
 
-        // Render dirty cells to world buffer
+        // Render dirty cells
         for (const key of this.dirtyRects) {
             const [x, y] = key.split(',').map(Number);
             this.renderCell(x, y);
         }
-        console.log('Rendered dirty cells');
+        this.log.verbose('Rendered dirty cells');
         this.dirtyRects.clear();
 
+        this.log.debug('Copying to display canvas');
         // Copy to display
-        console.log('Copying to display canvas');
         const srcX = this.viewport.x * this.cellSize/2;
         const srcY = this.viewport.y * this.cellSize;
         const srcWidth = this.viewport.width * this.cellSize/2;
@@ -443,7 +473,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
     }
 
     public clear() {
-        console.log('Clearing display');
+        this.log.info('Clearing display');
         
         // Clear all cells back to default state
         for (let y = 0; y < this.cells.length; y++) {
@@ -472,7 +502,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
     }
 
     public clearOverlays() {
-        console.log('Clearing all overlays');
+        this.log.debug('Clearing all overlays');
         for (let y = 0; y < this.cells.length; y++) {
             for (let x = 0; x < this.cells[y].length; x++) {
                 this.cells[y][x].overlay = '#00000000';
@@ -546,4 +576,27 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             this.render();
         }
     }
+
+    public setLogLevel(level: LogLevel): void {
+        this.log.info(`Changing log level from ${LogLevel[this.logLevel]} to ${LogLevel[level]}`);
+        this.logLevel = level;
+    }
+
+    private log = {
+        error: (...args: any[]) => {
+            if (this.logLevel >= LogLevel.ERROR) console.error('[MatrixDisplay]', ...args);
+        },
+        warn: (...args: any[]) => {
+            if (this.logLevel >= LogLevel.WARN) console.warn('[MatrixDisplay]', ...args);
+        },
+        info: (...args: any[]) => {
+            if (this.logLevel >= LogLevel.INFO) console.log('[MatrixDisplay]', ...args);
+        },
+        debug: (...args: any[]) => {
+            if (this.logLevel >= LogLevel.DEBUG) console.log('[MatrixDisplay][Debug]', ...args);
+        },
+        verbose: (...args: any[]) => {
+            if (this.logLevel >= LogLevel.VERBOSE) console.log('[MatrixDisplay][Verbose]', ...args);
+        }
+    };
 } 

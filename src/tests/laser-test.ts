@@ -1,3 +1,4 @@
+import { LogLevel } from '../matrix-display';
 import { BaseTest } from './base-test';
 
 interface LaserBeam {
@@ -12,13 +13,14 @@ export class LaserTest extends BaseTest {
     private readonly FADE_SPEED = 0.02;
     private timeSinceLastLaser: number = 0;
     
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 50,
             worldHeight: 25,
             viewportWidth: 50,
             viewportHeight: 25,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 

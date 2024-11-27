@@ -1,5 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
+import { LogLevel } from '../matrix-display';
 
 interface Point {
     x: number;
@@ -13,13 +14,14 @@ export class ScrollTest extends BaseTest {
     private readonly MOVE_SPEED = 1;
     private tileIds: TileId[] = [];
     
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 100,
             worldHeight: 50,
             viewportWidth: 70,
             viewportHeight: 25,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 

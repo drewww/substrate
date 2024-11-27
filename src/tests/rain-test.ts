@@ -1,5 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../types';
+import { LogLevel } from '../matrix-display';
 
 interface Raindrop {
     tileId: TileId;
@@ -15,13 +16,14 @@ export class RainTest extends BaseTest {
     private readonly DROP_SYMBOLS = ['|', '│', '║'];
     private raindrops: Raindrop[] = [];
     
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 60,
             worldHeight: 30,
             viewportWidth: 60,
             viewportHeight: 30,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 

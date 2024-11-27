@@ -1,5 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
+import { LogLevel } from '../matrix-display';
 
 interface Entity {
     x: number;
@@ -17,13 +18,14 @@ export class ZIndexTest extends BaseTest {
     private frameCount: number = 0;
     private readonly FRAMES_PER_MOVE = 30;
     
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 25,
             worldHeight: 25,
             viewportWidth: 25,
             viewportHeight: 25,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 

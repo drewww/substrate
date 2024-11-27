@@ -8,26 +8,50 @@ import { LaserTest } from './laser-test';
 import { RainTest } from './rain-test';
 import { ZIndexTest } from './zindex-test';
 import { StringTest } from './string-test';
+import { LogLevel } from '../matrix-display';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;
     public availableTests: BaseTest[];
     public debugOverlay: DebugOverlay | null = null;
+    private logLevel: LogLevel = LogLevel.WARN;  // Default log level
 
     constructor() {
         console.log('Initializing TestManager');
-        
-        // Initialize available tests
-        this.availableTests = [
-            new RandomScanTest(),
-            new WipeTest(),
-            new LaserTest(),
-            new RippleTest(),
-            new ScrollTest(),
-            new RainTest(),
-            new ZIndexTest(),
-            new StringTest()
+        this.availableTests = this.createTests();
+    }
+
+    private createTests(): BaseTest[] {
+        return [
+            new RandomScanTest(this.logLevel),
+            new WipeTest(this.logLevel),
+            new LaserTest(this.logLevel),
+            new RippleTest(this.logLevel),
+            new ScrollTest(this.logLevel),
+            new RainTest(this.logLevel),
+            new ZIndexTest(this.logLevel),
+            new StringTest(this.logLevel)
         ];
+    }
+
+    public setLogLevel(level: LogLevel): void {
+        this.logLevel = level;
+        
+        // Store current test name if one is running
+        const currentTestName = this.currentTest?.getName();
+        const wasRunning = this.currentTest?.isRunning || false;
+        
+        // Recreate all tests with new log level
+        this.availableTests = this.createTests();
+        
+        // Restore current test if there was one
+        if (currentTestName) {
+            this.selectTest(currentTestName);
+            // Restart if it was running
+            if (wasRunning) {
+                this.currentTest?.start();
+            }
+        }
     }
 
     public selectTest(testName: string) {

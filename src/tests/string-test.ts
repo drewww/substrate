@@ -1,5 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
+import { LogLevel } from '../matrix-display';
 
 interface ActiveString {
     tileIds: TileId[];
@@ -11,13 +12,14 @@ interface ActiveString {
 export class StringTest extends BaseTest {
     private activeStrings: ActiveString[] = [];
 
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 60,
             worldHeight: 25,
             viewportWidth: 60,
             viewportHeight: 25,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 

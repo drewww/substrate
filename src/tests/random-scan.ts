@@ -1,18 +1,20 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
+import { LogLevel } from '../matrix-display';
 
 export class RandomScanTest extends BaseTest {
     private currentX: number = 0;
     private currentY: number = 0;
     private tileIds: TileId[] = [];  // Track all tiles for cleanup
 
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 60,
             worldHeight: 25,
             viewportWidth: 60,
             viewportHeight: 25,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 

@@ -55,7 +55,15 @@
     <div class="controls">
         <select id="testSelect"></select>
         <button id="toggleTest">Start/Stop Test</button>
-        <button id="toggleDebug">Toggle Debug Info</button>
+        <button id="toggleDebug">FPS</button>
+        <select id="logLevel">
+            <option value="0">None</option>
+            <option value="1">Error</option>
+            <option value="2" selected>Warn</option>
+            <option value="3">Info</option>
+            <option value="4">Debug</option>
+            <option value="5">Verbose</option>
+        </select>
     </div>
     <script type="module" src="/src/main.ts"></script>
 </body>

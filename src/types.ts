@@ -24,14 +24,3 @@ export interface Viewport {
     width: number;
     height: number;
 }
-
-export interface DisplayOptions {
-    elementId: string;
-    cellSize: number;
-    worldWidth: number;
-    worldHeight: number;
-    viewportWidth: number;
-    viewportHeight: number;
-    defaultFont?: string;
-    customFont?: string;
-}

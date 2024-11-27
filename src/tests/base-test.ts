@@ -1,19 +1,15 @@
-import { MatrixDisplay, MatrixDisplayConfig } from '../matrix-display';
+import { LogLevel, MatrixDisplay, MatrixDisplayConfig } from '../matrix-display';
 
 export abstract class BaseTest {
     protected display!: MatrixDisplay;
-    protected readonly config: MatrixDisplayConfig;
     public isRunning: boolean = false;
+    protected options: MatrixDisplayConfig;
 
-    constructor(defaultConfig?: Partial<MatrixDisplayConfig>) {
-        this.config = {
-            elementId: 'display',
-            cellSize: 24,
-            worldWidth: 25,
-            worldHeight: 25,
-            viewportWidth: 25,
-            viewportHeight: 25,
-            ...defaultConfig
+    constructor(options: MatrixDisplayConfig) {
+        this.options = {
+            ...options,
+            elementId: 'canvas',
+            logLevel: options.logLevel ?? LogLevel.WARN
         };
     }
 
@@ -35,8 +31,8 @@ export abstract class BaseTest {
         const container = document.getElementById('display-container')!;
         
         // Calculate container size based on viewport dimensions
-        const containerWidth = this.config.viewportWidth * this.config.cellSize;
-        const containerHeight = this.config.viewportHeight * this.config.cellSize;
+        const containerWidth = this.options.viewportWidth * this.options.cellSize;
+        const containerHeight = this.options.viewportHeight * this.options.cellSize;
         
         // Update container size
         container.style.width = `${containerWidth}px`;
@@ -52,8 +48,8 @@ export abstract class BaseTest {
         container.innerHTML = '';
         container.appendChild(canvas);
         
-        this.config.elementId = canvas.id;
-        this.display = new MatrixDisplay(this.config);
+        this.options.elementId = canvas.id;
+        this.display = new MatrixDisplay(this.options);
         
         this.isRunning = true;
         this.run();

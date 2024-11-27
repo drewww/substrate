@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         manager.availableTests.forEach(test => {
             const option = document.createElement('option');
             option.value = test.getName();
-            option.text = `${test.getName()} - ${test.getDescription()}`;
+            option.text = `${test.getName()}`;
             testSelect.add(option);
         });
 
@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     manager.debugOverlay.toggle();
                 }
             }
+        });
+
+        // Add log level control
+        const logLevelSelect = document.getElementById('logLevel') as HTMLSelectElement;
+        logLevelSelect.addEventListener('change', (e) => {
+            const level = parseInt((e.target as HTMLSelectElement).value);
+            manager.setLogLevel(level);
         });
 
         console.log('Event listeners set up');

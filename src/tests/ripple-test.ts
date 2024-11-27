@@ -1,3 +1,4 @@
+import { LogLevel } from '../matrix-display';
 import { BaseTest } from './base-test';
 
 interface Ripple {
@@ -14,13 +15,14 @@ export class RippleTest extends BaseTest {
     private readonly FADE_RATE = 0.02;
     private timeSinceLastRipple: number = 0;
     
-    constructor() {
+    constructor(logLevel?: LogLevel) {
         super({
             worldWidth: 25,
             worldHeight: 25,
             viewportWidth: 25,
             viewportHeight: 25,
-            cellSize: 24
+            cellSize: 24,
+            logLevel
         });
     }
 
