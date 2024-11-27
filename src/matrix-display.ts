@@ -191,7 +191,6 @@ export class MatrixDisplay {
             cells[y] = [];
             for (let x = 0; x < width; x++) {
                 cells[y][x] = {
-                    overlay: '#00000000',
                     tiles: [],
                     isDirty: true
                 };
@@ -351,18 +350,6 @@ export class MatrixDisplay {
         }
     }
 
-    public setOverlay(x: number, y: number, color: Color) {
-        if (x < 0 || x >= this.worldWidth || y < 0 || y >= this.worldHeight) {
-            this.log.warn(`Attempted to set overlay outside world bounds: (${x},${y})`);
-            return;
-        }
-
-        this.cells[y][x].overlay = color;
-        this.cells[y][x].isDirty = true;
-        this.dirtyRects.add(`${x},${y}`);
-        this.renderIfAuto();
-    }
-
     public setViewport(x: number, y: number) {
         this.log.debug(`Setting viewport to (${x},${y})`);
                 
@@ -460,12 +447,6 @@ export class MatrixDisplay {
             }
         });
 
-        // Draw overlay on top of everything
-        if (cell.overlay && cell.overlay !== '#00000000') {
-            this.worldCtx.fillStyle = cell.overlay;
-            this.worldCtx.fillRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
-        }
-        
         this.worldCtx.restore();
     }
 
@@ -568,7 +549,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         for (let y = 0; y < this.cells.length; y++) {
             for (let x = 0; x < this.cells[y].length; x++) {
                 this.cells[y][x] = {
-                    overlay: '#00000000',
                     tiles: [],
                     isDirty: true
                 };
@@ -588,18 +568,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         this.cells[y][x].tiles = tiles;
         this.cells[y][x].isDirty = true;
         this.dirtyRects.add(`${x},${y}`);
-    }
-
-    public clearOverlays() {
-        this.log.debug('Clearing all overlays');
-        for (let y = 0; y < this.cells.length; y++) {
-            for (let x = 0; x < this.cells[y].length; x++) {
-                this.cells[y][x].overlay = '#00000000';
-                this.cells[y][x].isDirty = true;
-                this.dirtyRects.add(`${x},${y}`);
-            }
-        }
-        this.renderIfAuto();
     }
 
     public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {

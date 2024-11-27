@@ -1,12 +1,13 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { LogLevel } from '../matrix-display';
+import { FillDirection, LogLevel } from '../matrix-display';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;
     private readonly WIPE_SPEED = 1.0;
     private isWiping: boolean = false;
-    private tileIds: TileId[] = [];  // Track created tiles for cleanup
+    private tileIds: TileId[] = [];
+    private wipeOverlayIds: TileId[] = [];  // Track wipe overlay tiles separately
 
     constructor(logLevel?: LogLevel) {
         super({
@@ -61,19 +62,28 @@ export class WipeTest extends BaseTest {
     private updateWipe() {
         if (!this.isRunning || !this.isWiping) return;
 
-        const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
 
         // Apply black overlay to current column
         for (let y = 0; y < height; y++) {
-            this.display.setOverlay(this.currentX, y, '#000000AA');
+            const tileId = this.display.createTile(
+                this.currentX,
+                y,
+                ' ',  // Empty character
+                '#00000000',  // Transparent foreground
+                '#000000AA',  // Semi-transparent black background
+                100,  // High z-index to stay on top
+                1,    // Full background
+                FillDirection.BOTTOM
+            );
+            this.wipeOverlayIds.push(tileId);
         }
 
         // Move to next column
         this.currentX += this.WIPE_SPEED;
 
-        // Check if wipe is complete after setting the overlay
-        if (this.currentX >= width) {
+        // Check if wipe is complete
+        if (this.currentX >= this.display.getWorldWidth()) {
             this.isWiping = false;
             return;
         }
@@ -84,7 +94,6 @@ export class WipeTest extends BaseTest {
     protected run(): void {
         this.currentX = 0;
         this.isWiping = true;
-        this.display.clearOverlays(); // Clear any existing overlays
         this.fillRandomBackground();
         this.updateWipe();
     }
@@ -92,10 +101,11 @@ export class WipeTest extends BaseTest {
     protected cleanup(): void {
         // Remove all created tiles
         this.tileIds.forEach(id => this.display.removeTile(id));
+        this.wipeOverlayIds.forEach(id => this.display.removeTile(id));
         this.tileIds = [];
+        this.wipeOverlayIds = [];
         
         this.currentX = 0;
         this.isWiping = false;
-        this.display.clearOverlays();
     }
 } 

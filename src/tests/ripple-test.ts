@@ -1,4 +1,5 @@
-import { LogLevel } from '../matrix-display';
+import { FillDirection, LogLevel } from '../matrix-display';
+import { TileId } from '../types';
 import { BaseTest } from './base-test';
 
 interface Ripple {
@@ -11,6 +12,7 @@ interface Ripple {
 
 export class RippleTest extends BaseTest {
     private ripples: Ripple[] = [];
+    private rippleTileIds: Set<TileId> = new Set();
     private readonly RIPPLE_SPEED = 0.5;
     private readonly FADE_RATE = 0.02;
     private timeSinceLastRipple: number = 0;
@@ -54,7 +56,9 @@ export class RippleTest extends BaseTest {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
 
-        this.display.clearOverlays();
+        // Remove previous ripple tiles
+        this.rippleTileIds.forEach(id => this.display.removeTile(id));
+        this.rippleTileIds.clear();
 
         this.ripples = this.ripples.filter(ripple => {
             ripple.radius += this.RIPPLE_SPEED;
@@ -79,7 +83,17 @@ export class RippleTest extends BaseTest {
 
                 if (maxIntensity > 0) {
                     const alpha = Math.floor(maxIntensity * 255).toString(16).padStart(2, '0');
-                    this.display.setOverlay(x, y, `#FFFFFF${alpha}`);
+                    const tileId = this.display.createTile(
+                        x,
+                        y,
+                        ' ',
+                        '#00000000',
+                        `#FFFFFF${alpha}`,
+                        100,
+                        1,
+                        FillDirection.BOTTOM
+                    );
+                    this.rippleTileIds.add(tileId);
                 }
             }
         }
@@ -105,5 +119,7 @@ export class RippleTest extends BaseTest {
 
     protected cleanup(): void {
         this.ripples = [];
+        this.rippleTileIds.forEach(id => this.display.removeTile(id));
+        this.rippleTileIds.clear();
     }
 } 

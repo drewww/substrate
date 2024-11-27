@@ -17,7 +17,6 @@ export interface Tile {
 }
 
 export interface Cell {
-    overlay: Color;
     tiles: Tile[];
     isDirty: boolean;
 }

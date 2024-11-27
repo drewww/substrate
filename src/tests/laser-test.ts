@@ -1,4 +1,5 @@
-import { LogLevel } from '../matrix-display';
+import { FillDirection, LogLevel } from '../matrix-display';
+import { TileId } from '../types';
 import { BaseTest } from './base-test';
 
 interface LaserBeam {
@@ -9,6 +10,7 @@ interface LaserBeam {
 
 export class LaserTest extends BaseTest {
     private lasers: LaserBeam[] = [];
+    private laserTileIds: Set<TileId> = new Set();
     private readonly LASER_SPEED = 0.2; // Speed along the path
     private readonly FADE_SPEED = 0.02;
     private timeSinceLastLaser: number = 0;
@@ -84,7 +86,9 @@ export class LaserTest extends BaseTest {
     private updateLasers() {
         if (!this.isRunning) return;
 
-        this.display.clearOverlays();
+        // Remove previous laser tiles
+        this.laserTileIds.forEach(id => this.display.removeTile(id));
+        this.laserTileIds.clear();
 
         this.lasers = this.lasers.filter(laser => {
             // Remove if fade is complete
@@ -114,7 +118,18 @@ export class LaserTest extends BaseTest {
                     const opacity = 1 - (distanceFromTip * 0.2);
                     const alpha = Math.floor(opacity * 255).toString(16).padStart(2, '0');
                     const point = laser.points[i];
-                    this.display.setOverlay(point.x, point.y, `#FF0000${alpha}`);
+                    
+                    const tileId = this.display.createTile(
+                        point.x,
+                        point.y,
+                        ' ',
+                        '#00000000',
+                        `#FF0000${alpha}`,
+                        100,
+                        1,
+                        FillDirection.BOTTOM
+                    );
+                    this.laserTileIds.add(tileId);
                 }
             } else {
                 // Fade out the last 5 points of the path
@@ -124,7 +139,18 @@ export class LaserTest extends BaseTest {
                     const opacity = laser.fadeStart * (1 - (distanceFromEnd * 0.2));
                     const alpha = Math.floor(Math.max(0, opacity * 255)).toString(16).padStart(2, '0');
                     const point = laser.points[i];
-                    this.display.setOverlay(point.x, point.y, `#FF0000${alpha}`);
+                    
+                    const tileId = this.display.createTile(
+                        point.x,
+                        point.y,
+                        ' ',
+                        '#00000000',
+                        `#FF0000${alpha}`,
+                        100,
+                        1,
+                        FillDirection.BOTTOM
+                    );
+                    this.laserTileIds.add(tileId);
                 }
             }
 
@@ -157,5 +183,7 @@ export class LaserTest extends BaseTest {
 
     protected cleanup(): void {
         this.lasers = [];
+        this.laserTileIds.forEach(id => this.display.removeTile(id));
+        this.laserTileIds.clear();
     }
 } 
