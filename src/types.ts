@@ -24,3 +24,12 @@ export interface Viewport {
     width: number;
     height: number;
 }
+
+export interface ColorMap {
+    [key: string]: string;  // Maps single-char aliases to full color values
+}
+
+export interface ColoredString {
+    text: string;
+    colorMap: ColorMap;
+}

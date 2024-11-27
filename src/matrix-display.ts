@@ -1,3 +1,4 @@
+import { TextParser } from './text-parser';
 import { Cell, Color, Tile, TileId, Viewport } from './types';
 
 interface PerformanceMetrics {
@@ -50,6 +51,7 @@ export class MatrixDisplay {
     private tileIdCounter: number = 0;
     private autoRender: boolean = true;
     private logLevel: LogLevel;
+    private textParser: TextParser;
 
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -151,6 +153,16 @@ export class MatrixDisplay {
             lastFpsUpdate: performance.now(),
             frameCount: 0
         };
+
+        // Initialize parser with standard color map
+        this.textParser = new TextParser({
+            'r': '#FF0000FF',  // red
+            'g': '#00FF00FF',  // green
+            'b': '#0088FFFF',  // blue
+            'y': '#FFFF00FF',  // yellow
+            'm': '#FF00FFFF',  // magenta
+            'w': '#FFFFFFFF',  // white
+        });
 
         this.log.info('MatrixDisplay initialization complete');
     }
@@ -599,4 +611,31 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             if (this.logLevel >= LogLevel.VERBOSE) console.log('[MatrixDisplay][Verbose]', ...args);
         }
     };
+
+    public createColoredString(
+        x: number,
+        y: number,
+        text: string,
+        zIndex: number = 1
+    ): TileId[] {
+        const segments = this.textParser.parse(text);
+        const tileIds: TileId[] = [];
+        let currentX = x;
+
+        segments.forEach(segment => {
+            Array.from(segment.text).forEach(char => {
+                const tileId = this.createTile(
+                    currentX++,
+                    y,
+                    char,
+                    segment.color,
+                    "#000000FF",  // Default background
+                    zIndex
+                );
+                tileIds.push(tileId);
+            });
+        });
+
+        return tileIds;
+    }
 } 

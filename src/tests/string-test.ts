@@ -1,11 +1,10 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../types';
+import { TileId } from '../types';
 import { LogLevel } from '../matrix-display';
 
 interface ActiveString {
     tileIds: TileId[];
     text: string;
-    color: Color;
     zIndex: number;
 }
 
@@ -28,26 +27,7 @@ export class StringTest extends BaseTest {
     }
 
     getDescription(): string {
-        return "Renders and moves text strings";
-    }
-
-    private createString(x: number, y: number, text: string, color: Color, zIndex: number): TileId[] {
-        const tileIds: TileId[] = [];
-        
-        // Create a tile for each character
-        Array.from(text).forEach((char, index) => {
-            const tileId = this.display.createTile(
-                x + index,
-                y,
-                char,
-                color,
-                "#000000FF",
-                zIndex
-            );
-            tileIds.push(tileId);
-        });
-
-        return tileIds;
+        return "Renders colored text strings with movement";
     }
 
     protected run(): void {
@@ -55,17 +35,22 @@ export class StringTest extends BaseTest {
         this.display.setBackground('.', '#AAAAAAFF', '#222222FF');
 
         const strings = [
-            { text: "Hello, Matrix Display!", color: '#FF0000FF', zIndex: 5 },
-            { text: "Lorem ipsum dolor sit amet", color: '#00FF00FF', zIndex: 4 },
-            { text: "This is a very long string", color: '#0088FFFF', zIndex: 3 },
-            { text: "Short text", color: '#FFFF00FF', zIndex: 2 },
-            { text: "Another string here", color: '#FF00FFFF', zIndex: 1 }
+            { text: "{r}Hello{/}, {b}Matrix{/} {g}Display!{/}", zIndex: 5 },
+            { text: "{g}Lorem ipsum{/} {y}dolor{/} {r}sit amet{/}", zIndex: 4 },
+            { text: "{b}This is a {y}very{/} long string{/}", zIndex: 3 },
+            { text: "{y}Short{/} {m}text{/}", zIndex: 2 },
+            { text: "{#FF00FF}Custom{/} {r}colored{/} {b}string{/}", zIndex: 1 }
         ];
 
         // Add initial strings
         strings.forEach((str, index) => {
-            const tileIds = this.createString(2, index * 3 + 2, str.text, str.color, str.zIndex);
-            this.activeStrings.push({ tileIds, ...str });
+            const tileIds = this.display.createColoredString(
+                2, 
+                index * 3 + 2, 
+                str.text,
+                str.zIndex
+            );
+            this.activeStrings.push({ tileIds, text: str.text, zIndex: str.zIndex });
         });
 
         // Set up periodic movement
