@@ -72,15 +72,13 @@ export class StringTest extends BaseTest {
             }
         ];
 
-        // Add initial strings
+        // Add initial strings using createString (no wrapping)
         strings.forEach((str, index) => {
-            const tileIds = this.display.createWrappedString(
+            const tileIds = this.display.createString(
                 2, 
                 index * 4 + 2,
-                20,
-                3,
                 str.text,
-                str.options || {}
+                str.options?.zIndex || 1
             );
             this.activeStrings.push({ 
                 tileIds, 
@@ -98,7 +96,7 @@ export class StringTest extends BaseTest {
             6,
             wrappedText,
             {
-                zIndex: 1,  // Lower z-index so other strings appear above
+                zIndex: 1,
                 backgroundColor: '#331111FF',
                 fillBox: true,
                 padding: 1
