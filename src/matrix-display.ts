@@ -33,6 +33,17 @@ export interface MatrixDisplayConfig {
     logLevel?: LogLevel;
 }
 
+export interface StringConfig {
+    text: string;
+    options?: {
+        zIndex?: number;
+        backgroundColor?: string;
+        textBackgroundColor?: string;
+        fillBox?: boolean;
+        padding?: number;
+    };
+}
+
 export class MatrixDisplay {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private displayCtx: CanvasRenderingContext2D;
@@ -652,10 +663,49 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         width: number,
         height: number,
         text: string,
-        zIndex: number = 1
+        options: {
+            zIndex?: number;
+            backgroundColor?: string;
+            textBackgroundColor?: string;
+            fillBox?: boolean;
+            padding?: number;
+        } = {}
     ): TileId[] {
-        const segments = this.textParser.parse(text);
+        const {
+            zIndex = 1,
+            backgroundColor = '#00000000',
+            textBackgroundColor = '#00000000',
+            fillBox = false,
+            padding = 0
+        } = options;
+
         const tileIds: TileId[] = [];
+        
+        // Adjust dimensions and position for padding
+        const actualX = x - padding;
+        const actualY = y - padding;
+        const actualWidth = width + (padding * 2);
+        const actualHeight = height + (padding * 2) + 1;  // Add 1 for bottom padding
+
+        // Create background if requested
+        if (fillBox) {
+            for (let py = actualY; py < actualY + actualHeight; py++) {
+                for (let px = actualX; px < actualX + actualWidth; px++) {
+                    const tileId = this.createTile(
+                        px,
+                        py,
+                        ' ',  // Empty space for background
+                        '#00000000',  // Transparent foreground
+                        backgroundColor,
+                        zIndex - 1  // Place background behind text
+                    );
+                    tileIds.push(tileId);
+                }
+            }
+        }
+
+        // Create text tiles (original wrapping logic)
+        const segments = this.textParser.parse(text);
         let currentX = x;
         let currentY = y;
         let lineStart = x;
@@ -676,7 +726,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                         currentY,
                         char,
                         segment.color,
-                        "#000000FF",
+                        textBackgroundColor,
                         zIndex
                     );
                     wordTileIds.push(tileId);
@@ -713,7 +763,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 currentX += word.length;
             });
         });
-
+        
         return tileIds;
     }
 } 

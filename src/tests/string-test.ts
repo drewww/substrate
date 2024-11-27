@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../types';
-import { LogLevel } from '../matrix-display';
+import { LogLevel, StringConfig } from '../matrix-display';
 
 interface ActiveString {
     tileIds: TileId[];
@@ -34,33 +34,53 @@ export class StringTest extends BaseTest {
         // Set dark gray background with dots
         this.display.setBackground('.', '#AAAAAAFF', '#222222FF');
 
-        const strings = [
-            { text: "{r}Hello{/}, {b}Matrix{/} {g}Display!{/}", zIndex: 5 },
-            { text: "{g}Lorem ipsum{/} {y}dolor{/} {r}sit amet{/}", zIndex: 4 },
-            { text: "{b}This is a {y}very{/} long string{/}", zIndex: 3 },
-            { text: "{y}Short{/} {m}text{/}", zIndex: 2 },
-            { text: "{#FF00FF}Custom{/} {r}colored{/} {b}string{/}", zIndex: 1 }
+        const strings: StringConfig[] = [
+            { 
+                text: "{r}Hello{/}, {b}Matrix{/} {g}Display!{/}", 
+                options: {
+                    zIndex: 5,
+                    backgroundColor: '#333333FF',
+                    fillBox: true,
+                    padding: 1
+                }
+            },
+            { text: "{g}Lorem ipsum{/} {y}dolor{/} {r}sit amet{/}" },
+            { text: "{b}This is a {y}very{/} long string{/}" },
+            { text: "{y}Short{/} {m}text{/}" },
+            { text: "{#FF00FF}Custom{/} {r}colored{/} {b}string{/" }
         ];
 
         // Add initial strings
         strings.forEach((str, index) => {
-            const tileIds = this.display.createString(
+            const tileIds = this.display.createWrappedString(
                 2, 
-                index * 3 + 2, 
+                index * 4 + 2,
+                20,
+                3,
                 str.text,
-                str.zIndex
+                str.options || {}
             );
-            this.activeStrings.push({ tileIds, text: str.text, zIndex: str.zIndex });
+            this.activeStrings.push({ 
+                tileIds, 
+                text: str.text, 
+                zIndex: str.options?.zIndex || 1 
+            });
         });
 
+        // Example of wrapped text with all styling options
         const wrappedText = "{r}This is a very long string that will {g}automatically wrap{/} at word boundaries when it reaches the edge of its container{/}";
         const tileIds = this.display.createWrappedString(
-            2,  // x
-            2,  // y
-            20, // width in cells
-            5,  // height in cells
+            2,
+            2,
+            20,
+            5,
             wrappedText,
-            5   // zIndex
+            {
+                zIndex: 5,
+                backgroundColor: '#331111FF',
+                fillBox: true,
+                padding: 1
+            }
         );
         this.activeStrings.push({ tileIds, text: wrappedText, zIndex: 5 });
 
