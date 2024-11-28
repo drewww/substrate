@@ -1012,7 +1012,8 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             end: Color, 
             duration: number, 
             reverse?: boolean, 
-            offset?: number 
+            offset?: number,
+            easing?: EasingFunction  // Add easing parameter
         },
         bg?: { 
             start: Color, 
@@ -1033,7 +1034,8 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 duration: options.fg.duration,
                 startTime: effectiveStartTime,
                 reverse: options.fg.reverse || false,
-                offset: options.fg.offset || 0
+                offset: options.fg.offset || 0,
+                easing: options.fg.easing
             };
         }
         
