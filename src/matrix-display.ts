@@ -577,6 +577,10 @@ export class MatrixDisplay {
     }
 
     private updateWorldCanvas() {
+        // Update metrics before clearing
+        this.metrics.dirtyRectCount = this.dirtyRects.size;
+        this.metrics.dirtyRectPixels = this.dirtyRects.size * (this.cellSize * this.cellSize);
+
         for (const key of this.dirtyRects) {
             const [x, y] = key.split(',').map(Number);
             this.renderCell(this.cells[y][x], x, y);
