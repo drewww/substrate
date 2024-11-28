@@ -137,6 +137,103 @@ export class PatternAnimationTest extends BaseTest {
             });
             this.animatedTiles.push(waveFillId);
         }
+
+        // Vertical stacked progress bar (x = 35, y = 2-6)
+        const barHeight = 5;
+        for (let i = 0; i < barHeight; i++) {
+            const tileId = this.display.createTile(35, 6 - i, ' ', '#FFFFFFFF', '#00FF00FF', 1, 0);
+            this.display.addValueAnimation(tileId, {
+                bgPercent: {
+                    start: 0,
+                    end: 1,
+                    duration: 4.0,
+                    reverse: true,
+                    // Each tile starts when the one below is almost full
+                    offset: (barHeight - 1 - i) * 0.2
+                }
+            });
+            this.animatedTiles.push(tileId);
+        }
+
+        // ASCII spinner with easing (x = 35, y = 8)
+        const spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        const spinnerId = this.display.createTile(35, 8, spinnerFrames[0], '#00FF00FF', '#000000FF', 1);
+        this.display.addSymbolAnimation(spinnerId, spinnerFrames, 1.0);
+        // Add pulsing color with sine easing
+        this.display.addColorAnimation(spinnerId, {
+            fg: {
+                start: '#00FF00FF',
+                end: '#00FF0044',
+                duration: 2.0,
+                reverse: true,
+                offset: 0.25  // Quarter phase offset for smooth sine wave
+            }
+        });
+        this.animatedTiles.push(spinnerId);
+
+        // Multi-character progress bar (x = 2-12, y = 18)
+        const progressChars = ['[          ]', '[=         ]', '[==        ]', '[===       ]',
+                              '[====      ]', '[=====     ]', '[======    ]', '[=======   ]',
+                              '[========  ]', '[========= ]', '[==========]'];
+        for (let i = 0; i < progressChars[0].length; i++) {
+            const charId = this.display.createTile(2 + i, 18, progressChars[0][i], '#00FF00FF', '#000000FF', 1);
+            this.display.addSymbolAnimation(charId, progressChars.map(frame => frame[i]), 2.0, true);
+            this.animatedTiles.push(charId);
+        }
+
+        // Rainbow wave with cubic easing (x = 15-25, y = 18)
+        const waveWidth = 10;
+        const colors = ['#FF0000FF', '#FF7F00FF', '#FFFF00FF', '#00FF00FF', '#0000FFFF', '#4B0082FF', '#8F00FFFF'];
+        for (let i = 0; i < waveWidth; i++) {
+            const waveTileId = this.display.createTile(15 + i, 18, '■', colors[0], '#000000FF', 1);
+            // Cubic easing function: t³
+            const offset = Math.pow(i / waveWidth, 3);
+            this.display.addColorAnimation(waveTileId, {
+                fg: {
+                    start: colors[0],
+                    end: colors[colors.length - 1],
+                    duration: 3.0,
+                    reverse: true,
+                    offset
+                }
+            });
+            this.animatedTiles.push(waveTileId);
+        }
+
+        // Matrix-style falling characters (x = 38, y = 2-7)
+        const matrixChars = '日月火水木金土'.split('');
+        for (let y = 2; y < 8; y++) {
+            const charId = this.display.createTile(38, y, matrixChars[0], '#00FF00FF', '#000000FF', 1);
+            this.display.addSymbolAnimation(charId, matrixChars, 0.5);
+            this.display.addColorAnimation(charId, {
+                fg: {
+                    start: '#00FF00FF',
+                    end: '#00FF0044',
+                    duration: 1.0,
+                    reverse: true,
+                    offset: y * 0.15  // Cascade effect
+                }
+            });
+            this.animatedTiles.push(charId);
+        }
+
+        // Bouncing dot with quadratic easing (x = 28-32, y = 18)
+        const bounceWidth = 5;
+        for (let i = 0; i < bounceWidth; i++) {
+            const bounceId = this.display.createTile(28 + i, 18, '•', '#FFFFFFFF', '#000000FF', 1);
+            // Quadratic easing: t²
+            const offset = Math.pow(i / bounceWidth, 2);
+            this.display.addColorAnimation(bounceId, {
+                fg: {
+                    start: '#FFFFFFFF',
+                    end: '#FFFFFF44',
+                    duration: 1.5,
+                    reverse: true,
+                    offset
+                }
+            });
+            this.animatedTiles.push(bounceId);
+        }
     }
 
     protected cleanup(): void {
