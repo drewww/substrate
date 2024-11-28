@@ -104,12 +104,10 @@ export class RippleTest extends BaseTest {
             this.timeSinceLastRipple = 0;
         }
 
-        this.display.render();
         requestAnimationFrame(() => this.updateRipples());
     }
 
     protected run(): void {
-        this.display.setAutoRender(false);
         
         this.display.clear();
         this.ripples = [];

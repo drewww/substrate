@@ -67,9 +67,11 @@ export class MatrixDisplay {
     private readonly scale: number;
     private tileMap: Map<TileId, Tile> = new Map();
     private tileIdCounter: number = 0;
-    private autoRender: boolean = true;
     private logLevel: LogLevel;
     private textParser: TextParser;
+
+    private boundRenderFrame: () => void;
+    private isRunning: boolean = false;
 
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -183,6 +185,9 @@ export class MatrixDisplay {
         });
 
         this.log.info('MatrixDisplay initialization complete');
+
+        this.boundRenderFrame = this.renderFrame.bind(this);
+        this.startRenderLoop();
     }
 
     private initializeCells(width: number, height: number): Cell[][] {
@@ -239,7 +244,6 @@ export class MatrixDisplay {
         
         this.tileMap.set(id, tile);
         this.setTileInCell(tile);
-        this.renderIfAuto();
         
         return id;
     }
@@ -271,7 +275,6 @@ export class MatrixDisplay {
 
         // Add to new position
         this.setTileInCell(tile);
-        this.renderIfAuto();
     }
 
     public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
@@ -301,7 +304,6 @@ export class MatrixDisplay {
             const cell = this.cells[tile.y][tile.x];
             cell.isDirty = true;
             this.dirtyRects.add(`${tile.x},${tile.y}`);
-            this.renderIfAuto();
         }
     }
 
@@ -325,7 +327,6 @@ export class MatrixDisplay {
 
         // Remove from tile map
         this.tileMap.delete(tileId);
-        this.renderIfAuto();
     }
 
     public removeTiles(tileIds: TileId[]): void {
@@ -365,9 +366,6 @@ export class MatrixDisplay {
                 this.dirtyRects.add(`${worldX},${worldY}`);
             }
         }
-
-        // Force immediate render since viewport changed
-        this.renderIfAuto();
     }
 
     private renderCell(cell: Cell, x: number, y: number): void {
@@ -450,58 +448,53 @@ export class MatrixDisplay {
         this.worldCtx.restore();
     }
 
-    public render(): void {
+    private renderFrame() {
         const renderStart = performance.now();
-        this.log.verbose('Starting render, dirty rects:', this.dirtyRects.size);
 
-        if (this.dirtyRects.size === 0) {
-            this.log.debug('No dirty rects, skipping render');
-            this.updateMetrics(renderStart);
-            return;
+        if (this.dirtyRects.size > 0) {
+            // Update world canvas
+            this.updateWorldCanvas();
+            
+            // Copy visible portion to display
+            this.updateDisplayCanvas();
         }
 
-        this.metrics.dirtyRectCount = this.dirtyRects.size;
-        
-        // Calculate bounds
-        let minX = Infinity, minY = Infinity;
-        let maxX = -Infinity, maxY = -Infinity;
-        
-        for (const key of this.dirtyRects) {
-            const [x, y] = key.split(',').map(Number);
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x + 1);
-            maxY = Math.max(maxY, y + 1);
+        this.updateMetrics(renderStart);
+
+        // Always request next frame if running
+        if (this.isRunning) {
+            requestAnimationFrame(this.boundRenderFrame);
         }
+    }
 
-        this.log.debug(`Dirty rect bounds: (${minX},${minY}) to (${maxX},${maxY})`);
+    private startRenderLoop() {
+        if (!this.isRunning) {
+            this.isRunning = true;
+            requestAnimationFrame(this.boundRenderFrame);
+        }
+    }
 
-        // Render dirty cells
+    private updateWorldCanvas() {
         for (const key of this.dirtyRects) {
             const [x, y] = key.split(',').map(Number);
             this.renderCell(this.cells[y][x], x, y);
         }
-        this.log.verbose('Rendered dirty cells');
         this.dirtyRects.clear();
+    }
 
-        this.log.debug('Copying to display canvas');
-        // Copy to display
+    // Copy the viewport portion to display canvas
+    private updateDisplayCanvas() {
         const srcX = this.viewport.x * this.cellSize/2;
         const srcY = this.viewport.y * this.cellSize;
         const srcWidth = this.viewport.width * this.cellSize/2;
         const srcHeight = this.viewport.height * this.cellSize;
 
-        // Clear the display canvas
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
-
-        // Copy from world buffer to display canvas
         this.displayCtx.drawImage(
             this.worldCanvas,
-            srcX, srcY, srcWidth, srcHeight,  // Source rectangle
-            0, 0, srcWidth, srcHeight         // Destination rectangle
+            srcX, srcY, srcWidth, srcHeight,
+            0, 0, srcWidth, srcHeight
         );
-
-        this.updateMetrics(renderStart);
     }
 
     private updateMetrics(renderStart: number) {
@@ -559,9 +552,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         // Clear all canvases
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
         this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
-
-        // Render the cleared state
-        this.renderIfAuto();
     }
 
     public setTiles(x: number, y: number, tiles: Tile[]) {
@@ -596,7 +586,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 this.dirtyRects.add(`${x},${y}`);
             }
         }
-        this.renderIfAuto();
     }
 
     public getWorldWidth(): number {
@@ -624,16 +613,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
     public getTile(tileId: TileId): Tile | undefined {
         return this.tileMap.get(tileId);
-    }
-
-    public setAutoRender(enabled: boolean): void {
-        this.autoRender = enabled;
-    }
-
-    private renderIfAuto(): void {
-        if (this.autoRender) {
-            this.render();
-        }
     }
 
     public setLogLevel(level: LogLevel): void {

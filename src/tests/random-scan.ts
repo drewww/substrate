@@ -71,8 +71,6 @@ export class RandomScanTest extends BaseTest {
         
         this.tileIds.push(tileId);
         
-        this.display.render();
-        
         if (this.isRunning) {
             requestAnimationFrame(() => this.updateNextTile());
         }

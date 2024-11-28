@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedTest && manager.availableTests.some(test => test.getName() === savedTest)) {
             testSelect.value = savedTest;
             manager.selectTest(savedTest);
+       
         } else if (manager.availableTests.length > 0) {
             manager.selectTest(manager.availableTests[0].getName());
         }

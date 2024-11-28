@@ -164,15 +164,11 @@ export class LaserTest extends BaseTest {
             this.timeSinceLastLaser = 0;
         }
 
-        // Single render call per frame
-        this.display.render();
         requestAnimationFrame(() => this.updateLasers());
     }
 
     protected run(): void {
         console.log('Starting laser test');
-        // Disable auto-render at start
-        this.display.setAutoRender(false);
         
         this.display.clear();
         this.lasers = [];
