@@ -107,6 +107,19 @@ export class PatternAnimationTest extends BaseTest {
             });
             this.animatedTiles.push(wideTileId);
         }
+
+        // Background fill animation
+        const fillId = this.display.createTile(25, 5, 'X', '#FFFFFFFF', '#FF0000FF', 1, 0);
+        this.display.addValueAnimation(fillId, {
+            bgPercent: {
+                start: 0,
+                end: 1,
+                duration: 2.0,
+                reverse: true,
+                offset: 0
+            }
+        });
+        this.animatedTiles.push(fillId);
     }
 
     protected cleanup(): void {

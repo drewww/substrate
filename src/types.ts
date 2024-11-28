@@ -53,3 +53,12 @@ export interface SymbolAnimation {
     reverse: boolean;     // Whether to reverse at end
     offset: number;      // Initial offset (0-1)
 }
+
+export interface ValueAnimation {
+    startValue: number;
+    endValue: number;
+    duration: number;      // Time in seconds for one cycle
+    startTime: number;     // Timestamp when animation started
+    reverse: boolean;      // Whether to reverse direction at endpoints
+    offset: number;        // Initial offset (0-1)
+}

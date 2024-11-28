@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation } from './types';
+import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -74,6 +74,7 @@ export class MatrixDisplay {
     private isRunning: boolean = false;
     private animations: Map<TileId, SymbolAnimation> = new Map();
     private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
+    private valueAnimations: Map<TileId, { bgPercent?: ValueAnimation }> = new Map();
 
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -454,6 +455,7 @@ export class MatrixDisplay {
     private renderFrame(timestamp: number): void {
         this.updateAnimations(timestamp);
         this.updateColorAnimations(timestamp);
+        this.updateValueAnimations(timestamp);
         const renderStart = timestamp;
 
         if (this.dirtyRects.size > 0) {
@@ -954,5 +956,66 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         }
         
         this.colorAnimations.set(tileId, animations);
+    }
+
+    public addValueAnimation(tileId: TileId, options: {
+        bgPercent?: {
+            start: number,
+            end: number,
+            duration: number,
+            reverse?: boolean,
+            offset?: number
+        },
+        startTime?: number
+    }): void {
+        const animations: { bgPercent?: ValueAnimation } = {};
+        const effectiveStartTime = options.startTime ?? performance.now();
+
+        if (options.bgPercent) {
+            animations.bgPercent = {
+                startValue: options.bgPercent.start,
+                endValue: options.bgPercent.end,
+                duration: options.bgPercent.duration,
+                startTime: effectiveStartTime,
+                reverse: options.bgPercent.reverse || false,
+                offset: options.bgPercent.offset || 0
+            };
+        }
+
+        this.valueAnimations.set(tileId, animations);
+    }
+
+    private updateValueAnimations(timestamp: number): void {
+        for (const [tileId, animations] of this.valueAnimations) {
+            const tile = this.tileMap.get(tileId);
+            if (!tile) {
+                this.valueAnimations.delete(tileId);
+                continue;
+            }
+
+            let updated = false;
+
+            if (animations.bgPercent) {
+                const elapsed = (timestamp - animations.bgPercent.startTime) / 1000;
+                let progress = (elapsed / animations.bgPercent.duration) + animations.bgPercent.offset;
+
+                if (animations.bgPercent.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) {
+                        progress = 2 - progress;
+                    }
+                } else {
+                    progress = progress % 1;
+                }
+
+                tile.bgPercent = animations.bgPercent.startValue + 
+                    (animations.bgPercent.endValue - animations.bgPercent.startValue) * progress;
+                updated = true;
+            }
+
+            if (updated) {
+                this.markDirty(tile.x, tile.y);
+            }
+        }
     }
 } 
