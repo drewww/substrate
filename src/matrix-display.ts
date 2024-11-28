@@ -70,7 +70,7 @@ export class MatrixDisplay {
     private logLevel: LogLevel;
     private textParser: TextParser;
 
-    private boundRenderFrame: () => void;
+    private boundRenderFrame: (timestamp: number) => void;
     private isRunning: boolean = false;
     private animations: Map<TileId, SymbolAnimation> = new Map();
     private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
@@ -451,22 +451,18 @@ export class MatrixDisplay {
         this.worldCtx.restore();
     }
 
-    private renderFrame(): void {
-        this.updateAnimations(performance.now());
-        this.updateColorAnimations(performance.now());
-        const renderStart = performance.now();
+    private renderFrame(timestamp: number): void {
+        this.updateAnimations(timestamp);
+        this.updateColorAnimations(timestamp);
+        const renderStart = timestamp;
 
         if (this.dirtyRects.size > 0) {
-            // Update world canvas
             this.updateWorldCanvas();
-            
-            // Copy visible portion to display
             this.updateDisplayCanvas();
         }
 
         this.updateMetrics(renderStart);
 
-        // Always request next frame if running
         if (this.isRunning) {
             requestAnimationFrame(this.boundRenderFrame);
         }
@@ -924,7 +920,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             offset?: number 
         }
     }): void {
-        const now = performance.now();
+        const startTime = performance.now();
         const animations: {fg?: ColorAnimation, bg?: ColorAnimation} = {};
         
         if (options.fg) {
@@ -932,7 +928,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 startColor: options.fg.start,
                 endColor: options.fg.end,
                 duration: options.fg.duration,
-                startTime: now,
+                startTime,
                 reverse: options.fg.reverse || false,
                 offset: options.fg.offset || 0
             };
@@ -943,7 +939,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 startColor: options.bg.start,
                 endColor: options.bg.end,
                 duration: options.bg.duration,
-                startTime: now,
+                startTime,
                 reverse: options.bg.reverse || false,
                 offset: options.bg.offset || 0
             };
