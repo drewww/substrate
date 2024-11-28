@@ -48,7 +48,8 @@ export interface ColorAnimation {
 
 export interface SymbolAnimation {
     symbols: string[];
-    currentIndex: number;
-    frameDelay: number;
-    frameCount: number;
+    startTime: number;
+    duration: number;     // Time in seconds for one complete cycle
+    reverse: boolean;     // Whether to reverse at end
+    offset: number;      // Initial offset (0-1)
 }

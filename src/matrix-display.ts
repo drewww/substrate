@@ -452,7 +452,7 @@ export class MatrixDisplay {
     }
 
     private renderFrame(): void {
-        this.updateAnimations();
+        this.updateAnimations(performance.now());
         this.updateColorAnimations(performance.now());
         const renderStart = performance.now();
 
@@ -789,7 +789,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         tileIds.forEach(id => this.removeTile(id));
     }
 
-    public addSymbolAnimation(tileId: TileId, symbols: string[], frameDelay: number = 5): void {
+    public addSymbolAnimation(tileId: TileId, symbols: string[], duration: number, reverse: boolean = false, offset: number = 0): void {
         if (!this.tileMap.has(tileId)) {
             this.log.warn(`Attempted to add animation to non-existent tile: ${tileId}`);
             return;
@@ -797,27 +797,36 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         
         this.animations.set(tileId, {
             symbols,
-            currentIndex: 0,
-            frameDelay,
-            frameCount: 0
+            startTime: performance.now(),
+            duration,
+            reverse,
+            offset
         });
     }
 
-    private updateAnimations(): void {
+    private updateAnimations(timestamp: number): void {
         for (const [tileId, animation] of this.animations) {
-            animation.frameCount++;
-            if (animation.frameCount >= animation.frameDelay) {
-                animation.frameCount = 0;
-                animation.currentIndex = (animation.currentIndex + 1) % animation.symbols.length;
-                
-                const tile = this.tileMap.get(tileId);
-                if (tile) {
-                    tile.char = animation.symbols[animation.currentIndex];
-                    this.markDirty(tile.x, tile.y);
-                } else {
-                    this.animations.delete(tileId);
-                }
+            const tile = this.tileMap.get(tileId);
+            if (!tile) {
+                this.animations.delete(tileId);
+                continue;
             }
+
+            const elapsed = (timestamp - animation.startTime) / 1000;
+            let progress = (elapsed / animation.duration) + (animation.offset || 0);
+            
+            if (animation.reverse) {
+                progress = progress % 2;
+                if (progress > 1) {
+                    progress = 2 - progress;
+                }
+            } else {
+                progress = progress % 1;
+            }
+            
+            const index = Math.floor(progress * animation.symbols.length);
+            tile.char = animation.symbols[index];
+            this.markDirty(tile.x, tile.y);
         }
     }
 

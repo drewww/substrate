@@ -28,19 +28,19 @@ export class PatternAnimationTest extends BaseTest {
         // Pattern 1: Binary counter
         const binarySymbols = ['0', '1'];
         const binaryId = this.display.createTile(5, 5, '0', '#00FF00FF', '#000000FF', 1);
-        this.display.addSymbolAnimation(binaryId, binarySymbols, 30);
+        this.display.addSymbolAnimation(binaryId, binarySymbols, 2.0);
         this.animatedTiles.push(binaryId);
 
         // Pattern 2: Clock animation
         const clockSymbols = ['🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛'];
         const clockId = this.display.createTile(10, 5, '🕐', '#FFFFFFFF', '#000000FF', 1);
-        this.display.addSymbolAnimation(clockId, clockSymbols, 60);
+        this.display.addSymbolAnimation(clockId, clockSymbols, 12.0);
         this.animatedTiles.push(clockId);
 
         // Pattern 3: Wave pattern
         const waveSymbols = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'];
         const waveId = this.display.createTile(15, 5, '▁', '#0088FFFF', '#000000FF', 1);
-        this.display.addSymbolAnimation(waveId, waveSymbols, 8);
+        this.display.addSymbolAnimation(waveId, waveSymbols, 1.0, true);
         this.animatedTiles.push(waveId);
 
         // Color animation 1: Pulsing red background
