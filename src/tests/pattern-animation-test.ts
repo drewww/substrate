@@ -290,6 +290,38 @@ export class PatternAnimationTest extends BaseTest {
             });
             this.animatedTiles.push(expoFillId);
         }
+
+        // Moving animated tile test
+        const movingTileStartTime = performance.now();
+        const movingTileId = this.display.createTile(2, 2, '◆', '#FF0000FF', '#000000FF', 1);
+
+        // Add rainbow color animation
+        this.display.addColorAnimation(movingTileId, {
+            fg: {
+                start: '#FF0000FF',
+                end: '#0000FFFF',
+                duration: 2.0,
+                reverse: true,
+                offset: 0
+            },
+            startTime: movingTileStartTime
+        });
+        this.animatedTiles.push(movingTileId);
+
+        // Set up movement interval
+        let currentX = 2;
+        let currentY = 2;
+        const moveInterval = setInterval(() => {
+            currentX = (currentX + 1) % 10 + 2;  // Move between x=2 and x=12
+            this.display.moveTile(movingTileId, currentX, currentY);
+        }, 500);
+
+        // Clean up interval when test is cleaned up
+        const originalCleanup = this.cleanup.bind(this);
+        this.cleanup = () => {
+            clearInterval(moveInterval);
+            originalCleanup();
+        };
     }
 
     protected cleanup(): void {
