@@ -393,6 +393,37 @@ export class PatternAnimationTest extends BaseTest {
             });
             this.animatedTiles.push(waveId);
         }
+
+        // Paired offset test - exit and entry animations
+        const offsetStartTime = performance.now();
+
+        // Exit animation
+        const exitTileId = this.display.createTile(10, 1, '@', '#FFFFFFFF', '#000000FF', 1);
+        this.display.addValueAnimation(exitTileId, {
+            offsetSymbolX: {
+                start: 0,
+                end: 1.8,  // Move fully out to the right
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.linear
+            },
+            startTime: offsetStartTime
+        });
+        this.animatedTiles.push(exitTileId);
+
+        // Entry animation
+        const entryTileId = this.display.createTile(11, 1, '@', '#FFFFFFFF', '#000000FF', 1);
+        this.display.addValueAnimation(entryTileId, {
+            offsetSymbolX: {
+                start: -1.55,  // Start fully out to the left
+                end: 0,       // Move into position
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.linear
+            },
+            startTime: offsetStartTime
+        });
+        this.animatedTiles.push(entryTileId);
     }
 
     protected cleanup(): void {
