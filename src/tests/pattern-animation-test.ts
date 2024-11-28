@@ -120,6 +120,23 @@ export class PatternAnimationTest extends BaseTest {
             }
         });
         this.animatedTiles.push(fillId);
+
+        // Background fill wave animation
+        const sharedFillStartTime = performance.now();
+        for (let i = 0; i < 10; i++) {  // Create 10 tiles in a row
+            const waveFillId = this.display.createTile(25 + i, 10, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
+            this.display.addValueAnimation(waveFillId, {
+                bgPercent: {
+                    start: 0,
+                    end: 1,
+                    duration: 1.5,
+                    reverse: true,
+                    offset: i * 0.15  // Each tile starts slightly after the previous one
+                },
+                startTime: sharedFillStartTime
+            });
+            this.animatedTiles.push(waveFillId);
+        }
     }
 
     protected cleanup(): void {
