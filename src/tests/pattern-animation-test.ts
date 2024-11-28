@@ -90,6 +90,23 @@ export class PatternAnimationTest extends BaseTest {
             });
             this.animatedTiles.push(waveTileId);
         }
+
+        // Color animation 4: Wide wave with shared start time
+        const sharedStartTime = performance.now();
+        for (let i = 0; i < this.display.getWorldWidth(); i++) {
+            const wideTileId = this.display.createTile(i, 15, '▀', '#FFFFFFFF', '#000000FF', 1);
+            this.display.addColorAnimation(wideTileId, {
+                fg: {
+                    start: '#FF0000FF',
+                    end: '#0000FFFF',
+                    duration: 2.0,
+                    reverse: true,
+                    offset: i * 0.02  // Smaller offset for smoother wave
+                },
+                startTime: sharedStartTime
+            });
+            this.animatedTiles.push(wideTileId);
+        }
     }
 
     protected cleanup(): void {

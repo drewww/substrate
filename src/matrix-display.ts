@@ -785,7 +785,14 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         tileIds.forEach(id => this.removeTile(id));
     }
 
-    public addSymbolAnimation(tileId: TileId, symbols: string[], duration: number, reverse: boolean = false, offset: number = 0): void {
+    public addSymbolAnimation(
+        tileId: TileId, 
+        symbols: string[], 
+        duration: number, 
+        reverse: boolean = false, 
+        offset: number = 0,
+        startTime?: number
+    ): void {
         if (!this.tileMap.has(tileId)) {
             this.log.warn(`Attempted to add animation to non-existent tile: ${tileId}`);
             return;
@@ -793,7 +800,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         
         this.animations.set(tileId, {
             symbols,
-            startTime: performance.now(),
+            startTime: startTime ?? performance.now(),
             duration,
             reverse,
             offset
@@ -918,17 +925,18 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             duration: number, 
             reverse?: boolean, 
             offset?: number 
-        }
+        },
+        startTime?: number
     }): void {
-        const startTime = performance.now();
         const animations: {fg?: ColorAnimation, bg?: ColorAnimation} = {};
+        const effectiveStartTime = options.startTime ?? performance.now();
         
         if (options.fg) {
             animations.fg = {
                 startColor: options.fg.start,
                 endColor: options.fg.end,
                 duration: options.fg.duration,
-                startTime,
+                startTime: effectiveStartTime,
                 reverse: options.fg.reverse || false,
                 offset: options.fg.offset || 0
             };
@@ -939,7 +947,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 startColor: options.bg.start,
                 endColor: options.bg.end,
                 duration: options.bg.duration,
-                startTime,
+                startTime: effectiveStartTime,
                 reverse: options.bg.reverse || false,
                 offset: options.bg.offset || 0
             };
