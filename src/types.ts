@@ -36,3 +36,10 @@ export interface ColoredString {
     text: string;
     colorMap: ColorMap;
 }
+
+export interface SymbolAnimation {
+    symbols: string[];
+    currentIndex: number;
+    frameDelay: number;
+    frameCount: number;
+}

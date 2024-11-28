@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Cell, Color, Tile, TileId, Viewport } from './types';
+import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -72,6 +72,7 @@ export class MatrixDisplay {
 
     private boundRenderFrame: () => void;
     private isRunning: boolean = false;
+    private animations: Map<TileId, SymbolAnimation> = new Map();
 
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -326,6 +327,7 @@ export class MatrixDisplay {
         this.dirtyRects.add(`${tile.x},${tile.y}`);
 
         // Remove from tile map
+        this.animations.delete(tileId);
         this.tileMap.delete(tileId);
     }
 
@@ -448,7 +450,8 @@ export class MatrixDisplay {
         this.worldCtx.restore();
     }
 
-    private renderFrame() {
+    private renderFrame(): void {
+        this.updateAnimations();
         const renderStart = performance.now();
 
         if (this.dirtyRects.size > 0) {
@@ -782,5 +785,42 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         const cell = this.cells[y][x];
         const tileIds = cell.tiles.map(t => t.id);
         tileIds.forEach(id => this.removeTile(id));
+    }
+
+    public addSymbolAnimation(tileId: TileId, symbols: string[], frameDelay: number = 5): void {
+        if (!this.tileMap.has(tileId)) {
+            this.log.warn(`Attempted to add animation to non-existent tile: ${tileId}`);
+            return;
+        }
+        
+        this.animations.set(tileId, {
+            symbols,
+            currentIndex: 0,
+            frameDelay,
+            frameCount: 0
+        });
+    }
+
+    private updateAnimations(): void {
+        for (const [tileId, animation] of this.animations) {
+            animation.frameCount++;
+            if (animation.frameCount >= animation.frameDelay) {
+                animation.frameCount = 0;
+                animation.currentIndex = (animation.currentIndex + 1) % animation.symbols.length;
+                
+                const tile = this.tileMap.get(tileId);
+                if (tile) {
+                    tile.char = animation.symbols[animation.currentIndex];
+                    this.markDirty(tile.x, tile.y);
+                } else {
+                    this.animations.delete(tileId);
+                }
+            }
+        }
+    }
+
+    private markDirty(x: number, y: number): void {
+        this.cells[y][x].isDirty = true;
+        this.dirtyRects.add(`${x},${y}`);
     }
 } 

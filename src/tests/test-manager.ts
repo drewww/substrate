@@ -9,6 +9,7 @@ import { RainTest } from './rain-test';
 import { ZIndexTest } from './zindex-test';
 import { StringTest } from './string-test';
 import { LogLevel } from '../matrix-display';
+import { PatternAnimationTest } from './pattern-animation-test';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;
@@ -30,7 +31,8 @@ export class TestManager {
             new ScrollTest(this.logLevel),
             new RainTest(this.logLevel),
             new ZIndexTest(this.logLevel),
-            new StringTest(this.logLevel)
+            new StringTest(this.logLevel),
+            new PatternAnimationTest(this.logLevel)
         ];
     }
 
