@@ -10,6 +10,13 @@ interface PerformanceMetrics {
     fps: number;
     lastFpsUpdate: number;
     frameCount: number;
+    symbolAnimationCount: number;
+    colorAnimationCount: number;
+    valueAnimationCount: number;
+    lastAnimationUpdateTime: number;
+    lastWorldUpdateTime: number;
+    averageAnimationTime: number;
+    averageWorldUpdateTime: number;
 }
 
 export enum LogLevel {
@@ -174,7 +181,14 @@ export class MatrixDisplay {
             totalRenderCalls: 0,
             fps: 0,
             lastFpsUpdate: performance.now(),
-            frameCount: 0
+            frameCount: 0,
+            symbolAnimationCount: 0,
+            colorAnimationCount: 0,
+            valueAnimationCount: 0,
+            lastAnimationUpdateTime: 0,
+            lastWorldUpdateTime: 0,
+            averageAnimationTime: 0,
+            averageWorldUpdateTime: 0
         };
 
         // Initialize parser with standard color map
@@ -453,14 +467,44 @@ export class MatrixDisplay {
     }
 
     private renderFrame(timestamp: number): void {
+        const animationStart = performance.now();
+        
         this.updateAnimations(timestamp);
         this.updateColorAnimations(timestamp);
         this.updateValueAnimations(timestamp);
-        const renderStart = timestamp;
+        
+        const animationEnd = performance.now();
+        const renderStart = animationEnd;
 
         if (this.dirtyRects.size > 0) {
             this.updateWorldCanvas();
             this.updateDisplayCanvas();
+        }
+
+        const renderEnd = performance.now();
+
+        // Update animation counts
+        this.metrics.symbolAnimationCount = this.animations.size;
+        this.metrics.colorAnimationCount = this.colorAnimations.size;
+        this.metrics.valueAnimationCount = this.valueAnimations.size;
+        
+        // Update timing metrics
+        this.metrics.lastAnimationUpdateTime = animationEnd - animationStart;
+        this.metrics.lastWorldUpdateTime = renderEnd - renderStart;
+        
+        // Update averages
+        if (this.metrics.totalRenderCalls === 0) {
+            this.metrics.averageAnimationTime = this.metrics.lastAnimationUpdateTime;
+            this.metrics.averageWorldUpdateTime = this.metrics.lastWorldUpdateTime;
+        } else {
+            this.metrics.averageAnimationTime = (
+                (this.metrics.averageAnimationTime * this.metrics.totalRenderCalls + this.metrics.lastAnimationUpdateTime) /
+                (this.metrics.totalRenderCalls + 1)
+            );
+            this.metrics.averageWorldUpdateTime = (
+                (this.metrics.averageWorldUpdateTime * this.metrics.totalRenderCalls + this.metrics.lastWorldUpdateTime) /
+                (this.metrics.totalRenderCalls + 1)
+            );
         }
 
         this.updateMetrics(renderStart);
@@ -534,6 +578,12 @@ export class MatrixDisplay {
     public getDebugString(): string {
         return `FPS: ${this.metrics.fps.toFixed(1)}
 Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.averageRenderTime.toFixed(2)}ms)
+├─ Animation: ${this.metrics.lastAnimationUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageAnimationTime.toFixed(2)}ms)
+└─ World Update: ${this.metrics.lastWorldUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageWorldUpdateTime.toFixed(2)}ms)
+Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnimationCount + this.metrics.valueAnimationCount}
+├─ Symbol: ${this.metrics.symbolAnimationCount}
+├─ Color: ${this.metrics.colorAnimationCount}
+└─ Value: ${this.metrics.valueAnimationCount}
 Dirty Rects: ${this.metrics.dirtyRectCount}
 Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
     }
