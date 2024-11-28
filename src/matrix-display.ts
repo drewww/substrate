@@ -394,7 +394,7 @@ export class MatrixDisplay {
         
         // Create clipping path
         this.worldCtx.beginPath();
-        this.worldCtx.rect(pixelX, pixelY, this.cellSize, this.cellSize);
+        this.worldCtx.rect(pixelX, pixelY, this.cellSize/2, this.cellSize);
         this.worldCtx.clip();
         
         // Clear and draw the cell's background first
