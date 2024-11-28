@@ -37,6 +37,8 @@ export interface ColoredString {
     colorMap: ColorMap;
 }
 
+export type EasingFunction = (t: number) => number;
+
 export interface ColorAnimation {
     startColor: Color;
     endColor: Color;
@@ -44,6 +46,7 @@ export interface ColorAnimation {
     startTime: number;     // Timestamp when animation started
     reverse: boolean;      // Whether to reverse direction at endpoints
     offset: number;        // Initial offset (0-1)
+    easing?: EasingFunction;  // Optional easing function
 }
 
 export interface SymbolAnimation {
@@ -52,6 +55,7 @@ export interface SymbolAnimation {
     duration: number;     // Time in seconds for one complete cycle
     reverse: boolean;     // Whether to reverse at end
     offset: number;      // Initial offset (0-1)
+    easing?: EasingFunction;  // Optional easing function
 }
 
 export interface ValueAnimation {
@@ -61,4 +65,24 @@ export interface ValueAnimation {
     startTime: number;     // Timestamp when animation started
     reverse: boolean;      // Whether to reverse direction at endpoints
     offset: number;        // Initial offset (0-1)
+    easing?: EasingFunction;  // Optional easing function
+}
+
+export enum EasingType {
+    Linear = 'linear',
+    SineIn = 'sineIn',
+    SineOut = 'sineOut',
+    SineInOut = 'sineInOut',
+    QuadIn = 'quadIn',
+    QuadOut = 'quadOut',
+    QuadInOut = 'quadInOut',
+    CubicIn = 'cubicIn',
+    CubicOut = 'cubicOut',
+    CubicInOut = 'cubicInOut',
+    ExpoIn = 'expoIn',
+    ExpoOut = 'expoOut',
+    ExpoInOut = 'expoInOut',
+    BounceIn = 'bounceIn',
+    BounceOut = 'bounceOut',
+    BounceInOut = 'bounceInOut'
 }

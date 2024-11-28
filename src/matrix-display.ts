@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation } from './types';
+import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -57,6 +57,49 @@ export enum FillDirection {
     BOTTOM,
     LEFT
 }
+
+export const Easing = {
+    // Linear (no easing)
+    linear: (t: number): number => t,
+    
+    // Sine
+    sineIn: (t: number): number => 1 - Math.cos((t * Math.PI) / 2),
+    sineOut: (t: number): number => Math.sin((t * Math.PI) / 2),
+    sineInOut: (t: number): number => -(Math.cos(Math.PI * t) - 1) / 2,
+    
+    // Quadratic
+    quadIn: (t: number): number => t * t,
+    quadOut: (t: number): number => 1 - (1 - t) * (1 - t),
+    quadInOut: (t: number): number => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    
+    // Cubic
+    cubicIn: (t: number): number => t * t * t,
+    cubicOut: (t: number): number => 1 - Math.pow(1 - t, 3),
+    cubicInOut: (t: number): number => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    
+    // Exponential
+    expoIn: (t: number): number => t === 0 ? 0 : Math.pow(2, 10 * t - 10),
+    expoOut: (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+    expoInOut: (t: number): number => {
+        if (t === 0) return 0;
+        if (t === 1) return 1;
+        if (t < 0.5) return Math.pow(2, 20 * t - 10) / 2;
+        return (2 - Math.pow(2, -20 * t + 10)) / 2;
+    },
+    
+    // Bounce
+    bounceOut: (t: number): number => {
+        const n1 = 7.5625;
+        const d1 = 2.75;
+        if (t < 1 / d1) return n1 * t * t;
+        if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+        if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+        return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    },
+    bounceIn: (t: number): number => 1 - Easing.bounceOut(1 - t),
+    bounceInOut: (t: number): number => 
+        t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2
+};
 
 export class MatrixDisplay {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
@@ -1014,7 +1057,8 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             end: number,
             duration: number,
             reverse?: boolean,
-            offset?: number
+            offset?: number,
+            easing?: EasingFunction
         },
         startTime?: number
     }): void {
@@ -1028,7 +1072,8 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 duration: options.bgPercent.duration,
                 startTime: effectiveStartTime,
                 reverse: options.bgPercent.reverse || false,
-                offset: options.bgPercent.offset || 0
+                offset: options.bgPercent.offset || 0,
+                easing: options.bgPercent.easing
             };
         }
 
@@ -1058,8 +1103,13 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     progress = progress % 1;
                 }
 
+                // Apply easing if specified
+                const easedProgress = animations.bgPercent.easing ? 
+                    animations.bgPercent.easing(progress) : 
+                    progress;
+
                 tile.bgPercent = animations.bgPercent.startValue + 
-                    (animations.bgPercent.endValue - animations.bgPercent.startValue) * progress;
+                    (animations.bgPercent.endValue - animations.bgPercent.startValue) * easedProgress;
                 updated = true;
             }
 

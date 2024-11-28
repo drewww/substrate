@@ -1,6 +1,7 @@
 import { BaseTest } from './base-test';
 import { LogLevel } from '../matrix-display';
 import { TileId } from '../types';
+import { Easing } from '../matrix-display';
 
 export class PatternAnimationTest extends BaseTest {
     private animatedTiles: TileId[] = [];
@@ -121,9 +122,9 @@ export class PatternAnimationTest extends BaseTest {
         });
         this.animatedTiles.push(fillId);
 
-        // Background fill wave animation
+        // Background fill wave animation (x = 25, y = 10)
         const sharedFillStartTime = performance.now();
-        for (let i = 0; i < 10; i++) {  // Create 10 tiles in a row
+        for (let i = 0; i < 10; i++) {
             const waveFillId = this.display.createTile(25 + i, 10, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
             this.display.addValueAnimation(waveFillId, {
                 bgPercent: {
@@ -131,7 +132,8 @@ export class PatternAnimationTest extends BaseTest {
                     end: 1,
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.15  // Each tile starts slightly after the previous one
+                    offset: i * 0.15,
+                    easing: Easing.bounceOut  // Changed to bounceOut for dramatic bounce effect
                 },
                 startTime: sharedFillStartTime
             });
@@ -140,17 +142,35 @@ export class PatternAnimationTest extends BaseTest {
 
         // Vertical stacked progress bar (x = 35, y = 2-6)
         const barHeight = 5;
+        const fillDuration = 2.0;
+        const startTime = performance.now();
+
+        // Custom easing that creates distinct phases for each tile
+        const stackedFillEasing = (t: number, phase: number): number => {
+            // Each tile gets a 1/barHeight portion of the total animation
+            const phaseLength = 1 / barHeight;
+            const phaseStart = phase * phaseLength;
+            const phaseEnd = phaseStart + phaseLength;
+            
+            if (t < phaseStart) return 0;  // Before this tile's phase
+            if (t > phaseEnd) return 1;    // After this tile's phase
+            
+            // Linear interpolation within the phase
+            return (t - phaseStart) / phaseLength;
+        };
+
         for (let i = 0; i < barHeight; i++) {
             const tileId = this.display.createTile(35, 6 - i, ' ', '#FFFFFFFF', '#00FF00FF', 1, 0);
             this.display.addValueAnimation(tileId, {
                 bgPercent: {
                     start: 0,
                     end: 1,
-                    duration: 4.0,
+                    duration: fillDuration,
                     reverse: true,
-                    // Each tile starts when the one below is almost full
-                    offset: (barHeight - 1 - i) * 0.2
-                }
+                    offset: 0,
+                    easing: (t) => stackedFillEasing(t, i)
+                },
+                startTime: startTime
             });
             this.animatedTiles.push(tileId);
         }
@@ -185,11 +205,11 @@ export class PatternAnimationTest extends BaseTest {
         const waveWidth = 10;
         const colors = ['#FF0000FF', '#FF7F00FF', '#FFFF00FF', '#00FF00FF', '#0000FFFF', '#4B0082FF', '#8F00FFFF'];
         for (let i = 0; i < waveWidth; i++) {
-            const waveTileId = this.display.createTile(15 + i, 18, '■', colors[0], '#000000FF', 1);
+            const waveTileId = this.display.createTile(15 + i, 18, ' ', '#000000FF', colors[0], 1);
             // Cubic easing function: t³
             const offset = Math.pow(i / waveWidth, 3);
             this.display.addColorAnimation(waveTileId, {
-                fg: {
+                bg: {
                     start: colors[0],
                     end: colors[colors.length - 1],
                     duration: 3.0,
@@ -233,6 +253,42 @@ export class PatternAnimationTest extends BaseTest {
                 }
             });
             this.animatedTiles.push(bounceId);
+        }
+
+        // Sine wave easing background fill (x = 25, y = 11)
+        const sineWaveStartTime = performance.now();
+        for (let i = 0; i < 10; i++) {
+            const sineFillId = this.display.createTile(25 + i, 11, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
+            this.display.addValueAnimation(sineFillId, {
+                bgPercent: {
+                    start: 0,
+                    end: 1,
+                    duration: 1.5,
+                    reverse: true,
+                    offset: i * 0.1,
+                    easing: Easing.sineInOut  // Kept sineInOut for smooth wave motion
+                },
+                startTime: sineWaveStartTime
+            });
+            this.animatedTiles.push(sineFillId);
+        }
+
+        // Exponential ease background fill (x = 25, y = 12)
+        const expoWaveStartTime = performance.now();
+        for (let i = 0; i < 10; i++) {
+            const expoFillId = this.display.createTile(25 + i, 12, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
+            this.display.addValueAnimation(expoFillId, {
+                bgPercent: {
+                    start: 0,
+                    end: 1,
+                    duration: 1.5,
+                    reverse: true,
+                    offset: i * 0.1,
+                    easing: Easing.expoInOut  // Changed to expoInOut for dramatic acceleration/deceleration
+                },
+                startTime: expoWaveStartTime
+            });
+            this.animatedTiles.push(expoFillId);
         }
     }
 
