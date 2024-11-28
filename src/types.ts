@@ -41,14 +41,36 @@ export interface ColoredString {
 
 export type EasingFunction = (t: number) => number;
 
+// Base animation options that all animations share
+export interface AnimationOptions {
+    duration: number;
+    reverse?: boolean;
+    offset?: number;
+    easing?: EasingFunction;
+}
+
+// Color-specific animation options
+export interface ColorTransition extends AnimationOptions {
+    start: Color;
+    end: Color;
+}
+
+// Options for color animations
+export interface ColorAnimationOptions {
+    fg?: ColorTransition;
+    bg?: ColorTransition;
+    startTime?: number;
+}
+
+// Keep existing ColorAnimation for backward compatibility
 export interface ColorAnimation {
     startColor: Color;
     endColor: Color;
-    duration: number;      // Time in seconds for one cycle
-    startTime: number;     // Timestamp when animation started
-    reverse: boolean;      // Whether to reverse direction at endpoints
-    offset: number;        // Initial offset (0-1)
-    easing?: EasingFunction;  // Optional easing function
+    duration: number;
+    startTime: number;
+    reverse: boolean;
+    offset: number;
+    easing?: EasingFunction;
 }
 
 export interface SymbolAnimation {

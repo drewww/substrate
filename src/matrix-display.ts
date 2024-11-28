@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction } from './types';
+import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -1020,25 +1020,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         }
     }
 
-    public addColorAnimation(tileId: TileId, options: {
-        fg?: { 
-            start: Color, 
-            end: Color, 
-            duration: number, 
-            reverse?: boolean, 
-            offset?: number,
-            easing?: EasingFunction 
-        },
-        bg?: { 
-            start: Color, 
-            end: Color, 
-            duration: number, 
-            reverse?: boolean, 
-            offset?: number,
-            easing?: EasingFunction  
-        },
-        startTime?: number
-    }): void {
+    public addColorAnimation(tileId: TileId, options: ColorAnimationOptions): void {
         const animations: {fg?: ColorAnimation, bg?: ColorAnimation} = {};
         const effectiveStartTime = options.startTime ?? performance.now();
         
