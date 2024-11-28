@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation } from './types';
+import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -73,6 +73,7 @@ export class MatrixDisplay {
     private boundRenderFrame: () => void;
     private isRunning: boolean = false;
     private animations: Map<TileId, SymbolAnimation> = new Map();
+    private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
 
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -452,6 +453,7 @@ export class MatrixDisplay {
 
     private renderFrame(): void {
         this.updateAnimations();
+        this.updateColorAnimations(performance.now());
         const renderStart = performance.now();
 
         if (this.dirtyRects.size > 0) {
@@ -822,5 +824,122 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
     private markDirty(x: number, y: number): void {
         this.cells[y][x].isDirty = true;
         this.dirtyRects.add(`${x},${y}`);
+    }
+
+    private interpolateColor(start: Color, end: Color, progress: number): Color {
+        const fromRGB = {
+            r: parseInt(start.slice(1, 3), 16),
+            g: parseInt(start.slice(3, 5), 16),
+            b: parseInt(start.slice(5, 7), 16),
+            a: parseInt(start.slice(7, 9), 16)
+        };
+        
+        const toRGB = {
+            r: parseInt(end.slice(1, 3), 16),
+            g: parseInt(end.slice(3, 5), 16),
+            b: parseInt(end.slice(5, 7), 16),
+            a: parseInt(end.slice(7, 9), 16)
+        };
+        
+        const r = Math.round(fromRGB.r + (toRGB.r - fromRGB.r) * progress);
+        const g = Math.round(fromRGB.g + (toRGB.g - fromRGB.g) * progress);
+        const b = Math.round(fromRGB.b + (toRGB.b - fromRGB.b) * progress);
+        const a = Math.round(fromRGB.a + (toRGB.a - fromRGB.a) * progress);
+        
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
+    }
+
+    private updateColorAnimations(timestamp: number): void {
+        for (const [tileId, animations] of this.colorAnimations) {
+            const tile = this.tileMap.get(tileId);
+            if (!tile) {
+                this.colorAnimations.delete(tileId);
+                continue;
+            }
+            
+            let updated = false;
+            
+            if (animations.fg) {
+                const elapsed = (timestamp - animations.fg.startTime) / 1000;
+                let progress = (elapsed / animations.fg.duration) + animations.fg.offset;
+                
+                if (animations.fg.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) {
+                        progress = 2 - progress;
+                    }
+                } else {
+                    progress = progress % 1;
+                }
+                
+                tile.color = this.interpolateColor(animations.fg.startColor, animations.fg.endColor, progress);
+                updated = true;
+            }
+            
+            if (animations.bg) {
+                const elapsed = (timestamp - animations.bg.startTime) / 1000;
+                let progress = (elapsed / animations.bg.duration) + animations.bg.offset;
+                
+                if (animations.bg.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) {
+                        progress = 2 - progress;
+                    }
+                } else {
+                    progress = progress % 1;
+                }
+                
+                tile.backgroundColor = this.interpolateColor(animations.bg.startColor, animations.bg.endColor, progress);
+                updated = true;
+            }
+            
+            if (updated) {
+                this.markDirty(tile.x, tile.y);
+            }
+        }
+    }
+
+    public addColorAnimation(tileId: TileId, options: {
+        fg?: { 
+            start: Color, 
+            end: Color, 
+            duration: number, 
+            reverse?: boolean, 
+            offset?: number 
+        },
+        bg?: { 
+            start: Color, 
+            end: Color, 
+            duration: number, 
+            reverse?: boolean, 
+            offset?: number 
+        }
+    }): void {
+        const now = performance.now();
+        const animations: {fg?: ColorAnimation, bg?: ColorAnimation} = {};
+        
+        if (options.fg) {
+            animations.fg = {
+                startColor: options.fg.start,
+                endColor: options.fg.end,
+                duration: options.fg.duration,
+                startTime: now,
+                reverse: options.fg.reverse || false,
+                offset: options.fg.offset || 0
+            };
+        }
+        
+        if (options.bg) {
+            animations.bg = {
+                startColor: options.bg.start,
+                endColor: options.bg.end,
+                duration: options.bg.duration,
+                startTime: now,
+                reverse: options.bg.reverse || false,
+                offset: options.bg.offset || 0
+            };
+        }
+        
+        this.colorAnimations.set(tileId, animations);
     }
 } 

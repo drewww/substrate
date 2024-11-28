@@ -42,6 +42,54 @@ export class PatternAnimationTest extends BaseTest {
         const waveId = this.display.createTile(15, 5, '▁', '#0088FFFF', '#000000FF', 1);
         this.display.addSymbolAnimation(waveId, waveSymbols, 8);
         this.animatedTiles.push(waveId);
+
+        // Color animation 1: Pulsing red background
+        const pulsingId = this.display.createTile(5, 10, '♥', '#FFFFFFFF', '#FF000088', 1);
+        this.display.addColorAnimation(pulsingId, {
+            bg: {
+                start: '#FF000088',
+                end: '#FF0000FF',
+                duration: 2.0,
+                reverse: true,
+                offset: 0
+            }
+        });
+        this.animatedTiles.push(pulsingId);
+
+        // Color animation 2: Rainbow text
+        const rainbowId = this.display.createTile(10, 10, '★', '#FF0000FF', '#000000FF', 1);
+        this.display.addColorAnimation(rainbowId, {
+            fg: {
+                start: '#FF0000FF',
+                end: '#00FF00FF',
+                duration: 3.0,
+                reverse: true,
+                offset: 0
+            }
+        });
+        this.animatedTiles.push(rainbowId);
+
+        // Color animation 3: Combined fg/bg with offset
+        for (let i = 0; i < 5; i++) {
+            const waveTileId = this.display.createTile(15 + i, 10, '◆', '#FFFFFFFF', '#0000FFFF', 1);
+            this.display.addColorAnimation(waveTileId, {
+                fg: {
+                    start: '#FFFFFFFF',
+                    end: '#00FFFFFF',
+                    duration: 1.5,
+                    reverse: true,
+                    offset: i * 0.2
+                },
+                bg: {
+                    start: '#0000FFFF',
+                    end: '#000000FF',
+                    duration: 1.5,
+                    reverse: true,
+                    offset: i * 0.2
+                }
+            });
+            this.animatedTiles.push(waveTileId);
+        }
     }
 
     protected cleanup(): void {
