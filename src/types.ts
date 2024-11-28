@@ -14,6 +14,8 @@ export interface Tile {
     zIndex: number;
     bgPercent: number;
     fillDirection: FillDirection;
+    offsetSymbolX: number;
+    offsetSymbolY: number;
 }
 
 export interface Cell {

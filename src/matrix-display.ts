@@ -124,7 +124,11 @@ export class MatrixDisplay {
     private isRunning: boolean = false;
     private animations: Map<TileId, SymbolAnimation> = new Map();
     private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
-    private valueAnimations: Map<TileId, { bgPercent?: ValueAnimation }> = new Map();
+    private valueAnimations: Map<TileId, {
+        bgPercent?: ValueAnimation,
+        offsetSymbolX?: ValueAnimation,
+        offsetSymbolY?: ValueAnimation
+    }> = new Map();
 
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -299,7 +303,9 @@ export class MatrixDisplay {
             backgroundColor,
             zIndex,
             bgPercent,
-            fillDirection
+            fillDirection,
+            offsetSymbolX: 0,
+            offsetSymbolY: 0
         };
         
         this.tileMap.set(id, tile);
@@ -497,11 +503,17 @@ export class MatrixDisplay {
                 this.worldCtx.font = `${Math.floor(this.cellSize * 0.8)}px monospace`;
                 this.worldCtx.textAlign = 'center';
                 this.worldCtx.textBaseline = 'bottom';
+
                 const bottomPadding = Math.floor(this.cellSize * 0.05);
+
+                // Calculate offset position (30% of cell size maximum)
+                const offsetX = (tile.offsetSymbolX || 0) * (this.cellSize * 0.3);
+                const offsetY = (tile.offsetSymbolY || 0) * (this.cellSize * 0.3);
+
                 this.worldCtx.fillText(
                     tile.char,
-                    pixelX + this.cellSize/4,
-                    pixelY + this.cellSize - bottomPadding
+                    pixelX + this.cellSize/4 + offsetX,
+                    pixelY + this.cellSize - bottomPadding + offsetY
                 );
             }
         });
@@ -670,7 +682,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     backgroundColor: bgColor,
                     zIndex: -1,
                     bgPercent: 1,
-                    fillDirection: FillDirection.BOTTOM
+                    fillDirection: FillDirection.BOTTOM,
+                    offsetSymbolX: 0,
+                    offsetSymbolY: 0
                 };
 
                 // Remove any existing tiles with z-index -1
@@ -1013,14 +1027,15 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             duration: number, 
             reverse?: boolean, 
             offset?: number,
-            easing?: EasingFunction  // Add easing parameter
+            easing?: EasingFunction 
         },
         bg?: { 
             start: Color, 
             end: Color, 
             duration: number, 
             reverse?: boolean, 
-            offset?: number 
+            offset?: number,
+            easing?: EasingFunction  
         },
         startTime?: number
     }): void {
@@ -1062,9 +1077,29 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             offset?: number,
             easing?: EasingFunction
         },
+        offsetSymbolX?: {
+            start: number,
+            end: number,
+            duration: number,
+            reverse?: boolean,
+            offset?: number,
+            easing?: EasingFunction
+        },
+        offsetSymbolY?: {
+            start: number,
+            end: number,
+            duration: number,
+            reverse?: boolean,
+            offset?: number,
+            easing?: EasingFunction
+        },
         startTime?: number
     }): void {
-        const animations: { bgPercent?: ValueAnimation } = {};
+        const animations: {
+            bgPercent?: ValueAnimation,
+            offsetSymbolX?: ValueAnimation,
+            offsetSymbolY?: ValueAnimation
+        } = {};
         const effectiveStartTime = options.startTime ?? performance.now();
 
         if (options.bgPercent) {
@@ -1076,6 +1111,30 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 reverse: options.bgPercent.reverse || false,
                 offset: options.bgPercent.offset || 0,
                 easing: options.bgPercent.easing
+            };
+        }
+
+        if (options.offsetSymbolX) {
+            animations.offsetSymbolX = {
+                startValue: options.offsetSymbolX.start,
+                endValue: options.offsetSymbolX.end,
+                duration: options.offsetSymbolX.duration,
+                startTime: effectiveStartTime,
+                reverse: options.offsetSymbolX.reverse || false,
+                offset: options.offsetSymbolX.offset || 0,
+                easing: options.offsetSymbolX.easing
+            };
+        }
+
+        if (options.offsetSymbolY) {
+            animations.offsetSymbolY = {
+                startValue: options.offsetSymbolY.start,
+                endValue: options.offsetSymbolY.end,
+                duration: options.offsetSymbolY.duration,
+                startTime: effectiveStartTime,
+                reverse: options.offsetSymbolY.reverse || false,
+                offset: options.offsetSymbolY.offset || 0,
+                easing: options.offsetSymbolY.easing
             };
         }
 
@@ -1105,13 +1164,56 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     progress = progress % 1;
                 }
 
-                // Apply easing if specified
                 const easedProgress = animations.bgPercent.easing ? 
                     animations.bgPercent.easing(progress) : 
                     progress;
 
                 tile.bgPercent = animations.bgPercent.startValue + 
                     (animations.bgPercent.endValue - animations.bgPercent.startValue) * easedProgress;
+                updated = true;
+            }
+
+            if (animations.offsetSymbolX) {
+                const elapsed = (timestamp - animations.offsetSymbolX.startTime) / 1000;
+                let progress = (elapsed / animations.offsetSymbolX.duration) + animations.offsetSymbolX.offset;
+
+                if (animations.offsetSymbolX.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) {
+                        progress = 2 - progress;
+                    }
+                } else {
+                    progress = progress % 1;
+                }
+
+                const easedProgress = animations.offsetSymbolX.easing ? 
+                    animations.offsetSymbolX.easing(progress) : 
+                    progress;
+
+                tile.offsetSymbolX = animations.offsetSymbolX.startValue + 
+                    (animations.offsetSymbolX.endValue - animations.offsetSymbolX.startValue) * easedProgress;
+                updated = true;
+            }
+
+            if (animations.offsetSymbolY) {
+                const elapsed = (timestamp - animations.offsetSymbolY.startTime) / 1000;
+                let progress = (elapsed / animations.offsetSymbolY.duration) + animations.offsetSymbolY.offset;
+
+                if (animations.offsetSymbolY.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) {
+                        progress = 2 - progress;
+                    }
+                } else {
+                    progress = progress % 1;
+                }
+
+                const easedProgress = animations.offsetSymbolY.easing ? 
+                    animations.offsetSymbolY.easing(progress) : 
+                    progress;
+
+                tile.offsetSymbolY = animations.offsetSymbolY.startValue + 
+                    (animations.offsetSymbolY.endValue - animations.offsetSymbolY.startValue) * easedProgress;
                 updated = true;
             }
 

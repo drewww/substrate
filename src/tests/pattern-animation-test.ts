@@ -322,6 +322,77 @@ export class PatternAnimationTest extends BaseTest {
             clearInterval(moveInterval);
             originalCleanup();
         };
+
+        // Symbol offset animations (x = 25-35, y = 14)
+        const bounceId = this.display.createTile(25, 14, '●', '#FF0000FF', '#000000FF', 1);
+        this.display.addValueAnimation(bounceId, {
+            offsetSymbolY: {
+                start: -0.5,
+                end: 0.5,
+                duration: 1.0,
+                reverse: true,
+                easing: Easing.bounceOut
+            }
+        });
+        this.animatedTiles.push(bounceId);
+
+        // Shaking/vibrating effect
+        const shakeId = this.display.createTile(28, 14, '⚡', '#FFFF00FF', '#000000FF', 1);
+        this.display.addValueAnimation(shakeId, {
+            offsetSymbolX: {
+                start: -0.2,
+                end: 0.2,
+                duration: 0.1,
+                reverse: true
+            },
+            offsetSymbolY: {
+                start: -0.2,
+                end: 0.2,
+                duration: 0.1,
+                reverse: true,
+                offset: 0.05  // Slight offset for more chaotic motion
+            }
+        });
+        this.animatedTiles.push(shakeId);
+
+        // Circular motion
+        const circleId = this.display.createTile(31, 14, '◆', '#00FF00FF', '#000000FF', 1);
+        const circleStartTime = performance.now();
+        this.display.addValueAnimation(circleId, {
+            offsetSymbolX: {
+                start: -0.3,
+                end: 0.3,
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.sineInOut
+            },
+            offsetSymbolY: {
+                start: -0.3,
+                end: 0.3,
+                duration: 2.0,
+                reverse: true,
+                offset: 0.25,  // Quarter phase offset for circular motion
+                easing: Easing.sineInOut
+            },
+            startTime: circleStartTime
+        });
+        this.animatedTiles.push(circleId);
+
+        // Wave motion
+        for (let i = 0; i < 5; i++) {
+            const waveId = this.display.createTile(34 + i, 14, '~', '#0088FFFF', '#000000FF', 1);
+            this.display.addValueAnimation(waveId, {
+                offsetSymbolY: {
+                    start: -0.3,
+                    end: 0.3,
+                    duration: 1.5,
+                    reverse: true,
+                    offset: i * 0.2,  // Phase offset creates wave effect
+                    easing: Easing.sineInOut
+                }
+            });
+            this.animatedTiles.push(waveId);
+        }
     }
 
     protected cleanup(): void {
