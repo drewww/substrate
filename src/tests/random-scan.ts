@@ -57,7 +57,7 @@ export class RandomScanTest extends BaseTest {
         // Clear any existing tiles at this position
         this.display.emptyCell(this.currentX, this.currentY);
 
-        // Create new tile at random position with random background height and direction
+        // Create new tile
         const tileId = this.display.createTile(
             this.currentX,
             this.currentY,
@@ -65,8 +65,8 @@ export class RandomScanTest extends BaseTest {
             this.getRandomColor(),
             this.getRandomColor(),
             1,
-            Math.random(),  // Random background percentage between 0 and 1
-            this.getRandomDirection()  // Random fill direction
+            Math.random(),
+            this.getRandomDirection()
         );
         
         this.tileIds.push(tileId);
