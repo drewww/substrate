@@ -7,7 +7,10 @@ Display
    - otherwise we need to do tricky clipping stuff. turn off clipping in some circumstances, and move it over, turn it back on?
    - and we'd need to fix the smearing issue. may need to be a first-order internal capability because it's really jointly rendering two cells at once.
    - another idea: make it move to the right and fade out and fade in on the next cell? just in the last two frames
- - add symbolScaleX and symbolScaleY. Simple, creates more options. 
+ - DONE add symbolScaleX and symbolScaleY. Simple, creates more options. 
+ - consider skewX and skewY
+ - think about "mobile cells."
+   - there's a rendering issue with them and redrawing -- gotta be careful with dirtying everything around them properly. 
  - Look into blend modes and decide whether/how we want to do that.
  - test layering multiple canvases
  - border effects? ex. a wall lit from one side but not the other

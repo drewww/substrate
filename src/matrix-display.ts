@@ -444,14 +444,16 @@ export class MatrixDisplay {
         const pixelY = y * this.cellSize;
         
         this.worldCtx.save();
+
+        this.worldCtx.translate(pixelX, pixelY);
         
         // Create clipping path
         this.worldCtx.beginPath();
-        this.worldCtx.rect(pixelX, pixelY, this.cellSize/2, this.cellSize);
+        this.worldCtx.rect(0, 0, this.cellSize/2, this.cellSize);
         this.worldCtx.clip();
         
         // Clear and draw the cell's background first
-        this.worldCtx.clearRect(pixelX, pixelY, this.cellSize/2, this.cellSize);
+        this.worldCtx.clearRect(0, 0, this.cellSize/2, this.cellSize);
         
         // Sort tiles by z-index
         const sortedTiles = Array.from(cell.tiles.values()).sort((a, b) => a.zIndex - b.zIndex);
@@ -468,32 +470,32 @@ export class MatrixDisplay {
                     switch (tile.fillDirection) {
                         case FillDirection.TOP:
                             this.worldCtx.fillRect(
-                                pixelX,
-                                pixelY,
+                                0,
+                                0,
                                 cellWidth,
                                 cellHeight * bgPercent
                             );
                             break;
                         case FillDirection.RIGHT:
                             this.worldCtx.fillRect(
-                                pixelX + cellWidth * (1 - bgPercent),
-                                pixelY,
+                                0 + cellWidth * (1 - bgPercent),
+                                0,
                                 cellWidth * bgPercent,
                                 cellHeight
                             );
                             break;
                         case FillDirection.BOTTOM:
                             this.worldCtx.fillRect(
-                                pixelX,
-                                pixelY + cellHeight * (1 - bgPercent),
+                                0,
+                                0 + cellHeight * (1 - bgPercent),
                                 cellWidth,
                                 cellHeight * bgPercent
                             );
                             break;
                         case FillDirection.LEFT:
                             this.worldCtx.fillRect(
-                                pixelX,
-                                pixelY,
+                                0,
+                                0,
                                 cellWidth * bgPercent,
                                 cellHeight
                             );
@@ -510,8 +512,6 @@ export class MatrixDisplay {
                 this.worldCtx.save();
                 
                 // Move to cell location.
-                // TODO could abstract this at the cell level, since it's in common
-                this.worldCtx.translate(pixelX, pixelY);
 
                 this.worldCtx.translate(this.cellSize/4, this.cellSize * 0.55);
                 
