@@ -327,8 +327,8 @@ export class PatternAnimationTest extends BaseTest {
         const bounceId = this.display.createTile(25, 14, '●', '#FF0000FF', '#000000FF', 1);
         this.display.addValueAnimation(bounceId, {
             offsetSymbolY: {
-                start: -0.5,
-                end: 0.5,
+                start: -0.15,
+                end: 0.15,
                 duration: 1.0,
                 reverse: true,
                 easing: Easing.bounceOut
@@ -340,17 +340,17 @@ export class PatternAnimationTest extends BaseTest {
         const shakeId = this.display.createTile(28, 14, '⚡', '#FFFF00FF', '#000000FF', 1);
         this.display.addValueAnimation(shakeId, {
             offsetSymbolX: {
-                start: -0.2,
-                end: 0.2,
+                start: -0.06,
+                end: 0.06,
                 duration: 0.1,
                 reverse: true
             },
             offsetSymbolY: {
-                start: -0.2,
-                end: 0.2,
+                start: -0.06,
+                end: 0.06,
                 duration: 0.1,
                 reverse: true,
-                offset: 0.05  // Slight offset for more chaotic motion
+                offset: 0.05
             }
         });
         this.animatedTiles.push(shakeId);
@@ -360,18 +360,18 @@ export class PatternAnimationTest extends BaseTest {
         const circleStartTime = performance.now();
         this.display.addValueAnimation(circleId, {
             offsetSymbolX: {
-                start: -0.3,
-                end: 0.3,
+                start: -0.09,
+                end: 0.09,
                 duration: 2.0,
                 reverse: true,
                 easing: Easing.sineInOut
             },
             offsetSymbolY: {
-                start: -0.3,
-                end: 0.3,
+                start: -0.09,
+                end: 0.09,
                 duration: 2.0,
                 reverse: true,
-                offset: 0.25,  // Quarter phase offset for circular motion
+                offset: 0.25,
                 easing: Easing.sineInOut
             },
             startTime: circleStartTime
@@ -383,11 +383,11 @@ export class PatternAnimationTest extends BaseTest {
             const waveId = this.display.createTile(34 + i, 14, '~', '#0088FFFF', '#000000FF', 1);
             this.display.addValueAnimation(waveId, {
                 offsetSymbolY: {
-                    start: -0.3,
-                    end: 0.3,
+                    start: -0.09,
+                    end: 0.09,
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.2,  // Phase offset creates wave effect
+                    offset: i * 0.2,
                     easing: Easing.sineInOut
                 }
             });
@@ -402,7 +402,7 @@ export class PatternAnimationTest extends BaseTest {
         this.display.addValueAnimation(exitTileId, {
             offsetSymbolX: {
                 start: 0,
-                end: 1.8,  // Move fully out to the right
+                end: 0.5,
                 duration: 0.2,
                 reverse: true,
                 easing: Easing.linear
@@ -415,8 +415,8 @@ export class PatternAnimationTest extends BaseTest {
         const entryTileId = this.display.createTile(11, 1, '@', '#FFFFFFFF', '#000000FF', 1);
         this.display.addValueAnimation(entryTileId, {
             offsetSymbolX: {
-                start: -1.55,  // Start fully out to the left
-                end: 0,       // Move into position
+                start: -1.55,
+                end: 0,
                 duration: 0.2,
                 reverse: true,
                 easing: Easing.linear

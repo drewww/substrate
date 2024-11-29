@@ -507,8 +507,8 @@ export class MatrixDisplay {
                 const bottomPadding = Math.floor(this.cellSize * 0.05);
 
                 // Calculate offset position (30% of cell size maximum)
-                const offsetX = (tile.offsetSymbolX || 0) * (this.cellSize * 0.3);
-                const offsetY = (tile.offsetSymbolY || 0) * (this.cellSize * 0.3);
+                const offsetX = (tile.offsetSymbolX || 0) * this.cellSize;
+                const offsetY = (tile.offsetSymbolY || 0) * this.cellSize;
 
                 this.worldCtx.fillText(
                     tile.char,
