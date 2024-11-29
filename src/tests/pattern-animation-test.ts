@@ -403,7 +403,7 @@ export class PatternAnimationTest extends BaseTest {
             offsetSymbolX: {
                 start: 0,
                 end: 1.8,  // Move fully out to the right
-                duration: 2.0,
+                duration: 0.2,
                 reverse: true,
                 easing: Easing.linear
             },
@@ -417,7 +417,7 @@ export class PatternAnimationTest extends BaseTest {
             offsetSymbolX: {
                 start: -1.55,  // Start fully out to the left
                 end: 0,       // Move into position
-                duration: 2.0,
+                duration: 0.2,
                 reverse: true,
                 easing: Easing.linear
             },
