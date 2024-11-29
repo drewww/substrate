@@ -424,6 +424,74 @@ export class PatternAnimationTest extends BaseTest {
             startTime: offsetStartTime
         });
         this.animatedTiles.push(entryTileId);
+
+        // Scale animation examples (x = 25-35, y = 16)
+        const pulseId = this.display.createTile(25, 16, '♦', '#FF0000FF', '#000000FF', 1);
+        this.display.addValueAnimation(pulseId, {
+            scaleSymbolX: {
+                start: 0.8,
+                end: 1.2,
+                duration: 0.5,
+                reverse: true,
+                easing: Easing.quadInOut
+            },
+            scaleSymbolY: {
+                start: 0.8,
+                end: 1.2,
+                duration: 0.5,
+                reverse: true,
+                easing: Easing.quadInOut
+            }
+        });
+        this.animatedTiles.push(pulseId);
+
+        // Vertical stretch
+        const stretchId = this.display.createTile(28, 16, '█', '#00FF00FF', '#000000FF', 1);
+        this.display.addValueAnimation(stretchId, {
+            scaleSymbolY: {
+                start: 0.5,
+                end: 1.5,
+                duration: 1.0,
+                reverse: true,
+                easing: Easing.bounceOut
+            }
+        });
+        this.animatedTiles.push(stretchId);
+
+        // Smashing animation
+        const smashId = this.display.createTile(31, 16, '@', '#FFFFFFFF', '#000000FF', 1);
+        const smashStartTime = performance.now();
+        this.display.addValueAnimation(smashId, {
+            offsetSymbolX: {
+                start: 0,
+                end: 0.38,  // Closer to wall (was 0.4)
+                duration: 0.8,
+                easing: Easing.expoIn,
+                reverse: true
+            },
+            scaleSymbolX: {
+                start: 1.0,
+                end: 0.5,   // Less squished (was 0.05)
+                duration: 0.8,
+                easing: Easing.expoIn,
+                reverse: true
+            },
+            startTime: smashStartTime
+        });
+        this.animatedTiles.push(smashId);
+
+        // Spinning card effect
+        const spinId = this.display.createTile(34, 16, '♠', '#FFFFFFFF', '#000000FF', 1);
+        this.display.addValueAnimation(spinId, {
+            scaleSymbolX: {
+                start: 1.0,
+                end: 0.1,
+                duration: 1.0,
+                reverse: true,
+                easing: Easing.sineInOut
+            }
+        });
+        this.animatedTiles.push(spinId);
     }
 
     protected cleanup(): void {
