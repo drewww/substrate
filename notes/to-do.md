@@ -18,6 +18,13 @@ Display
  - modularize the display code??
  - break up matrix-display.ts into multiple files
 
+ Optimization Ideas
+ ------------------
+
+  - sorting tiles for every render seems expensive and we could just ensure it on insert and update
+  - cache rendered symbols somewhere and do copys instead of fillText every time
+  -  does our use of graphics contexts cost performance? `.save()` seems to be expensive??
+
 
  - DONE Add a "tile group" concept?
  - DONE Add "move tile" operation that maintains state on the tile
