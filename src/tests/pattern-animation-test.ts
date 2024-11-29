@@ -492,6 +492,83 @@ export class PatternAnimationTest extends BaseTest {
             }
         });
         this.animatedTiles.push(spinId);
+
+        // Drop-in effect
+        const dropInId = this.display.createTile(25, 17, '●', '#FFFFFF00', '#000000FF', 1);
+        this.display.addValueAnimation(dropInId, {
+            scaleSymbolX: {
+                start: 3.0,  // Starts larger
+                end: 1.0,
+                duration: 0.8,
+                easing: Easing.bounceOut
+            },
+            scaleSymbolY: {
+                start: 3.0,  // Starts larger
+                end: 1.0,
+                duration: 0.8,
+                easing: Easing.bounceOut
+            }
+        });
+        this.display.addColorAnimation(dropInId, {
+            fg: {
+                start: '#FFFFFF00',  // Starts transparent
+                end: '#FFFFFFFF',
+                duration: 0.8  // Matches the drop duration
+            }
+        });
+        this.animatedTiles.push(dropInId);
+
+        // Pop and fade out
+        const popId = this.display.createTile(28, 17, '★', '#FF0000FF', '#000000FF', 1);
+        this.display.addValueAnimation(popId, {
+            scaleSymbolX: {
+                start: 1.0,
+                end: 4.0,
+                duration: 0.5,
+                easing: Easing.quadOut
+            },
+            scaleSymbolY: {
+                start: 1.0,
+                end: 4.0,
+                duration: 0.5,
+                easing: Easing.quadOut
+            }
+        });
+        this.display.addColorAnimation(popId, {
+            fg: {
+                start: '#FF0000FF',
+                end: '#FF000000',
+                duration: 0.5,
+                easing: Easing.quadOut
+            }
+        });
+        this.animatedTiles.push(popId);
+
+        // Shrink and vanish
+        const vanishId = this.display.createTile(31, 17, '◆', '#00FF00FF', '#000000FF', 1);
+        this.display.addValueAnimation(vanishId, {
+            scaleSymbolX: {
+                start: 1.0,
+                end: 0.1,
+                duration: 0.6,
+                easing: Easing.quadIn
+            },
+            scaleSymbolY: {
+                start: 1.0,
+                end: 0.1,
+                duration: 0.6,
+                easing: Easing.quadIn
+            }
+        });
+        this.display.addColorAnimation(vanishId, {
+            fg: {
+                start: '#00FF00FF',
+                end: '#00FF0000',
+                duration: 0.6,
+                easing: Easing.quadIn
+            }
+        });
+        this.animatedTiles.push(vanishId);
     }
 
     protected cleanup(): void {
