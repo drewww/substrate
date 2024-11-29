@@ -16,6 +16,8 @@ export interface Tile {
     fillDirection: FillDirection;
     offsetSymbolX: number;
     offsetSymbolY: number;
+    scaleSymbolX: number;  // Default to 1.0
+    scaleSymbolY: number;  // Default to 1.0
 }
 
 export interface Cell {

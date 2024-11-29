@@ -127,7 +127,9 @@ export class MatrixDisplay {
     private valueAnimations: Map<TileId, {
         bgPercent?: ValueAnimation,
         offsetSymbolX?: ValueAnimation,
-        offsetSymbolY?: ValueAnimation
+        offsetSymbolY?: ValueAnimation,
+        scaleSymbolX?: ValueAnimation,
+        scaleSymbolY?: ValueAnimation
     }> = new Map();
 
     constructor(options: MatrixDisplayConfig) {
@@ -305,7 +307,9 @@ export class MatrixDisplay {
             bgPercent,
             fillDirection,
             offsetSymbolX: 0,
-            offsetSymbolY: 0
+            offsetSymbolY: 0,
+            scaleSymbolX: 1.0,
+            scaleSymbolY: 1.0
         };
         
         this.tileMap.set(id, tile);
@@ -499,22 +503,29 @@ export class MatrixDisplay {
             }
             
             if (tile.char && tile.color) {
-                this.worldCtx.fillStyle = tile.color;
-                this.worldCtx.font = `${Math.floor(this.cellSize * 0.8)}px monospace`;
-                this.worldCtx.textAlign = 'center';
-                this.worldCtx.textBaseline = 'bottom';
-
-                const bottomPadding = Math.floor(this.cellSize * 0.05);
-
-                // Calculate offset position (30% of cell size maximum)
                 const offsetX = (tile.offsetSymbolX || 0) * this.cellSize;
                 const offsetY = (tile.offsetSymbolY || 0) * this.cellSize;
+                
+                
+                this.worldCtx.save();
+                
+                // Move to cell location.
+                // TODO could abstract this at the cell level, since it's in common
+                this.worldCtx.translate(pixelX, pixelY);
 
-                this.worldCtx.fillText(
-                    tile.char,
-                    pixelX + this.cellSize/4 + offsetX,
-                    pixelY + this.cellSize - bottomPadding + offsetY
-                );
+                this.worldCtx.translate(this.cellSize/4, this.cellSize * 0.55);
+                
+                // Apply scaling
+                this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
+                
+                // Apply offset after scaling
+                this.worldCtx.translate(offsetX, offsetY);
+                
+                // Draw character at origin (0,0) since we've translated
+                this.worldCtx.fillStyle = tile.color;
+                this.worldCtx.fillText(tile.char, 0, 0);
+                
+                this.worldCtx.restore();
             }
         });
 
@@ -688,7 +699,9 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                     bgPercent: 1,
                     fillDirection: FillDirection.BOTTOM,
                     offsetSymbolX: 0,
-                    offsetSymbolY: 0
+                    offsetSymbolY: 0,
+                    scaleSymbolX: 1.0,
+                    scaleSymbolY: 1.0
                 };
 
                 // Remove any existing tiles with z-index -1
@@ -1079,12 +1092,30 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             offset?: number,
             easing?: EasingFunction
         },
+        scaleSymbolX?: {
+            start: number,
+            end: number,
+            duration: number,
+            reverse?: boolean,
+            offset?: number,
+            easing?: EasingFunction
+        },
+        scaleSymbolY?: {
+            start: number,
+            end: number,
+            duration: number,
+            reverse?: boolean,
+            offset?: number,
+            easing?: EasingFunction
+        },
         startTime?: number
     }): void {
         const animations: {
             bgPercent?: ValueAnimation,
             offsetSymbolX?: ValueAnimation,
-            offsetSymbolY?: ValueAnimation
+            offsetSymbolY?: ValueAnimation,
+            scaleSymbolX?: ValueAnimation,
+            scaleSymbolY?: ValueAnimation
         } = {};
         const effectiveStartTime = options.startTime ?? performance.now();
 
@@ -1121,6 +1152,30 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 reverse: options.offsetSymbolY.reverse || false,
                 offset: options.offsetSymbolY.offset || 0,
                 easing: options.offsetSymbolY.easing
+            };
+        }
+
+        if (options.scaleSymbolX) {
+            animations.scaleSymbolX = {
+                startValue: options.scaleSymbolX.start,
+                endValue: options.scaleSymbolX.end,
+                duration: options.scaleSymbolX.duration,
+                startTime: effectiveStartTime,
+                reverse: options.scaleSymbolX.reverse || false,
+                offset: options.scaleSymbolX.offset || 0,
+                easing: options.scaleSymbolX.easing
+            };
+        }
+
+        if (options.scaleSymbolY) {
+            animations.scaleSymbolY = {
+                startValue: options.scaleSymbolY.start,
+                endValue: options.scaleSymbolY.end,
+                duration: options.scaleSymbolY.duration,
+                startTime: effectiveStartTime,
+                reverse: options.scaleSymbolY.reverse || false,
+                offset: options.scaleSymbolY.offset || 0,
+                easing: options.scaleSymbolY.easing
             };
         }
 
@@ -1200,6 +1255,46 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
                 tile.offsetSymbolY = animations.offsetSymbolY.startValue + 
                     (animations.offsetSymbolY.endValue - animations.offsetSymbolY.startValue) * easedProgress;
+                updated = true;
+            }
+
+            if (animations.scaleSymbolX) {
+                const elapsed = (timestamp - animations.scaleSymbolX.startTime) / 1000;
+                let progress = (elapsed / animations.scaleSymbolX.duration) + animations.scaleSymbolX.offset;
+
+                if (animations.scaleSymbolX.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) progress = 2 - progress;
+                } else {
+                    progress = progress % 1;
+                }
+
+                const easedProgress = animations.scaleSymbolX.easing ? 
+                    animations.scaleSymbolX.easing(progress) : 
+                    progress;
+
+                tile.scaleSymbolX = animations.scaleSymbolX.startValue + 
+                    (animations.scaleSymbolX.endValue - animations.scaleSymbolX.startValue) * easedProgress;
+                updated = true;
+            }
+
+            if (animations.scaleSymbolY) {
+                const elapsed = (timestamp - animations.scaleSymbolY.startTime) / 1000;
+                let progress = (elapsed / animations.scaleSymbolY.duration) + animations.scaleSymbolY.offset;
+
+                if (animations.scaleSymbolY.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) progress = 2 - progress;
+                } else {
+                    progress = progress % 1;
+                }
+
+                const easedProgress = animations.scaleSymbolY.easing ? 
+                    animations.scaleSymbolY.easing(progress) : 
+                    progress;
+
+                tile.scaleSymbolY = animations.scaleSymbolY.startValue + 
+                    (animations.scaleSymbolY.endValue - animations.scaleSymbolY.startValue) * easedProgress;
                 updated = true;
             }
 
