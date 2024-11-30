@@ -4,8 +4,6 @@ import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, V
 interface PerformanceMetrics {
     lastRenderTime: number;
     averageRenderTime: number;
-    dirtyRectCount: number;
-    dirtyRectPixels: number;
     totalRenderCalls: number;
     fps: number;
     lastFpsUpdate: number;
@@ -109,7 +107,6 @@ export class MatrixDisplay {
     private cells: Cell[][];
     private viewport: Viewport;
     private cellSize: number;
-    private dirtyRects: Set<string>; // Store "x,y" strings for dirty cells
     private metrics: PerformanceMetrics;
 
     private worldWidth: number;
@@ -213,7 +210,6 @@ export class MatrixDisplay {
 
         // Initialize cells
         this.cells = this.initializeCells(options.worldWidth, options.worldHeight);
-        this.dirtyRects = new Set();
 
         this.worldWidth = options.worldWidth;
         this.worldHeight = options.worldHeight;
@@ -225,8 +221,6 @@ export class MatrixDisplay {
         this.metrics = {
             lastRenderTime: 0,
             averageRenderTime: 0,
-            dirtyRectCount: 0,
-            dirtyRectPixels: 0,
             totalRenderCalls: 0,
             fps: 0,
             lastFpsUpdate: performance.now(),
@@ -262,8 +256,7 @@ export class MatrixDisplay {
             cells[y] = [];
             for (let x = 0; x < width; x++) {
                 cells[y][x] = {
-                    tiles: [],
-                    isDirty: true
+                    tiles: []
                 };
             }
         }
@@ -336,8 +329,6 @@ export class MatrixDisplay {
         // Remove from old position
         const oldCell = this.cells[tile.y][tile.x];
         oldCell.tiles = oldCell.tiles.filter(t => t.id !== tileId);
-        oldCell.isDirty = true;
-        this.dirtyRects.add(`${tile.x},${tile.y}`);
 
         // Update position
         tile.x = newX;
@@ -369,11 +360,6 @@ export class MatrixDisplay {
         // If position changed, handle move
         if ('x' in updates || 'y' in updates) {
             this.moveTile(tileId, tile.x, tile.y);
-        } else {
-            // Just mark current position as dirty
-            const cell = this.cells[tile.y][tile.x];
-            cell.isDirty = true;
-            this.dirtyRects.add(`${tile.x},${tile.y}`);
         }
     }
 
@@ -392,8 +378,6 @@ export class MatrixDisplay {
         // Remove from cell
         const cell = this.cells[tile.y][tile.x];
         cell.tiles = cell.tiles.filter(t => t.id !== tileId);
-        cell.isDirty = true;
-        this.dirtyRects.add(`${tile.x},${tile.y}`);
 
         // Remove from tile map
         this.animations.delete(tileId);
@@ -416,9 +400,6 @@ export class MatrixDisplay {
             } else {
                 cell.tiles.splice(insertIndex, 0, tile);  // Insert before higher z-index
             }
-            
-            cell.isDirty = true;
-            this.dirtyRects.add(`${tile.x},${tile.y}`);
         }
     }
 
@@ -428,15 +409,6 @@ export class MatrixDisplay {
         // Update viewport position
         this.viewport.x = Math.max(0, Math.min(x, this.worldCanvas.width / this.cellSize - this.viewport.width));
         this.viewport.y = Math.max(0, Math.min(y, this.worldCanvas.height / this.cellSize - this.viewport.height));
-
-        // Mark all viewport cells as dirty since we need to redraw everything
-        for (let vy = 0; vy < this.viewport.height; vy++) {
-            for (let vx = 0; vx < this.viewport.width; vx++) {
-                const worldX = vx + this.viewport.x;
-                const worldY = vy + this.viewport.y;
-                this.dirtyRects.add(`${worldX},${worldY}`);
-            }
-        }
     }
 
     private renderCell(cell: Cell, x: number, y: number): void {
@@ -542,10 +514,8 @@ export class MatrixDisplay {
         const animationEnd = performance.now();
         const renderStart = animationEnd;
 
-        if (this.dirtyRects.size > 0) {
-            this.updateWorldCanvas();
-            this.updateDisplayCanvas();
-        }
+        this.updateWorldCanvas();
+        this.updateDisplayCanvas();
 
         const renderEnd = performance.now();
 
@@ -588,15 +558,12 @@ export class MatrixDisplay {
     }
 
     private updateWorldCanvas() {
-        // Update metrics before clearing
-        this.metrics.dirtyRectCount = this.dirtyRects.size;
-        this.metrics.dirtyRectPixels = this.dirtyRects.size * (this.cellSize * this.cellSize);
-
-        for (const key of this.dirtyRects) {
-            const [x, y] = key.split(',').map(Number);
-            this.renderCell(this.cells[y][x], x, y);
+        // Render all cells instead of just dirty ones
+        for (let y = 0; y < this.worldHeight; y++) {
+            for (let x = 0; x < this.worldWidth; x++) {
+                this.renderCell(this.cells[y][x], x, y);
+            }
         }
-        this.dirtyRects.clear();
     }
 
     // Copy the viewport portion to display canvas
@@ -653,9 +620,7 @@ Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.av
 Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnimationCount + this.metrics.valueAnimationCount}
 ├─ Symbol: ${this.metrics.symbolAnimationCount}
 ├─ Color: ${this.metrics.colorAnimationCount}
-└─ Value: ${this.metrics.valueAnimationCount}
-Dirty Rects: ${this.metrics.dirtyRectCount}
-Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
+└─ Value: ${this.metrics.valueAnimationCount}`;
     }
 
     public clear() {
@@ -665,10 +630,8 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
         for (let y = 0; y < this.cells.length; y++) {
             for (let x = 0; x < this.cells[y].length; x++) {
                 this.cells[y][x] = {
-                    tiles: [],
-                    isDirty: true
+                    tiles: []
                 };
-                this.dirtyRects.add(`${x},${y}`);
             }
         }
 
@@ -679,8 +642,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
     public setTiles(x: number, y: number, tiles: Tile[]) {
         this.cells[y][x].tiles = tiles;
-        this.cells[y][x].isDirty = true;
-        this.dirtyRects.add(`${x},${y}`);
     }
 
     public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {
@@ -709,8 +670,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 
                 // Add the new background tile
                 this.cells[y][x].tiles.push(backgroundTile);
-                this.cells[y][x].isDirty = true;
-                this.dirtyRects.add(`${x},${y}`);
             }
         }
     }
@@ -955,13 +914,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
             
             const index = Math.floor(progress * animation.symbols.length);
             tile.char = animation.symbols[index];
-            this.markDirty(tile.x, tile.y);
         }
-    }
-
-    private markDirty(x: number, y: number): void {
-        this.cells[y][x].isDirty = true;
-        this.dirtyRects.add(`${x},${y}`);
     }
 
     private interpolateColor(start: Color, end: Color, progress: number): Color {
@@ -994,9 +947,7 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 this.colorAnimations.delete(tileId);
                 continue;
             }
-            
-            let updated = false;
-            
+                        
             if (animations.fg) {
                 const elapsed = (timestamp - animations.fg.startTime) / 1000;
                 let progress = (elapsed / animations.fg.duration) + animations.fg.offset;
@@ -1011,7 +962,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 }
                 
                 tile.color = this.interpolateColor(animations.fg.startColor, animations.fg.endColor, progress);
-                updated = true;
             }
             
             if (animations.bg) {
@@ -1028,11 +978,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 }
                 
                 tile.backgroundColor = this.interpolateColor(animations.bg.startColor, animations.bg.endColor, progress);
-                updated = true;
-            }
-            
-            if (updated) {
-                this.markDirty(tile.x, tile.y);
             }
         }
     }
@@ -1190,8 +1135,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
                 continue;
             }
 
-            let updated = false;
-
             if (animations.bgPercent) {
                 const elapsed = (timestamp - animations.bgPercent.startTime) / 1000;
                 let progress = (elapsed / animations.bgPercent.duration) + animations.bgPercent.offset;
@@ -1211,7 +1154,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
                 tile.bgPercent = animations.bgPercent.startValue + 
                     (animations.bgPercent.endValue - animations.bgPercent.startValue) * easedProgress;
-                updated = true;
             }
 
             if (animations.offsetSymbolX) {
@@ -1233,7 +1175,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
                 tile.offsetSymbolX = animations.offsetSymbolX.startValue + 
                     (animations.offsetSymbolX.endValue - animations.offsetSymbolX.startValue) * easedProgress;
-                updated = true;
             }
 
             if (animations.offsetSymbolY) {
@@ -1255,7 +1196,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
                 tile.offsetSymbolY = animations.offsetSymbolY.startValue + 
                     (animations.offsetSymbolY.endValue - animations.offsetSymbolY.startValue) * easedProgress;
-                updated = true;
             }
 
             if (animations.scaleSymbolX) {
@@ -1275,7 +1215,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
                 tile.scaleSymbolX = animations.scaleSymbolX.startValue + 
                     (animations.scaleSymbolX.endValue - animations.scaleSymbolX.startValue) * easedProgress;
-                updated = true;
             }
 
             if (animations.scaleSymbolY) {
@@ -1295,11 +1234,6 @@ Affected Pixels: ${this.metrics.dirtyRectPixels.toLocaleString()}`;
 
                 tile.scaleSymbolY = animations.scaleSymbolY.startValue + 
                     (animations.scaleSymbolY.endValue - animations.scaleSymbolY.startValue) * easedProgress;
-                updated = true;
-            }
-
-            if (updated) {
-                this.markDirty(tile.x, tile.y);
             }
         }
     }

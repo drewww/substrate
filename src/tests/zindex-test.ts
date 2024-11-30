@@ -76,7 +76,7 @@ export class ZIndexTest extends BaseTest {
                 y,
                 '@',
                 '#FFFF00FF',
-                null,
+                '#000000FF',
                 2
             );
             

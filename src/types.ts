@@ -22,7 +22,6 @@ export interface Tile {
 
 export interface Cell {
     tiles: Tile[];
-    isDirty: boolean;
 }
 
 export interface Viewport {
