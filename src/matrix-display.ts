@@ -1007,66 +1007,51 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 continue;
             }
 
-            if (animations.x) {
-                const elapsed = (timestamp - animations.x.startTime) / 1000;
-                let progress = (elapsed / animations.x.duration) + animations.x.offset;
+            // Helper function to update any value animation
+            const updateAnimation = (
+                animation: ValueAnimation | undefined, 
+                property: 'x' | 'y' | 'scaleSymbolX' | 'scaleSymbolY' | 'offsetSymbolX' | 'offsetSymbolY' | 'bgPercent'
+            ) => {
+                if (!animation) return false;
 
-                if (!animations.x.loop && progress >= 1) {
-                    // Set final position and remove animation
-                    tile.x = animations.x.endValue;
-                    delete animations.x;
-                } else {
-                    // Only apply modulo if looping
-                    if (animations.x.loop) {
-                        if (animations.x.reverse) {
-                            progress = progress % 2;
-                            if (progress > 1) progress = 2 - progress;
-                        } else {
-                            progress = progress % 1;
-                        }
-                    }
-                    // Clamp progress if not looping
-                    else {
-                        progress = Math.min(progress, 1);
-                    }
+                const elapsed = (timestamp - animation.startTime) / 1000;
+                let progress = (elapsed / animation.duration) + animation.offset;
 
-                    const easedProgress = animations.x.easing ? 
-                        animations.x.easing(progress) : 
-                        progress;
-
-                    tile.x = animations.x.startValue + 
-                        (animations.x.endValue - animations.x.startValue) * easedProgress;
+                if (!animation.loop && progress >= 1) {
+                    // Set final value and mark for removal
+                    tile[property] = animation.endValue;
+                    return true; // Animation complete
                 }
-            }
 
-            // Same logic for y animation
-            if (animations.y) {
-                const elapsed = (timestamp - animations.y.startTime) / 1000;
-                let progress = (elapsed / animations.y.duration) + animations.y.offset;
-
-                if (!animations.y.loop && progress >= 1) {
-                    tile.y = animations.y.endValue;
-                    delete animations.y;
-                } else {
-                    if (animations.y.loop) {
-                        if (animations.y.reverse) {
-                            progress = progress % 2;
-                            if (progress > 1) progress = 2 - progress;
-                        } else {
-                            progress = progress % 1;
-                        }
+                if (animation.loop) {
+                    if (animation.reverse) {
+                        progress = progress % 2;
+                        if (progress > 1) progress = 2 - progress;
                     } else {
-                        progress = Math.min(progress, 1);
+                        progress = progress % 1;
                     }
-
-                    const easedProgress = animations.y.easing ? 
-                        animations.y.easing(progress) : 
-                        progress;
-
-                    tile.y = animations.y.startValue + 
-                        (animations.y.endValue - animations.y.startValue) * easedProgress;
+                } else {
+                    progress = Math.min(progress, 1);
                 }
-            }
+
+                const easedProgress = animation.easing ? 
+                    animation.easing(progress) : 
+                    progress;
+
+                tile[property] = animation.startValue + 
+                    (animation.endValue - animation.startValue) * easedProgress;
+                
+                return false; // Animation ongoing
+            };
+
+            // Update each animation type
+            if (updateAnimation(animations.x, 'x')) delete animations.x;
+            if (updateAnimation(animations.y, 'y')) delete animations.y;
+            if (updateAnimation(animations.scaleSymbolX, 'scaleSymbolX')) delete animations.scaleSymbolX;
+            if (updateAnimation(animations.scaleSymbolY, 'scaleSymbolY')) delete animations.scaleSymbolY;
+            if (updateAnimation(animations.offsetSymbolX, 'offsetSymbolX')) delete animations.offsetSymbolX;
+            if (updateAnimation(animations.offsetSymbolY, 'offsetSymbolY')) delete animations.offsetSymbolY;
+            if (updateAnimation(animations.bgPercent, 'bgPercent')) delete animations.bgPercent;
 
             // Clean up if no animations remain
             if (Object.keys(animations).length === 0) {
@@ -1083,5 +1068,18 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.viewport.x = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
             this.viewport.y = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
         }
+    }
+
+    public clearAnimations(tileId: TileId): void {
+        // Clear symbol animations
+        this.animations.delete(tileId);
+        
+        // Clear color animations
+        this.colorAnimations.delete(tileId);
+        
+        // Clear value animations
+        this.valueAnimations.delete(tileId);
+        
+        this.log.verbose(`Cleared all animations for tile ${tileId}`);
     }
 } 
