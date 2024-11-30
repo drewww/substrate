@@ -17,6 +17,9 @@ Display
    - the inverse of this could be middle-out background fill for like a smoke bomb effect
  - modularize the display code??
  - break up matrix-display.ts into multiple files
+ 
+ - look into tile.x/y -- something is odd here. I think we don't want state there? and the tile can get it from the parent cell if necessary?
+   - think more broadly about how tiles and cells interact
 
  Optimization Ideas
  ------------------
