@@ -128,6 +128,8 @@ export class MatrixDisplay {
         scaleSymbolY?: ValueAnimation
     }> = new Map();
 
+    private hasChanges: boolean = true;
+
     constructor(options: MatrixDisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
         
@@ -267,6 +269,7 @@ export class MatrixDisplay {
         bgPercent: number = 1,
         fillDirection: FillDirection = FillDirection.BOTTOM
     ): TileId {
+        this.hasChanges = true;
         const id = this.generateTileId();
         this.log.verbose(`Creating tile ${id} at (${x},${y})`);
         const tile: Tile = {
@@ -291,30 +294,36 @@ export class MatrixDisplay {
 
     public moveTile(tileId: TileId, newX: number, newY: number): void {
         const tile = this.tileMap.get(tileId);
-        if (!tile) {
-            this.log.warn(`Attempted to move non-existent tile: ${tileId}`);
-            return;
-        }
+        if (tile && (tile.x !== newX || tile.y !== newY)) {
+            this.hasChanges = true;
+            if (!tile) {
+                this.log.warn(`Attempted to move non-existent tile: ${tileId}`);
+                return;
+            }
 
-        if (newX < 0 || newX >= this.worldWidth || newY < 0 || newY >= this.worldHeight) {
-            this.log.warn(`Attempted to move tile outside bounds: (${newX},${newY})`);
-            return;
-        }
+            if (newX < 0 || newX >= this.worldWidth || newY < 0 || newY >= this.worldHeight) {
+                this.log.warn(`Attempted to move tile outside bounds: (${newX},${newY})`);
+                return;
+            }
 
-        this.log.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
-        tile.x = newX;
-        tile.y = newY;
+            this.log.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
+            tile.x = newX;
+            tile.y = newY;
+        }
     }
 
     public removeTile(tileId: TileId): void {
-        if (!this.tileMap.has(tileId)) {
-            this.log.warn(`Attempted to remove non-existent tile: ${tileId}`);
-            return;
+        if (this.tileMap.has(tileId)) {
+            this.hasChanges = true;
+            if (!this.tileMap.has(tileId)) {
+                this.log.warn(`Attempted to remove non-existent tile: ${tileId}`);
+                return;
+            }
+            
+            this.log.verbose(`Removing tile ${tileId}`);
+            this.animations.delete(tileId);
+            this.tileMap.delete(tileId);
         }
-        
-        this.log.verbose(`Removing tile ${tileId}`);
-        this.animations.delete(tileId);
-        this.tileMap.delete(tileId);
     }
 
     private updateWorldCanvas(): void {
@@ -418,14 +427,28 @@ export class MatrixDisplay {
     private renderFrame(timestamp: number): void {
         const animationStart = performance.now();
         
-        this.updateAnimations(timestamp);
-        this.updateColorAnimations(timestamp);
-        this.updateValueAnimations(timestamp);
+        // Check if we have any active animations
+        const hasActiveAnimations = 
+            this.animations.size > 0 || 
+            this.colorAnimations.size > 0 || 
+            this.valueAnimations.size > 0;
+
+        if (hasActiveAnimations) {
+            this.updateAnimations(timestamp);
+            this.updateColorAnimations(timestamp);
+            this.updateValueAnimations(timestamp);
+            this.hasChanges = true;
+        }
         
         const animationEnd = performance.now();
         const renderStart = animationEnd;
 
-        this.updateWorldCanvas();
+        // Only update canvases if we have changes
+        if (this.hasChanges) {
+            this.updateWorldCanvas();
+            this.hasChanges = false;
+        }
+        
         this.updateDisplayCanvas();
 
         const renderEnd = performance.now();
@@ -525,6 +548,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public clear() {
+        this.hasChanges = true;
         this.log.info('Clearing display');
         
         // Clear all tiles
@@ -1129,10 +1153,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public setViewport(x: number, y: number) {
-        this.log.debug(`Setting viewport to (${x},${y})`);
+        if (this.viewport.x !== x || this.viewport.y !== y) {
+            this.log.debug(`Setting viewport to (${x},${y})`);
             
-        // Update viewport position
-        this.viewport.x = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
-        this.viewport.y = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
+            // Update viewport position
+            this.viewport.x = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
+            this.viewport.y = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
+        }
     }
 } 
