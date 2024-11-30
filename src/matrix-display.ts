@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Cell, Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions } from './types';
+import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -104,7 +104,6 @@ export class MatrixDisplay {
     private displayCtx: CanvasRenderingContext2D;
     private worldCanvas: HTMLCanvasElement;      // Full world buffer
     private worldCtx: CanvasRenderingContext2D;
-    private cells: Cell[][];
     private viewport: Viewport;
     private cellSize: number;
     private metrics: PerformanceMetrics;
@@ -208,12 +207,6 @@ export class MatrixDisplay {
             height: options.viewportHeight
         };
 
-        // Initialize cells
-        this.cells = this.initializeCells(options.worldWidth, options.worldHeight);
-
-        this.worldWidth = options.worldWidth;
-        this.worldHeight = options.worldHeight;
-
         // Set up font
         this.setupFont(options.defaultFont, options.customFont);
 
@@ -248,19 +241,6 @@ export class MatrixDisplay {
 
         this.boundRenderFrame = this.renderFrame.bind(this);
         this.startRenderLoop();
-    }
-
-    private initializeCells(width: number, height: number): Cell[][] {
-        const cells: Cell[][] = [];
-        for (let y = 0; y < height; y++) {
-            cells[y] = [];
-            for (let x = 0; x < width; x++) {
-                cells[y][x] = {
-                    tiles: []
-                };
-            }
-        }
-        return cells;
     }
 
     private setupFont(defaultFont?: string, customFont?: string) {
@@ -306,8 +286,6 @@ export class MatrixDisplay {
         };
         
         this.tileMap.set(id, tile);
-        this.setTileInCell(tile);
-        
         return id;
     }
 
@@ -318,105 +296,46 @@ export class MatrixDisplay {
             return;
         }
 
-        // Add bounds checking
         if (newX < 0 || newX >= this.worldWidth || newY < 0 || newY >= this.worldHeight) {
             this.log.warn(`Attempted to move tile outside bounds: (${newX},${newY})`);
             return;
         }
 
         this.log.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
-
-        // Remove from old position
-        const oldCell = this.cells[tile.y][tile.x];
-        oldCell.tiles = oldCell.tiles.filter(t => t.id !== tileId);
-
-        // Update position
         tile.x = newX;
         tile.y = newY;
-
-        // Add to new position
-        this.setTileInCell(tile);
-    }
-
-    public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
-        tileIds.forEach(tileId => {
-            const tile = this.tileMap.get(tileId);
-            if (tile) {
-                this.moveTile(tileId, tile.x + dx, tile.y + dy);
-            }
-        });
-    }
-
-    public updateTile(tileId: TileId, updates: Partial<Omit<Tile, 'id'>>): void {
-        const tile = this.tileMap.get(tileId);
-        if (!tile) {
-            this.log.warn(`Attempted to update non-existent tile: ${tileId}`);
-            return;
-        }
-        this.log.verbose(`Updating tile ${tileId}`, updates);
-
-        Object.assign(tile, updates);
-        
-        // If position changed, handle move
-        if ('x' in updates || 'y' in updates) {
-            this.moveTile(tileId, tile.x, tile.y);
-        }
-    }
-
-    public updateTiles(tileIds: TileId[], updates: Partial<Omit<Tile, 'id'>>): void {
-        tileIds.forEach(tileId => this.updateTile(tileId, updates));
     }
 
     public removeTile(tileId: TileId): void {
-        const tile = this.tileMap.get(tileId);
-        if (!tile) {
+        if (!this.tileMap.has(tileId)) {
             this.log.warn(`Attempted to remove non-existent tile: ${tileId}`);
             return;
         }
+        
         this.log.verbose(`Removing tile ${tileId}`);
-
-        // Remove from cell
-        const cell = this.cells[tile.y][tile.x];
-        cell.tiles = cell.tiles.filter(t => t.id !== tileId);
-
-        // Remove from tile map
         this.animations.delete(tileId);
         this.tileMap.delete(tileId);
     }
 
-    public removeTiles(tileIds: TileId[]): void {
-        tileIds.forEach(tileId => this.removeTile(tileId));
+    private updateWorldCanvas(): void {
+        // Clear the world canvas
+        this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
+        
+        // Sort all tiles by z-index once per frame
+        const sortedTiles = Array.from(this.tileMap.values())
+            .sort((a, b) => a.zIndex - b.zIndex);
+
+        // Render each tile
+        sortedTiles.forEach(tile => {
+            this.renderTile(tile);
+        });
     }
 
-    private setTileInCell(tile: Tile): void {
-        if (tile.x >= 0 && tile.x < this.worldWidth && 
-            tile.y >= 0 && tile.y < this.worldHeight) {
-            const cell = this.cells[tile.y][tile.x];
-            
-            // Insert maintaining z-order (higher z-index should be rendered later/on top)
-            const insertIndex = cell.tiles.findIndex(t => t.zIndex > tile.zIndex);
-            if (insertIndex === -1) {
-                cell.tiles.push(tile);  // Add to end if highest z-index
-            } else {
-                cell.tiles.splice(insertIndex, 0, tile);  // Insert before higher z-index
-            }
-        }
-    }
-
-    public setViewport(x: number, y: number) {
-        this.log.debug(`Setting viewport to (${x},${y})`);
-                
-        // Update viewport position
-        this.viewport.x = Math.max(0, Math.min(x, this.worldCanvas.width / this.cellSize - this.viewport.width));
-        this.viewport.y = Math.max(0, Math.min(y, this.worldCanvas.height / this.cellSize - this.viewport.height));
-    }
-
-    private renderCell(cell: Cell, x: number, y: number): void {
-        const pixelX = x * this.cellSize/2;
-        const pixelY = y * this.cellSize;
+    private renderTile(tile: Tile): void {
+        const pixelX = tile.x * this.cellSize/2;
+        const pixelY = tile.y * this.cellSize;
         
         this.worldCtx.save();
-
         this.worldCtx.translate(pixelX, pixelY);
         
         // Create clipping path
@@ -424,82 +343,74 @@ export class MatrixDisplay {
         this.worldCtx.rect(0, 0, this.cellSize/2, this.cellSize);
         this.worldCtx.clip();
         
-        // Clear and draw the cell's background first
-        this.worldCtx.clearRect(0, 0, this.cellSize/2, this.cellSize);
-        
-        // Sort tiles by z-index
-        const sortedTiles = Array.from(cell.tiles.values()).sort((a, b) => a.zIndex - b.zIndex);
+        // Draw background if it has one
+        if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
+            const bgPercent = tile.bgPercent ?? 1;
+            if (bgPercent > 0) {
+                this.worldCtx.fillStyle = tile.backgroundColor;
+                const cellWidth = this.cellSize/2;
+                const cellHeight = this.cellSize;
 
-        sortedTiles.forEach(tile => {
-            // Draw background if it has one
-            if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
-                const bgPercent = tile.bgPercent ?? 1;  // Default to 1 if not specified
-                if (bgPercent > 0) {
-                    this.worldCtx.fillStyle = tile.backgroundColor;
-                    const cellWidth = this.cellSize/2;
-                    const cellHeight = this.cellSize;
-
-                    switch (tile.fillDirection) {
-                        case FillDirection.TOP:
-                            this.worldCtx.fillRect(
-                                0,
-                                0,
-                                cellWidth,
-                                cellHeight * bgPercent
-                            );
-                            break;
-                        case FillDirection.RIGHT:
-                            this.worldCtx.fillRect(
-                                0 + cellWidth * (1 - bgPercent),
-                                0,
-                                cellWidth * bgPercent,
-                                cellHeight
-                            );
-                            break;
-                        case FillDirection.BOTTOM:
-                            this.worldCtx.fillRect(
-                                0,
-                                0 + cellHeight * (1 - bgPercent),
-                                cellWidth,
-                                cellHeight * bgPercent
-                            );
-                            break;
-                        case FillDirection.LEFT:
-                            this.worldCtx.fillRect(
-                                0,
-                                0,
-                                cellWidth * bgPercent,
-                                cellHeight
-                            );
-                            break;
-                    }
+                switch (tile.fillDirection) {
+                    case FillDirection.TOP:
+                        this.worldCtx.fillRect(
+                            0,
+                            0,
+                            cellWidth,
+                            cellHeight * bgPercent
+                        );
+                        break;
+                    case FillDirection.RIGHT:
+                        this.worldCtx.fillRect(
+                            0 + cellWidth * (1 - bgPercent),
+                            0,
+                            cellWidth * bgPercent,
+                            cellHeight
+                        );
+                        break;
+                    case FillDirection.BOTTOM:
+                        this.worldCtx.fillRect(
+                            0,
+                            0 + cellHeight * (1 - bgPercent),
+                            cellWidth,
+                            cellHeight * bgPercent
+                        );
+                        break;
+                    case FillDirection.LEFT:
+                        this.worldCtx.fillRect(
+                            0,
+                            0,
+                            cellWidth * bgPercent,
+                            cellHeight
+                        );
+                        break;
                 }
             }
+        }
+        
+        // Draw character
+        if (tile.char && tile.color) {
+            const offsetX = (tile.offsetSymbolX || 0) * this.cellSize;
+            const offsetY = (tile.offsetSymbolY || 0) * this.cellSize;
             
-            if (tile.char && tile.color) {
-                const offsetX = (tile.offsetSymbolX || 0) * this.cellSize;
-                const offsetY = (tile.offsetSymbolY || 0) * this.cellSize;
-                
-                
-                this.worldCtx.save();
-                
-                // Move to cell location.
+            this.worldCtx.save();
+            
+            // Move to cell location.
 
-                this.worldCtx.translate(this.cellSize/4, this.cellSize * 0.55);
-                
-                // Apply scaling
-                this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
-                
-                // Apply offset after scaling
-                this.worldCtx.translate(offsetX, offsetY);
-                
-                // Draw character at origin (0,0) since we've translated
-                this.worldCtx.fillStyle = tile.color;
-                this.worldCtx.fillText(tile.char, 0, 0);
-                
-                this.worldCtx.restore();
-            }
-        });
+            this.worldCtx.translate(this.cellSize/4, this.cellSize * 0.55);
+            
+            // Apply scaling
+            this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
+            
+            // Apply offset after scaling
+            this.worldCtx.translate(offsetX, offsetY);
+            
+            // Draw character at origin (0,0) since we've translated
+            this.worldCtx.fillStyle = tile.color;
+            this.worldCtx.fillText(tile.char, 0, 0);
+            
+            this.worldCtx.restore();
+        }
 
         this.worldCtx.restore();
     }
@@ -557,16 +468,6 @@ export class MatrixDisplay {
         }
     }
 
-    private updateWorldCanvas() {
-        // Render all cells instead of just dirty ones
-        for (let y = 0; y < this.worldHeight; y++) {
-            for (let x = 0; x < this.worldWidth; x++) {
-                this.renderCell(this.cells[y][x], x, y);
-            }
-        }
-    }
-
-    // Copy the viewport portion to display canvas
     private updateDisplayCanvas() {
         const srcX = this.viewport.x * this.cellSize/2;
         const srcY = this.viewport.y * this.cellSize;
@@ -626,50 +527,37 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     public clear() {
         this.log.info('Clearing display');
         
-        // Clear all cells back to default state
-        for (let y = 0; y < this.cells.length; y++) {
-            for (let x = 0; x < this.cells[y].length; x++) {
-                this.cells[y][x] = {
-                    tiles: []
-                };
-            }
-        }
+        // Clear all tiles
+        this.tileMap.clear();
+        this.animations.clear();
+        this.colorAnimations.clear();
+        this.valueAnimations.clear();
 
         // Clear all canvases
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
         this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
     }
 
-    public setTiles(x: number, y: number, tiles: Tile[]) {
-        this.cells[y][x].tiles = tiles;
-    }
-
     public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {
-        // Set background for all cells
+        // Remove existing background tiles
+        const existingBackgroundTiles = Array.from(this.tileMap.values())
+            .filter(tile => tile.zIndex === -1)
+            .map(tile => tile.id);
+        existingBackgroundTiles.forEach(id => this.removeTile(id));
+
+        // Create new background tiles
         for (let y = 0; y < this.worldHeight; y++) {
             for (let x = 0; x < this.worldWidth; x++) {
-                // Create a background tile with z-index -1
-                const backgroundTile: Tile = {
-                    id: this.generateTileId(),
-                    x: x,
-                    y: y,
-                    char: symbol,
-                    color: fgColor,
-                    backgroundColor: bgColor,
-                    zIndex: -1,
-                    bgPercent: 1,
-                    fillDirection: FillDirection.BOTTOM,
-                    offsetSymbolX: 0,
-                    offsetSymbolY: 0,
-                    scaleSymbolX: 1.0,
-                    scaleSymbolY: 1.0
-                };
-
-                // Remove any existing tiles with z-index -1
-                this.cells[y][x].tiles = this.cells[y][x].tiles.filter(t => t.zIndex !== -1);
-                
-                // Add the new background tile
-                this.cells[y][x].tiles.push(backgroundTile);
+                this.createTile(
+                    x,
+                    y,
+                    symbol,
+                    fgColor,
+                    bgColor,
+                    -1, // z-index
+                    1,  // bgPercent
+                    FillDirection.BOTTOM
+                );
             }
         }
     }
@@ -864,10 +752,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             return;
         }
 
-        // Get all tile IDs in this cell and remove them
-        const cell = this.cells[y][x];
-        const tileIds = cell.tiles.map(t => t.id);
-        tileIds.forEach(id => this.removeTile(id));
+        // Find and remove all tiles at the specified position
+        const tilesToRemove = Array.from(this.tileMap.values())
+            .filter(tile => tile.x === x && tile.y === y)
+            .map(tile => tile.id);
+        
+        tilesToRemove.forEach(id => this.removeTile(id));
     }
 
     public addSymbolAnimation(
@@ -1236,5 +1126,13 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     (animations.scaleSymbolY.endValue - animations.scaleSymbolY.startValue) * easedProgress;
             }
         }
+    }
+
+    public setViewport(x: number, y: number) {
+        this.log.debug(`Setting viewport to (${x},${y})`);
+            
+        // Update viewport position
+        this.viewport.x = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
+        this.viewport.y = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
     }
 } 
