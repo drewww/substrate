@@ -91,6 +91,7 @@ export interface ValueAnimation {
     reverse: boolean;      // Whether to reverse direction at endpoints
     offset: number;        // Initial offset (0-1)
     easing?: EasingFunction;  // Optional easing function
+    loop?: boolean;         // Whether to loop the animation
 }
 
 export enum EasingType {

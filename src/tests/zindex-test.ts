@@ -1,22 +1,14 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { LogLevel } from '../matrix-display';
-
-interface Entity {
-    x: number;
-    y: number;
-    dx: number;
-    dy: number;
-    tileId: TileId;
-}
+import { Easing, LogLevel } from '../matrix-display';
 
 export class ZIndexTest extends BaseTest {
-    private readonly ENTITY_COUNT = 5;
+    private readonly TILE_COUNT = 5;
     private readonly BACKGROUND_SYMBOLS = [',', '.', '-', '=', '_'];
-    private entities: Entity[] = [];
+    private tileIds: TileId[] = [];
     private backgroundTileIds: TileId[] = [];
-    private frameCount: number = 0;
-    private readonly FRAMES_PER_MOVE = 30;
+    private readonly SECONDS_SINCE_MOVED = 2;
+    private lastMovedTimestamp: number;
     
     constructor(logLevel?: LogLevel) {
         super({
@@ -27,6 +19,7 @@ export class ZIndexTest extends BaseTest {
             cellSize: 24,
             logLevel
         });
+        this.lastMovedTimestamp = 0;
     }
 
     getName(): string {
@@ -63,11 +56,11 @@ export class ZIndexTest extends BaseTest {
         }
     }
 
-    private initializeEntities() {
+    private initializeTiles() {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
         
-        for (let i = 0; i < this.ENTITY_COUNT; i++) {
+        for (let i = 0; i < this.TILE_COUNT; i++) {
             const x = Math.floor(Math.random() * width);
             const y = Math.floor(Math.random() * height);
             
@@ -76,60 +69,78 @@ export class ZIndexTest extends BaseTest {
                 y,
                 '@',
                 '#FFFF00FF',
-                '#000000FF',
+                '#00000066',
                 2
             );
             
-            this.entities.push({
-                x,
-                y,
-                dx: 0,
-                dy: 0,
-                tileId
-            });
+            this.tileIds.push(tileId);
         }
     }
 
-    private updateEntities() {
+    private updateTiles(timestamp: number) {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
         
         if (!this.isRunning) return;
 
-        this.frameCount++;
+        const timeSinceMoved = timestamp - this.lastMovedTimestamp;
 
-        if (this.frameCount >= this.FRAMES_PER_MOVE) {
-            this.frameCount = 0;
+        if (timeSinceMoved >= this.SECONDS_SINCE_MOVED * 1000) {
+            this.lastMovedTimestamp = timestamp;
+            this.display.log.info(`Moving tiles at timestamp ${timestamp}`);
 
-            this.entities.forEach(entity => {
-                entity.dx = Math.floor(Math.random() * 3) - 1;
-                entity.dy = Math.floor(Math.random() * 3) - 1;
+            this.tileIds.forEach(tileId => {
+                const tile = this.display.getTile(tileId);
+                if (!tile) return;
 
-                entity.x = (entity.x + entity.dx + width) % width;
-                entity.y = (entity.y + entity.dy + height) % height;
+                const dx = Math.floor(Math.random() * 3) - 1;
+                const dy = Math.floor(Math.random() * 3) - 1;
+                
+                const newX = tile.x + dx;
+                const newY = tile.y + dy;
 
-                this.display.moveTile(entity.tileId, entity.x, entity.y);
+                if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
+                    this.display.log.info(`Tile ${tileId}: Moving from (${tile.x},${tile.y}) to (${newX},${newY})`);
+
+                    this.display.addValueAnimation(tileId, {
+                        x: {
+                            start: tile.x,
+                            end: newX,
+                            duration: 0.5,
+                            easing: Easing.sineInOut,
+                            loop: false
+                        },
+                        y: {
+                            start: tile.y,
+                            end: newY,
+                            duration: 0.5,
+                            easing: Easing.sineInOut,
+                            loop: false
+                        }
+                    });
+                }
             });
         }
 
-        requestAnimationFrame(() => this.updateEntities());
+        requestAnimationFrame(timestamp => this.updateTiles(timestamp));
     }
 
     protected run(): void {
         this.display.clear();
         this.initializeBackground();
-        this.initializeEntities();
-        this.updateEntities();
+        this.initializeTiles();
+        this.lastMovedTimestamp = performance.now();
+        requestAnimationFrame(t => this.updateTiles(t));
     }
 
     protected cleanup(): void {
-        this.entities.forEach(entity => {
-            this.display.removeTile(entity.tileId);
+        this.tileIds.forEach(id => {
+            this.display.removeTile(id);
         });
-        this.entities = [];
+        this.tileIds = [];
 
-        this.backgroundTileIds.forEach(tileId => {
-            this.display.removeTile(tileId);
+        this.backgroundTileIds.forEach(id => {
+            this.display.removeTile(id);
         });
         this.backgroundTileIds = [];
     }

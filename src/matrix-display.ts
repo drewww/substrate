@@ -99,6 +99,27 @@ export const Easing = {
         t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2
 };
 
+export interface ValueAnimationConfig {
+    start: number;
+    end: number;
+    duration: number;
+    reverse?: boolean;
+    offset?: number;
+    easing?: EasingFunction;
+    loop?: boolean;
+}
+
+export interface ValueAnimationOptions {
+    bgPercent?: ValueAnimationConfig;
+    offsetSymbolX?: ValueAnimationConfig;
+    offsetSymbolY?: ValueAnimationConfig;
+    scaleSymbolX?: ValueAnimationConfig;
+    scaleSymbolY?: ValueAnimationConfig;
+    x?: ValueAnimationConfig;
+    y?: ValueAnimationConfig;
+    startTime?: number;
+}
+
 export class MatrixDisplay {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private displayCtx: CanvasRenderingContext2D;
@@ -122,6 +143,8 @@ export class MatrixDisplay {
     private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
     private valueAnimations: Map<TileId, {
         bgPercent?: ValueAnimation,
+        x?: ValueAnimation,
+        y?: ValueAnimation,
         offsetSymbolX?: ValueAnimation,
         offsetSymbolY?: ValueAnimation,
         scaleSymbolX?: ValueAnimation,
@@ -618,7 +641,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.logLevel = level;
     }
 
-    private log = {
+    public log = {
         error: (...args: any[]) => {
             if (this.logLevel >= LogLevel.ERROR) console.error('[MatrixDisplay]', ...args);
         },
@@ -926,51 +949,24 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.colorAnimations.set(tileId, animations);
     }
 
-    public addValueAnimation(tileId: TileId, options: {
-        bgPercent?: {
-            start: number,
-            end: number,
-            duration: number,
-            reverse?: boolean,
-            offset?: number,
-            easing?: EasingFunction
-        },
-        offsetSymbolX?: {
-            start: number,
-            end: number,
-            duration: number,
-            reverse?: boolean,
-            offset?: number,
-            easing?: EasingFunction
-        },
-        offsetSymbolY?: {
-            start: number,
-            end: number,
-            duration: number,
-            reverse?: boolean,
-            offset?: number,
-            easing?: EasingFunction
-        },
-        scaleSymbolX?: {
-            start: number,
-            end: number,
-            duration: number,
-            reverse?: boolean,
-            offset?: number,
-            easing?: EasingFunction
-        },
-        scaleSymbolY?: {
-            start: number,
-            end: number,
-            duration: number,
-            reverse?: boolean,
-            offset?: number,
-            easing?: EasingFunction
-        },
-        startTime?: number
-    }): void {
+    private createValueAnimation(config: ValueAnimationConfig, startTime: number): ValueAnimation {
+        return {
+            startValue: config.start,
+            endValue: config.end,
+            duration: config.duration,
+            startTime: startTime,
+            reverse: config.reverse || false,
+            offset: config.offset || 0,
+            easing: config.easing,
+            loop: config.loop ?? true
+        };
+    }
+
+    public addValueAnimation(tileId: TileId, options: ValueAnimationOptions): void {
         const animations: {
             bgPercent?: ValueAnimation,
+            x?: ValueAnimation,
+            y?: ValueAnimation,
             offsetSymbolX?: ValueAnimation,
             offsetSymbolY?: ValueAnimation,
             scaleSymbolX?: ValueAnimation,
@@ -979,63 +975,25 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         const effectiveStartTime = options.startTime ?? performance.now();
 
         if (options.bgPercent) {
-            animations.bgPercent = {
-                startValue: options.bgPercent.start,
-                endValue: options.bgPercent.end,
-                duration: options.bgPercent.duration,
-                startTime: effectiveStartTime,
-                reverse: options.bgPercent.reverse || false,
-                offset: options.bgPercent.offset || 0,
-                easing: options.bgPercent.easing
-            };
+            animations.bgPercent = this.createValueAnimation(options.bgPercent, effectiveStartTime);
         }
-
         if (options.offsetSymbolX) {
-            animations.offsetSymbolX = {
-                startValue: options.offsetSymbolX.start,
-                endValue: options.offsetSymbolX.end,
-                duration: options.offsetSymbolX.duration,
-                startTime: effectiveStartTime,
-                reverse: options.offsetSymbolX.reverse || false,
-                offset: options.offsetSymbolX.offset || 0,
-                easing: options.offsetSymbolX.easing
-            };
+            animations.offsetSymbolX = this.createValueAnimation(options.offsetSymbolX, effectiveStartTime);
         }
-
         if (options.offsetSymbolY) {
-            animations.offsetSymbolY = {
-                startValue: options.offsetSymbolY.start,
-                endValue: options.offsetSymbolY.end,
-                duration: options.offsetSymbolY.duration,
-                startTime: effectiveStartTime,
-                reverse: options.offsetSymbolY.reverse || false,
-                offset: options.offsetSymbolY.offset || 0,
-                easing: options.offsetSymbolY.easing
-            };
+            animations.offsetSymbolY = this.createValueAnimation(options.offsetSymbolY, effectiveStartTime);
         }
-
         if (options.scaleSymbolX) {
-            animations.scaleSymbolX = {
-                startValue: options.scaleSymbolX.start,
-                endValue: options.scaleSymbolX.end,
-                duration: options.scaleSymbolX.duration,
-                startTime: effectiveStartTime,
-                reverse: options.scaleSymbolX.reverse || false,
-                offset: options.scaleSymbolX.offset || 0,
-                easing: options.scaleSymbolX.easing
-            };
+            animations.scaleSymbolX = this.createValueAnimation(options.scaleSymbolX, effectiveStartTime);
         }
-
         if (options.scaleSymbolY) {
-            animations.scaleSymbolY = {
-                startValue: options.scaleSymbolY.start,
-                endValue: options.scaleSymbolY.end,
-                duration: options.scaleSymbolY.duration,
-                startTime: effectiveStartTime,
-                reverse: options.scaleSymbolY.reverse || false,
-                offset: options.scaleSymbolY.offset || 0,
-                easing: options.scaleSymbolY.easing
-            };
+            animations.scaleSymbolY = this.createValueAnimation(options.scaleSymbolY, effectiveStartTime);
+        }
+        if (options.x) {
+            animations.x = this.createValueAnimation(options.x, effectiveStartTime);
+        }
+        if (options.y) {
+            animations.y = this.createValueAnimation(options.y, effectiveStartTime);
         }
 
         this.valueAnimations.set(tileId, animations);
@@ -1049,105 +1007,70 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 continue;
             }
 
-            if (animations.bgPercent) {
-                const elapsed = (timestamp - animations.bgPercent.startTime) / 1000;
-                let progress = (elapsed / animations.bgPercent.duration) + animations.bgPercent.offset;
+            if (animations.x) {
+                const elapsed = (timestamp - animations.x.startTime) / 1000;
+                let progress = (elapsed / animations.x.duration) + animations.x.offset;
 
-                if (animations.bgPercent.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) {
-                        progress = 2 - progress;
+                if (!animations.x.loop && progress >= 1) {
+                    // Set final position and remove animation
+                    tile.x = animations.x.endValue;
+                    delete animations.x;
+                } else {
+                    // Only apply modulo if looping
+                    if (animations.x.loop) {
+                        if (animations.x.reverse) {
+                            progress = progress % 2;
+                            if (progress > 1) progress = 2 - progress;
+                        } else {
+                            progress = progress % 1;
+                        }
                     }
-                } else {
-                    progress = progress % 1;
-                }
-
-                const easedProgress = animations.bgPercent.easing ? 
-                    animations.bgPercent.easing(progress) : 
-                    progress;
-
-                tile.bgPercent = animations.bgPercent.startValue + 
-                    (animations.bgPercent.endValue - animations.bgPercent.startValue) * easedProgress;
-            }
-
-            if (animations.offsetSymbolX) {
-                const elapsed = (timestamp - animations.offsetSymbolX.startTime) / 1000;
-                let progress = (elapsed / animations.offsetSymbolX.duration) + animations.offsetSymbolX.offset;
-
-                if (animations.offsetSymbolX.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) {
-                        progress = 2 - progress;
+                    // Clamp progress if not looping
+                    else {
+                        progress = Math.min(progress, 1);
                     }
-                } else {
-                    progress = progress % 1;
+
+                    const easedProgress = animations.x.easing ? 
+                        animations.x.easing(progress) : 
+                        progress;
+
+                    tile.x = animations.x.startValue + 
+                        (animations.x.endValue - animations.x.startValue) * easedProgress;
                 }
-
-                const easedProgress = animations.offsetSymbolX.easing ? 
-                    animations.offsetSymbolX.easing(progress) : 
-                    progress;
-
-                tile.offsetSymbolX = animations.offsetSymbolX.startValue + 
-                    (animations.offsetSymbolX.endValue - animations.offsetSymbolX.startValue) * easedProgress;
             }
 
-            if (animations.offsetSymbolY) {
-                const elapsed = (timestamp - animations.offsetSymbolY.startTime) / 1000;
-                let progress = (elapsed / animations.offsetSymbolY.duration) + animations.offsetSymbolY.offset;
+            // Same logic for y animation
+            if (animations.y) {
+                const elapsed = (timestamp - animations.y.startTime) / 1000;
+                let progress = (elapsed / animations.y.duration) + animations.y.offset;
 
-                if (animations.offsetSymbolY.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) {
-                        progress = 2 - progress;
+                if (!animations.y.loop && progress >= 1) {
+                    tile.y = animations.y.endValue;
+                    delete animations.y;
+                } else {
+                    if (animations.y.loop) {
+                        if (animations.y.reverse) {
+                            progress = progress % 2;
+                            if (progress > 1) progress = 2 - progress;
+                        } else {
+                            progress = progress % 1;
+                        }
+                    } else {
+                        progress = Math.min(progress, 1);
                     }
-                } else {
-                    progress = progress % 1;
+
+                    const easedProgress = animations.y.easing ? 
+                        animations.y.easing(progress) : 
+                        progress;
+
+                    tile.y = animations.y.startValue + 
+                        (animations.y.endValue - animations.y.startValue) * easedProgress;
                 }
-
-                const easedProgress = animations.offsetSymbolY.easing ? 
-                    animations.offsetSymbolY.easing(progress) : 
-                    progress;
-
-                tile.offsetSymbolY = animations.offsetSymbolY.startValue + 
-                    (animations.offsetSymbolY.endValue - animations.offsetSymbolY.startValue) * easedProgress;
             }
 
-            if (animations.scaleSymbolX) {
-                const elapsed = (timestamp - animations.scaleSymbolX.startTime) / 1000;
-                let progress = (elapsed / animations.scaleSymbolX.duration) + animations.scaleSymbolX.offset;
-
-                if (animations.scaleSymbolX.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) progress = 2 - progress;
-                } else {
-                    progress = progress % 1;
-                }
-
-                const easedProgress = animations.scaleSymbolX.easing ? 
-                    animations.scaleSymbolX.easing(progress) : 
-                    progress;
-
-                tile.scaleSymbolX = animations.scaleSymbolX.startValue + 
-                    (animations.scaleSymbolX.endValue - animations.scaleSymbolX.startValue) * easedProgress;
-            }
-
-            if (animations.scaleSymbolY) {
-                const elapsed = (timestamp - animations.scaleSymbolY.startTime) / 1000;
-                let progress = (elapsed / animations.scaleSymbolY.duration) + animations.scaleSymbolY.offset;
-
-                if (animations.scaleSymbolY.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) progress = 2 - progress;
-                } else {
-                    progress = progress % 1;
-                }
-
-                const easedProgress = animations.scaleSymbolY.easing ? 
-                    animations.scaleSymbolY.easing(progress) : 
-                    progress;
-
-                tile.scaleSymbolY = animations.scaleSymbolY.startValue + 
-                    (animations.scaleSymbolY.endValue - animations.scaleSymbolY.startValue) * easedProgress;
+            // Clean up if no animations remain
+            if (Object.keys(animations).length === 0) {
+                this.valueAnimations.delete(tileId);
             }
         }
     }
