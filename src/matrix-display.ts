@@ -1082,4 +1082,25 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         
         this.log.verbose(`Cleared all animations for tile ${tileId}`);
     }
+
+    public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
+        tileIds.forEach(id => {
+            const tile = this.tileMap.get(id);
+            if (tile) {
+                this.moveTile(id, tile.x + dx, tile.y + dy);
+            } else {
+                this.log.warn(`Attempted to move non-existent tile: ${id}`);
+            }
+        });
+    }
+
+    public removeTiles(tileIds: TileId[]): void {
+        tileIds.forEach(id => {
+            if (this.tileMap.has(id)) {
+                this.removeTile(id);
+            } else {
+                this.log.warn(`Attempted to remove non-existent tile: ${id}`);
+            }
+        });
+    }
 } 

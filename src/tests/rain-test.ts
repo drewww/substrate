@@ -46,7 +46,7 @@ export class RainTest extends BaseTest {
             y,
             this.getRandomDropSymbol(),
             '#8888FFFF',
-            null,
+            '#00000000',
             2
         );
         
