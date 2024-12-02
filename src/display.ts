@@ -26,7 +26,7 @@ export enum LogLevel {
     VERBOSE = 5
 }
 
-export interface MatrixDisplayConfig {
+export interface DisplayConfig {
     elementId?: string;
     cellSize: number;
     worldWidth: number;
@@ -120,7 +120,7 @@ export interface ValueAnimationOptions {
     startTime?: number;
 }
 
-export class MatrixDisplay {
+export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private displayCtx: CanvasRenderingContext2D;
     private worldCanvas: HTMLCanvasElement;      // Full world buffer
@@ -153,7 +153,7 @@ export class MatrixDisplay {
 
     private hasChanges: boolean = true;
 
-    constructor(options: MatrixDisplayConfig) {
+    constructor(options: DisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
         
         this.log.info('Initializing MatrixDisplay with options:', options);

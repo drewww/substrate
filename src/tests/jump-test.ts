@@ -1,8 +1,8 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { Easing, FillDirection, LogLevel } from '../matrix-display';
+import { Easing, FillDirection, LogLevel } from '../display';
 
-export class ZIndexTest extends BaseTest {
+export class JumpTest extends BaseTest {
     private readonly TILE_COUNT = 5;
     private readonly BACKGROUND_SYMBOLS = [',', '.', '-', '=', '_'];
     private tileIds: TileId[] = [];

@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { LogLevel, FillDirection } from '../matrix-display';
+import { LogLevel, FillDirection } from '../display';
 
 export class RandomScanTest extends BaseTest {
     private currentX: number = 0;

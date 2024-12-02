@@ -1,4 +1,4 @@
-import { FillDirection, LogLevel } from '../matrix-display';
+import { FillDirection, LogLevel } from '../display';
 import { TileId } from '../types';
 import { BaseTest } from './base-test';
 

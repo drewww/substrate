@@ -1,7 +1,7 @@
 import { BaseTest } from './base-test';
-import { LogLevel } from '../matrix-display';
+import { LogLevel } from '../display';
 import { TileId } from '../types';
-import { Easing } from '../matrix-display';
+import { Easing } from '../display';
 
 export class PatternAnimationTest extends BaseTest {
     private animatedTiles: TileId[] = [];

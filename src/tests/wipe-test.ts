@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { FillDirection, LogLevel } from '../matrix-display';
+import { FillDirection, LogLevel } from '../display';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;

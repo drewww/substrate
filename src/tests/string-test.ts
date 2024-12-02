@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../types';
-import { LogLevel, StringConfig } from '../matrix-display';
+import { LogLevel, StringConfig } from '../display';
 
 interface ActiveString {
     tileIds: TileId[];

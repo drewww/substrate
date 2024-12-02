@@ -1,4 +1,4 @@
-import { FillDirection } from "./matrix-display";
+import { FillDirection } from "./display";
 
 export type Color = string; // CSS color string in #RRGGBBAA format
 

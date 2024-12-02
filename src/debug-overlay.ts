@@ -1,9 +1,9 @@
-import { MatrixDisplay } from "./matrix-display";
+import { Display } from "./display";
 
 export class DebugOverlay {
     private element: HTMLDivElement;
 
-    constructor(display: MatrixDisplay) {
+    constructor(display: Display) {
         console.log('Initializing DebugOverlay');
         this.element = document.createElement('div');
         this.element.style.cssText = `

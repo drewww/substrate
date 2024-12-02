@@ -1,11 +1,11 @@
-import { LogLevel, MatrixDisplay, MatrixDisplayConfig } from '../matrix-display';
+import { LogLevel, Display, DisplayConfig } from '../display';
 
 export abstract class BaseTest {
-    protected display!: MatrixDisplay;
+    protected display!: Display;
     public isRunning: boolean = false;
-    protected options: MatrixDisplayConfig;
+    protected options: DisplayConfig;
 
-    constructor(options: MatrixDisplayConfig) {
+    constructor(options: DisplayConfig) {
         this.options = {
             ...options,
             elementId: 'canvas',
@@ -18,7 +18,7 @@ export abstract class BaseTest {
     protected abstract run(): void;
     protected abstract cleanup(): void;
 
-    public getDisplay(): MatrixDisplay {
+    public getDisplay(): Display {
         if (!this.display) {
             throw new Error('Display not initialized - test must be started first');
         }
@@ -49,7 +49,7 @@ export abstract class BaseTest {
         container.appendChild(canvas);
         
         this.options.elementId = canvas.id;
-        this.display = new MatrixDisplay(this.options);
+        this.display = new Display(this.options);
         
         this.isRunning = true;
         this.run();

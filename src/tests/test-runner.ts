@@ -1,9 +1,9 @@
-import { MatrixDisplay } from '../matrix-display';
+import { Display } from '../display';
 import { DebugOverlay } from '../debug-overlay';
 import { Color } from '../types';
 
 export class TestRunner {
-    private display: MatrixDisplay;
+    private display: Display;
     public debugOverlay: DebugOverlay;
     private isRunning: boolean = false;
     private currentX: number = 0;
@@ -12,7 +12,7 @@ export class TestRunner {
     constructor() {
         console.log('Initializing TestRunner');
         try {
-            this.display = new MatrixDisplay({
+            this.display = new Display({
                 elementId: 'display',
                 cellSize: 12,
                 worldWidth: 50,

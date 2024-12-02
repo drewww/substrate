@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { LogLevel } from '../matrix-display';
+import { LogLevel } from '../display';
 
 interface Point {
     x: number;
