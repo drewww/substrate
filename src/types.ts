@@ -113,3 +113,9 @@ export enum EasingType {
     BounceOut = 'bounceOut',
     BounceInOut = 'bounceInOut'
 }
+
+export interface TileConfig {
+    bgPercent?: number;
+    fillDirection?: FillDirection;
+    noClip?: boolean;
+}

@@ -1,5 +1,5 @@
 import { TextParser } from './text-parser';
-import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions } from './types';
+import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions, TileConfig } from './types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -287,11 +287,9 @@ export class MatrixDisplay {
         y: number, 
         char: string, 
         color: Color, 
-        backgroundColor: Color, 
-        zIndex: number = 1, 
-        bgPercent: number = 1,
-        fillDirection: FillDirection = FillDirection.BOTTOM,
-        noClip: boolean = false
+        backgroundColor: Color,
+        zIndex: number = 1,
+        config?: TileConfig
     ): TileId {
         this.hasChanges = true;
         const id = this.generateTileId();
@@ -304,13 +302,13 @@ export class MatrixDisplay {
             color,
             backgroundColor,
             zIndex,
-            bgPercent,
-            fillDirection,
+            bgPercent: config?.bgPercent ?? 1,
+            fillDirection: config?.fillDirection ?? FillDirection.BOTTOM,
             offsetSymbolX: 0,
             offsetSymbolY: 0,
             scaleSymbolX: 1.0,
             scaleSymbolY: 1.0,
-            noClip
+            noClip: config?.noClip ?? false
         };
         
         this.tileMap.set(id, tile);
@@ -605,9 +603,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     symbol,
                     fgColor,
                     bgColor,
-                    -1, // z-index
-                    1,  // bgPercent
-                    FillDirection.BOTTOM
+                    -1  // z-index
                 );
             }
         }
@@ -681,9 +677,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     char,
                     segment.color,
                     "#000000FF",  // Default background
-                    zIndex,
-                    1,  // Default bgPercent
-                    FillDirection.BOTTOM  // Default fillDirection
+                    zIndex
                 );
                 tileIds.push(tileId);
             });
@@ -716,12 +710,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
         const tileIds: TileId[] = [];
         
-        // Adjust dimensions and position for padding
         const actualX = x - padding;
         const actualY = y - padding;
-        const actualWidth = width + (padding * 2);
-        const actualHeight = height + (padding * 2) + 1;  // Add 1 for bottom padding
-
+        const actualWidth = width + padding * 2;
+        const actualHeight = height + padding * 2;
+        
         // Create background if requested
         if (fillBox) {
             for (let py = actualY; py < actualY + actualHeight; py++) {
@@ -732,16 +725,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                         ' ',  // Empty space for background
                         '#00000000',  // Transparent foreground
                         backgroundColor,
-                        zIndex - 1,  // Place background behind text
-                        1,  // Full background
-                        FillDirection.BOTTOM
+                        zIndex - 1  // Place background behind text
                     );
                     tileIds.push(tileId);
                 }
             }
         }
 
-        // Create text tiles (original wrapping logic)
+        // Create text tiles
         const segments = this.textParser.parse(text);
         let currentX = x;
         let currentY = y;
@@ -762,9 +753,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                         char,
                         segment.color,
                         textBackgroundColor,
-                        zIndex,
-                        1,  // Full background
-                        FillDirection.BOTTOM
+                        zIndex
                     );
                     wordTileIds.push(tileId);
                 });

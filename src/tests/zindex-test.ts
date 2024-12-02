@@ -71,9 +71,11 @@ export class ZIndexTest extends BaseTest {
                 '#FFFF00FF',
                 '#00000066',
                 2,
-                0,
-                FillDirection.TOP,
-                true
+                {
+                    bgPercent: 0,
+                    fillDirection: FillDirection.TOP,
+                    noClip: true
+                }
             );
             
             this.tileIds.push(tileId);
