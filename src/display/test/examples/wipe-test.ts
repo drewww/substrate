@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../../types';
-import { FillDirection, LogLevel } from '../../display';
+import { FillDirection } from '../../display';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;
@@ -9,7 +9,7 @@ export class WipeTest extends BaseTest {
     private tileIds: TileId[] = [];
     private wipeOverlayIds: TileId[] = [];  // Track wipe overlay tiles separately
 
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 70,
             worldHeight: 25,
@@ -17,7 +17,6 @@ export class WipeTest extends BaseTest {
             viewportHeight: 25,
             cellWidth: 12,
             cellHeight: 24,
-            logLevel
         });
     }
 

@@ -1,4 +1,4 @@
-import { FillDirection, LogLevel } from '../../display';
+import { FillDirection } from '../../display';
 import { TileId } from '../../types';
 import { BaseTest } from './base-test';
 
@@ -15,7 +15,7 @@ export class LaserTest extends BaseTest {
     private readonly FADE_SPEED = 0.02;
     private timeSinceLastLaser: number = 0;
     
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 50,
             worldHeight: 25,
@@ -23,7 +23,6 @@ export class LaserTest extends BaseTest {
             viewportHeight: 25,
             cellWidth: 12,
             cellHeight: 24,
-            logLevel
         });
     }
 

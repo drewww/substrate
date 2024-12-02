@@ -1,20 +1,18 @@
 import { BaseTest } from './base-test';
-import { LogLevel } from '../../display';
 import { TileId } from '../../types';
 import { Easing } from '../../display';
 
 export class AnimationLoadTest extends BaseTest {
     private animatedTiles: TileId[] = [];
     
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 100,
             worldHeight: 50,
             viewportWidth: 60,
             viewportHeight: 30,
             cellWidth: 12,
-            cellHeight: 24,
-            logLevel
+            cellHeight: 24
         });
     }
 

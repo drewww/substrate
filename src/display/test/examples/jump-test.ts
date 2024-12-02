@@ -1,6 +1,7 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../../types';
-import { Easing, FillDirection, LogLevel } from '../../display';
+import { Easing, FillDirection } from '../../display';
+import { logger } from '../../util/logger';
 
 export class JumpTest extends BaseTest {
     private readonly TILE_COUNT = 5;
@@ -10,7 +11,7 @@ export class JumpTest extends BaseTest {
     private readonly SECONDS_SINCE_MOVED = 2;
     private lastMovedTimestamp: number;
     
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 25,
             worldHeight: 25,
@@ -18,7 +19,6 @@ export class JumpTest extends BaseTest {
             viewportHeight: 25,
             cellWidth: 12,
             cellHeight: 24,
-            logLevel
         });
         this.lastMovedTimestamp = 0;
     }
@@ -93,7 +93,7 @@ export class JumpTest extends BaseTest {
 
         if (timeSinceMoved >= this.SECONDS_SINCE_MOVED * 1000) {
             this.lastMovedTimestamp = timestamp;
-            this.display.log.info(`Moving tiles at timestamp ${timestamp}`);
+            logger.info(`Moving tiles at timestamp ${timestamp}`);
 
             this.tileIds.forEach(tileId => {
                 const tile = this.display.getTile(tileId);

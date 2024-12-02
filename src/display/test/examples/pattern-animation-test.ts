@@ -1,12 +1,11 @@
 import { BaseTest } from './base-test';
-import { LogLevel } from '../../display';
 import { TileId } from '../../types';
 import { Easing } from '../../display';
 
 export class PatternAnimationTest extends BaseTest {
     private animatedTiles: TileId[] = [];
     
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 40,
             worldHeight: 20,
@@ -14,7 +13,6 @@ export class PatternAnimationTest extends BaseTest {
             viewportHeight: 20,
             cellWidth: 12,
             cellHeight: 24,
-            logLevel
         });
     }
 

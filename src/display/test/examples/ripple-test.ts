@@ -1,4 +1,4 @@
-import { FillDirection, LogLevel } from '../../display';
+import { FillDirection } from '../../display';
 import { TileId } from '../../types';
 import { BaseTest } from './base-test';
 
@@ -17,7 +17,7 @@ export class RippleTest extends BaseTest {
     private readonly FADE_RATE = 0.02;
     private timeSinceLastRipple: number = 0;
     
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 25,
             worldHeight: 25,
@@ -25,7 +25,6 @@ export class RippleTest extends BaseTest {
             viewportHeight: 25,
             cellWidth: 12,
             cellHeight: 24,
-            logLevel
         });
     }
 

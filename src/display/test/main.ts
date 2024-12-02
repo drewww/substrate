@@ -1,3 +1,4 @@
+import { logger } from '../util/logger';
 import { TestManager } from './test-manager';
 
 const SELECTED_TEST_KEY = 'matrix-display-selected-test';
@@ -58,12 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-
+        
         // Add log level control
         const logLevelSelect = document.getElementById('logLevel') as HTMLSelectElement;
         logLevelSelect.addEventListener('change', (e) => {
             const level = parseInt((e.target as HTMLSelectElement).value);
-            manager.setLogLevel(level);
+            logger.setLogLevel(level);
         });
 
         console.log('Event listeners set up');

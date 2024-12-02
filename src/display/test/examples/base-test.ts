@@ -1,4 +1,5 @@
-import { LogLevel, Display, DisplayConfig } from '../../display';
+import { Display, DisplayConfig } from '../../display';
+import { logger } from '../../util/logger';
 
 export abstract class BaseTest {
     protected display!: Display;
@@ -8,8 +9,7 @@ export abstract class BaseTest {
     constructor(options: DisplayConfig) {
         this.options = {
             ...options,
-            elementId: 'canvas',
-            logLevel: options.logLevel ?? LogLevel.WARN
+            elementId: 'canvas'
         };
     }
 
@@ -26,7 +26,7 @@ export abstract class BaseTest {
     }
 
     public start(): void {
-        console.log(`Starting test: ${this.getName()}`);
+        logger.info(`Starting test: ${this.getName()}`);
         
         const container = document.getElementById('display-container')!;
         
@@ -56,7 +56,7 @@ export abstract class BaseTest {
     }
 
     public stop(): void {
-        console.log(`Stopping test: ${this.getName()}`);
+        logger.info(`Stopping test: ${this.getName()}`);
         this.isRunning = false;
         this.cleanup();
         

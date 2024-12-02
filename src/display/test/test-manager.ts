@@ -8,7 +8,6 @@ import { LaserTest } from './examples/laser-test';
 import { RainTest } from './examples/rain-test';
 import { JumpTest } from './examples/jump-test';
 import { StringTest } from './examples/string-test';
-import { LogLevel } from '../display';
 import { PatternAnimationTest } from './examples/pattern-animation-test';
 import { AnimationLoadTest } from './examples/animation-load-test';
 
@@ -16,7 +15,6 @@ export class TestManager {
     public currentTest: BaseTest | null = null;
     public availableTests: BaseTest[];
     public debugOverlay: DebugOverlay | null = null;
-    private logLevel: LogLevel = LogLevel.WARN;  // Default log level
 
     constructor() {
         console.log('Initializing TestManager');
@@ -25,37 +23,17 @@ export class TestManager {
 
     private createTests(): BaseTest[] {
         return [
-            new RandomScanTest(this.logLevel),
-            new WipeTest(this.logLevel),
-            new LaserTest(this.logLevel),
-            new RippleTest(this.logLevel),
-            new ScrollTest(this.logLevel),
-            new RainTest(this.logLevel),
-            new JumpTest(this.logLevel),
-            new StringTest(this.logLevel),
-            new PatternAnimationTest(this.logLevel),
-            new AnimationLoadTest(this.logLevel)
+            new RandomScanTest(),
+            new WipeTest(),
+            new LaserTest(),
+            new RippleTest(),
+            new ScrollTest(),
+            new RainTest(),
+            new JumpTest(),
+            new StringTest(),
+            new PatternAnimationTest(),
+            new AnimationLoadTest()
         ];
-    }
-
-    public setLogLevel(level: LogLevel): void {
-        this.logLevel = level;
-        
-        // Store current test name if one is running
-        const currentTestName = this.currentTest?.getName();
-        const wasRunning = this.currentTest?.isRunning || false;
-        
-        // Recreate all tests with new log level
-        this.availableTests = this.createTests();
-        
-        // Restore current test if there was one
-        if (currentTestName) {
-            this.selectTest(currentTestName);
-            // Restart if it was running
-            if (wasRunning) {
-                this.currentTest?.start();
-            }
-        }
     }
 
     public selectTest(testName: string) {

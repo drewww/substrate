@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../../types';
-import { LogLevel } from '../../display';
+import { logger } from '../../util/logger';
 
 interface Point {
     x: number;
@@ -14,15 +14,14 @@ export class ScrollTest extends BaseTest {
     private readonly MOVE_SPEED = 1;
     private tileIds: TileId[] = [];
     
-    constructor(logLevel?: LogLevel) {
+    constructor() {
         super({
             worldWidth: 100,
             worldHeight: 50,
             viewportWidth: 70,
             viewportHeight: 25,
             cellWidth: 12,
-            cellHeight: 24,
-            logLevel
+            cellHeight: 24
         });
     }
 
@@ -39,11 +38,9 @@ export class ScrollTest extends BaseTest {
     }
 
     private getPositionBasedColor(x: number, y: number): Color {
-        // Map x to hue (0-360)
         const hue = (x / this.WORLD_SIZE) * 360;
-        // Map y to saturation (40-100%)
         const saturation = Math.floor(40 + (y / this.WORLD_SIZE) * 60);
-        console.log(`Position (${x},${y}) -> HSL(${hue}, ${saturation}%, 50%)`);
+        logger.debug(`Position (${x},${y}) -> HSL(${hue}, ${saturation}%, 50%)`);
         return this.hslToHex(hue, saturation, 50);
     }
 
@@ -102,17 +99,16 @@ export class ScrollTest extends BaseTest {
 
         // Log movement
         if (oldX !== this.currentPos.x || oldY !== this.currentPos.y) {
-            console.log(`Moving viewport from (${oldX},${oldY}) to (${this.currentPos.x},${this.currentPos.y})`);
-            console.log(`Target is (${this.targetPos.x},${this.targetPos.y})`);
+            logger.debug(`Moving viewport from (${oldX},${oldY}) to (${this.currentPos.x},${this.currentPos.y})`);
+            logger.debug(`Target is (${this.targetPos.x},${this.targetPos.y})`);
             
-            // Update viewport position
             this.display.setViewport(this.currentPos.x, this.currentPos.y);
         }
 
         // If we've reached the target, get a new one
         if (Math.abs(this.currentPos.x - this.targetPos.x) < this.MOVE_SPEED && 
             Math.abs(this.currentPos.y - this.targetPos.y) < this.MOVE_SPEED) {
-            console.log('Reached target, getting new target');
+            logger.info('Reached target, getting new target');
             this.targetPos = this.getNewTarget();
         }
 
@@ -120,10 +116,10 @@ export class ScrollTest extends BaseTest {
     }
 
     protected run(): void {
-        console.log('Starting scroll test');
+        logger.info('Starting scroll test');
         this.currentPos = { x: 0, y: 0 };
         this.targetPos = this.getNewTarget();
-        console.log(`Initial target: (${this.targetPos.x},${this.targetPos.y})`);
+        logger.info(`Initial target: (${this.targetPos.x},${this.targetPos.y})`);
         this.fillWorld();
         this.moveTowardsTarget();
     }
