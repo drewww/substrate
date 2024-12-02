@@ -8,7 +8,7 @@ export enum LogLevel {
 
 export class Logger {
     private static instance: Logger;
-    private logLevel: LogLevel = import.meta.env?.DEV ? LogLevel.DEBUG : LogLevel.WARN;
+    private logLevel: LogLevel = LogLevel.WARN;
     
     private constructor() {}
     

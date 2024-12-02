@@ -1,6 +1,7 @@
-import { TextParser } from './text-parser';
+import { TextParser } from './util/text-parser';
 import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions, TileConfig } from './types';
 import { interpolateColor } from './util/color';
+import { logger } from './util/logger';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -18,15 +19,6 @@ interface PerformanceMetrics {
     averageWorldUpdateTime: number;
 }
 
-export enum LogLevel {
-    NONE = 0,
-    ERROR = 1,
-    WARN = 2,
-    INFO = 3,
-    DEBUG = 4,
-    VERBOSE = 5
-}
-
 export interface DisplayConfig {
     elementId?: string;
     cellWidth: number;
@@ -37,7 +29,6 @@ export interface DisplayConfig {
     viewportHeight: number;
     defaultFont?: string;
     customFont?: string;
-    logLevel?: LogLevel;
 }
 
 export interface StringConfig {
@@ -135,8 +126,6 @@ export class Display {
     private readonly scale: number;
     private tileMap: Map<TileId, Tile> = new Map();
     private tileIdCounter: number = 0;
-    private logLevel: LogLevel;
-    private textParser: TextParser;
 
     private boundRenderFrame: (timestamp: number) => void;
     private isRunning: boolean = false;
@@ -157,49 +146,38 @@ export class Display {
     private cellHeightCSS: number;
     private cellWidthScaled: number;
     private cellHeightScaled: number;
+    
+    private textParser: TextParser;
 
     constructor(options: DisplayConfig) {
-        this.logLevel = options.logLevel ?? LogLevel.WARN;
+        logger.info('Initializing Display with options:', options);
         
-        this.log.info('Initializing Display with options:', options);
-        
-        // Calculate DPI scale first
         this.scale = window.devicePixelRatio || 1;
         
-        // Initialize dimensions
         this.worldWidth = options.worldWidth;
         this.worldHeight = options.worldHeight;
-
-        // this is in pixels, with no scale applied. 
-        // we will update this with scale later on.
-        // this is confusing because 
         this.cellWidthCSS = options.cellWidth;
         this.cellHeightCSS = options.cellHeight;
         
-        // Main display canvas
         if (!options.elementId) {
-            this.log.error('elementId is required');
+            logger.error('elementId is required');
             throw new Error('elementId is required in DisplayConfig');
         }
         
         this.displayCanvas = document.getElementById(options.elementId) as HTMLCanvasElement;
         if (!this.displayCanvas) {
-            this.log.error(`Canvas element not found: ${options.elementId}`);
+            logger.error(`Canvas element not found: ${options.elementId}`);
             throw new Error(`Canvas element not found: ${options.elementId}`);
         }
 
-        // Get display context first
         this.displayCtx = this.displayCanvas.getContext('2d')!;
         
-        // Create buffer canvases and contexts
         this.worldCanvas = document.createElement('canvas');
         this.worldCtx = this.worldCanvas.getContext('2d')!;
 
-        // Calculate pixel dimensions
         const displayWidth = options.viewportWidth * this.cellWidthCSS;
         const displayHeight = options.viewportHeight * this.cellHeightCSS;
 
-        // Set dimensions for display and world canvases only
         [this.displayCanvas, this.worldCanvas].forEach(canvas => {
             canvas.style.width = `${displayWidth}px`;
             canvas.style.height = `${displayHeight}px`;
@@ -207,36 +185,27 @@ export class Display {
             canvas.height = displayHeight * this.scale;
         });
 
-        // Scale contexts for DPI
         [this.displayCtx, this.worldCtx].forEach(ctx => {
             ctx.scale(this.scale, this.scale);
         });
 
-        // Set dimensions
-        // This is the moment scale comes in. We will change this to pull directly from options later.
         this.cellWidthScaled = options.cellWidth * this.scale;
         this.cellHeightScaled = options.cellHeight * this.scale;
         
-        // Display canvas is viewport size
         this.displayCanvas.width = options.viewportWidth * this.cellWidthScaled;
         this.displayCanvas.height = options.viewportHeight * this.cellHeightScaled;
         
-        // World buffer is full world size
         this.worldCanvas.width = options.worldWidth * this.cellWidthScaled;
         this.worldCanvas.height = options.worldHeight * this.cellHeightScaled;
         
-        // Set CSS size (logical pixels)
         this.displayCanvas.style.width = `${options.viewportWidth * this.cellWidthCSS}px`;
         this.displayCanvas.style.height = `${options.viewportHeight * this.cellHeightCSS}px`;
 
-        // Disable smoothing on all contexts
         [this.displayCtx, this.worldCtx].forEach(ctx => {
             ctx.imageSmoothingEnabled = false;
-            // @ts-ignore (textRendering might not be in types)
             ctx.textRendering = 'geometricPrecision';
         });
 
-        // Initialize viewport
         this.viewport = {
             x: 0,
             y: 0,
@@ -244,10 +213,8 @@ export class Display {
             height: options.viewportHeight
         };
 
-        // Set up font
         this.setupFont(options.defaultFont, options.customFont);
 
-        // Initialize metrics with safe default values
         this.metrics = {
             lastRenderTime: 0,
             averageRenderTime: 0,
@@ -264,7 +231,6 @@ export class Display {
             averageWorldUpdateTime: 0
         };
 
-        // Initialize parser with standard color map
         this.textParser = new TextParser({
             'r': '#FF0000FF',  // red
             'g': '#00FF00FF',  // green
@@ -274,7 +240,7 @@ export class Display {
             'w': '#FFFFFFFF',  // white
         });
 
-        this.log.info('Display initialization complete');
+        logger.info('Display initialization complete');
 
         this.boundRenderFrame = this.renderFrame.bind(this);
         this.startRenderLoop();
@@ -289,7 +255,6 @@ export class Display {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fontKerning = 'none';
-            // @ts-ignore (textRendering might not be in types)
             ctx.textRendering = 'geometricPrecision';
         });
     }
@@ -305,7 +270,7 @@ export class Display {
     ): TileId {
         this.hasChanges = true;
         const id = this.generateTileId();
-        this.log.verbose(`Creating tile ${id} at (${x},${y})`);
+        logger.debug(`Creating tile ${id} at (${x},${y})`);
         const tile: Tile = {
             id,
             x,
@@ -332,16 +297,16 @@ export class Display {
         if (tile && (tile.x !== newX || tile.y !== newY)) {
             this.hasChanges = true;
             if (!tile) {
-                this.log.warn(`Attempted to move non-existent tile: ${tileId}`);
+                logger.warn(`Attempted to move non-existent tile: ${tileId}`);
                 return;
             }
 
             if (newX < 0 || newX >= this.worldWidth || newY < 0 || newY >= this.worldHeight) {
-                this.log.warn(`Attempted to move tile outside bounds: (${newX},${newY})`);
+                logger.warn(`Attempted to move tile outside bounds: (${newX},${newY})`);
                 return;
             }
 
-            this.log.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
+            logger.debug(`Moving tile ${tileId} to (${newX},${newY})`);
             tile.x = newX;
             tile.y = newY;
         }
@@ -351,25 +316,22 @@ export class Display {
         if (this.tileMap.has(tileId)) {
             this.hasChanges = true;
             if (!this.tileMap.has(tileId)) {
-                this.log.warn(`Attempted to remove non-existent tile: ${tileId}`);
+                logger.warn(`Attempted to remove non-existent tile: ${tileId}`);
                 return;
             }
             
-            this.log.verbose(`Removing tile ${tileId}`);
+            logger.debug(`Removing tile ${tileId}`);
             this.animations.delete(tileId);
             this.tileMap.delete(tileId);
         }
     }
 
     private updateWorldCanvas(): void {
-        // Clear the world canvas
         this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
         
-        // Sort all tiles by z-index once per frame
         const sortedTiles = Array.from(this.tileMap.values())
             .sort((a, b) => a.zIndex - b.zIndex);
 
-        // Render each tile
         sortedTiles.forEach(tile => {
             this.renderTile(tile);
         });
@@ -382,14 +344,12 @@ export class Display {
         this.worldCtx.save();
         this.worldCtx.translate(pixelX, pixelY);
         
-        // Only create clipping path if noClip is false or undefined
         if (!tile.noClip) {
             this.worldCtx.beginPath();
             this.worldCtx.rect(0, 0, this.cellWidthScaled, this.cellHeightScaled);
             this.worldCtx.clip();
         }
         
-        // Draw background if it has one
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
             const bgPercent = tile.bgPercent ?? 1;
             if (bgPercent > 0) {
@@ -434,24 +394,18 @@ export class Display {
             }
         }
         
-        // Draw character
         if (tile.char && tile.color) {
             const offsetX = (tile.offsetSymbolX || 0) * this.cellWidthScaled;
             const offsetY = (tile.offsetSymbolY || 0) * this.cellHeightScaled;
             
             this.worldCtx.save();
             
-            // Move to cell location.
-
             this.worldCtx.translate(this.cellWidthScaled/2, this.cellHeightScaled * 0.55);
             
-            // Apply scaling
             this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
             
-            // Apply offset after scaling
             this.worldCtx.translate(offsetX, offsetY);
             
-            // Draw character at origin (0,0) since we've translated
             this.worldCtx.fillStyle = tile.color;
             this.worldCtx.fillText(tile.char, 0, 0);
             
@@ -464,7 +418,6 @@ export class Display {
     private renderFrame(timestamp: number): void {
         const animationStart = performance.now();
         
-        // Check if we have any active animations
         const hasActiveAnimations = 
             this.animations.size > 0 || 
             this.colorAnimations.size > 0 || 
@@ -480,7 +433,6 @@ export class Display {
         const animationEnd = performance.now();
         const renderStart = animationEnd;
 
-        // Only update canvases if we have changes
         if (this.hasChanges) {
             this.updateWorldCanvas();
             this.hasChanges = false;
@@ -490,16 +442,13 @@ export class Display {
 
         const renderEnd = performance.now();
 
-        // Update animation counts
         this.metrics.symbolAnimationCount = this.animations.size;
         this.metrics.colorAnimationCount = this.colorAnimations.size;
         this.metrics.valueAnimationCount = this.valueAnimations.size;
         
-        // Update timing metrics
         this.metrics.lastAnimationUpdateTime = animationEnd - animationStart;
         this.metrics.lastWorldUpdateTime = renderEnd - renderStart;
         
-        // Update averages
         if (this.metrics.totalRenderCalls === 0) {
             this.metrics.averageAnimationTime = this.metrics.lastAnimationUpdateTime;
             this.metrics.averageWorldUpdateTime = this.metrics.lastWorldUpdateTime;
@@ -546,7 +495,6 @@ export class Display {
         const renderTime = performance.now() - renderStart;
         this.metrics.lastRenderTime = renderTime;
         
-        // Update average render time
         if (this.metrics.totalRenderCalls === 0) {
             this.metrics.averageRenderTime = renderTime;
         } else {
@@ -559,7 +507,6 @@ export class Display {
         this.metrics.totalRenderCalls++;
         this.metrics.frameCount++;
 
-        // Update FPS every second
         const now = performance.now();
         const timeSinceLastUpdate = now - this.metrics.lastFpsUpdate;
         if (timeSinceLastUpdate >= 1000) {
@@ -586,27 +533,23 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public clear() {
         this.hasChanges = true;
-        this.log.info('Clearing display');
+        logger.info('Clearing display');
         
-        // Clear all tiles
         this.tileMap.clear();
         this.animations.clear();
         this.colorAnimations.clear();
         this.valueAnimations.clear();
 
-        // Clear all canvases
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
         this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
     }
 
     public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {
-        // Remove existing background tiles
         const existingBackgroundTiles = Array.from(this.tileMap.values())
             .filter(tile => tile.zIndex === -1)
             .map(tile => tile.id);
         existingBackgroundTiles.forEach(id => this.removeTile(id));
 
-        // Create new background tiles
         for (let y = 0; y < this.worldHeight; y++) {
             for (let x = 0; x < this.worldWidth; x++) {
                 this.createTile(
@@ -615,7 +558,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     symbol,
                     fgColor,
                     bgColor,
-                    -1  // z-index
+                    -1
                 );
             }
         }
@@ -638,7 +581,6 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private generateTileId(): TileId {
-        // Format: t_[timestamp]_[counter]
         const timestamp = Date.now();
         const id = `t_${timestamp}_${this.tileIdCounter++}`;
         return id;
@@ -647,29 +589,6 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     public getTile(tileId: TileId): Tile | undefined {
         return this.tileMap.get(tileId);
     }
-
-    public setLogLevel(level: LogLevel): void {
-        this.log.info(`Changing log level from ${LogLevel[this.logLevel]} to ${LogLevel[level]}`);
-        this.logLevel = level;
-    }
-
-    public log = {
-        error: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.ERROR) console.error('[Display]', ...args);
-        },
-        warn: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.WARN) console.warn('[Display]', ...args);
-        },
-        info: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.INFO) console.log('[Display]', ...args);
-        },
-        debug: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.DEBUG) console.log('[Display][Debug]', ...args);
-        },
-        verbose: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.VERBOSE) console.log('[Display][Verbose]', ...args);
-        }
-    };
 
     public createString(
         x: number,
@@ -800,7 +719,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public emptyCell(x: number, y: number): void {
         if (x < 0 || x >= this.worldWidth || y < 0 || y >= this.worldHeight) {
-            this.log.warn(`Attempted to empty cell outside world bounds: (${x},${y})`);
+            logger.warn(`Attempted to empty cell outside world bounds: (${x},${y})`);
             return;
         }
 
@@ -821,7 +740,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         startTime?: number
     ): void {
         if (!this.tileMap.has(tileId)) {
-            this.log.warn(`Attempted to add animation to non-existent tile: ${tileId}`);
+            logger.warn(`Attempted to add animation to non-existent tile: ${tileId}`);
             return;
         }
         
@@ -1042,25 +961,19 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public setViewport(x: number, y: number) {
         if (this.viewport.x !== x || this.viewport.y !== y) {
-            this.log.debug(`Setting viewport to (${x},${y})`);
+            logger.debug(`Setting viewport to (${x},${y})`);
             
-            // Update viewport position
             this.viewport.x = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
             this.viewport.y = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
         }
     }
 
     public clearAnimations(tileId: TileId): void {
-        // Clear symbol animations
         this.animations.delete(tileId);
-        
-        // Clear color animations
         this.colorAnimations.delete(tileId);
-        
-        // Clear value animations
         this.valueAnimations.delete(tileId);
         
-        this.log.verbose(`Cleared all animations for tile ${tileId}`);
+        logger.debug(`Cleared all animations for tile ${tileId}`);
     }
 
     public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
@@ -1069,7 +982,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             if (tile) {
                 this.moveTile(id, tile.x + dx, tile.y + dy);
             } else {
-                this.log.warn(`Attempted to move non-existent tile: ${id}`);
+                logger.warn(`Attempted to move non-existent tile: ${id}`);
             }
         });
     }
@@ -1079,7 +992,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             if (this.tileMap.has(id)) {
                 this.removeTile(id);
             } else {
-                this.log.warn(`Attempted to remove non-existent tile: ${id}`);
+                logger.warn(`Attempted to remove non-existent tile: ${id}`);
             }
         });
     }
