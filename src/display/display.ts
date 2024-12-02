@@ -270,7 +270,7 @@ export class Display {
     ): TileId {
         this.hasChanges = true;
         const id = this.generateTileId();
-        logger.debug(`Creating tile ${id} at (${x},${y})`);
+        logger.verbose(`Creating tile ${id} at (${x},${y})`);
         const tile: Tile = {
             id,
             x,
@@ -306,7 +306,7 @@ export class Display {
                 return;
             }
 
-            logger.debug(`Moving tile ${tileId} to (${newX},${newY})`);
+            logger.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
             tile.x = newX;
             tile.y = newY;
         }
@@ -320,7 +320,7 @@ export class Display {
                 return;
             }
             
-            logger.debug(`Removing tile ${tileId}`);
+            logger.verbose(`Removing tile ${tileId}`);
             this.animations.delete(tileId);
             this.tileMap.delete(tileId);
         }
@@ -973,7 +973,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.colorAnimations.delete(tileId);
         this.valueAnimations.delete(tileId);
         
-        logger.debug(`Cleared all animations for tile ${tileId}`);
+        logger.verbose(`Cleared all animations for tile ${tileId}`);
     }
 
     public moveTiles(tileIds: TileId[], dx: number, dy: number): void {

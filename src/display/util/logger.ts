@@ -1,14 +1,15 @@
 export enum LogLevel {
-    DEBUG = 0,
-    INFO = 1,
-    WARN = 2,
-    ERROR = 3,
-    NONE = 4
+    VERBOSE = 0,
+    DEBUG = 1,
+    INFO = 2,
+    WARN = 3,
+    ERROR = 4,
+    NONE = 5
 }
 
 export class Logger {
     private static instance: Logger;
-    private logLevel: LogLevel = LogLevel.WARN;
+    private logLevel: LogLevel = LogLevel.INFO;
     
     private constructor() {}
     
@@ -20,25 +21,31 @@ export class Logger {
     }
 
     setLogLevel(level: LogLevel): void {
-        console.log(`Setting log level to ${level}`);
+        console.error(`Setting log level to ${level}`);
         this.logLevel = level;
+    }
+
+    verbose(message: string, ...args: unknown[]): void {
+        if (this.logLevel <= LogLevel.VERBOSE) {
+            console.log(`%c[VERBOSE] ${message}`, 'color: #000', ...args);
+        }
     }
 
     debug(message: string, ...args: unknown[]): void {
         if (this.logLevel <= LogLevel.DEBUG) {
-            console.debug(`%c[DEBUG] ${message}`, 'color: #666', ...args);
+            console.log(`%c[DEBUG] ${message}`, 'color: #666', ...args);
         }
     }
 
     info(message: string, ...args: unknown[]): void {
         if (this.logLevel <= LogLevel.INFO) {
-            console.info(`%c[INFO] ${message}`, 'color: #0066FF', ...args);
+            console.log(`%c[INFO] ${message}`, 'color: #0066FF', ...args);
         }
     }
 
     warn(message: string, ...args: unknown[]): void {
         if (this.logLevel <= LogLevel.WARN) {
-            console.warn(`%c[WARN] ${message}`, 'color: #FF9900', ...args);
+            console.log(`%c[WARN] ${message}`, 'color: #FF9900', ...args);
         }
     }
 

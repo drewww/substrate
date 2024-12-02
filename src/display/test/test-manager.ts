@@ -10,6 +10,7 @@ import { JumpTest } from './examples/jump-test';
 import { StringTest } from './examples/string-test';
 import { PatternAnimationTest } from './examples/pattern-animation-test';
 import { AnimationLoadTest } from './examples/animation-load-test';
+import { logger } from '../util/logger';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;
@@ -17,7 +18,7 @@ export class TestManager {
     public debugOverlay: DebugOverlay | null = null;
 
     constructor() {
-        console.log('Initializing TestManager');
+        logger.info('Initializing TestManager');
         this.availableTests = this.createTests();
     }
 
@@ -37,7 +38,7 @@ export class TestManager {
     }
 
     public selectTest(testName: string) {
-        console.log(`Selecting test: ${testName}`);
+        logger.info(`Selecting test: ${testName}`);
         
         // Stop current test if running
         if (this.currentTest?.isRunning) {
@@ -64,7 +65,7 @@ export class TestManager {
 
     public toggleCurrentTest() {
         if (!this.currentTest) {
-            console.warn('No test selected');
+            logger.warn('No test selected');
             return;
         }
 

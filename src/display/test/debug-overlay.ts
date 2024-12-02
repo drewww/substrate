@@ -1,10 +1,10 @@
 import { Display } from "../display";
-
+import { logger } from "../util/logger";
 export class DebugOverlay {
     private element: HTMLDivElement;
 
     constructor(display: Display) {
-        console.log('Initializing DebugOverlay');
+        logger.info('Initializing DebugOverlay');
         this.element = document.createElement('div');
         this.element.style.cssText = `
             position: fixed;
@@ -25,11 +25,11 @@ export class DebugOverlay {
         setInterval(() => {
             this.element.textContent = display.getDebugString();
         }, 100);
-        console.log('DebugOverlay initialization complete');
+        logger.info('DebugOverlay initialization complete');
     }
 
     public toggle() {
-        console.log('Toggling debug overlay');
+        logger.info('Toggling debug overlay');
         this.element.style.display = 
             this.element.style.display === 'none' ? 'block' : 'none';
     }

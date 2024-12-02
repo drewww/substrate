@@ -3,14 +3,14 @@ import { TestManager } from './test-manager';
 
 const SELECTED_TEST_KEY = 'matrix-display-selected-test';
 
-console.log('main.ts starting');
+logger.info('Display Test Environment Loading...');
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded');
+    logger.verbose('DOM Content Loaded');
     
     try {
         const manager = new TestManager();
-        console.log('TestManager created');
+        logger.verbose('TestManager created');
 
         // Set up test selector
         const testSelect = document.getElementById('testSelect') as HTMLSelectElement;
@@ -67,8 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
             logger.setLogLevel(level);
         });
 
-        console.log('Event listeners set up');
+        logger.verbose('Event listeners set up');
     } catch (error) {
-        console.error('Error in main initialization:', error);
+        logger.error('Error in main initialization:', error);
     }
 }); 
