@@ -20,6 +20,7 @@ export class Logger {
     }
 
     setLogLevel(level: LogLevel): void {
+        console.log(`Setting log level to ${level}`);
         this.logLevel = level;
     }
 
