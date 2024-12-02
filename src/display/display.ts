@@ -154,6 +154,10 @@ export class Display {
     private hasChanges: boolean = true;
     private cellWidth: number;
     private cellHeight: number;
+    cellWidthCSS: number;
+    cellHeightCSS: number;
+    cellWidthScaled: number;
+    cellHeightScaled: number;
 
     constructor(options: DisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -167,8 +171,12 @@ export class Display {
         this.worldWidth = options.worldWidth;
         this.worldHeight = options.worldHeight;
         this.cellSize = options.cellSize;
-        this.cellWidth = options.cellSize/2;
-        this.cellHeight = options.cellSize;
+
+        // this is in pixels, with no scale applied. 
+        // we will update this with scale later on.
+        // this is confusing because 
+        this.cellWidthCSS = options.cellSize/2;
+        this.cellHeightCSS = options.cellSize;
         
         // Main display canvas
         if (!options.elementId) {
@@ -207,7 +215,10 @@ export class Display {
         });
 
         // Set dimensions
+        // This is the moment scale comes in. We will change this to pull directly from options later.
         this.cellSize = options.cellSize * this.scale;
+        this.cellWidthScaled = this.cellSize/2;
+        this.cellHeightScaled = this.cellSize;
         
         // Display canvas is viewport size
         this.displayCanvas.width = options.viewportWidth * this.cellSize;
