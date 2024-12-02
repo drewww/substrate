@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../types';
-import { LogLevel, FillDirection } from '../display';
+import { Color, TileId } from '../../types';
+import { LogLevel, FillDirection } from '../../display';
 
 export class RandomScanTest extends BaseTest {
     private currentX: number = 0;
@@ -65,8 +65,10 @@ export class RandomScanTest extends BaseTest {
             this.getRandomColor(),
             this.getRandomColor(),
             1,
-            Math.random(),
-            this.getRandomDirection()
+            {
+                bgPercent: Math.random()*0.5 + 0.5,
+             fillDirection: this.getRandomDirection()
+            }
         );
         
         this.tileIds.push(tileId);

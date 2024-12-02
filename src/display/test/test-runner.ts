@@ -1,5 +1,5 @@
 import { Display } from '../display';
-import { DebugOverlay } from '../debug-overlay';
+import { DebugOverlay } from './debug-overlay';
 import { Color } from '../types';
 
 export class TestRunner {

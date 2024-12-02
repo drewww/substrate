@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { TileId } from '../types';
-import { LogLevel } from '../display';
+import { TileId } from '../display/types';
+import { LogLevel } from '../display/display';
 
 interface Raindrop {
     tileId: TileId;

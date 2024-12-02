@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../types';
-import { FillDirection, LogLevel } from '../display';
+import { Color, TileId } from '../../types';
+import { FillDirection, LogLevel } from '../../display';
 
 export class WipeTest extends BaseTest {
     private currentX: number = 0;
@@ -73,8 +73,7 @@ export class WipeTest extends BaseTest {
                 '#00000000',  // Transparent foreground
                 '#000000AA',  // Semi-transparent black background
                 100,  // High z-index to stay on top
-                1,    // Full background
-                FillDirection.BOTTOM
+                { fillDirection: FillDirection.BOTTOM }
             );
             this.wipeOverlayIds.push(tileId);
         }

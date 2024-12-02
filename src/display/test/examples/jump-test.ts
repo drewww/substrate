@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../types';
-import { Easing, FillDirection, LogLevel } from '../display';
+import { Color, TileId } from '../../types';
+import { Easing, FillDirection, LogLevel } from '../../display';
 
 export class JumpTest extends BaseTest {
     private readonly TILE_COUNT = 5;

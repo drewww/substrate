@@ -1,7 +1,7 @@
 import { BaseTest } from './base-test';
-import { LogLevel } from '../display';
-import { TileId } from '../types';
-import { Easing } from '../display';
+import { LogLevel } from '../../display';
+import { TileId } from '../../types';
+import { Easing } from '../../display';
 
 export class AnimationLoadTest extends BaseTest {
     private animatedTiles: TileId[] = [];
@@ -45,8 +45,7 @@ export class AnimationLoadTest extends BaseTest {
                     symbols[0], 
                     colors[0], 
                     '#000000FF', 
-                    1, 
-                    0
+                    1
                 );
 
                 // 1. Symbol animation

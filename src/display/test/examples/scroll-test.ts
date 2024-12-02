@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../types';
-import { LogLevel } from '../display';
+import { Color, TileId } from '../display/types';
+import { LogLevel } from '../display/display';
 
 interface Point {
     x: number;

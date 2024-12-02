@@ -1,16 +1,16 @@
-import { DebugOverlay } from '../debug-overlay';
-import { BaseTest } from './base-test';
-import { RandomScanTest } from './random-scan';
-import { WipeTest } from './wipe-test';
-import { ScrollTest } from './scroll-test';
-import { RippleTest } from './ripple-test';
-import { LaserTest } from './laser-test';
-import { RainTest } from './rain-test';
-import { JumpTest } from './jump-test';
-import { StringTest } from './string-test';
+import { DebugOverlay } from './debug-overlay';
+import { BaseTest } from './examples/base-test';
+import { RandomScanTest } from './examples/random-scan';
+import { WipeTest } from './examples/wipe-test';
+import { ScrollTest } from './examples/scroll-test';
+import { RippleTest } from './examples/ripple-test';
+import { LaserTest } from './examples/laser-test';
+import { RainTest } from './examples/rain-test';
+import { JumpTest } from './examples/jump-test';
+import { StringTest } from './examples/string-test';
 import { LogLevel } from '../display';
-import { PatternAnimationTest } from './pattern-animation-test';
-import { AnimationLoadTest } from './animation-load-test';
+import { PatternAnimationTest } from './examples/pattern-animation-test';
+import { AnimationLoadTest } from './examples/animation-load-test';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;

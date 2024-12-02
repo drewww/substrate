@@ -1,7 +1,7 @@
 import { BaseTest } from './base-test';
-import { LogLevel } from '../display';
-import { TileId } from '../types';
-import { Easing } from '../display';
+import { LogLevel } from '../../display';
+import { TileId } from '../../types';
+import { Easing } from '../../display';
 
 export class PatternAnimationTest extends BaseTest {
     private animatedTiles: TileId[] = [];
@@ -110,7 +110,7 @@ export class PatternAnimationTest extends BaseTest {
         }
 
         // Background fill animation
-        const fillId = this.display.createTile(25, 5, 'X', '#FFFFFFFF', '#FF0000FF', 1, 0);
+        const fillId = this.display.createTile(25, 5, 'X', '#FFFFFFFF', '#FF0000FF', 1);
         this.display.addValueAnimation(fillId, {
             bgPercent: {
                 start: 0,
@@ -125,7 +125,7 @@ export class PatternAnimationTest extends BaseTest {
         // Background fill wave animation (x = 25, y = 10)
         const sharedFillStartTime = performance.now();
         for (let i = 0; i < 10; i++) {
-            const waveFillId = this.display.createTile(25 + i, 10, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
+            const waveFillId = this.display.createTile(25 + i, 10, 'S', '#FFFFFFFF', '#0088FFFF', 1);
             this.display.addValueAnimation(waveFillId, {
                 bgPercent: {
                     start: 0,
@@ -160,7 +160,7 @@ export class PatternAnimationTest extends BaseTest {
         };
 
         for (let i = 0; i < barHeight; i++) {
-            const tileId = this.display.createTile(35, 6 - i, ' ', '#FFFFFFFF', '#00FF00FF', 1, 0);
+            const tileId = this.display.createTile(35, 6 - i, ' ', '#FFFFFFFF', '#00FF00FF', 1);
             this.display.addValueAnimation(tileId, {
                 bgPercent: {
                     start: 0,
@@ -258,7 +258,7 @@ export class PatternAnimationTest extends BaseTest {
         // Sine wave easing background fill (x = 25, y = 11)
         const sineWaveStartTime = performance.now();
         for (let i = 0; i < 10; i++) {
-            const sineFillId = this.display.createTile(25 + i, 11, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
+            const sineFillId = this.display.createTile(25 + i, 11, 'S', '#FFFFFFFF', '#0088FFFF', 1);
             this.display.addValueAnimation(sineFillId, {
                 bgPercent: {
                     start: 0,
@@ -276,7 +276,7 @@ export class PatternAnimationTest extends BaseTest {
         // Exponential ease background fill (x = 25, y = 12)
         const expoWaveStartTime = performance.now();
         for (let i = 0; i < 10; i++) {
-            const expoFillId = this.display.createTile(25 + i, 12, 'S', '#FFFFFFFF', '#0088FFFF', 1, 0);
+            const expoFillId = this.display.createTile(25 + i, 12, 'S', '#FFFFFFFF', '#0088FFFF', 1);
             this.display.addValueAnimation(expoFillId, {
                 bgPercent: {
                     start: 0,

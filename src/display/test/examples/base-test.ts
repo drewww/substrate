@@ -1,4 +1,4 @@
-import { LogLevel, Display, DisplayConfig } from '../display';
+import { LogLevel, Display, DisplayConfig } from '../../display';
 
 export abstract class BaseTest {
     protected display!: Display;

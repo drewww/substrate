@@ -1,71 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SUBSTRATE</title>
     <meta charset="UTF-8">
+    <title>Substrate Test Environments</title>
     <style>
         body {
-            background: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background: #1a1a1a;
+            color: #e0e0e0;
         }
-        #display-container {
-            position: relative;
-            width: 1440px;
-            height: 600px;
-            margin: auto;
+        .test-env {
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #222;
         }
-        #display-container canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: block;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
+        h2 { 
+            margin-top: 0;
+            color: #fff;
         }
-        .controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            color: white;
-            z-index: 1000;
+        a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #444;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
-        select {
-            padding: 5px;
-            border-radius: 3px;
-            margin-right: 5px;
-        }
-        button {
-            padding: 5px 10px;
-            border-radius: 3px;
-            margin-left: 5px;
+        a:hover {
+            background: #555;
         }
     </style>
 </head>
 <body>
-    <div id="display-container">
-        <canvas id="display"></canvas>
+    <h1>Substrate Test Environments</h1>
+    
+    <div class="test-env">
+        <h2>Display System</h2>
+        <p>Test environment for the matrix display system</p>
+        <a href="/src/display/test/">Launch Display Tests</a>
     </div>
-    <div class="controls">
-        <select id="testSelect"></select>
-        <button id="toggleTest">Start/Stop Test</button>
-        <button id="toggleDebug">FPS</button>
-        <select id="logLevel">
-            <option value="0">None</option>
-            <option value="1">Error</option>
-            <option value="2" selected>Warn</option>
-            <option value="3">Info</option>
-            <option value="4">Debug</option>
-            <option value="5">Verbose</option>
-        </select>
-    </div>
-    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

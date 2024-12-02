@@ -1,5 +1,5 @@
-import { FillDirection, LogLevel } from '../display';
-import { TileId } from '../types';
+import { FillDirection, LogLevel } from '../../display';
+import { TileId } from '../../types';
 import { BaseTest } from './base-test';
 
 interface LaserBeam {
@@ -126,8 +126,9 @@ export class LaserTest extends BaseTest {
                         '#00000000',
                         `#FF0000${alpha}`,
                         100,
-                        1,
-                        FillDirection.BOTTOM
+                        { bgPercent: 0, 
+                         fillDirection: FillDirection.BOTTOM
+                        }
                     );
                     this.laserTileIds.add(tileId);
                 }
@@ -147,8 +148,9 @@ export class LaserTest extends BaseTest {
                         '#00000000',
                         `#FF0000${alpha}`,
                         100,
-                        1,
-                        FillDirection.BOTTOM
+                        { bgPercent: 1,
+                         fillDirection: FillDirection.BOTTOM
+                        }
                     );
                     this.laserTileIds.add(tileId);
                 }

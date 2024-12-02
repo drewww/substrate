@@ -1,5 +1,5 @@
-import { FillDirection, LogLevel } from '../display';
-import { TileId } from '../types';
+import { FillDirection, LogLevel } from '../../display';
+import { TileId } from '../../types';
 import { BaseTest } from './base-test';
 
 interface Ripple {
@@ -90,8 +90,9 @@ export class RippleTest extends BaseTest {
                         '#00000000',
                         `#FFFFFF${alpha}`,
                         100,
-                        1,
-                        FillDirection.BOTTOM
+                        { bgPercent: 1,
+                         fillDirection: FillDirection.BOTTOM
+                        }
                     );
                     this.rippleTileIds.add(tileId);
                 }

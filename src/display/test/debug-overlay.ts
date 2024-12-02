@@ -1,4 +1,4 @@
-import { Display } from "./display";
+import { Display } from "../display";
 
 export class DebugOverlay {
     private element: HTMLDivElement;

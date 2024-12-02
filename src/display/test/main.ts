@@ -1,4 +1,4 @@
-import { TestManager } from './tests/test-manager';
+import { TestManager } from './test-manager';
 
 const SELECTED_TEST_KEY = 'matrix-display-selected-test';
 
