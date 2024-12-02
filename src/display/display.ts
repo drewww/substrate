@@ -283,7 +283,7 @@ export class Display {
 
     private setupFont(defaultFont?: string, customFont?: string) {
         const fontFamily = customFont || defaultFont || 'monospace';
-        const fontSize = Math.floor(this.cellSize * 0.8);
+        const fontSize = Math.floor(this.cellHeightScaled * 0.8);
         
         [this.displayCtx, this.worldCtx].forEach(ctx => {
             ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
@@ -377,8 +377,8 @@ export class Display {
     }
 
     private renderTile(tile: Tile): void {
-        const pixelX = tile.x * this.cellSize/2;
-        const pixelY = tile.y * this.cellSize;
+        const pixelX = tile.x * this.cellWidthScaled;
+        const pixelY = tile.y * this.cellHeightScaled;
         
         this.worldCtx.save();
         this.worldCtx.translate(pixelX, pixelY);
@@ -386,7 +386,7 @@ export class Display {
         // Only create clipping path if noClip is false or undefined
         if (!tile.noClip) {
             this.worldCtx.beginPath();
-            this.worldCtx.rect(0, 0, this.cellSize/2, this.cellSize);
+            this.worldCtx.rect(0, 0, this.cellWidthScaled, this.cellHeightScaled);
             this.worldCtx.clip();
         }
         
@@ -395,8 +395,8 @@ export class Display {
             const bgPercent = tile.bgPercent ?? 1;
             if (bgPercent > 0) {
                 this.worldCtx.fillStyle = tile.backgroundColor;
-                const cellWidth = this.cellSize/2;
-                const cellHeight = this.cellSize;
+                const cellWidth = this.cellWidthScaled;
+                const cellHeight = this.cellHeightScaled;
 
                 switch (tile.fillDirection) {
                     case FillDirection.TOP:
@@ -437,14 +437,14 @@ export class Display {
         
         // Draw character
         if (tile.char && tile.color) {
-            const offsetX = (tile.offsetSymbolX || 0) * this.cellSize;
-            const offsetY = (tile.offsetSymbolY || 0) * this.cellSize;
+            const offsetX = (tile.offsetSymbolX || 0) * this.cellWidthScaled;
+            const offsetY = (tile.offsetSymbolY || 0) * this.cellHeightScaled;
             
             this.worldCtx.save();
             
             // Move to cell location.
 
-            this.worldCtx.translate(this.cellSize/4, this.cellSize * 0.55);
+            this.worldCtx.translate(this.cellWidthScaled/2, this.cellHeightScaled * 0.55);
             
             // Apply scaling
             this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
@@ -530,10 +530,10 @@ export class Display {
     }
 
     private updateDisplayCanvas() {
-        const srcX = this.viewport.x * this.cellSize/2;
-        const srcY = this.viewport.y * this.cellSize;
-        const srcWidth = this.viewport.width * this.cellSize/2;
-        const srcHeight = this.viewport.height * this.cellSize;
+        const srcX = this.viewport.x * this.cellWidthScaled;
+        const srcY = this.viewport.y * this.cellHeightScaled;
+        const srcWidth = this.viewport.width * this.cellWidthScaled;
+        const srcHeight = this.viewport.height * this.cellHeightScaled;
 
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
         this.displayCtx.drawImage(
