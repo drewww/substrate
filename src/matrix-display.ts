@@ -956,40 +956,36 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public addValueAnimation(tileId: TileId, options: ValueAnimationOptions): void {
-        const animations: {
-            bgPercent?: ValueAnimation,
-            x?: ValueAnimation,
-            y?: ValueAnimation,
-            offsetSymbolX?: ValueAnimation,
-            offsetSymbolY?: ValueAnimation,
-            scaleSymbolX?: ValueAnimation,
-            scaleSymbolY?: ValueAnimation
-        } = {};
         const effectiveStartTime = options.startTime ?? performance.now();
-
+        
+        // Get existing animations or create new object
+        const existingAnimations = this.valueAnimations.get(tileId) || {};
+        
+        // Merge new animations with existing ones
         if (options.bgPercent) {
-            animations.bgPercent = this.createValueAnimation(options.bgPercent, effectiveStartTime);
+            existingAnimations.bgPercent = this.createValueAnimation(options.bgPercent, effectiveStartTime);
         }
         if (options.offsetSymbolX) {
-            animations.offsetSymbolX = this.createValueAnimation(options.offsetSymbolX, effectiveStartTime);
+            existingAnimations.offsetSymbolX = this.createValueAnimation(options.offsetSymbolX, effectiveStartTime);
         }
         if (options.offsetSymbolY) {
-            animations.offsetSymbolY = this.createValueAnimation(options.offsetSymbolY, effectiveStartTime);
+            existingAnimations.offsetSymbolY = this.createValueAnimation(options.offsetSymbolY, effectiveStartTime);
         }
         if (options.scaleSymbolX) {
-            animations.scaleSymbolX = this.createValueAnimation(options.scaleSymbolX, effectiveStartTime);
+            existingAnimations.scaleSymbolX = this.createValueAnimation(options.scaleSymbolX, effectiveStartTime);
         }
         if (options.scaleSymbolY) {
-            animations.scaleSymbolY = this.createValueAnimation(options.scaleSymbolY, effectiveStartTime);
+            existingAnimations.scaleSymbolY = this.createValueAnimation(options.scaleSymbolY, effectiveStartTime);
         }
         if (options.x) {
-            animations.x = this.createValueAnimation(options.x, effectiveStartTime);
+            existingAnimations.x = this.createValueAnimation(options.x, effectiveStartTime);
         }
         if (options.y) {
-            animations.y = this.createValueAnimation(options.y, effectiveStartTime);
+            existingAnimations.y = this.createValueAnimation(options.y, effectiveStartTime);
         }
 
-        this.valueAnimations.set(tileId, animations);
+        // Update with merged animations
+        this.valueAnimations.set(tileId, existingAnimations);
     }
 
     private updateValueAnimations(timestamp: number): void {

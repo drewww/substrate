@@ -101,102 +101,68 @@ export class ZIndexTest extends BaseTest {
                 const dx = Math.floor(Math.random() * 3) - 1;
                 const dy = Math.floor(Math.random() * 3) - 1;
                 
-                const newX = Math.floor(tile.x + dx);
-                const newY = Math.floor(tile.y + dy);
+                const startX = Math.floor(tile.x);
+                const startY = Math.floor(tile.y);
+                const newX = startX + dx;
+                const newY = startY + dy;
 
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-                    const moveDuration = 0.5;
-                    
+                    const moveDuration = 0.3;
+                    const halfDuration = moveDuration / 2;
+
                     this.display.clearAnimations(tileId);
-                    
-                    if (Math.random() < 0.5) {
-                        // Z-axis jump animation
-                        this.display.addValueAnimation(tileId, {
-                            x: {
-                                start: Math.floor(tile.x),
-                                end: newX,
-                                duration: moveDuration,
-                                easing: Easing.sineInOut,
-                                loop: false
-                            },
-                            y: {
-                                start: Math.floor(tile.y),
-                                end: newY,
-                                duration: moveDuration,
-                                easing: Easing.sineInOut,
-                                loop: false
-                            },
-                            scaleSymbolX: {
-                                start: 1,
-                                end: 2,
-                                duration: moveDuration / 2,
-                                easing: Easing.quadOut,
-                                loop: false
-                            },
-                            scaleSymbolY: {
-                                start: 1,
-                                end: 2,
-                                duration: moveDuration / 2,
-                                easing: Easing.quadOut,
-                                loop: false
-                            }
-                        });
-                        
-                        // Add the "falling" part of the animation after a delay
-                        setTimeout(() => {
-                            this.display.addValueAnimation(tileId, {
-                                scaleSymbolX: {
-                                    start: 2,
-                                    end: 1,
-                                    duration: moveDuration / 2,
-                                    easing: Easing.quadIn,
-                                    loop: false
-                                },
-                                scaleSymbolY: {
-                                    start: 2,
-                                    end: 1,
-                                    duration: moveDuration / 2,
-                                    easing: Easing.quadIn,
-                                    loop: false
-                                }
-                            });
-                        }, (moveDuration / 2) * 1000);
-                    } else {
-                        // Stretchy movement
-                        const stretchX = Math.abs(dx) > 0 ? 1.5 : 1;
-                        const stretchY = Math.abs(dy) > 0 ? 1.5 : 1;
-                        
-                        this.display.addValueAnimation(tileId, {
-                            x: {
-                                start: Math.floor(tile.x),
-                                end: newX,
-                                duration: moveDuration,
-                                easing: Easing.bounceOut,
-                                loop: false
-                            },
-                            y: {
-                                start: Math.floor(tile.y),
-                                end: newY,
-                                duration: moveDuration,
-                                easing: Easing.bounceOut,
-                                loop: false
-                            },
-                            scaleSymbolX: {
-                                start: 1,
-                                end: stretchX,
-                                duration: moveDuration / 2,
-                                easing: Easing.quadOut,
-                                loop: false
-                            },
-                            scaleSymbolY: {
-                                start: 1,
-                                end: stretchY,
-                                duration: moveDuration / 2,
-                                easing: Easing.quadOut,
-                                loop: false
-                            }
-                        });
-                    }
+
+                    // First animation - full movement and first half of scale
+                    this.display.addValueAnimation(tileId, {
+                        x: {
+                            start: startX,
+                            end: newX,
+                            duration: moveDuration,
+                            easing: Easing.linear,
+                            loop: false
+                        },
+                        y: {
+                            start: startY,
+                            end: newY,
+                            duration: moveDuration,
+                            easing: Easing.linear,
+                            loop: false
+                        },
+                        scaleSymbolX: {
+                            start: 1.0,
+                            end: 2.0,
+                            duration: halfDuration,  // First half only
+                            easing: Easing.quadOut,
+                            loop: false
+                        },
+                        scaleSymbolY: {
+                            start: 1.0,
+                            end: 2.0,
+                            duration: halfDuration,  // First half only
+                            easing: Easing.quadOut,
+                            loop: false
+                        }
+                    });
+
+                    // Second animation - just the second half of scale
+                    const startTime = performance.now() + (halfDuration * 1000);
+                    this.display.addValueAnimation(tileId, {
+                        scaleSymbolX: {
+                            start: 2.0,
+                            end: 1.0,
+                            duration: halfDuration,
+                            easing: Easing.quadIn,
+                            loop: false
+                        },
+                        scaleSymbolY: {
+                            start: 2.0,
+                            end: 1.0,
+                            duration: halfDuration,
+                            easing: Easing.quadIn,
+                            loop: false
+                        },
+                        startTime
+                    });
                 }
             });
         }
