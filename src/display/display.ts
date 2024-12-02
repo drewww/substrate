@@ -160,7 +160,7 @@ export class Display {
     constructor(options: DisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
         
-        this.log.info('Initializing MatrixDisplay with options:', options);
+        this.log.info('Initializing Display with options:', options);
         
         // Calculate DPI scale first
         this.scale = window.devicePixelRatio || 1;
@@ -178,7 +178,7 @@ export class Display {
         // Main display canvas
         if (!options.elementId) {
             this.log.error('elementId is required');
-            throw new Error('elementId is required in MatrixDisplayConfig');
+            throw new Error('elementId is required in DisplayConfig');
         }
         
         this.displayCanvas = document.getElementById(options.elementId) as HTMLCanvasElement;
@@ -273,7 +273,7 @@ export class Display {
             'w': '#FFFFFFFF',  // white
         });
 
-        this.log.info('MatrixDisplay initialization complete');
+        this.log.info('Display initialization complete');
 
         this.boundRenderFrame = this.renderFrame.bind(this);
         this.startRenderLoop();
@@ -654,19 +654,19 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public log = {
         error: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.ERROR) console.error('[MatrixDisplay]', ...args);
+            if (this.logLevel >= LogLevel.ERROR) console.error('[Display]', ...args);
         },
         warn: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.WARN) console.warn('[MatrixDisplay]', ...args);
+            if (this.logLevel >= LogLevel.WARN) console.warn('[Display]', ...args);
         },
         info: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.INFO) console.log('[MatrixDisplay]', ...args);
+            if (this.logLevel >= LogLevel.INFO) console.log('[Display]', ...args);
         },
         debug: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.DEBUG) console.log('[MatrixDisplay][Debug]', ...args);
+            if (this.logLevel >= LogLevel.DEBUG) console.log('[Display][Debug]', ...args);
         },
         verbose: (...args: any[]) => {
-            if (this.logLevel >= LogLevel.VERBOSE) console.log('[MatrixDisplay][Verbose]', ...args);
+            if (this.logLevel >= LogLevel.VERBOSE) console.log('[Display][Verbose]', ...args);
         }
     };
 
