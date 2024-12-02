@@ -152,12 +152,10 @@ export class Display {
     }> = new Map();
 
     private hasChanges: boolean = true;
-    private cellWidth: number;
-    private cellHeight: number;
-    cellWidthCSS: number;
-    cellHeightCSS: number;
-    cellWidthScaled: number;
-    cellHeightScaled: number;
+    private cellWidthCSS: number;
+    private cellHeightCSS: number;
+    private cellWidthScaled: number;
+    private cellHeightScaled: number;
 
     constructor(options: DisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -198,8 +196,8 @@ export class Display {
         this.worldCtx = this.worldCanvas.getContext('2d')!;
 
         // Calculate pixel dimensions
-        const displayWidth = options.viewportWidth * this.cellWidth;
-        const displayHeight = options.viewportHeight * this.cellHeight;
+        const displayWidth = options.viewportWidth * this.cellWidthCSS;
+        const displayHeight = options.viewportHeight * this.cellHeightCSS;
 
         // Set dimensions for display and world canvases only
         [this.displayCanvas, this.worldCanvas].forEach(canvas => {
@@ -221,16 +219,16 @@ export class Display {
         this.cellHeightScaled = this.cellSize;
         
         // Display canvas is viewport size
-        this.displayCanvas.width = options.viewportWidth * this.cellSize;
-        this.displayCanvas.height = options.viewportHeight * this.cellSize;
+        this.displayCanvas.width = options.viewportWidth * this.cellWidthScaled;
+        this.displayCanvas.height = options.viewportHeight * this.cellHeightScaled;
         
         // World buffer is full world size
-        this.worldCanvas.width = options.worldWidth * this.cellSize;
-        this.worldCanvas.height = options.worldHeight * this.cellSize;
+        this.worldCanvas.width = options.worldWidth * this.cellWidthScaled;
+        this.worldCanvas.height = options.worldHeight * this.cellHeightScaled;
         
         // Set CSS size (logical pixels)
-        this.displayCanvas.style.width = `${options.viewportWidth * options.cellSize}px`;
-        this.displayCanvas.style.height = `${options.viewportHeight * options.cellSize}px`;
+        this.displayCanvas.style.width = `${options.viewportWidth * this.cellWidthCSS}px`;
+        this.displayCanvas.style.height = `${options.viewportHeight * this.cellHeightCSS}px`;
 
         // Disable smoothing on all contexts
         [this.displayCtx, this.worldCtx].forEach(ctx => {
