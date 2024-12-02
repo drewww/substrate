@@ -290,7 +290,8 @@ export class MatrixDisplay {
         backgroundColor: Color, 
         zIndex: number = 1, 
         bgPercent: number = 1,
-        fillDirection: FillDirection = FillDirection.BOTTOM
+        fillDirection: FillDirection = FillDirection.BOTTOM,
+        noClip: boolean = false
     ): TileId {
         this.hasChanges = true;
         const id = this.generateTileId();
@@ -308,7 +309,8 @@ export class MatrixDisplay {
             offsetSymbolX: 0,
             offsetSymbolY: 0,
             scaleSymbolX: 1.0,
-            scaleSymbolY: 1.0
+            scaleSymbolY: 1.0,
+            noClip
         };
         
         this.tileMap.set(id, tile);
@@ -370,10 +372,12 @@ export class MatrixDisplay {
         this.worldCtx.save();
         this.worldCtx.translate(pixelX, pixelY);
         
-        // Create clipping path
-        this.worldCtx.beginPath();
-        this.worldCtx.rect(0, 0, this.cellSize/2, this.cellSize);
-        this.worldCtx.clip();
+        // Only create clipping path if noClip is false or undefined
+        if (!tile.noClip) {
+            this.worldCtx.beginPath();
+            this.worldCtx.rect(0, 0, this.cellSize/2, this.cellSize);
+            this.worldCtx.clip();
+        }
         
         // Draw background if it has one
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {

@@ -18,6 +18,7 @@ export interface Tile {
     offsetSymbolY: number;
     scaleSymbolX: number;  // Default to 1.0
     scaleSymbolY: number;  // Default to 1.0
+    noClip?: boolean;     // New option to disable clipping mask
 }
 
 export interface Cell {

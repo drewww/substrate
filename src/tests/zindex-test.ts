@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../types';
-import { Easing, LogLevel } from '../matrix-display';
+import { Easing, FillDirection, LogLevel } from '../matrix-display';
 
 export class ZIndexTest extends BaseTest {
     private readonly TILE_COUNT = 5;
@@ -70,7 +70,10 @@ export class ZIndexTest extends BaseTest {
                 '@',
                 '#FFFF00FF',
                 '#00000066',
-                2
+                2,
+                0,
+                FillDirection.TOP,
+                true
             );
             
             this.tileIds.push(tileId);
