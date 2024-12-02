@@ -24,11 +24,11 @@ export class JumpTest extends BaseTest {
     }
 
     getName(): string {
-        return "zindex";
+        return "jump";
     }
 
     getDescription(): string {
-        return "Tests z-index rendering with moving entities over background";
+        return "Shows tiles 'jumping' in the z axis.";
     }
 
     private getNearlyBlack(): Color {
