@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { TileId } from '../display/types';
-import { LogLevel } from '../display/display';
+import { TileId } from '../../types';
+import { LogLevel } from '../../display';
 
 interface Raindrop {
     tileId: TileId;
@@ -22,7 +22,8 @@ export class RainTest extends BaseTest {
             worldHeight: 30,
             viewportWidth: 60,
             viewportHeight: 30,
-            cellSize: 24,
+            cellWidth: 12,
+            cellHeight: 24,
             logLevel
         });
     }

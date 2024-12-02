@@ -12,7 +12,8 @@ export class AnimationLoadTest extends BaseTest {
             worldHeight: 50,
             viewportWidth: 60,
             viewportHeight: 30,
-            cellSize: 24,
+            cellWidth: 12,
+            cellHeight: 24,
             logLevel
         });
     }

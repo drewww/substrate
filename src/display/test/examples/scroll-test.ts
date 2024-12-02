@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../display/types';
-import { LogLevel } from '../display/display';
+import { Color, TileId } from '../../types';
+import { LogLevel } from '../../display';
 
 interface Point {
     x: number;
@@ -20,7 +20,8 @@ export class ScrollTest extends BaseTest {
             worldHeight: 50,
             viewportWidth: 70,
             viewportHeight: 25,
-            cellSize: 24,
+            cellWidth: 12,
+            cellHeight: 24,
             logLevel
         });
     }

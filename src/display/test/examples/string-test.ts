@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
-import { TileId } from '../display/types';
-import { LogLevel, StringConfig } from '../display/display';
+import { TileId } from '../../types';
+import { LogLevel, StringConfig } from '../../display';
 
 interface ActiveString {
     tileIds: TileId[];
@@ -17,7 +17,8 @@ export class StringTest extends BaseTest {
             worldHeight: 25,
             viewportWidth: 60,
             viewportHeight: 25,
-            cellSize: 24,
+            cellWidth: 12,
+            cellHeight: 24,
             logLevel
         });
     }

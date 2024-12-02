@@ -12,7 +12,8 @@ export class PatternAnimationTest extends BaseTest {
             worldHeight: 20,
             viewportWidth: 40,
             viewportHeight: 20,
-            cellSize: 24,
+            cellWidth: 12,
+            cellHeight: 24,
             logLevel
         });
     }

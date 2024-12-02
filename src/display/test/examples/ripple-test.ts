@@ -23,7 +23,8 @@ export class RippleTest extends BaseTest {
             worldHeight: 25,
             viewportWidth: 25,
             viewportHeight: 25,
-            cellSize: 24,
+            cellWidth: 12,
+            cellHeight: 24,
             logLevel
         });
     }

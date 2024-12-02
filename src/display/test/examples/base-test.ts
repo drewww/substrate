@@ -31,8 +31,8 @@ export abstract class BaseTest {
         const container = document.getElementById('display-container')!;
         
         // Calculate container size based on viewport dimensions
-        const containerWidth = this.options.viewportWidth * this.options.cellSize;
-        const containerHeight = this.options.viewportHeight * this.options.cellSize;
+        const containerWidth = this.options.viewportWidth * this.options.cellWidth;
+        const containerHeight = this.options.viewportHeight * this.options.cellHeight;
         
         // Update container size
         container.style.width = `${containerWidth}px`;
