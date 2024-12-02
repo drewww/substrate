@@ -28,7 +28,8 @@ export enum LogLevel {
 
 export interface DisplayConfig {
     elementId?: string;
-    cellSize: number;
+    cellWidth: number;
+    cellHeight: number;
     worldWidth: number;
     worldHeight: number;
     viewportWidth: number;
@@ -126,7 +127,6 @@ export class Display {
     private worldCanvas: HTMLCanvasElement;      // Full world buffer
     private worldCtx: CanvasRenderingContext2D;
     private viewport: Viewport;
-    private cellSize: number;
     private metrics: PerformanceMetrics;
 
     private worldWidth: number;
@@ -168,13 +168,12 @@ export class Display {
         // Initialize dimensions
         this.worldWidth = options.worldWidth;
         this.worldHeight = options.worldHeight;
-        this.cellSize = options.cellSize;
 
         // this is in pixels, with no scale applied. 
         // we will update this with scale later on.
         // this is confusing because 
-        this.cellWidthCSS = options.cellSize/2;
-        this.cellHeightCSS = options.cellSize;
+        this.cellWidthCSS = options.cellWidth;
+        this.cellHeightCSS = options.cellHeight;
         
         // Main display canvas
         if (!options.elementId) {
@@ -214,9 +213,8 @@ export class Display {
 
         // Set dimensions
         // This is the moment scale comes in. We will change this to pull directly from options later.
-        this.cellSize = options.cellSize * this.scale;
-        this.cellWidthScaled = this.cellSize/2;
-        this.cellHeightScaled = this.cellSize;
+        this.cellWidthScaled = options.cellWidth * this.scale;
+        this.cellHeightScaled = options.cellHeight * this.scale;
         
         // Display canvas is viewport size
         this.displayCanvas.width = options.viewportWidth * this.cellWidthScaled;
