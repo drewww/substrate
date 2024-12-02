@@ -152,6 +152,8 @@ export class Display {
     }> = new Map();
 
     private hasChanges: boolean = true;
+    private cellWidth: number;
+    private cellHeight: number;
 
     constructor(options: DisplayConfig) {
         this.logLevel = options.logLevel ?? LogLevel.WARN;
@@ -165,6 +167,8 @@ export class Display {
         this.worldWidth = options.worldWidth;
         this.worldHeight = options.worldHeight;
         this.cellSize = options.cellSize;
+        this.cellWidth = options.cellSize/2;
+        this.cellHeight = options.cellSize;
         
         // Main display canvas
         if (!options.elementId) {
@@ -186,8 +190,8 @@ export class Display {
         this.worldCtx = this.worldCanvas.getContext('2d')!;
 
         // Calculate pixel dimensions
-        const displayWidth = options.viewportWidth * options.cellSize;
-        const displayHeight = options.viewportHeight * options.cellSize;
+        const displayWidth = options.viewportWidth * this.cellWidth;
+        const displayHeight = options.viewportHeight * this.cellHeight;
 
         // Set dimensions for display and world canvases only
         [this.displayCanvas, this.worldCanvas].forEach(canvas => {
