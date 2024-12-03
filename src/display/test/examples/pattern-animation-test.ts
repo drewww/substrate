@@ -215,7 +215,7 @@ export class PatternAnimationTest extends BaseTest {
         this.animatedTiles.push(emberTile, fireTile, flameTile);
     }
 
-    private createLaserRow(y: number, loop: boolean = true): void {
+    private createLaserRow(y: number, loop: boolean = true, start: number = 0.49, end: number = 0.45): void {
         const length = 11; // Length of the row
         const laserRed = '#FF0000FF'; // Bright laser red
 
@@ -225,13 +225,13 @@ export class PatternAnimationTest extends BaseTest {
 
             // Top overlay tile
             const topTile = this.display.createTile(x, y, ' ', '#00000000', '#000000FF', 2, {
-                bgPercent: 0.49,
+                bgPercent: start,
                 fillDirection: FillDirection.TOP
             });
 
             // Bottom overlay tile
             const bottomTile = this.display.createTile(x, y, ' ', '#00000000', '#000000FF', 3, {
-                bgPercent: 0.49,
+                bgPercent: start,
                 fillDirection: FillDirection.BOTTOM
             });
 
@@ -240,8 +240,8 @@ export class PatternAnimationTest extends BaseTest {
 
             this.display.addValueAnimation(topTile, {
                 bgPercent: {
-                    start: 0.49,
-                    end: 0.45,
+                    start: start,
+                    end: end,
                     duration: 0.2,
                     reverse: true,
                     easing: Easing.sineInOut,
@@ -252,8 +252,8 @@ export class PatternAnimationTest extends BaseTest {
 
             this.display.addValueAnimation(bottomTile, {
                 bgPercent: {
-                    start: 0.49,
-                    end: 0.45,
+                    start: start,
+                    end: end,
                     duration: 0.2,
                     reverse: true,
                     easing: Easing.sineInOut,
@@ -1006,6 +1006,10 @@ export class PatternAnimationTest extends BaseTest {
         this.createLaserRow(12, false);
 
         this.createLaserRow(13, true);
+
+        this.createLaserRow(14, true, 0.50, 0.40);
+
+        this.createLaserRow(16, false, 0.50, 0.30);
     }
 
     protected cleanup(): void {
