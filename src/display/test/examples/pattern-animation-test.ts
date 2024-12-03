@@ -371,6 +371,10 @@ export class PatternAnimationTest extends BaseTest {
         });
         this.animatedTiles.push(fillId);
 
+        setTimeout(() => {
+            this.display.stopTileAnimations(fillId);
+        }, 4000);
+
         // Background fill wave animation (x = 25, y = 10)
         const sharedFillStartTime = performance.now();
         for (let i = 0; i < 10; i++) {

@@ -754,7 +754,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             duration,
             reverse,
             loop,
-            offset
+            offset,
+            running: true
         });
     }
 
@@ -862,7 +863,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 loop: transition.loop || false,
                 offset: transition.offset || 0,
                 easing: transition.easing,
-                next: transition.next ? createColorAnimationChain(transition.next, performance.now()) : undefined
+                next: transition.next ? createColorAnimationChain(transition.next, performance.now()) : undefined,
+                running: true
             };
             return animation;
         };
@@ -880,49 +882,61 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public addValueAnimation(tileId: TileId, options: TileValueAnimationsOptions): void {
         const effectiveStartTime = options.startTime ?? performance.now();
-        const existingAnimations = this.valueAnimations.get(tileId) || {};
         
-        const createValueAnimation = (config: ValueAnimationOption): ValueAnimation => ({
-            startValue: config.start,
-            endValue: config.end,
-            duration: config.duration,
-            startTime: effectiveStartTime,
-            reverse: config.reverse || false,
-            offset: config.offset || 0,
-            easing: config.easing || Easing.linear,
-            loop: config.loop ?? true,
-            next: config.next ? createValueAnimation(config.next) : undefined,
-        });
+        // Properly type the animations object
+        const animations: {
+            rotation?: ValueAnimation;
+            bgPercent?: ValueAnimation;
+            offsetSymbolX?: ValueAnimation;
+            offsetSymbolY?: ValueAnimation;
+            scaleSymbolX?: ValueAnimation;
+            scaleSymbolY?: ValueAnimation;
+            x?: ValueAnimation;
+            y?: ValueAnimation;
+        } = {};
+        
+        const createValueAnimation = (config: ValueAnimationOption): ValueAnimation => {
+            return {
+                startValue: config.start,
+                endValue: config.end,
+                duration: config.duration,
+                startTime: effectiveStartTime,
+                reverse: config.reverse || false,
+                offset: config.offset || 0,
+                easing: config.easing || Easing.linear,
+                loop: config.loop ?? true,
+                next: config.next ? createValueAnimation(config.next) : undefined,
+                running: true  // Set initial state to running
+            };
+        };
 
-        // Add rotation animation
+        // Add animations with proper typing
         if (options.rotation) {
-            existingAnimations.rotation = createValueAnimation(options.rotation);
+            animations.rotation = createValueAnimation(options.rotation);
         }
-
-        // Existing animation properties
         if (options.bgPercent) {
-            existingAnimations.bgPercent = createValueAnimation(options.bgPercent);
+            animations.bgPercent = createValueAnimation(options.bgPercent);
         }
         if (options.offsetSymbolX) {
-            existingAnimations.offsetSymbolX = createValueAnimation(options.offsetSymbolX);
+            animations.offsetSymbolX = createValueAnimation(options.offsetSymbolX);
         }
         if (options.offsetSymbolY) {
-            existingAnimations.offsetSymbolY = createValueAnimation(options.offsetSymbolY);
+            animations.offsetSymbolY = createValueAnimation(options.offsetSymbolY);
         }
         if (options.scaleSymbolX) {
-            existingAnimations.scaleSymbolX = createValueAnimation(options.scaleSymbolX);
+            animations.scaleSymbolX = createValueAnimation(options.scaleSymbolX);
         }
         if (options.scaleSymbolY) {
-            existingAnimations.scaleSymbolY = createValueAnimation(options.scaleSymbolY);
+            animations.scaleSymbolY = createValueAnimation(options.scaleSymbolY);
         }
         if (options.x) {
-            existingAnimations.x = createValueAnimation(options.x);
+            animations.x = createValueAnimation(options.x);
         }
         if (options.y) {
-            existingAnimations.y = createValueAnimation(options.y);
+            animations.y = createValueAnimation(options.y);
         }
 
-        this.valueAnimations.set(tileId, existingAnimations);
+        this.valueAnimations.set(tileId, animations);
     }
 
     private updateValueAnimations(timestamp: number): void {
@@ -937,7 +951,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 animation: ValueAnimation | undefined, 
                 property: 'x' | 'y' | 'scaleSymbolX' | 'scaleSymbolY' | 'offsetSymbolX' | 'offsetSymbolY' | 'bgPercent' | 'rotation'
             ) => {
-                if (!animation) return undefined;
+                if (!animation || !animation.running) return animation;  // Skip if not running
 
                 const elapsed = (timestamp - animation.startTime) / 1000;
                 let progress = (elapsed / animation.duration) + animation.offset;
@@ -1019,5 +1033,37 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 logger.warn(`Attempted to remove non-existent tile: ${id}`);
             }
         });
+    }
+
+    public stopTileAnimations(tileId: TileId): void {
+        // Helper to stop all animations in a chain
+        const stopChain = <T extends { next?: T, running: boolean }>(anim: T): void => {
+            let current: T | undefined = anim;
+            while (current) {
+                current.running = false;
+                current = current.next;
+            }
+        };
+
+        // Stop symbol animations
+        const symbolAnim = this.symbolAnimations.get(tileId);
+        if (symbolAnim) {
+            symbolAnim.running = false;
+        }
+
+        // Stop color animations
+        const colorAnims = this.colorAnimations.get(tileId);
+        if (colorAnims) {
+            if (colorAnims.fg) stopChain(colorAnims.fg);
+            if (colorAnims.bg) stopChain(colorAnims.bg);
+        }
+
+        // Stop value animations
+        const valueAnims = this.valueAnimations.get(tileId);
+        if (valueAnims) {
+            Object.values(valueAnims).forEach(anim => {
+                if (anim) stopChain(anim);
+            });
+        }
     }
 } 

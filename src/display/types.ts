@@ -55,6 +55,7 @@ export interface ColorAnimation {
     offset: number;
     easing?: EasingFunction;
     next?: ColorAnimation;  // Reference to the next animation in the chain
+    running: boolean;  // Add running flag
 }
 
 export interface SymbolAnimation {
@@ -65,6 +66,7 @@ export interface SymbolAnimation {
     loop: boolean;
     offset: number;      // Initial offset (0-1)
     easing?: EasingFunction;  // Optional easing function
+    running: boolean;  // Add running flag
 }
 
 export interface ValueAnimation {
@@ -77,6 +79,7 @@ export interface ValueAnimation {
     easing: EasingFunction;
     loop: boolean;
     next?: ValueAnimation;  // Add chaining support
+    running: boolean;  // Add running flag
 }
 
 export enum EasingType {
