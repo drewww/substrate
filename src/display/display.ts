@@ -865,7 +865,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             reverse: config.reverse || false,
             offset: config.offset || 0,
             easing: config.easing || Easing.linear,
-            loop: config.loop ?? true
+            loop: config.loop ?? true,
+            next: config.next ? this.createValueAnimation(config.next, performance.now()) : undefined
         };
     }
 
@@ -915,7 +916,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 animation: ValueAnimation | undefined, 
                 property: 'x' | 'y' | 'scaleSymbolX' | 'scaleSymbolY' | 'offsetSymbolX' | 'offsetSymbolY' | 'bgPercent'
             ) => {
-                if (!animation) return false;
+                if (!animation) return undefined;
 
                 const elapsed = (timestamp - animation.startTime) / 1000;
                 let progress = (elapsed / animation.duration) + animation.offset;
@@ -933,29 +934,31 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     progress = Math.min(progress, 1);
                 }
 
-                const easedProgress = animation.easing ? 
-                    animation.easing(progress) : 
-                    progress;
-
+                const easedProgress = animation.easing(progress);
                 tile[property] = animation.startValue + 
                     (animation.endValue - animation.startValue) * easedProgress;
                 
-                // Remove animation if complete and not looping
+                // Check if animation is complete
                 if (!animation.loop && progress >= 1) {
-                    return true; // Animation complete
+                    if (animation.next) {
+                        // Start the next animation in the chain
+                        animation.next.startTime = timestamp;
+                        return animation.next;
+                    }
+                    return undefined; // Animation complete, no next animation
                 }
                 
-                return false; // Animation ongoing
+                return animation; // Animation ongoing
             };
 
             // Update each animation type
-            if (updateAnimation(animations.x, 'x')) delete animations.x;
-            if (updateAnimation(animations.y, 'y')) delete animations.y;
-            if (updateAnimation(animations.scaleSymbolX, 'scaleSymbolX')) delete animations.scaleSymbolX;
-            if (updateAnimation(animations.scaleSymbolY, 'scaleSymbolY')) delete animations.scaleSymbolY;
-            if (updateAnimation(animations.offsetSymbolX, 'offsetSymbolX')) delete animations.offsetSymbolX;
-            if (updateAnimation(animations.offsetSymbolY, 'offsetSymbolY')) delete animations.offsetSymbolY;
-            if (updateAnimation(animations.bgPercent, 'bgPercent')) delete animations.bgPercent;
+            animations.x = updateAnimation(animations.x, 'x');
+            animations.y = updateAnimation(animations.y, 'y');
+            animations.scaleSymbolX = updateAnimation(animations.scaleSymbolX, 'scaleSymbolX');
+            animations.scaleSymbolY = updateAnimation(animations.scaleSymbolY, 'scaleSymbolY');
+            animations.offsetSymbolX = updateAnimation(animations.offsetSymbolX, 'offsetSymbolX');
+            animations.offsetSymbolY = updateAnimation(animations.offsetSymbolY, 'offsetSymbolY');
+            animations.bgPercent = updateAnimation(animations.bgPercent, 'bgPercent');
 
             // Clean up if no animations remain
             if (Object.keys(animations).length === 0) {
