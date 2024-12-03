@@ -47,6 +47,7 @@ export type EasingFunction = (t: number) => number;
 export interface AnimationOptions {
     duration: number;
     reverse?: boolean;
+    loop?: boolean;
     offset?: number;
     easing?: EasingFunction;
 }
@@ -70,7 +71,8 @@ export interface ColorAnimation {
     endColor: Color;
     duration: number;
     startTime: number;
-    reverse: boolean;
+    reverse?: boolean;
+    loop?: boolean;
     offset: number;
     easing?: EasingFunction;
 }

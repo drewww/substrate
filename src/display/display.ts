@@ -792,32 +792,55 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 const elapsed = (timestamp - animations.fg.startTime) / 1000;
                 let progress = (elapsed / animations.fg.duration) + animations.fg.offset;
                 
-                if (animations.fg.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) {
-                        progress = 2 - progress;
+                if (animations.fg.loop) {
+                    if (animations.fg.reverse) {
+                        progress = progress % 2;
+                        if (progress > 1) {
+                            progress = 2 - progress;
+                        }
+                    } else {
+                        progress = progress % 1;
                     }
                 } else {
-                    progress = progress % 1;
+                    progress = Math.min(progress, 1);
                 }
                 
                 tile.color = interpolateColor(animations.fg.startColor, animations.fg.endColor, progress);
+
+                // Remove animation if complete and not looping
+                if (!animations.fg.loop && progress >= 1) {
+                    delete animations.fg;
+                }
             }
             
             if (animations.bg) {
                 const elapsed = (timestamp - animations.bg.startTime) / 1000;
                 let progress = (elapsed / animations.bg.duration) + animations.bg.offset;
                 
-                if (animations.bg.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) {
-                        progress = 2 - progress;
+                if (animations.bg.loop) {
+                    if (animations.bg.reverse) {
+                        progress = progress % 2;
+                        if (progress > 1) {
+                            progress = 2 - progress;
+                        }
+                    } else {
+                        progress = progress % 1;
                     }
                 } else {
-                    progress = progress % 1;
+                    progress = Math.min(progress, 1);
                 }
                 
                 tile.backgroundColor = interpolateColor(animations.bg.startColor, animations.bg.endColor, progress);
+
+                // Remove animation if complete and not looping
+                if (!animations.bg.loop && progress >= 1) {
+                    delete animations.bg;
+                }
+            }
+
+            // Clean up if no animations remain
+            if (!animations.fg && !animations.bg) {
+                this.colorAnimations.delete(tileId);
             }
         }
     }
@@ -833,6 +856,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 duration: options.fg.duration,
                 startTime: effectiveStartTime,
                 reverse: options.fg.reverse || false,
+                loop: options.fg.loop || false,
                 offset: options.fg.offset || 0,
                 easing: options.fg.easing
             };
@@ -845,6 +869,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 duration: options.bg.duration,
                 startTime: effectiveStartTime,
                 reverse: options.bg.reverse || false,
+                loop: options.bg.loop || false,
                 offset: options.bg.offset || 0
             };
         }

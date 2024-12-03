@@ -115,7 +115,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#FF0000FF',
                 duration: 2.0,
                 reverse: true,
-                offset: 0
+                offset: 0,
+                loop: true
             }
         });
         this.animatedTiles.push(pulsingId);
@@ -128,7 +129,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#00FF00FF',
                 duration: 3.0,
                 reverse: true,
-                offset: 0
+                offset: 0,
+                loop: true
             }
         });
         this.animatedTiles.push(rainbowId);
@@ -142,14 +144,16 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#00FFFFFF',
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.2
+                    offset: i * 0.2,
+                    loop: true
                 },
                 bg: {
                     start: '#0000FFFF',
                     end: '#000000FF',
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.2
+                    offset: i * 0.2,
+                    loop: true
                 }
             });
             this.animatedTiles.push(waveTileId);
@@ -165,7 +169,8 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#0000FFFF',
                     duration: 2.0,
                     reverse: true,
-                    offset: i * 0.02  // Smaller offset for smoother wave
+                    offset: i * 0.02,  // Smaller offset for smoother wave
+                    loop: true
                 },
                 startTime: sharedStartTime
             });
@@ -180,7 +185,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 1,
                 duration: 2.0,
                 reverse: true,
-                offset: 0
+                offset: 0,
+                loop: true
             }
         });
         this.animatedTiles.push(fillId);
@@ -196,7 +202,8 @@ export class PatternAnimationTest extends BaseTest {
                     duration: 1.5,
                     reverse: true,
                     offset: i * 0.15,
-                    easing: Easing.bounceOut  // Changed to bounceOut for dramatic bounce effect
+                    easing: Easing.bounceOut,  // Changed to bounceOut for dramatic bounce effect
+                    loop: true
                 },
                 startTime: sharedFillStartTime
             });
@@ -231,7 +238,8 @@ export class PatternAnimationTest extends BaseTest {
                     duration: fillDuration,
                     reverse: true,
                     offset: 0,
-                    easing: (t) => stackedFillEasing(t, i)
+                    easing: (t) => stackedFillEasing(t, i),
+                    loop: true
                 },
                 startTime: startTime
             });
@@ -249,7 +257,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#00FF0044',
                 duration: 2.0,
                 reverse: true,
-                offset: 0.25  // Quarter phase offset for smooth sine wave
+                offset: 0.25,  // Quarter phase offset for smooth sine wave
+                loop: true
             }
         });
         this.animatedTiles.push(spinnerId);
@@ -277,7 +286,8 @@ export class PatternAnimationTest extends BaseTest {
                     end: colors[colors.length - 1],
                     duration: 3.0,
                     reverse: true,
-                    offset
+                    offset,
+                    loop: true
                 }
             });
             this.animatedTiles.push(waveTileId);
@@ -294,7 +304,8 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#00FF0044',
                     duration: 1.0,
                     reverse: true,
-                    offset: y * 0.15  // Cascade effect
+                    offset: y * 0.15,  // Cascade effect
+                    loop: true
                 }
             });
             this.animatedTiles.push(charId);
@@ -312,7 +323,8 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#FFFFFF44',
                     duration: 1.5,
                     reverse: true,
-                    offset
+                    offset,
+                    loop: true
                 }
             });
             this.animatedTiles.push(bounceId);
@@ -329,7 +341,8 @@ export class PatternAnimationTest extends BaseTest {
                     duration: 1.5,
                     reverse: true,
                     offset: i * 0.1,
-                    easing: Easing.sineInOut  // Kept sineInOut for smooth wave motion
+                    easing: Easing.sineInOut,  // Kept sineInOut for smooth wave motion
+                    loop: true
                 },
                 startTime: sineWaveStartTime
             });
@@ -347,7 +360,8 @@ export class PatternAnimationTest extends BaseTest {
                     duration: 1.5,
                     reverse: true,
                     offset: i * 0.1,
-                    easing: Easing.expoInOut  // Changed to expoInOut for dramatic acceleration/deceleration
+                    easing: Easing.expoInOut,  // Changed to expoInOut for dramatic acceleration/deceleration
+                    loop: true
                 },
                 startTime: expoWaveStartTime
             });
@@ -365,7 +379,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#0000FFFF',
                 duration: 2.0,
                 reverse: true,
-                offset: 0
+                offset: 0,
+                loop: true
             },
             startTime: movingTileStartTime
         });
@@ -394,7 +409,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.15,
                 duration: 1.0,
                 reverse: true,
-                easing: Easing.bounceOut
+                easing: Easing.bounceOut,
+                loop: true
             }
         });
         this.animatedTiles.push(bounceId);
@@ -406,14 +422,16 @@ export class PatternAnimationTest extends BaseTest {
                 start: -0.06,
                 end: 0.06,
                 duration: 0.1,
-                reverse: true
+                reverse: true,
+                loop: true
             },
             offsetSymbolY: {
                 start: -0.06,
                 end: 0.06,
                 duration: 0.1,
                 reverse: true,
-                offset: 0.05
+                offset: 0.05,
+                loop: true
             }
         });
         this.animatedTiles.push(shakeId);
@@ -427,7 +445,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.09,
                 duration: 2.0,
                 reverse: true,
-                easing: Easing.sineInOut
+                easing: Easing.sineInOut,
+                loop: true
             },
             offsetSymbolY: {
                 start: -0.09,
@@ -435,7 +454,8 @@ export class PatternAnimationTest extends BaseTest {
                 duration: 2.0,
                 reverse: true,
                 offset: 0.25,
-                easing: Easing.sineInOut
+                easing: Easing.sineInOut,
+                loop: true 
             },
             startTime: circleStartTime
         });
@@ -451,7 +471,8 @@ export class PatternAnimationTest extends BaseTest {
                     duration: 1.5,
                     reverse: true,
                     offset: i * 0.2,
-                    easing: Easing.sineInOut
+                    easing: Easing.sineInOut,
+                    loop: true
                 }
             });
             this.animatedTiles.push(waveId);
@@ -468,7 +489,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.5,
                 duration: 0.2,
                 reverse: true,
-                easing: Easing.linear
+                easing: Easing.linear,
+                loop: true
             },
             startTime: offsetStartTime
         });
@@ -482,7 +504,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0,
                 duration: 0.2,
                 reverse: true,
-                easing: Easing.linear
+                easing: Easing.linear,
+                loop: true
             },
             startTime: offsetStartTime
         });
@@ -496,14 +519,16 @@ export class PatternAnimationTest extends BaseTest {
                 end: 1.2,
                 duration: 0.5,
                 reverse: true,
-                easing: Easing.quadInOut
+                easing: Easing.quadInOut,
+                loop: true
             },
             scaleSymbolY: {
                 start: 0.8,
                 end: 1.2,
                 duration: 0.5,
                 reverse: true,
-                easing: Easing.quadInOut
+                easing: Easing.quadInOut,
+                loop: true
             }
         });
         this.animatedTiles.push(pulseId);
@@ -516,7 +541,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 1.5,
                 duration: 1.0,
                 reverse: true,
-                easing: Easing.bounceOut
+                easing: Easing.bounceOut,
+                loop: true
             }
         });
         this.animatedTiles.push(stretchId);
@@ -530,14 +556,16 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.38,  // Closer to wall (was 0.4)
                 duration: 0.8,
                 easing: Easing.expoIn,
-                reverse: true
+                reverse: true,
+                loop: true
             },
             scaleSymbolX: {
                 start: 1.0,
                 end: 0.5,   // Less squished (was 0.05)
                 duration: 0.8,
                 easing: Easing.expoIn,
-                reverse: true
+                reverse: true,
+                loop: true
             },
             startTime: smashStartTime
         });
@@ -551,7 +579,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.1,
                 duration: 1.0,
                 reverse: true,
-                easing: Easing.sineInOut
+                easing: Easing.sineInOut,
+                loop: true
             }
         });
         this.animatedTiles.push(spinId);
@@ -563,13 +592,15 @@ export class PatternAnimationTest extends BaseTest {
                 start: 3.0,  // Starts larger
                 end: 1.0,
                 duration: 0.8,
-                easing: Easing.bounceOut
+                easing: Easing.bounceOut,
+                loop: true
             },
             scaleSymbolY: {
                 start: 3.0,  // Starts larger
                 end: 1.0,
                 duration: 0.8,
-                easing: Easing.bounceOut
+                easing: Easing.bounceOut,
+                loop: true
             }
         });
         this.display.addColorAnimation(dropInId, {
@@ -588,13 +619,15 @@ export class PatternAnimationTest extends BaseTest {
                 start: 1.0,
                 end: 4.0,
                 duration: 0.5,
-                easing: Easing.quadOut
+                easing: Easing.quadOut,
+                loop: false
             },
             scaleSymbolY: {
                 start: 1.0,
                 end: 4.0,
                 duration: 0.5,
-                easing: Easing.quadOut
+                easing: Easing.quadOut,
+                loop: false
             }
         });
         this.display.addColorAnimation(popId, {
@@ -602,7 +635,8 @@ export class PatternAnimationTest extends BaseTest {
                 start: '#FF0000FF',
                 end: '#FF000000',
                 duration: 0.5,
-                easing: Easing.quadOut
+                easing: Easing.quadOut,
+                loop: false
             }
         });
         this.animatedTiles.push(popId);
@@ -614,13 +648,15 @@ export class PatternAnimationTest extends BaseTest {
                 start: 1.0,
                 end: 0.1,
                 duration: 0.6,
-                easing: Easing.quadIn
+                easing: Easing.quadIn,
+                loop: false
             },
             scaleSymbolY: {
                 start: 1.0,
                 end: 0.1,
                 duration: 0.6,
-                easing: Easing.quadIn
+                easing: Easing.quadIn,
+                loop: false
             }
         });
         this.display.addColorAnimation(vanishId, {
@@ -628,7 +664,8 @@ export class PatternAnimationTest extends BaseTest {
                 start: '#00FF00FF',
                 end: '#00FF0000',
                 duration: 0.6,
-                easing: Easing.quadIn
+                easing: Easing.quadIn,
+                loop: false
             }
         });
         this.animatedTiles.push(vanishId);
@@ -668,7 +705,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.05,       // Almost closed
                 duration: 2.0,    // 2 seconds per cycle
                 reverse: true,    // Bounce back and forth
-                easing: Easing.sineInOut
+                easing: Easing.sineInOut,
+                loop: true
             },
             startTime: doorStartTime
         });
@@ -679,7 +717,8 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.05,
                 duration: 2.0,
                 reverse: true,
-                easing: Easing.sineInOut
+                easing: Easing.sineInOut,
+                loop: true
             },
             startTime: doorStartTime
         });
