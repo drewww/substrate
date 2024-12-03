@@ -725,6 +725,97 @@ export class PatternAnimationTest extends BaseTest {
 
         this.animatedTiles.push(doorLeft, doorRight);
 
+
+
+
+           // Add door animation
+           const doubleDoorStartTime = performance.now();
+           const doubleDoorLeft = this.display.createTile(
+               4, 3,           // Position left door panel
+               '',             // Right-half block
+               '#888888FF',     // Gray color
+               '#444444FF',     // Darker background
+               3,              // zIndex
+               {
+                   bgPercent: 0.5,
+                   fillDirection: FillDirection.RIGHT  // Fill from left to right
+               }
+           );
+   
+           const doubleDoorRight = this.display.createTile(
+               4, 3,          // Position right door panel
+               '',            // Left-half block
+               '#888888FF',    // Match left door
+               '#444444FF',
+               3,
+               {
+                   bgPercent: 0.5,
+                   fillDirection: FillDirection.LEFT  // Fill from right to left
+               }
+           );
+
+           const doubleDoorTop = this.display.createTile(4, 3, '', '#666666FF', '#333333FF', 2, {
+            bgPercent: 0.5,
+            fillDirection: FillDirection.TOP  // Fill from top to bottom
+           });
+           const doubleDoorBottom = this.display.createTile(4, 3, '', '#666666FF', '#333333FF', 2, {
+            bgPercent: 0.5,
+            fillDirection: FillDirection.BOTTOM  // Fill from bottom to top
+           });
+   
+           const doubleDoorBehind = this.display.createTile(4, 3, '', '#000000FF', '#000000FF', 1);
+
+           this.display.addValueAnimation(doubleDoorLeft, {
+            bgPercent: {
+                start: 0.5,
+                end: 0.05,
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            },
+            startTime: doubleDoorStartTime
+           });
+
+           this.display.addValueAnimation(doubleDoorRight, {
+            bgPercent: {
+                start: 0.5,
+                end: 0.05,
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            },
+            startTime: doubleDoorStartTime
+           });  
+
+           this.display.addValueAnimation(doubleDoorTop, {
+            bgPercent: {
+                start: 0.5,
+                end: 0.05,
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            },
+            startTime: doubleDoorStartTime + 450  // Add 250ms (0.25 seconds) delay
+           });      
+
+           this.display.addValueAnimation(doubleDoorBottom, {
+            bgPercent: {
+                start: 0.5,
+                end: 0.05,
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            },
+            startTime: doubleDoorStartTime + 450  // Add 250ms (0.25 seconds) delay
+           });      
+
+           this.animatedTiles.push(doubleDoorLeft, doubleDoorRight, doubleDoorTop, doubleDoorBottom);
+
+
         // Replace the single smoke bomb with the pattern
         this.createSmokeBombPattern(10, 7);
     }
