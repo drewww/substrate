@@ -62,8 +62,21 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#888888FF',
                 duration: 0.6,
                 easing: Easing.quadOut,
+                next: {
+                    start: '#888888FF',
+                    end: '#888888DD',
+                    duration: 3.0,
+                    easing: Easing.quadOut,
+
+                    next: {
+                        start: '#888888DD',
+                        end: '#88888800',
+                        duration: 3.0,
+                        easing: Easing.quadOut,
+                    }
+                }
             },
-            startTime
+            startTime: startTime,
         });
 
         // this.display.addColorAnimation(smokeBomb, {
