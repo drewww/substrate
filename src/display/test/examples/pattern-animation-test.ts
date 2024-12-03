@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../../types';
-import { Easing } from '../../display';
+import { Easing, FillDirection } from '../../display';
 
 export class PatternAnimationTest extends BaseTest {
     private animatedTiles: TileId[] = [];
@@ -568,6 +568,59 @@ export class PatternAnimationTest extends BaseTest {
             }
         });
         this.animatedTiles.push(vanishId);
+
+        // Add door animation
+        const doorStartTime = performance.now();
+        const doorLeft = this.display.createTile(
+            2, 3,           // Position left door panel
+            '',             // Right-half block
+            '#888888FF',     // Gray color
+            '#444444FF',     // Darker background
+            2,              // zIndex
+            {
+                bgPercent: 0.5,
+                fillDirection: FillDirection.RIGHT  // Fill from left to right
+            }
+        );
+
+        const doorRight = this.display.createTile(
+            2, 3,          // Position right door panel
+            '',            // Left-half block
+            '#888888FF',    // Match left door
+            '#444444FF',
+            2,
+            {
+                bgPercent: 0.5,
+                fillDirection: FillDirection.LEFT  // Fill from right to left
+            }
+        );
+
+        const doorBehind = this.display.createTile(2, 3, '', '#000000FF', '#000000FF', 1);
+
+        // Add value animations for both door panels
+        this.display.addValueAnimation(doorLeft, {
+            bgPercent: {
+                start: 0.5,      // Start half open
+                end: 0.05,       // Almost closed
+                duration: 2.0,    // 2 seconds per cycle
+                reverse: true,    // Bounce back and forth
+                easing: Easing.sineInOut
+            },
+            startTime: doorStartTime
+        });
+
+        this.display.addValueAnimation(doorRight, {
+            bgPercent: {
+                start: 0.5,
+                end: 0.05,
+                duration: 2.0,
+                reverse: true,
+                easing: Easing.sineInOut
+            },
+            startTime: doorStartTime
+        });
+
+        this.animatedTiles.push(doorLeft, doorRight);
     }
 
     protected cleanup(): void {
