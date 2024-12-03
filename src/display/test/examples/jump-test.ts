@@ -122,7 +122,7 @@ export class JumpTest extends BaseTest {
                         start: startX,
                         end: startX + (dx * 0.4),
                         duration: 0.3,
-                        easing: Easing.expoIn,
+                        easing: Easing.quadIn,
                         loop: false,
                         next: {
                             // Second segment: Move remaining 3 spaces with a jump
@@ -138,7 +138,7 @@ export class JumpTest extends BaseTest {
                         start: startY,
                         end: startY + (dy * 0.4),
                         duration: 0.3,
-                        easing: Easing.expoIn,
+                        easing: Easing.quadIn,
                         loop: false,
                         next: {
                             start: startY + (dy * 0.4),
@@ -150,7 +150,29 @@ export class JumpTest extends BaseTest {
                     };
 
                     // Scale animation that coincides with the second movement
-                    const scaleAnimation = {
+                    const scaleXAnimation = {
+                        start: 1.0,
+                        end: 0.8,
+                        duration: 0.2,
+                        easing: Easing.quadOut,
+                        loop: false,
+                        next: {
+                            start: 1.0,
+                            end: 2.5,
+                            duration: 0.2,
+                            easing: Easing.quadIn,
+                            loop: false,
+                            next: {
+                                start: 2.5,
+                                end: 1.0,
+                                duration: 0.2,
+                                easing: Easing.quadIn,
+                                loop: false
+                            }
+                        }
+                    };
+
+                    const scaleYAnimation = {
                         start: 1.0,
                         end: 1.0,
                         duration: 0.2,
@@ -171,12 +193,12 @@ export class JumpTest extends BaseTest {
                             }
                         }
                     };
-
+                    
                     this.display.addValueAnimation(tileId, {
                         x: firstMove,
                         y: firstMoveY,
-                        scaleSymbolX: scaleAnimation,
-                        scaleSymbolY: scaleAnimation
+                        scaleSymbolX: scaleXAnimation,
+                        scaleSymbolY: scaleYAnimation
                     });
                 }
             });
