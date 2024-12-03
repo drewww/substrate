@@ -804,7 +804,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             }
                         
             const updateAnimation = (animation: ColorAnimation | undefined, property: 'color' | 'backgroundColor') => {
-                if (!animation) return undefined;
+                if (!animation || !animation.running) return animation;  // Add running check here
 
                 const elapsed = (timestamp - animation.startTime) / 1000;
                 let progress = (elapsed / animation.duration) + animation.offset;
@@ -829,14 +829,13 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 // Check if animation is complete
                 if (!animation.loop && progress >= 1) {
                     if (animation.next) {
-                        // Start the next animation in the chain
                         animation.next.startTime = timestamp;
                         return animation.next;
                     }
-                    return undefined; // Animation complete, no next animation
+                    return undefined;
                 }
                 
-                return animation; // Animation ongoing
+                return animation;
             };
 
             animations.fg = updateAnimation(animations.fg, 'color');

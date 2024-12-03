@@ -789,12 +789,17 @@ export class PatternAnimationTest extends BaseTest {
         });
         this.display.addColorAnimation(dropInId, {
             fg: {
-                start: '#FFFFFF00',  // Starts transparent
+                start: '#FF00FF00',  // Starts transparent
                 end: '#FFFFFFFF',
-                duration: 0.8  // Matches the drop duration
+                duration: 0.8,  // Matches the drop duration
+                loop: true
             }
         });
         this.animatedTiles.push(dropInId);
+
+        setTimeout(() => {
+            this.display.stopTileAnimations(dropInId);
+        }, 4000);
 
         // Pop and fade out
         const popId = this.display.createTile(28, 17, '★', '#FF0000FF', '#000000FF', 1);
@@ -1027,6 +1032,10 @@ export class PatternAnimationTest extends BaseTest {
             }
         });
         this.animatedTiles.push(spinnerTile);
+
+        setTimeout(() => {
+            this.display.stopTileAnimations(spinnerTile);
+        }, 4000);
 
         // Pendulum rotation
         const pendulumTile = this.display.createTile(36, 17, '⚊', '#FF00FFFF', '#000000FF', 1);
