@@ -60,7 +60,7 @@ export interface SymbolAnimation {
     startTime: number;
     duration: number;     // Time in seconds for one complete cycle
     reverse: boolean;     // Whether to reverse at end
-    // TODO add loop logic here
+    loop: boolean;
     offset: number;      // Initial offset (0-1)
     easing?: EasingFunction;  // Optional easing function
 }

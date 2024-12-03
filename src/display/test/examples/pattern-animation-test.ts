@@ -114,7 +114,7 @@ export class PatternAnimationTest extends BaseTest {
         // Pattern 3: Wave pattern
         const waveSymbols = [' ', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'];
         const waveId = this.display.createTile(15, 5, ' ', '#0088FFFF', '#000000FF', 1);
-        this.display.addSymbolAnimation(waveId, waveSymbols, 1.0, true);
+        this.display.addSymbolAnimation(waveId, waveSymbols, 1.0, 0, true, true);
         this.animatedTiles.push(waveId);
 
         // Color animation 1: Pulsing red background
@@ -279,7 +279,7 @@ export class PatternAnimationTest extends BaseTest {
                               '[========  ]', '[========= ]', '[==========]'];
         for (let i = 0; i < progressChars[0].length; i++) {
             const charId = this.display.createTile(2 + i, 18, progressChars[0][i], '#00FF00FF', '#000000FF', 1);
-            this.display.addSymbolAnimation(charId, progressChars.map(frame => frame[i]), 2.0, true);
+            this.display.addSymbolAnimation(charId, progressChars.map(frame => frame[i]), 2.0, 0, true, true);
             this.animatedTiles.push(charId);
         }
 

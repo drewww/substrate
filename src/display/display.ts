@@ -714,8 +714,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         tileId: TileId, 
         symbols: string[], 
         duration: number, 
-        reverse: boolean = false, 
         offset: number = 0,
+        loop: boolean = true,
+        reverse: boolean = false, 
         startTime?: number
     ): void {
         if (!this.tileMap.has(tileId)) {
@@ -728,6 +729,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             startTime: startTime ?? performance.now(),
             duration,
             reverse,
+            loop,
             offset
         });
     }
@@ -743,17 +745,26 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             const elapsed = (timestamp - animation.startTime) / 1000;
             let progress = (elapsed / animation.duration) + (animation.offset || 0);
             
-            if (animation.reverse) {
-                progress = progress % 2;
-                if (progress > 1) {
-                    progress = 2 - progress;
+            if (animation.loop) {
+                if (animation.reverse) {
+                    progress = progress % 2;
+                    if (progress > 1) {
+                        progress = 2 - progress;
+                    }
+                } else {
+                    progress = progress % 1;
                 }
             } else {
-                progress = progress % 1;
+                progress = Math.min(progress, 1);
             }
             
             const index = Math.floor(progress * animation.symbols.length);
             tile.char = animation.symbols[index];
+
+            // Remove animation if complete and not looping
+            if (!animation.loop && progress >= 1) {
+                this.animations.delete(tileId);
+            }
         }
     }
 
