@@ -1,12 +1,12 @@
-import { Display, DisplayConfig } from '../../display';
+import { Display, DisplayOptions } from '../../display';
 import { logger } from '../../util/logger';
 
 export abstract class BaseTest {
     protected display!: Display;
     public isRunning: boolean = false;
-    protected options: DisplayConfig;
+    protected options: DisplayOptions;
 
-    constructor(options: DisplayConfig) {
+    constructor(options: DisplayOptions) {
         this.options = {
             ...options,
             elementId: 'canvas'

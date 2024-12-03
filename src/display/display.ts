@@ -1,5 +1,5 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, EasingFunction, ColorAnimationOptions, TileConfig } from './types';
+import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, ColorAnimationOptions, TileConfig, ValueAnimationOption, ValueAnimationsOptions } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from './util/logger';
 
@@ -19,7 +19,7 @@ interface PerformanceMetrics {
     averageWorldUpdateTime: number;
 }
 
-export interface DisplayConfig {
+export interface DisplayOptions {
     elementId?: string;
     cellWidth: number;
     cellHeight: number;
@@ -31,7 +31,7 @@ export interface DisplayConfig {
     customFont?: string;
 }
 
-export interface StringConfig {
+export interface StringOptions {
     text: string;
     options?: {
         zIndex?: number;
@@ -92,27 +92,6 @@ export const Easing = {
         t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2
 };
 
-export interface ValueAnimationConfig {
-    start: number;
-    end: number;
-    duration: number;
-    reverse?: boolean;
-    offset?: number;
-    easing?: EasingFunction;
-    loop?: boolean;
-}
-
-export interface ValueAnimationOptions {
-    bgPercent?: ValueAnimationConfig;
-    offsetSymbolX?: ValueAnimationConfig;
-    offsetSymbolY?: ValueAnimationConfig;
-    scaleSymbolX?: ValueAnimationConfig;
-    scaleSymbolY?: ValueAnimationConfig;
-    x?: ValueAnimationConfig;
-    y?: ValueAnimationConfig;
-    startTime?: number;
-}
-
 export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private displayCtx: CanvasRenderingContext2D;
@@ -149,7 +128,7 @@ export class Display {
     
     private textParser: TextParser;
 
-    constructor(options: DisplayConfig) {
+    constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
         this.scale = window.devicePixelRatio || 1;
@@ -877,7 +856,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.colorAnimations.set(tileId, animations);
     }
 
-    private createValueAnimation(config: ValueAnimationConfig, startTime: number): ValueAnimation {
+    private createValueAnimation(config: ValueAnimationOption, startTime: number): ValueAnimation {
         return {
             startValue: config.start,
             endValue: config.end,
@@ -885,12 +864,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             startTime: startTime,
             reverse: config.reverse || false,
             offset: config.offset || 0,
-            easing: config.easing,
+            easing: config.easing || Easing.linear,
             loop: config.loop ?? true
         };
     }
 
-    public addValueAnimation(tileId: TileId, options: ValueAnimationOptions): void {
+    public addValueAnimation(tileId: TileId, options: ValueAnimationsOptions): void {
         const effectiveStartTime = options.startTime ?? performance.now();
         
         // Get existing animations or create new object

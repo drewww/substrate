@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../../types';
-import { StringConfig } from '../../display';
+import { StringOptions } from '../../display';
 
 interface ActiveString {
     tileIds: TileId[];
@@ -34,7 +34,7 @@ export class StringTest extends BaseTest {
         // Set dark gray background with dots
         this.display.setBackground('.', '#AAAAAAFF', '#222222FF');
 
-        const strings: StringConfig[] = [
+        const strings: StringOptions[] = [
             { 
                 text: "{r}Hello{/}, {b}Matrix{/} {g}Display!{/}", 
                 options: {

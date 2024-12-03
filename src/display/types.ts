@@ -43,36 +43,14 @@ export interface ColoredString {
 
 export type EasingFunction = (t: number) => number;
 
-// Base animation options that all animations share
-export interface AnimationOptions {
-    duration: number;
-    reverse?: boolean;
-    loop?: boolean;
-    offset?: number;
-    easing?: EasingFunction;
-}
-
-// Color-specific animation options
-export interface ColorTransition extends AnimationOptions {
-    start: Color;
-    end: Color;
-}
-
-// Options for color animations
-export interface ColorAnimationOptions {
-    fg?: ColorTransition;
-    bg?: ColorTransition;
-    startTime?: number;
-}
-
 // Keep existing ColorAnimation for backward compatibility
 export interface ColorAnimation {
     startColor: Color;
     endColor: Color;
     duration: number;
     startTime: number;
-    reverse?: boolean;
-    loop?: boolean;
+    reverse: boolean;
+    loop: boolean;
     offset: number;
     easing?: EasingFunction;
 }
@@ -82,6 +60,7 @@ export interface SymbolAnimation {
     startTime: number;
     duration: number;     // Time in seconds for one complete cycle
     reverse: boolean;     // Whether to reverse at end
+    // TODO add loop logic here
     offset: number;      // Initial offset (0-1)
     easing?: EasingFunction;  // Optional easing function
 }
@@ -93,8 +72,8 @@ export interface ValueAnimation {
     startTime: number;     // Timestamp when animation started
     reverse: boolean;      // Whether to reverse direction at endpoints
     offset: number;        // Initial offset (0-1)
-    easing?: EasingFunction;  // Optional easing function
-    loop?: boolean;         // Whether to loop the animation
+    easing: EasingFunction;  // Optional easing function
+    loop: boolean;         // Whether to loop the animation
 }
 
 export enum EasingType {
@@ -120,4 +99,53 @@ export interface TileConfig {
     bgPercent?: number;
     fillDirection?: FillDirection;
     noClip?: boolean;
+}
+
+
+
+// BELOW HERE ARE TYPES SPECIFICALLY FOR EXTENDED FUNCTION ARGUMENTS
+// Calling these "options."
+
+// Color-specific animation options
+export interface ColorTransitionOptions extends AnimationOptions {
+    start: Color;
+    end: Color;
+}
+
+
+// Base animation options that all animations share
+export interface AnimationOptions {
+    duration: number;
+    reverse?: boolean;
+    loop?: boolean;
+    offset?: number;
+    easing?: EasingFunction;
+}
+
+export interface ValueAnimationOption {
+    start: number;
+    end: number;
+    duration: number;
+    reverse?: boolean;
+    offset?: number;
+    easing?: EasingFunction;
+    loop?: boolean;
+}
+
+export interface ValueAnimationsOptions {
+    bgPercent?: ValueAnimationOption;
+    offsetSymbolX?: ValueAnimationOption;
+    offsetSymbolY?: ValueAnimationOption;
+    scaleSymbolX?: ValueAnimationOption;
+    scaleSymbolY?: ValueAnimationOption;
+    x?: ValueAnimationOption;
+    y?: ValueAnimationOption;
+    startTime?: number;
+}
+
+// Options for color animations
+export interface ColorAnimationOptions {
+    fg?: ColorTransitionOptions;
+    bg?: ColorTransitionOptions;
+    startTime?: number;
 }
