@@ -1,5 +1,5 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, ColorAnimationOptions, TileConfig, ValueAnimationOption, ValueAnimationsOptions } from './types';
+import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from './util/logger';
 
@@ -780,12 +780,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 continue;
             }
                         
-            if (animations.fg) {
-                const elapsed = (timestamp - animations.fg.startTime) / 1000;
-                let progress = (elapsed / animations.fg.duration) + animations.fg.offset;
+            const updateAnimation = (animation: ColorAnimation | undefined, property: 'color' | 'backgroundColor') => {
+                if (!animation) return undefined;
+
+                const elapsed = (timestamp - animation.startTime) / 1000;
+                let progress = (elapsed / animation.duration) + animation.offset;
                 
-                if (animations.fg.loop) {
-                    if (animations.fg.reverse) {
+                if (animation.loop) {
+                    if (animation.reverse) {
                         progress = progress % 2;
                         if (progress > 1) {
                             progress = 2 - progress;
@@ -797,38 +799,25 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     progress = Math.min(progress, 1);
                 }
                 
-                tile.color = interpolateColor(animations.fg.startColor, animations.fg.endColor, progress);
+                const easedProgress = animation.easing ? animation.easing(progress) : progress;
+                const interpolatedColor = interpolateColor(animation.startColor, animation.endColor, easedProgress);
+                tile[property] = interpolatedColor;
 
-                // Remove animation if complete and not looping
-                if (!animations.fg.loop && progress >= 1) {
-                    delete animations.fg;
-                }
-            }
-            
-            if (animations.bg) {
-                const elapsed = (timestamp - animations.bg.startTime) / 1000;
-                let progress = (elapsed / animations.bg.duration) + animations.bg.offset;
-                
-                if (animations.bg.loop) {
-                    if (animations.bg.reverse) {
-                        progress = progress % 2;
-                        if (progress > 1) {
-                            progress = 2 - progress;
-                        }
-                    } else {
-                        progress = progress % 1;
+                // Check if animation is complete
+                if (!animation.loop && progress >= 1) {
+                    if (animation.next) {
+                        // Start the next animation in the chain
+                        animation.next.startTime = timestamp;
+                        return animation.next;
                     }
-                } else {
-                    progress = Math.min(progress, 1);
+                    return undefined; // Animation complete, no next animation
                 }
                 
-                tile.backgroundColor = interpolateColor(animations.bg.startColor, animations.bg.endColor, progress);
+                return animation; // Animation ongoing
+            };
 
-                // Remove animation if complete and not looping
-                if (!animations.bg.loop && progress >= 1) {
-                    delete animations.bg;
-                }
-            }
+            animations.fg = updateAnimation(animations.fg, 'color');
+            animations.bg = updateAnimation(animations.bg, 'backgroundColor');
 
             // Clean up if no animations remain
             if (!animations.fg && !animations.bg) {
@@ -837,35 +826,33 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         }
     }
 
-    public addColorAnimation(tileId: TileId, options: ColorAnimationOptions): void {
+    public addColorAnimation(tileId: TileId, options: TileColorAnimationOptions): void {
         const animations: {fg?: ColorAnimation, bg?: ColorAnimation} = {};
         const effectiveStartTime = options.startTime ?? performance.now();
-        
+
+        const createColorAnimationChain = (transition: ColorAnimationOptions, startTime: number): ColorAnimation => {
+            const animation: ColorAnimation = {
+                startColor: transition.start,
+                endColor: transition.end,
+                duration: transition.duration,
+                startTime: startTime,
+                reverse: transition.reverse || false,
+                loop: transition.loop || false,
+                offset: transition.offset || 0,
+                easing: transition.easing,
+                next: transition.next ? createColorAnimationChain(transition.next, startTime) : undefined
+            };
+            return animation;
+        };
+
         if (options.fg) {
-            animations.fg = {
-                startColor: options.fg.start,
-                endColor: options.fg.end,
-                duration: options.fg.duration,
-                startTime: effectiveStartTime,
-                reverse: options.fg.reverse || false,
-                loop: options.fg.loop || false,
-                offset: options.fg.offset || 0,
-                easing: options.fg.easing
-            };
+            animations.fg = createColorAnimationChain(options.fg, effectiveStartTime);
         }
-        
+
         if (options.bg) {
-            animations.bg = {
-                startColor: options.bg.start,
-                endColor: options.bg.end,
-                duration: options.bg.duration,
-                startTime: effectiveStartTime,
-                reverse: options.bg.reverse || false,
-                loop: options.bg.loop || false,
-                offset: options.bg.offset || 0
-            };
+            animations.bg = createColorAnimationChain(options.bg, effectiveStartTime);
         }
-        
+
         this.colorAnimations.set(tileId, animations);
     }
 
@@ -882,7 +869,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         };
     }
 
-    public addValueAnimation(tileId: TileId, options: ValueAnimationsOptions): void {
+    public addValueAnimation(tileId: TileId, options: TileValueAnimationsOptions): void {
         const effectiveStartTime = options.startTime ?? performance.now();
         
         // Get existing animations or create new object

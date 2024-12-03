@@ -53,6 +53,7 @@ export interface ColorAnimation {
     loop: boolean;
     offset: number;
     easing?: EasingFunction;
+    next?: ColorAnimation;  // Reference to the next animation in the chain
 }
 
 export interface SymbolAnimation {
@@ -106,13 +107,6 @@ export interface TileConfig {
 // BELOW HERE ARE TYPES SPECIFICALLY FOR EXTENDED FUNCTION ARGUMENTS
 // Calling these "options."
 
-// Color-specific animation options
-export interface ColorTransitionOptions extends AnimationOptions {
-    start: Color;
-    end: Color;
-}
-
-
 // Base animation options that all animations share
 export interface AnimationOptions {
     duration: number;
@@ -120,6 +114,17 @@ export interface AnimationOptions {
     loop?: boolean;
     offset?: number;
     easing?: EasingFunction;
+}
+
+// Base interface for chaining
+interface ChainableAnimation {
+    next?: ColorAnimationOptions;  // Reference to the next animation in chain
+}
+
+// Update ColorTransitionOptions to be chainable
+export interface ColorAnimationOptions extends AnimationOptions, ChainableAnimation {
+    start: Color;
+    end: Color;
 }
 
 export interface ValueAnimationOption {
@@ -132,7 +137,7 @@ export interface ValueAnimationOption {
     loop?: boolean;
 }
 
-export interface ValueAnimationsOptions {
+export interface TileValueAnimationsOptions {
     bgPercent?: ValueAnimationOption;
     offsetSymbolX?: ValueAnimationOption;
     offsetSymbolY?: ValueAnimationOption;
@@ -144,8 +149,8 @@ export interface ValueAnimationsOptions {
 }
 
 // Options for color animations
-export interface ColorAnimationOptions {
-    fg?: ColorTransitionOptions;
-    bg?: ColorTransitionOptions;
+export interface TileColorAnimationOptions {
+    fg?: ColorAnimationOptions;
+    bg?: ColorAnimationOptions;
     startTime?: number;
 }
