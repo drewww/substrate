@@ -8,8 +8,11 @@ export class JumpTest extends BaseTest {
     private readonly BACKGROUND_SYMBOLS = [',', '.', '-', '=', '_'];
     private tileIds: TileId[] = [];
     private backgroundTileIds: TileId[] = [];
-    private readonly SECONDS_SINCE_MOVED = 2;
     private lastMovedTimestamp: number;
+
+    private readonly DURATION_MULTIPLIER = 5.0;
+    private readonly SECONDS_SINCE_MOVED = 1 * this.DURATION_MULTIPLIER;
+
     
     constructor() {
         super({
@@ -121,14 +124,14 @@ export class JumpTest extends BaseTest {
                     const firstMove = {
                         start: startX,
                         end: startX + (dx * 0.4),
-                        duration: 0.3,
+                        duration: 0.3 * this.DURATION_MULTIPLIER,
                         easing: Easing.quadIn,
                         loop: false,
                         next: {
                             // Second segment: Move remaining 3 spaces with a jump
                             start: startX + (dx * 0.4),
                             end: newX,
-                            duration: 0.4,
+                            duration: 0.4 * this.DURATION_MULTIPLIER,
                             easing: Easing.expoOut,
                             loop: false
                         }
@@ -137,13 +140,13 @@ export class JumpTest extends BaseTest {
                     const firstMoveY = {
                         start: startY,
                         end: startY + (dy * 0.4),
-                        duration: 0.3,
+                        duration: 0.3 * this.DURATION_MULTIPLIER,
                         easing: Easing.quadIn,
                         loop: false,
                         next: {
                             start: startY + (dy * 0.4),
                             end: newY,
-                            duration: 0.4,
+                            duration: 0.4 * this.DURATION_MULTIPLIER,
                             easing: Easing.expoOut,
                             loop: false
                         }
@@ -153,19 +156,19 @@ export class JumpTest extends BaseTest {
                     const scaleXAnimation = {
                         start: 1.0,
                         end: direction === 1 || direction === 3 ? 0.6 : 1.0,
-                        duration: 0.2,
+                        duration: 0.2 * this.DURATION_MULTIPLIER,
                         easing: Easing.quadOut,
                         loop: false,
                         next: {
                             start: direction === 1 || direction === 3 ? 0.6 : 1.0,
                             end: 2.5,
-                            duration: 0.2,
+                            duration: 0.2 * this.DURATION_MULTIPLIER,
                             easing: Easing.quadIn,
                             loop: false,
                             next: {
                                 start: 2.5,
                                 end: 1.0,
-                                duration: 0.2,
+                                duration: 0.2 * this.DURATION_MULTIPLIER,
                                 easing: Easing.quadIn,
                                 loop: false
                             }
@@ -175,52 +178,22 @@ export class JumpTest extends BaseTest {
                     const scaleYAnimation = {
                         start: 1.0,
                         end: direction === 1 || direction === 3 ? 1.0 : 0.6,
-                        duration: 0.2,
+                        duration: 0.2 * this.DURATION_MULTIPLIER,
                         easing: Easing.quadOut,
                         loop: false,
                         next: {
                             start: direction === 1 || direction === 3 ? 1.0 : 0.6,
                             end: 2.5,
-                            duration: 0.2,
+                            duration: 0.2 * this.DURATION_MULTIPLIER,
                             easing: Easing.quadIn,
                             loop: false,
                             next: {
                                 start: 2.5,
                                 end: 1.0,
-                                duration: 0.2,
+                                duration: 0.2 * this.DURATION_MULTIPLIER,
                                 easing: Easing.quadIn,
                                 loop: false
                             }
-                        }
-                    };
-                    
-                    const offsetXAnimation = {
-                        start: 0,
-                        end: direction === 1 ? 2 : direction === 3 ? -2 : 0,
-                        duration: 0.2,
-                        easing: Easing.quadIn,
-                        loop: false,
-                        next: {
-                            start: direction === 1 ? 2 : direction === 3 ? -2 : 0,
-                            end: 0,
-                            duration: 0.2,
-                            easing: Easing.quadOut,
-                            loop: false
-                        }
-                    };
-
-                    const offsetYAnimation = {
-                        start: 0,
-                        end: direction === 0 ? -2 : direction === 2 ? 2 : 0,
-                        duration: 0.2,
-                        easing: Easing.quadIn,
-                        loop: false,
-                        next: {
-                            start: direction === 0 ? -2 : direction === 2 ? 2 : 0,
-                            end: 0,
-                            duration: 0.2,
-                            easing: Easing.quadOut,
-                            loop: false
                         }
                     };
 
@@ -228,9 +201,7 @@ export class JumpTest extends BaseTest {
                         x: firstMove,
                         y: firstMoveY,
                         scaleSymbolX: scaleXAnimation,
-                        scaleSymbolY: scaleYAnimation,
-                        offsetSymbolX: offsetXAnimation,
-                        offsetSymbolY: offsetYAnimation
+                        scaleSymbolY: scaleYAnimation
                     });
                 }
             });
