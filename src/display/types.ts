@@ -18,6 +18,7 @@ export interface Tile {
     offsetSymbolY: number;
     scaleSymbolX: number;  // Default to 1.0
     scaleSymbolY: number;  // Default to 1.0
+    rotation: number;     // New property: rotation in radians
     noClip?: boolean;     // New option to disable clipping mask
 }
 
@@ -145,6 +146,7 @@ export interface TileValueAnimationsOptions {
     offsetSymbolY?: ValueAnimationOption;
     scaleSymbolX?: ValueAnimationOption;
     scaleSymbolY?: ValueAnimationOption;
+    rotation?: ValueAnimationOption;  // New animation option
     x?: ValueAnimationOption;
     y?: ValueAnimationOption;
     startTime?: number;

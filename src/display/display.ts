@@ -117,7 +117,8 @@ export class Display {
         offsetSymbolX?: ValueAnimation,
         offsetSymbolY?: ValueAnimation,
         scaleSymbolX?: ValueAnimation,
-        scaleSymbolY?: ValueAnimation
+        scaleSymbolY?: ValueAnimation,
+        rotation?: ValueAnimation
     }> = new Map();
 
     private hasChanges: boolean = true;
@@ -264,6 +265,7 @@ export class Display {
             offsetSymbolY: 0,
             scaleSymbolX: 1.0,
             scaleSymbolY: 1.0,
+            rotation: 0,
             noClip: config?.noClip ?? false
         };
         
@@ -338,6 +340,16 @@ export class Display {
                 const cellWidth = this.cellWidthScaled;
                 const cellHeight = this.cellHeightScaled;
 
+                // Save context before rotation for background
+                this.worldCtx.save();
+                
+                // Rotate from center if needed
+                if (tile.rotation) {
+                    this.worldCtx.translate(cellWidth/2, cellHeight/2);
+                    this.worldCtx.rotate(tile.rotation);
+                    this.worldCtx.translate(-cellWidth/2, -cellHeight/2);
+                }
+
                 switch (tile.fillDirection) {
                     case FillDirection.TOP:
                         this.worldCtx.fillRect(
@@ -372,6 +384,8 @@ export class Display {
                         );
                         break;
                 }
+                
+                this.worldCtx.restore();
             }
         }
         
@@ -381,10 +395,18 @@ export class Display {
             
             this.worldCtx.save();
             
+            // Move to center of cell
             this.worldCtx.translate(this.cellWidthScaled/2, this.cellHeightScaled * 0.55);
             
+            // Apply rotation if any
+            if (tile.rotation) {
+                this.worldCtx.rotate(tile.rotation);
+            }
+            
+            // Apply scale
             this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
             
+            // Apply offset
             this.worldCtx.translate(offsetX, offsetY);
             
             this.worldCtx.fillStyle = tile.color;
@@ -856,50 +878,50 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.colorAnimations.set(tileId, animations);
     }
 
-    private createValueAnimation(config: ValueAnimationOption, startTime: number): ValueAnimation {
-        return {
+    public addValueAnimation(tileId: TileId, options: TileValueAnimationsOptions): void {
+        const effectiveStartTime = options.startTime ?? performance.now();
+        const existingAnimations = this.valueAnimations.get(tileId) || {};
+        
+        const createValueAnimation = (config: ValueAnimationOption): ValueAnimation => ({
             startValue: config.start,
             endValue: config.end,
             duration: config.duration,
-            startTime: startTime,
+            startTime: effectiveStartTime,
             reverse: config.reverse || false,
             offset: config.offset || 0,
             easing: config.easing || Easing.linear,
             loop: config.loop ?? true,
-            next: config.next ? this.createValueAnimation(config.next, performance.now()) : undefined
-        };
-    }
+            next: config.next ? createValueAnimation(config.next) : undefined,
+        });
 
-    public addValueAnimation(tileId: TileId, options: TileValueAnimationsOptions): void {
-        const effectiveStartTime = options.startTime ?? performance.now();
-        
-        // Get existing animations or create new object
-        const existingAnimations = this.valueAnimations.get(tileId) || {};
-        
-        // Merge new animations with existing ones
+        // Add rotation animation
+        if (options.rotation) {
+            existingAnimations.rotation = createValueAnimation(options.rotation);
+        }
+
+        // Existing animation properties
         if (options.bgPercent) {
-            existingAnimations.bgPercent = this.createValueAnimation(options.bgPercent, effectiveStartTime);
+            existingAnimations.bgPercent = createValueAnimation(options.bgPercent);
         }
         if (options.offsetSymbolX) {
-            existingAnimations.offsetSymbolX = this.createValueAnimation(options.offsetSymbolX, effectiveStartTime);
+            existingAnimations.offsetSymbolX = createValueAnimation(options.offsetSymbolX);
         }
         if (options.offsetSymbolY) {
-            existingAnimations.offsetSymbolY = this.createValueAnimation(options.offsetSymbolY, effectiveStartTime);
+            existingAnimations.offsetSymbolY = createValueAnimation(options.offsetSymbolY);
         }
         if (options.scaleSymbolX) {
-            existingAnimations.scaleSymbolX = this.createValueAnimation(options.scaleSymbolX, effectiveStartTime);
+            existingAnimations.scaleSymbolX = createValueAnimation(options.scaleSymbolX);
         }
         if (options.scaleSymbolY) {
-            existingAnimations.scaleSymbolY = this.createValueAnimation(options.scaleSymbolY, effectiveStartTime);
+            existingAnimations.scaleSymbolY = createValueAnimation(options.scaleSymbolY);
         }
         if (options.x) {
-            existingAnimations.x = this.createValueAnimation(options.x, effectiveStartTime);
+            existingAnimations.x = createValueAnimation(options.x);
         }
         if (options.y) {
-            existingAnimations.y = this.createValueAnimation(options.y, effectiveStartTime);
+            existingAnimations.y = createValueAnimation(options.y);
         }
 
-        // Update with merged animations
         this.valueAnimations.set(tileId, existingAnimations);
     }
 
@@ -911,10 +933,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 continue;
             }
 
-            // Helper function to update any value animation
             const updateAnimation = (
                 animation: ValueAnimation | undefined, 
-                property: 'x' | 'y' | 'scaleSymbolX' | 'scaleSymbolY' | 'offsetSymbolX' | 'offsetSymbolY' | 'bgPercent'
+                property: 'x' | 'y' | 'scaleSymbolX' | 'scaleSymbolY' | 'offsetSymbolX' | 'offsetSymbolY' | 'bgPercent' | 'rotation'
             ) => {
                 if (!animation) return undefined;
 
@@ -941,17 +962,17 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 // Check if animation is complete
                 if (!animation.loop && progress >= 1) {
                     if (animation.next) {
-                        // Start the next animation in the chain
                         animation.next.startTime = timestamp;
                         return animation.next;
                     }
-                    return undefined; // Animation complete, no next animation
+                    return undefined;
                 }
                 
-                return animation; // Animation ongoing
+                return animation;
             };
 
-            // Update each animation type
+            // Update each animation type including rotation
+            animations.rotation = updateAnimation(animations.rotation, 'rotation');
             animations.x = updateAnimation(animations.x, 'x');
             animations.y = updateAnimation(animations.y, 'y');
             animations.scaleSymbolX = updateAnimation(animations.scaleSymbolX, 'scaleSymbolX');
@@ -959,11 +980,6 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             animations.offsetSymbolX = updateAnimation(animations.offsetSymbolX, 'offsetSymbolX');
             animations.offsetSymbolY = updateAnimation(animations.offsetSymbolY, 'offsetSymbolY');
             animations.bgPercent = updateAnimation(animations.bgPercent, 'bgPercent');
-
-            // Clean up if no animations remain
-            if (Object.keys(animations).length === 0) {
-                this.valueAnimations.delete(tileId);
-            }
         }
     }
 

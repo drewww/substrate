@@ -1010,6 +1010,62 @@ export class PatternAnimationTest extends BaseTest {
         this.createLaserRow(14, true, 0.50, 0.40);
 
         this.createLaserRow(16, false, 0.50, 0.30);
+
+        // Continuous rotation
+        const spinnerTile = this.display.createTile(37, 16, '↑', '#FFFF00FF', '#000000FF', 1);
+        this.display.addValueAnimation(spinnerTile, {
+            rotation: {
+                start: 0,
+                end: Math.PI * 2,  // Full rotation
+                duration: 2.0,
+                loop: true,
+                easing: Easing.linear
+            }
+        });
+        this.animatedTiles.push(spinnerTile);
+
+        // Pendulum rotation
+        const pendulumTile = this.display.createTile(36, 17, '⚊', '#FF00FFFF', '#000000FF', 1);
+        this.display.addValueAnimation(pendulumTile, {
+            rotation: {
+                start: -Math.PI / 4,  // -45 degrees
+                end: Math.PI / 4,     // +45 degrees
+                duration: 1.5,
+                reverse: true,
+                loop: true,
+                easing: Easing.sineInOut
+            }
+        });
+        this.animatedTiles.push(pendulumTile);
+
+        // Combined rotation and scale effect
+        const pulsarTile = this.display.createTile(37, 18, '✦', '#00FFFFFF', '#000000FF', 1);
+        this.display.addValueAnimation(pulsarTile, {
+            rotation: {
+                start: 0,
+                end: Math.PI * 2,
+                duration: 3.0,
+                loop: true,
+                easing: Easing.linear
+            },
+            scaleSymbolX: {
+                start: 0.5,
+                end: 1.5,
+                duration: 1.5,
+                reverse: true,
+                loop: true,
+                easing: Easing.sineInOut
+            },
+            scaleSymbolY: {
+                start: 0.5,
+                end: 1.5,
+                duration: 1.5,
+                reverse: true,
+                loop: true,
+                easing: Easing.sineInOut
+            }
+        });
+        this.animatedTiles.push(pulsarTile);
     }
 
     protected cleanup(): void {
