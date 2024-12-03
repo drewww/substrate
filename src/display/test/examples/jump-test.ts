@@ -10,7 +10,7 @@ export class JumpTest extends BaseTest {
     private backgroundTileIds: TileId[] = [];
     private lastMovedTimestamp: number;
 
-    private readonly DURATION_MULTIPLIER = 5.0;
+    private readonly DURATION_MULTIPLIER = 1.5;
     private readonly SECONDS_SINCE_MOVED = 1 * this.DURATION_MULTIPLIER;
 
     
