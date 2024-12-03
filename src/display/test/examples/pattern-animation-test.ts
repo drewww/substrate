@@ -111,7 +111,114 @@ export class PatternAnimationTest extends BaseTest {
         }
     }
 
+    private createFireEffect(x: number, y: number): void {
+        // Base ember/coal layer
+        const emberTile = this.display.createTile(x, y, '●', '#FF3300AA', '#000000FF', 2);
+        
+        // Main fire body
+        const fireTile = this.display.createTile(x, y, '♦', '#FF9900DD', '#00000000', 3, { noClip: true });
+        
+        // Flickering flame top
+        const flameTile = this.display.createTile(x, y, '▲', '#FFFF00AA', '#00000000', 4, { noClip: true });
+
+        // Ember color animation (pulsing red/orange)
+        this.display.addColorAnimation(emberTile, {
+            fg: {
+                start: '#FF3300AA',
+                end: '#FF6600AA',
+                duration: 0.8,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true,
+                offset: 0.2
+            }
+        });
+
+        // Main fire color animation
+        this.display.addColorAnimation(fireTile, {
+            fg: {
+                start: '#FF9900DD',
+                end: '#FF6600DD',
+                duration: 0.4,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            }
+        });
+
+        // Flame top color animation
+        this.display.addColorAnimation(flameTile, {
+            fg: {
+                start: '#FFFF00AA',
+                end: '#FFCC00AA',
+                duration: 0.3,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true,
+                offset: 0.1
+            }
+        });
+
+        // Subtle ember position animation
+        this.display.addValueAnimation(emberTile, {
+            offsetSymbolY: {
+                start: 0,
+                end: 0.1,
+                duration: 1.2,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            }
+        });
+
+        // More active fire body movement
+        this.display.addValueAnimation(fireTile, {
+            offsetSymbolX: {
+                start: -0.1,
+                end: 0.1,
+                duration: 0.3,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            },
+            offsetSymbolY: {
+                start: -0.1,
+                end: 0.1,
+                duration: 0.4,
+                reverse: true,
+                easing: Easing.quadInOut,
+                loop: true,
+                offset: 0.2
+            }
+        });
+
+        // Quick, erratic flame top movement
+        this.display.addValueAnimation(flameTile, {
+            offsetSymbolX: {
+                start: -0.15,
+                end: 0.15,
+                duration: 0.2,
+                reverse: true,
+                easing: Easing.sineInOut,
+                loop: true
+            },
+            offsetSymbolY: {
+                start: -0.2,
+                end: 0,
+                duration: 0.3,
+                reverse: true,
+                easing: Easing.quadOut,
+                loop: true
+            }
+        });
+
+        this.animatedTiles.push(emberTile, fireTile, flameTile);
+    }
+
     protected run(): void {
+
+        this.display.setBackground(' ', '#000000FF', '#000000FF');
+
         // Pattern 1: Binary counter
         const binarySymbols = ['0', '1'];
         const binaryId = this.display.createTile(5, 5, '0', '#00FF00FF', '#000000FF', 1);
@@ -841,6 +948,9 @@ export class PatternAnimationTest extends BaseTest {
 
         // Replace the single smoke bomb with the pattern
         this.createSmokeBombPattern(10, 7);
+
+        // Create fire effect
+        this.createFireEffect(15, 11);
     }
 
     protected cleanup(): void {
