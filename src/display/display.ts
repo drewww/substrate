@@ -762,8 +762,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     private updateAnimations(timestamp: number): void {
         for (const [tileId, animation] of this.symbolAnimations) {
             const tile = this.tileMap.get(tileId);
-            if (!tile) {
-                this.symbolAnimations.delete(tileId);
+            if (!tile || !animation.running) {
+                if (!tile) {
+                    this.symbolAnimations.delete(tileId);
+                }
                 continue;
             }
 

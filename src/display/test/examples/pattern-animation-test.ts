@@ -281,6 +281,10 @@ export class PatternAnimationTest extends BaseTest {
         this.display.addSymbolAnimation(clockId, clockSymbols, 12.0);
         this.animatedTiles.push(clockId);
 
+        setTimeout(() => {
+            this.display.stopTileAnimations(clockId);
+        }, 4000);
+
         // Pattern 3: Wave pattern
         const waveSymbols = [' ', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'];
         const waveId = this.display.createTile(15, 5, ' ', '#0088FFFF', '#000000FF', 1);
