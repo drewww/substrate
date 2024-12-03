@@ -108,7 +108,7 @@ export class Display {
 
     private boundRenderFrame: (timestamp: number) => void;
     private isRunning: boolean = false;
-    private animations: Map<TileId, SymbolAnimation> = new Map();
+    private symbolAnimations: Map<TileId, SymbolAnimation> = new Map();
     private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
     private valueAnimations: Map<TileId, {
         bgPercent?: ValueAnimation,
@@ -300,7 +300,9 @@ export class Display {
             }
             
             logger.verbose(`Removing tile ${tileId}`);
-            this.animations.delete(tileId);
+            this.symbolAnimations.delete(tileId);
+            this.colorAnimations.delete(tileId);
+            this.valueAnimations.delete(tileId);
             this.tileMap.delete(tileId);
         }
     }
@@ -398,7 +400,7 @@ export class Display {
         const animationStart = performance.now();
         
         const hasActiveAnimations = 
-            this.animations.size > 0 || 
+            this.symbolAnimations.size > 0 || 
             this.colorAnimations.size > 0 || 
             this.valueAnimations.size > 0;
 
@@ -421,7 +423,7 @@ export class Display {
 
         const renderEnd = performance.now();
 
-        this.metrics.symbolAnimationCount = this.animations.size;
+        this.metrics.symbolAnimationCount = this.symbolAnimations.size;
         this.metrics.colorAnimationCount = this.colorAnimations.size;
         this.metrics.valueAnimationCount = this.valueAnimations.size;
         
@@ -515,7 +517,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         logger.info('Clearing display');
         
         this.tileMap.clear();
-        this.animations.clear();
+        this.symbolAnimations.clear();
         this.colorAnimations.clear();
         this.valueAnimations.clear();
 
@@ -724,7 +726,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             return;
         }
         
-        this.animations.set(tileId, {
+        this.symbolAnimations.set(tileId, {
             symbols,
             startTime: startTime ?? performance.now(),
             duration,
@@ -735,10 +737,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private updateAnimations(timestamp: number): void {
-        for (const [tileId, animation] of this.animations) {
+        for (const [tileId, animation] of this.symbolAnimations) {
             const tile = this.tileMap.get(tileId);
             if (!tile) {
-                this.animations.delete(tileId);
+                this.symbolAnimations.delete(tileId);
                 continue;
             }
 
@@ -763,7 +765,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
             // Remove animation if complete and not looping
             if (!animation.loop && progress >= 1) {
-                this.animations.delete(tileId);
+                this.symbolAnimations.delete(tileId);
             }
         }
     }
@@ -985,7 +987,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public clearAnimations(tileId: TileId): void {
-        this.animations.delete(tileId);
+        this.symbolAnimations.delete(tileId);
         this.colorAnimations.delete(tileId);
         this.valueAnimations.delete(tileId);
         
