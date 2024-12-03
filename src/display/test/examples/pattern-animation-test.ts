@@ -215,10 +215,60 @@ export class PatternAnimationTest extends BaseTest {
         this.animatedTiles.push(emberTile, fireTile, flameTile);
     }
 
+    private createLaserRow(y: number, loop: boolean = true): void {
+        const length = 11; // Length of the row
+        const laserRed = '#FF0000FF'; // Bright laser red
+
+        for (let x = 1; x < length; x++) {
+            // Background tile
+            const bgTile = this.display.createTile(x, y, ' ', laserRed, laserRed, 1);
+
+            // Top overlay tile
+            const topTile = this.display.createTile(x, y, ' ', '#00000000', '#000000FF', 2, {
+                bgPercent: 0.49,
+                fillDirection: FillDirection.TOP
+            });
+
+            // Bottom overlay tile
+            const bottomTile = this.display.createTile(x, y, ' ', '#00000000', '#000000FF', 3, {
+                bgPercent: 0.49,
+                fillDirection: FillDirection.BOTTOM
+            });
+
+            // Animate the top and bottom tiles
+            const offset = x * -0.1; // Offset for wave effect
+
+            this.display.addValueAnimation(topTile, {
+                bgPercent: {
+                    start: 0.49,
+                    end: 0.45,
+                    duration: 0.2,
+                    reverse: true,
+                    easing: Easing.sineInOut,
+                    loop: loop,
+                    offset: offset
+                }
+            });
+
+            this.display.addValueAnimation(bottomTile, {
+                bgPercent: {
+                    start: 0.49,
+                    end: 0.45,
+                    duration: 0.2,
+                    reverse: true,
+                    easing: Easing.sineInOut,
+                    loop: loop,
+                    offset: offset
+                }
+            });
+
+            this.animatedTiles.push(bgTile, topTile, bottomTile);
+        }
+    }
+
     protected run(): void {
 
         this.display.setBackground(' ', '#000000FF', '#000000FF');
-
         // Pattern 1: Binary counter
         const binarySymbols = ['0', '1'];
         const binaryId = this.display.createTile(5, 5, '0', '#00FF00FF', '#000000FF', 1);
@@ -951,6 +1001,11 @@ export class PatternAnimationTest extends BaseTest {
 
         // Create fire effect
         this.createFireEffect(15, 11);
+
+        // Create laser row
+        this.createLaserRow(12, false);
+
+        this.createLaserRow(13, true);
     }
 
     protected cleanup(): void {
