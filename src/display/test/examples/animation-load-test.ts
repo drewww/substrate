@@ -58,7 +58,8 @@ export class AnimationLoadTest extends BaseTest {
                         duration: 3.0,
                         reverse: true,
                         offset: (x + y) * 0.05,
-                        easing: Easing.sineInOut
+                        easing: Easing.sineInOut,
+                        loop: true
                     },
                     bg: {
                         start: '#00FF00FF',
@@ -66,7 +67,8 @@ export class AnimationLoadTest extends BaseTest {
                         duration: 4.0,
                         reverse: true,
                         offset: (x * y) * 0.01,
-                        easing: Easing.quadInOut
+                        easing: Easing.quadInOut,
+                        loop: true
                     },
                     startTime: startTime
                 });
@@ -79,7 +81,8 @@ export class AnimationLoadTest extends BaseTest {
                         duration: 1.5,
                         reverse: true,
                         offset: Math.sqrt(x * x + y * y) * 0.05,
-                        easing: Easing.expoInOut
+                        easing: Easing.expoInOut,
+                        loop: true
                     },
                     startTime: startTime
                 });
@@ -92,14 +95,16 @@ export class AnimationLoadTest extends BaseTest {
                         duration: 2.0,
                         reverse: true,
                         offset: (x - y) * 0.03,
-                        easing: Easing.bounceInOut
+                        easing: Easing.bounceInOut,
+                        loop: true
                     },
                     bg: {
                         start: '#00000000',
                         end: '#000000FF',
                         duration: 2.5,
                         reverse: true,
-                        offset: Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0.5
+                        offset: Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0.5,
+                        loop: true
                     },
                     startTime: startTime
                 });

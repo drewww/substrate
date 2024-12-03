@@ -941,16 +941,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 const elapsed = (timestamp - animation.startTime) / 1000;
                 let progress = (elapsed / animation.duration) + animation.offset;
 
-                if (!animation.loop && progress >= 1) {
-                    // Set final value and mark for removal
-                    tile[property] = animation.endValue;
-                    return true; // Animation complete
-                }
-
                 if (animation.loop) {
                     if (animation.reverse) {
                         progress = progress % 2;
-                        if (progress > 1) progress = 2 - progress;
+                        if (progress > 1) {
+                            progress = 2 - progress;
+                        }
                     } else {
                         progress = progress % 1;
                     }
@@ -964,6 +960,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
                 tile[property] = animation.startValue + 
                     (animation.endValue - animation.startValue) * easedProgress;
+                
+                // Remove animation if complete and not looping
+                if (!animation.loop && progress >= 1) {
+                    return true; // Animation complete
+                }
                 
                 return false; // Animation ongoing
             };
