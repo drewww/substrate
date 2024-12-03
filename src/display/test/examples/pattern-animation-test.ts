@@ -43,14 +43,14 @@ export class PatternAnimationTest extends BaseTest {
                 end: 3.0,
                 duration: 0.6,
                 easing: Easing.expoInOut,
-                loop: true
+                loop: false
             },
             scaleSymbolY: {
                 start: 0.0,
                 end: 3.0,
                 duration: 0.6,
                 easing: Easing.expoInOut,
-                loop: true
+                loop: false
             },
             startTime
         });
@@ -65,6 +65,16 @@ export class PatternAnimationTest extends BaseTest {
             },
             startTime
         });
+
+        // this.display.addColorAnimation(smokeBomb, {
+        //     fg: {
+        //         start: '#888888FF',
+        //         end: '#88888800',
+        //         duration: 2.0,
+        //         easing: Easing.quadOut,
+        //     },
+        //     startTime: startTime + 2000
+        // });
 
         this.animatedTiles.push(smokeBomb);
         return smokeBomb;
