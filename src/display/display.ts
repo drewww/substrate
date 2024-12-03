@@ -840,7 +840,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 loop: transition.loop || false,
                 offset: transition.offset || 0,
                 easing: transition.easing,
-                next: transition.next ? createColorAnimationChain(transition.next, startTime) : undefined
+                next: transition.next ? createColorAnimationChain(transition.next, performance.now()) : undefined
             };
             return animation;
         };
