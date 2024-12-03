@@ -99,70 +99,84 @@ export class JumpTest extends BaseTest {
                 const tile = this.display.getTile(tileId);
                 if (!tile) return;
 
-                const dx = Math.floor(Math.random() * 3) - 1;
-                const dy = Math.floor(Math.random() * 3) - 1;
-                
+                // Pick a random cardinal direction (0=north, 1=east, 2=south, 3=west)
+                const direction = Math.floor(Math.random() * 4);
+                const [dx, dy] = [
+                    [0, -5],  // North
+                    [5, 0],   // East
+                    [0, 5],   // South
+                    [-5, 0],  // West
+                ][direction];
+
                 const startX = Math.floor(tile.x);
                 const startY = Math.floor(tile.y);
                 const newX = startX + dx;
                 const newY = startY + dy;
 
                 if (newX >= 0 && newX < width && newY >= 0 && newY < height) {
-                    const moveDuration = 0.3;
-                    const halfDuration = moveDuration / 2;
-
+                    // Clear any existing animations
                     this.display.clearAnimations(tileId);
 
-                    // First animation - full movement and first half of scale
-                    this.display.addValueAnimation(tileId, {
-                        x: {
-                            start: startX,
+                    // First segment: Move 2 spaces (40% of the distance)
+                    const firstMove = {
+                        start: startX,
+                        end: startX + (dx * 0.4),
+                        duration: 0.3,
+                        easing: Easing.expoIn,
+                        loop: false,
+                        next: {
+                            // Second segment: Move remaining 3 spaces with a jump
+                            start: startX + (dx * 0.4),
                             end: newX,
-                            duration: moveDuration,
-                            easing: Easing.linear,
-                            loop: false
-                        },
-                        y: {
-                            start: startY,
-                            end: newY,
-                            duration: moveDuration,
-                            easing: Easing.linear,
-                            loop: false
-                        },
-                        scaleSymbolX: {
-                            start: 1.0,
-                            end: 2.0,
-                            duration: halfDuration,  // First half only
-                            easing: Easing.quadOut,
-                            loop: false
-                        },
-                        scaleSymbolY: {
-                            start: 1.0,
-                            end: 2.0,
-                            duration: halfDuration,  // First half only
-                            easing: Easing.quadOut,
+                            duration: 0.4,
+                            easing: Easing.expoOut,
                             loop: false
                         }
-                    });
+                    };
 
-                    // Second animation - just the second half of scale
-                    const startTime = performance.now() + (halfDuration * 1000);
+                    const firstMoveY = {
+                        start: startY,
+                        end: startY + (dy * 0.4),
+                        duration: 0.3,
+                        easing: Easing.expoIn,
+                        loop: false,
+                        next: {
+                            start: startY + (dy * 0.4),
+                            end: newY,
+                            duration: 0.4,
+                            easing: Easing.expoOut,
+                            loop: false
+                        }
+                    };
+
+                    // Scale animation that coincides with the second movement
+                    const scaleAnimation = {
+                        start: 1.0,
+                        end: 1.0,
+                        duration: 0.2,
+                        easing: Easing.quadOut,
+                        loop: false,
+                        next: {
+                            start: 1.0,
+                            end: 2.5,
+                            duration: 0.2,
+                            easing: Easing.quadIn,
+                            loop: false,
+                            next: {
+                                start: 2.5,
+                                end: 1.0,
+                                duration: 0.2,
+                                easing: Easing.quadIn,
+                                loop: false
+                            }
+                        }
+                    };
+
                     this.display.addValueAnimation(tileId, {
-                        scaleSymbolX: {
-                            start: 2.0,
-                            end: 1.0,
-                            duration: halfDuration,
-                            easing: Easing.quadIn,
-                            loop: false
-                        },
-                        scaleSymbolY: {
-                            start: 2.0,
-                            end: 1.0,
-                            duration: halfDuration,
-                            easing: Easing.quadIn,
-                            loop: false
-                        },
-                        startTime
+                        x: firstMove,
+                        y: firstMoveY,
+                        scaleSymbolX: scaleAnimation,
+                        scaleSymbolY: scaleAnimation
                     });
                 }
             });
