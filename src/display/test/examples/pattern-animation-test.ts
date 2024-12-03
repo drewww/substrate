@@ -24,6 +24,70 @@ export class PatternAnimationTest extends BaseTest {
         return "Tests pattern-based animations";
     }
 
+    private createSmokeBomb(x: number, y: number, delay: number = 0): TileId {
+        const smokeBomb = this.display.createTile(
+            x, y,
+            '●',
+            '#88888800',
+            '#00000000',
+            3,
+            { noClip: false }
+        );
+
+        const startTime = performance.now() + (delay * 1000); // Convert delay to milliseconds
+
+        // Scale animation
+        this.display.addValueAnimation(smokeBomb, {
+            scaleSymbolX: {
+                start: 0.0,
+                end: 3.0,
+                duration: 0.6,
+                easing: Easing.expoInOut,
+                loop: true
+            },
+            scaleSymbolY: {
+                start: 0.0,
+                end: 3.0,
+                duration: 0.6,
+                easing: Easing.expoInOut,
+                loop: true
+            },
+            startTime
+        });
+
+        // Fade in animation
+        this.display.addColorAnimation(smokeBomb, {
+            fg: {
+                start: '#88888800',
+                end: '#888888FF',
+                duration: 0.6,
+                easing: Easing.quadOut,
+            },
+            startTime
+        });
+
+        this.animatedTiles.push(smokeBomb);
+        return smokeBomb;
+    }
+
+    private createSmokeBombPattern(centerX: number, centerY: number): void {
+        // Create center smoke bomb
+        this.createSmokeBomb(centerX, centerY);
+
+        // Create surrounding smoke bombs with delay
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue; // Skip center tile
+                
+                // Calculate distance from center for delay
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const delay = 0.6 + (distance * 0.1); // Base delay + distance-based offset
+                
+                this.createSmokeBomb(centerX + dx, centerY + dy, delay);
+            }
+        }
+    }
+
     protected run(): void {
         // Pattern 1: Binary counter
         const binarySymbols = ['0', '1'];
@@ -38,8 +102,8 @@ export class PatternAnimationTest extends BaseTest {
         this.animatedTiles.push(clockId);
 
         // Pattern 3: Wave pattern
-        const waveSymbols = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'];
-        const waveId = this.display.createTile(15, 5, '▁', '#0088FFFF', '#000000FF', 1);
+        const waveSymbols = [' ', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'];
+        const waveId = this.display.createTile(15, 5, ' ', '#0088FFFF', '#000000FF', 1);
         this.display.addSymbolAnimation(waveId, waveSymbols, 1.0, true);
         this.animatedTiles.push(waveId);
 
@@ -621,6 +685,9 @@ export class PatternAnimationTest extends BaseTest {
         });
 
         this.animatedTiles.push(doorLeft, doorRight);
+
+        // Replace the single smoke bomb with the pattern
+        this.createSmokeBombPattern(10, 7);
     }
 
     protected cleanup(): void {
