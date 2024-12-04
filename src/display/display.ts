@@ -404,22 +404,24 @@ export class Display {
             this.worldCtx.clip();
         }
         
+        const cellWidth = this.cellWidthScaled;
+        const cellHeight = this.cellHeightScaled;
+
+        // Rotate from center if needed
+        if (tile.rotation) {
+            this.worldCtx.save();
+            this.worldCtx.translate(cellWidth/2, cellHeight/2);
+            this.worldCtx.rotate(tile.rotation);
+            this.worldCtx.translate(-cellWidth/2, -cellHeight/2);
+            this.worldCtx.restore();
+        }
+
+        logger.debug(`Rendering tile ${tile.id} with background color ${tile.backgroundColor}`);
+        
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
             const bgPercent = tile.bgPercent ?? 1;
             if (bgPercent > 0) {
                 this.worldCtx.fillStyle = tile.backgroundColor;
-                const cellWidth = this.cellWidthScaled;
-                const cellHeight = this.cellHeightScaled;
-
-                // Save context before rotation for background
-                this.worldCtx.save();
-                
-                // Rotate from center if needed
-                if (tile.rotation) {
-                    this.worldCtx.translate(cellWidth/2, cellHeight/2);
-                    this.worldCtx.rotate(tile.rotation);
-                    this.worldCtx.translate(-cellWidth/2, -cellHeight/2);
-                }
 
                 switch (tile.fillDirection) {
                     case FillDirection.TOP:
@@ -454,9 +456,7 @@ export class Display {
                             cellHeight
                         );
                         break;
-                }
-                
-                this.worldCtx.restore();
+                }                
             }
         }
         
@@ -498,7 +498,7 @@ export class Display {
             this.valueAnimations.size > 0;
 
         if (hasActiveAnimations) {
-            this.updateAnimations(timestamp);
+            this.updateSymbolAnimations(timestamp);
             this.updateColorAnimations(timestamp);
             this.updateValueAnimations(timestamp);
             this.hasChanges = true;
@@ -831,7 +831,7 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         });
     }
 
-    private updateAnimations(timestamp: number): void {
+    private updateSymbolAnimations(timestamp: number): void {
         for (const [tileId, animation] of this.symbolAnimations) {
             const tile = this.tileMap.get(tileId);
             if (!tile || !animation.running) {

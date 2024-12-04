@@ -35,12 +35,13 @@ export class JumpTest extends BaseTest {
     }
 
     private getNearlyBlack(): Color {
-        const value = Math.floor(Math.random() * 32);
-        return `#${value.toString(16).padStart(2, '0')}${value.toString(16).padStart(2, '0')}${value.toString(16).padStart(2, '0')}FF`;
+        // const value = Math.floor(Math.random() * 32);
+        // return `#${value.toString(16).padStart(2, '0')}${value.toString(16).padStart(2, '0')}${value.toString(16).padStart(2, '0')}FF`;
+        return '#000000FF';
     }
 
     private initializeBackground() {
-        this.display.setBackground('.', '#666666FF', '#000000FF');
+        // this.display.setBackground('.', '#666666FF', '#000000FF');
 
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
@@ -78,7 +79,7 @@ export class JumpTest extends BaseTest {
                 {
                     bgPercent: 0,
                     fillDirection: FillDirection.TOP,
-                    noClip: true
+                    noClip: false
                 }
             );
             
@@ -127,14 +128,14 @@ export class JumpTest extends BaseTest {
                         duration: 0.3 * this.DURATION_MULTIPLIER,
                         easing: Easing.quadIn,
                         loop: false,
-                        next: {
-                            // Second segment: Move remaining 3 spaces with a jump
-                            start: startX + (dx * 0.4),
-                            end: newX,
-                            duration: 0.4 * this.DURATION_MULTIPLIER,
-                            easing: Easing.expoOut,
-                            loop: false
-                        }
+                        // next: {
+                        //     // Second segment: Move remaining 3 spaces with a jump
+                        //     start: startX + (dx * 0.4),
+                        //     end: newX,
+                        //     duration: 0.4 * this.DURATION_MULTIPLIER,
+                        //     easing: Easing.expoOut,
+                        //     loop: false
+                        // }
                     };
 
                     const firstMoveY = {
@@ -143,65 +144,65 @@ export class JumpTest extends BaseTest {
                         duration: 0.3 * this.DURATION_MULTIPLIER,
                         easing: Easing.quadIn,
                         loop: false,
-                        next: {
-                            start: startY + (dy * 0.4),
-                            end: newY,
-                            duration: 0.4 * this.DURATION_MULTIPLIER,
-                            easing: Easing.expoOut,
-                            loop: false
-                        }
+                        // next: {
+                        //     start: startY + (dy * 0.4),
+                        //     end: newY,
+                        //     duration: 0.4 * this.DURATION_MULTIPLIER,
+                        //     easing: Easing.expoOut,
+                        //     loop: false
+                        // }
                     };
 
                     // Scale animation that coincides with the second movement
-                    const scaleXAnimation = {
-                        start: 1.0,
-                        end: direction === 1 || direction === 3 ? 0.6 : 1.0,
-                        duration: 0.2 * this.DURATION_MULTIPLIER,
-                        easing: Easing.quadOut,
-                        loop: false,
-                        next: {
-                            start: direction === 1 || direction === 3 ? 0.6 : 1.0,
-                            end: 2.5,
-                            duration: 0.2 * this.DURATION_MULTIPLIER,
-                            easing: Easing.quadIn,
-                            loop: false,
-                            next: {
-                                start: 2.5,
-                                end: 1.0,
-                                duration: 0.2 * this.DURATION_MULTIPLIER,
-                                easing: Easing.quadIn,
-                                loop: false
-                            }
-                        }
-                    };
+                    // const scaleXAnimation = {
+                    //     start: 1.0,
+                    //     end: direction === 1 || direction === 3 ? 0.6 : 1.0,
+                    //     duration: 0.2 * this.DURATION_MULTIPLIER,
+                    //     easing: Easing.quadOut,
+                    //     loop: false,
+                    //     next: {
+                    //         start: direction === 1 || direction === 3 ? 0.6 : 1.0,
+                    //         end: 2.5,
+                    //         duration: 0.2 * this.DURATION_MULTIPLIER,
+                    //         easing: Easing.quadIn,
+                    //         loop: false,
+                    //         next: {
+                    //             start: 2.5,
+                    //             end: 1.0,
+                    //             duration: 0.2 * this.DURATION_MULTIPLIER,
+                    //             easing: Easing.quadIn,
+                    //             loop: false
+                    //         }
+                    //     }
+                    // };
 
-                    const scaleYAnimation = {
-                        start: 1.0,
-                        end: direction === 1 || direction === 3 ? 1.0 : 0.6,
-                        duration: 0.2 * this.DURATION_MULTIPLIER,
-                        easing: Easing.quadOut,
-                        loop: false,
-                        next: {
-                            start: direction === 1 || direction === 3 ? 1.0 : 0.6,
-                            end: 2.5,
-                            duration: 0.2 * this.DURATION_MULTIPLIER,
-                            easing: Easing.quadIn,
-                            loop: false,
-                            next: {
-                                start: 2.5,
-                                end: 1.0,
-                                duration: 0.2 * this.DURATION_MULTIPLIER,
-                                easing: Easing.quadIn,
-                                loop: false
-                            }
-                        }
-                    };
+                    // const scaleYAnimation = {
+                    //     start: 1.0,
+                    //     end: direction === 1 || direction === 3 ? 1.0 : 0.6,
+                    //     duration: 0.2 * this.DURATION_MULTIPLIER,
+                    //     easing: Easing.quadOut,
+                    //     loop: false,
+                    //     next: {
+                    //         start: direction === 1 || direction === 3 ? 1.0 : 0.6,
+                    //         end: 2.5,
+                    //         duration: 0.2 * this.DURATION_MULTIPLIER,
+                    //         easing: Easing.quadIn,
+                    //         loop: false,
+                    //         next: {
+                    //             start: 2.5,
+                    //             end: 1.0,
+                    //             duration: 0.2 * this.DURATION_MULTIPLIER,
+                    //             easing: Easing.quadIn,
+                    //             loop: false
+                    //         }
+                    //     }
+                    // };
 
                     this.display.addValueAnimation(tileId, {
                         x: firstMove,
                         y: firstMoveY,
-                        scaleSymbolX: scaleXAnimation,
-                        scaleSymbolY: scaleYAnimation
+                        // scaleSymbolX: scaleXAnimation,
+                        // scaleSymbolY: scaleYAnimation
                     });
                 }
             });
