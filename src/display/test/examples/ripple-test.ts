@@ -111,6 +111,7 @@ export class RippleTest extends BaseTest {
     protected run(): void {
         
         this.display.clear();
+        this.display.setBackground(' ', "#000000FF", "#000000FF");
         this.ripples = [];
         this.timeSinceLastRipple = 0;
         this.updateRipples();

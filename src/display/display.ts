@@ -331,6 +331,7 @@ export class Display {
         if (tile && tile.color !== newColor) {
             this.hasChanges = true;
             tile.color = newColor;
+
             this.dirtyMask.markDirty(tile.x, tile.y);
         }
     }
