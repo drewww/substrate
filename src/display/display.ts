@@ -337,25 +337,35 @@ export class Display {
     private updateWorldCanvas(): void {
         if (!this.dirtyMask.hasDirtyTiles()) return;
 
-        // Find all tiles that need rendering
-        const tilesToRender = Array.from(this.tileMap.values())
+        // Group tiles by cell coordinates
+        const dirtyTilesByCell = new Map<string, Tile[]>();
+        
+        Array.from(this.tileMap.values())
             .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y))
-            .sort((a, b) => a.zIndex - b.zIndex);
+            .forEach(tile => {
+                const key = `${tile.x},${tile.y}`;
+                if (!dirtyTilesByCell.has(key)) {
+                    dirtyTilesByCell.set(key, []);
+                }
+                dirtyTilesByCell.get(key)!.push(tile);
+            });
 
-        this.metrics.lastDirtyTileCount = tilesToRender.length;
-        this.metrics.averageDirtyTileCount = 
-            (this.metrics.averageDirtyTileCount * this.metrics.totalRenderCalls + tilesToRender.length) /
-            (this.metrics.totalRenderCalls + 1);
-
-        tilesToRender.forEach(tile => {
+        // Process each cell
+        for (const [_, tiles] of dirtyTilesByCell) {
+            // Sort tiles by z-index
+            tiles.sort((a, b) => a.zIndex - b.zIndex);
+            
+            // Clear cell once
             this.worldCtx.clearRect(
-                tile.x * this.cellWidthScaled,
-                tile.y * this.cellHeightScaled,
+                tiles[0].x * this.cellWidthScaled,
+                tiles[0].y * this.cellHeightScaled,
                 this.cellWidthScaled,
                 this.cellHeightScaled
             );
-            this.renderTile(tile);
-        });
+
+            // Render all tiles in the cell
+            tiles.forEach(tile => this.renderTile(tile));
+        }
 
         this.dirtyMask.clear();
     }
@@ -572,7 +582,7 @@ export class Display {
     public getDebugString(): string {
         return `FPS: ${this.metrics.fps.toFixed(1)}
 Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.averageRenderTime.toFixed(2)}ms)
-├─ Animation: ${this.metrics.lastAnimationUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageAnimationTime.toFixed(2)}ms)
+��─ Animation: ${this.metrics.lastAnimationUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageAnimationTime.toFixed(2)}ms)
 └─ World Update: ${this.metrics.lastWorldUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageWorldUpdateTime.toFixed(2)}ms)
 Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnimationCount + this.metrics.valueAnimationCount}
 ├─ Symbol: ${this.metrics.symbolAnimationCount}
