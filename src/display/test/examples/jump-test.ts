@@ -4,13 +4,13 @@ import { Easing, FillDirection } from '../../display';
 import { logger } from '../../util/logger';
 
 export class JumpTest extends BaseTest {
-    private readonly TILE_COUNT = 5;
+    private readonly TILE_COUNT = 1;
     private readonly BACKGROUND_SYMBOLS = [',', '.', '-', '=', '_'];
     private tileIds: TileId[] = [];
     private backgroundTileIds: TileId[] = [];
     private lastMovedTimestamp: number;
 
-    private readonly DURATION_MULTIPLIER = 1.5;
+    private readonly DURATION_MULTIPLIER = 4;
     private readonly SECONDS_SINCE_MOVED = 1 * this.DURATION_MULTIPLIER;
 
     
@@ -73,7 +73,7 @@ export class JumpTest extends BaseTest {
                 y,
                 '@',
                 '#FFFF00FF',
-                '#00000066',
+                '#00000000',
                 2,
                 {
                     bgPercent: 0,

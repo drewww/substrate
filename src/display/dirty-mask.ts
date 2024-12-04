@@ -40,12 +40,13 @@ export class DirtyMask {
                 }
             } 
 
-            tilesToMark.push({x: Math.floor(tile.x), y: Math.floor(tile.y)});
-
+            // tilesToMark.push({x: Math.floor(tile.x), y: Math.floor(tile.y)});
         } else {
             tilesToMark.push({x: tile.x, y: tile.y});
         }
         
+        logger.debug(`Marking dirty tiles: `, tilesToMark);
+
         for (const {x, y} of tilesToMark) {
             if (x >= 0 && x < this.width && 
                 y >= 0 && y < this.height) {
