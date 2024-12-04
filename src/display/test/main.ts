@@ -2,6 +2,7 @@ import { logger } from '../util/logger';
 import { TestManager } from './test-manager';
 
 const SELECTED_TEST_KEY = 'matrix-display-selected-test';
+const LOG_LEVEL_KEY = 'matrix-display-log-level';
 
 logger.info('Display Test Environment Loading...');
 
@@ -33,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedTest && manager.availableTests.some(test => test.getName() === savedTest)) {
             testSelect.value = savedTest;
             manager.selectTest(savedTest);
-       
         } else if (manager.availableTests.length > 0) {
             manager.selectTest(manager.availableTests[0].getName());
         }
@@ -62,9 +62,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add log level control
         const logLevelSelect = document.getElementById('logLevel') as HTMLSelectElement;
+        
+        // Restore saved log level
+        const savedLogLevel = localStorage.getItem(LOG_LEVEL_KEY);
+        if (savedLogLevel !== null) {
+            const level = parseInt(savedLogLevel);
+            logLevelSelect.value = level.toString();
+            logger.setLogLevel(level);
+        }
+
         logLevelSelect.addEventListener('change', (e) => {
             const level = parseInt((e.target as HTMLSelectElement).value);
             logger.setLogLevel(level);
+            localStorage.setItem(LOG_LEVEL_KEY, level.toString());
         });
 
         const toggleDirtyMaskButton = document.getElementById('toggleDirtyMask') as HTMLButtonElement;
