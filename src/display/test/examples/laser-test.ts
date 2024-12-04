@@ -1,20 +1,24 @@
-import { FillDirection } from '../../display';
-import { TileId } from '../../types';
 import { BaseTest } from './base-test';
+import { TileId, BlendMode } from '../../types';
+import { Easing } from '../../display';
 
-interface LaserBeam {
-    points: Array<{x: number, y: number}>;
-    progress: number;  // Progress along the precomputed path
-    fadeStart: number;
+type LineType = 'row' | 'column';
+interface Line {
+    type: LineType;
+    index: number;
+    tiles: TileId[];
+    complete: boolean;
 }
 
 export class LaserTest extends BaseTest {
-    private lasers: LaserBeam[] = [];
-    private laserTileIds: Set<TileId> = new Set();
-    private readonly LASER_SPEED = 0.2; // Speed along the path
-    private readonly FADE_SPEED = 0.02;
-    private timeSinceLastLaser: number = 0;
-    
+    private lines: Line[] = [];
+    private usedRows: Set<number> = new Set();
+    private usedColumns: Set<number> = new Set();
+    private currentLine: Line | null = null;
+    private readonly ANIMATION_DURATION = 0.5;  // increased from 1.0 to 3.0 seconds
+    private readonly CELL_DELAY = 0.005;         // increased from 0.1 to 0.2 seconds
+    private readonly LASER_COLOR = '#FF000044'; // More transparent red (alpha: 44 = ~27%)
+
     constructor() {
         super({
             worldWidth: 50,
@@ -31,157 +35,123 @@ export class LaserTest extends BaseTest {
     }
 
     getDescription(): string {
-        return "Draws laser beams between random points";
+        return "Demonstrates additive blending with screen blend mode";
     }
 
-    private computeLaserPath(x0: number, y0: number, x1: number, y1: number): Array<{x: number, y: number}> {
-        console.log(`Computing path from (${x0},${y0}) to (${x1},${y1})`);
-        const points: Array<{x: number, y: number}> = [];
-        const dx = Math.abs(x1 - x0);
-        const dy = Math.abs(y1 - y0);
-        const sx = x0 < x1 ? 1 : -1;
-        const sy = y0 < y1 ? 1 : -1;
-        let err = dx - dy;
-        
-        let x = x0;
-        let y = y0;
-
-        while (true) {
-            points.push({x, y});
-            if (x === x1 && y === y1) break;
-            
-            const e2 = 2 * err;
-            if (e2 > -dy) {
-                err -= dy;
-                x += sx;
-            }
-            if (e2 < dx) {
-                err += dx;
-                y += sy;
-            }
-        }
-        console.log(`Path computed with ${points.length} points`);
-        return points;
-    }
-
-    private addLaser() {
+    private getRandomLine(): Line | null {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
         
-        const startX = Math.floor(Math.random() * width);
-        const startY = Math.floor(Math.random() * height);
-        const endX = Math.floor(Math.random() * width);
-        const endY = Math.floor(Math.random() * height);
-
-        const laser: LaserBeam = {
-            points: this.computeLaserPath(startX, startY, endX, endY),
-            progress: 0,
-            fadeStart: -1
-        };
+        // Alternate between rows and columns
+        const lastType = this.lines.length > 0 ? this.lines[this.lines.length - 1].type : 'column';
+        const type = lastType === 'row' ? 'column' : 'row';
         
-        console.log('Created laser:', laser);
-        this.lasers.push(laser);
-    }
+        if (type === 'row' && this.usedRows.size >= 5) return null;
+        if (type === 'column' && this.usedColumns.size >= 5) return null;
 
-    private updateLasers() {
-        if (!this.isRunning) return;
-
-        // Remove previous laser tiles
-        this.laserTileIds.forEach(id => this.display.removeTile(id));
-        this.laserTileIds.clear();
-
-        this.lasers = this.lasers.filter(laser => {
-            // Remove if fade is complete
-            if (laser.fadeStart > 0 && laser.fadeStart <= 0.1) {
-                return false;
-            }
-
-            if (laser.fadeStart === -1) {
-                // Move along precomputed path
-                laser.progress += this.LASER_SPEED;
-                
-                // When we reach the end, start fading
-                if (laser.progress >= laser.points.length - 1) {
-                    laser.fadeStart = 1.0;
-                    laser.progress = laser.points.length - 1; // Stay at end point
-                }
-            } else if (laser.fadeStart > 0) {
-                // Just decrease fade intensity, don't move progress
-                laser.fadeStart -= this.FADE_SPEED;
-            }
-
-            if (laser.fadeStart === -1) {
-                // Normal laser rendering during growth phase
-                const tipIndex = Math.min(Math.floor(laser.progress), laser.points.length - 1);
-                for (let i = Math.max(0, tipIndex - 4); i <= tipIndex; i++) {
-                    const distanceFromTip = tipIndex - i;
-                    const opacity = 1 - (distanceFromTip * 0.2);
-                    const alpha = Math.floor(opacity * 255).toString(16).padStart(2, '0');
-                    const point = laser.points[i];
-                    
-                    const tileId = this.display.createTile(
-                        point.x,
-                        point.y,
-                        ' ',
-                        '#00000000',
-                        `#FF0000${alpha}`,
-                        100,
-                        { bgPercent: 0, 
-                         fillDirection: FillDirection.BOTTOM
-                        }
-                    );
-                    this.laserTileIds.add(tileId);
-                }
-            } else {
-                // Fade out the last 5 points of the path
-                const endIndex = laser.points.length - 1;
-                for (let i = endIndex; i > endIndex - 5 && i >= 0; i--) {
-                    const distanceFromEnd = endIndex - i;
-                    const opacity = laser.fadeStart * (1 - (distanceFromEnd * 0.2));
-                    const alpha = Math.floor(Math.max(0, opacity * 255)).toString(16).padStart(2, '0');
-                    const point = laser.points[i];
-                    
-                    const tileId = this.display.createTile(
-                        point.x,
-                        point.y,
-                        ' ',
-                        '#00000000',
-                        `#FF0000${alpha}`,
-                        100,
-                        { bgPercent: 1,
-                         fillDirection: FillDirection.BOTTOM
-                        }
-                    );
-                    this.laserTileIds.add(tileId);
-                }
-            }
-
-            return true;
-        });
-
-        // Add new laser if needed
-        this.timeSinceLastLaser++;
-        if (this.timeSinceLastLaser > 120) {
-            this.addLaser();
-            this.timeSinceLastLaser = 0;
+        // Get available indices
+        let index: number;
+        if (type === 'row') {
+            const availableRows = Array.from(Array(height).keys())
+                .filter(i => !this.usedRows.has(i));
+            if (availableRows.length === 0) return null;
+            index = availableRows[Math.floor(Math.random() * availableRows.length)];
+            this.usedRows.add(index);
+        } else {
+            const availableColumns = Array.from(Array(width).keys())
+                .filter(i => !this.usedColumns.has(i));
+            if (availableColumns.length === 0) return null;
+            index = availableColumns[Math.floor(Math.random() * availableColumns.length)];
+            this.usedColumns.add(index);
         }
 
-        requestAnimationFrame(() => this.updateLasers());
+        return {
+            type,
+            index,
+            tiles: [],
+            complete: false
+        };
+    }
+
+    private startNewLine() {
+        const line = this.getRandomLine();
+        if (!line) {
+            // All lines complete (5 rows + 5 columns), wait and clear everything
+            setTimeout(() => {
+                // Clear all existing lines
+                this.lines.forEach(line => {
+                    line.tiles.forEach(id => this.display.removeTile(id));
+                });
+                this.lines = [];
+                this.usedRows.clear();
+                this.usedColumns.clear();
+                this.currentLine = null;
+
+                // Wait a moment before starting fresh
+                setTimeout(() => this.startNewLine(), 1000);
+            }, 1000);
+            return;
+        }
+
+        this.currentLine = line;
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        
+        // Create tiles with animations
+        const count = line.type === 'row' ? width : height;
+        for (let i = 0; i < count; i++) {
+            const [x, y] = line.type === 'row' ? 
+                [i, line.index] : 
+                [line.index, i];
+
+            const tileId = this.display.createTile(
+                x, y,
+                ' ',
+                '#00000000',
+                '#FF000000',  // Start fully transparent
+                100,
+                { blendMode: BlendMode.Screen }
+            );
+
+            this.display.addColorAnimation(tileId, {
+                bg: {
+                    start: '#FF000000',  // Start fully transparent
+                    end: this.LASER_COLOR,  // End with semi-transparent red
+                    duration: this.ANIMATION_DURATION,
+                    offset: i * this.CELL_DELAY,
+                    // offset: 0,
+                    easing: Easing.quadOut,
+                    loop: false
+                }
+            });
+
+            line.tiles.push(tileId);
+        }
+
+        this.lines.push(line);
+
+        // Check when this line is complete
+        const totalDuration = this.ANIMATION_DURATION + (count - 1) * this.CELL_DELAY;
+        setTimeout(() => {
+            if (this.currentLine === line) {
+                line.complete = true;
+                this.currentLine = null;
+                this.startNewLine();
+            }
+        }, totalDuration * 1000);
     }
 
     protected run(): void {
-        console.log('Starting laser test');
-        
-        this.display.clear();
-        this.lasers = [];
-        this.timeSinceLastLaser = 0;
-        this.addLaser(); // Add first laser immediately
-        this.updateLasers();
+        this.startNewLine();
     }
 
     protected cleanup(): void {
-        this.lasers = [];
-        this.laserTileIds.forEach(id => this.display.removeTile(id));
-        this.laserTileIds.clear();
+        this.lines.forEach(line => {
+            line.tiles.forEach(id => this.display.removeTile(id));
+        });
+        this.lines = [];
+        this.usedRows.clear();
+        this.usedColumns.clear();
+        this.currentLine = null;
     }
 } 
