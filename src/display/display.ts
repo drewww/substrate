@@ -18,6 +18,8 @@ interface PerformanceMetrics {
     lastWorldUpdateTime: number;
     averageAnimationTime: number;
     averageWorldUpdateTime: number;
+    lastDirtyTileCount: number;
+    averageDirtyTileCount: number;
 }
 
 export interface DisplayOptions {
@@ -211,7 +213,9 @@ export class Display {
             lastAnimationUpdateTime: 0,
             lastWorldUpdateTime: 0,
             averageAnimationTime: 0,
-            averageWorldUpdateTime: 0
+            averageWorldUpdateTime: 0,
+            lastDirtyTileCount: 0,
+            averageDirtyTileCount: 0
         };
 
         this.textParser = new TextParser({
@@ -295,10 +299,10 @@ export class Display {
             }
 
             logger.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
+            this.dirtyMask.markDirty(tile.x, tile.y);
             tile.x = newX;
             tile.y = newY;
             this.dirtyMask.markDirty(newX, newY);
-            this.dirtyMask.markDirty(tile.x, tile.y);
         }
     }
 
@@ -338,7 +342,11 @@ export class Display {
             .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y))
             .sort((a, b) => a.zIndex - b.zIndex);
 
-        // Clear and redraw each dirty tile
+        this.metrics.lastDirtyTileCount = tilesToRender.length;
+        this.metrics.averageDirtyTileCount = 
+            (this.metrics.averageDirtyTileCount * this.metrics.totalRenderCalls + tilesToRender.length) /
+            (this.metrics.totalRenderCalls + 1);
+
         tilesToRender.forEach(tile => {
             this.worldCtx.clearRect(
                 tile.x * this.cellWidthScaled,
@@ -569,7 +577,8 @@ Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.av
 Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnimationCount + this.metrics.valueAnimationCount}
 ├─ Symbol: ${this.metrics.symbolAnimationCount}
 ├─ Color: ${this.metrics.colorAnimationCount}
-└─ Value: ${this.metrics.valueAnimationCount}`;
+└─ Value: ${this.metrics.valueAnimationCount}
+Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirtyTileCount.toFixed(1)})`;
     }
 
     public clear() {
