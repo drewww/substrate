@@ -1,5 +1,4 @@
 import { Tile } from "./types";
-import { logger } from "./util/logger";
 
 export class DirtyMask {
     private mask: boolean[][];

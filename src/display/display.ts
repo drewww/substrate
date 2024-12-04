@@ -371,7 +371,8 @@ export class Display {
             tiles.sort((a, b) => a.zIndex - b.zIndex);
             
             // Clear cell once
-            this.worldCtx.clearRect(
+            this.worldCtx.fillStyle = '#00000000';
+            this.worldCtx.fillRect(
                 tiles[0].x * this.cellWidthScaled,
                 tiles[0].y * this.cellHeightScaled,
                 this.cellWidthScaled,
