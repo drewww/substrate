@@ -17,7 +17,7 @@ export class DirtyMask {
         const tilesToMark: {x: number, y: number}[] = [];
 
         if(tile.x !== Math.floor(tile.x) || tile.y !== Math.floor(tile.y)) {
-            logger.warn(`Marking non-integer tile ${tile.x},${tile.y} as dirty`);
+            logger.debug(`Marking non-integer tile ${tile.x},${tile.y} as dirty`);
 
             // compute the bounding box of the tile using the acutal width and height of the tile
             // intersect that bounding box with the dirty mask and mark any tile x/y combos that it intersects at all.
@@ -36,10 +36,12 @@ export class DirtyMask {
 
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
-                    logger.debug(`Marking tile ${x},${y} as dirty due to non-integer tile`);
                     tilesToMark.push({x: Math.floor(x), y: Math.floor(y)});
                 }
             } 
+
+            tilesToMark.push({x: Math.floor(tile.x), y: Math.floor(tile.y)});
+
         } else {
             tilesToMark.push({x: tile.x, y: tile.y});
         }
@@ -47,7 +49,6 @@ export class DirtyMask {
         for (const {x, y} of tilesToMark) {
             if (x >= 0 && x < this.width && 
                 y >= 0 && y < this.height) {
-                logger.debug(`Marking tile ${x},${y} as dirty`);
                 this.mask[y][x] = true;
             }
         }
