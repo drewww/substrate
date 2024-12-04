@@ -20,6 +20,7 @@ export interface Tile {
     scaleSymbolY: number;  // Default to 1.0
     rotation: number;     // New property: rotation in radians
     noClip?: boolean;     // New option to disable clipping mask
+    blendMode: BlendMode;  // Now required with a default value
 }
 
 export interface Cell {
@@ -105,6 +106,7 @@ export interface TileConfig {
     bgPercent?: number;
     fillDirection?: FillDirection;
     noClip?: boolean;
+    blendMode?: BlendMode;
 }
 
 
@@ -160,4 +162,19 @@ export interface TileColorAnimationOptions {
     fg?: ColorAnimationOptions;
     bg?: ColorAnimationOptions;
     startTime?: number;
+}
+
+export enum BlendMode {
+    SourceOver = 'source-over',
+    Multiply = 'multiply',
+    Screen = 'screen',
+    Overlay = 'overlay',
+    Darken = 'darken',
+    Lighten = 'lighten',
+    ColorDodge = 'color-dodge',
+    ColorBurn = 'color-burn',
+    HardLight = 'hard-light',
+    SoftLight = 'soft-light',
+    Difference = 'difference',
+    Exclusion = 'exclusion'
 }

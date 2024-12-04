@@ -1,5 +1,5 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions } from './types';
+import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from './util/logger';
 
@@ -266,7 +266,8 @@ export class Display {
             scaleSymbolX: 1.0,
             scaleSymbolY: 1.0,
             rotation: 0,
-            noClip: config?.noClip ?? false
+            noClip: config?.noClip ?? false,
+            blendMode: config?.blendMode ?? BlendMode.SourceOver
         };
         
         this.tileMap.set(id, tile);
@@ -325,7 +326,13 @@ export class Display {
         const pixelY = tile.y * this.cellHeightScaled;
         
         this.worldCtx.save();
+        
         this.worldCtx.translate(pixelX, pixelY);
+
+        // Set blend mode if not default
+        if (tile.blendMode !== BlendMode.SourceOver) {
+            this.worldCtx.globalCompositeOperation = tile.blendMode;
+        }
         
         if (!tile.noClip) {
             this.worldCtx.beginPath();
