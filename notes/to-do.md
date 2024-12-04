@@ -13,7 +13,7 @@ Display
    - there's a rendering issue with them and redrawing -- gotta be careful with dirtying everything around them properly. 
  - Look into blend modes and decide whether/how we want to do that.
  - test layering multiple canvases
- - border effects? ex. a wall lit from one side but not the other
+ - DONE border effects? ex. a wall lit from one side but not the other -- this is just bg percentage
    - the inverse of this could be middle-out background fill for like a smoke bomb effect
  - modularize the display code??
  - break up matrix-display.ts into multiple files
