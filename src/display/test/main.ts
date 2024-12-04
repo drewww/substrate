@@ -67,6 +67,17 @@ document.addEventListener('DOMContentLoaded', () => {
             logger.setLogLevel(level);
         });
 
+        const toggleDirtyMaskButton = document.getElementById('toggleDirtyMask') as HTMLButtonElement;
+        let isDirtyMaskEnabled = true;
+
+        toggleDirtyMaskButton.addEventListener('click', () => {
+            isDirtyMaskEnabled = manager.currentTest?.toggleDirtyMask() ?? false;
+            toggleDirtyMaskButton.textContent = isDirtyMaskEnabled ? 'Dirty Mask: ON' : 'Dirty Mask: OFF';
+        });
+
+        // Initialize button state
+        toggleDirtyMaskButton.textContent = 'Dirty Mask: ON';
+
         logger.verbose('Event listeners set up');
     } catch (error) {
         logger.error('Error in main initialization:', error);

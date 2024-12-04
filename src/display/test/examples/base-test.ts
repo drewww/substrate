@@ -65,4 +65,8 @@ export abstract class BaseTest {
             canvas.remove();
         }
     }
+
+    public toggleDirtyMask(): boolean {
+        return this.display.toggleDirtyMask();
+    }
 } 

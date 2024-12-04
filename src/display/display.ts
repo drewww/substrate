@@ -133,6 +133,7 @@ export class Display {
     private textParser: TextParser;
 
     private dirtyMask: DirtyMask;
+    private useDirtyMask: boolean = true;
 
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
@@ -340,8 +341,13 @@ export class Display {
         // Group tiles by cell coordinates
         const dirtyTilesByCell = new Map<string, Tile[]>();
         
-        const dirtyTiles = Array.from(this.tileMap.values())
-            .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y));
+        let dirtyTiles: Tile[];
+        if (this.useDirtyMask) {
+            dirtyTiles = Array.from(this.tileMap.values())
+                .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y));
+        } else {
+            dirtyTiles = Array.from(this.tileMap.values());
+        }
 
         // Update metrics for dirty tiles
         this.metrics.lastDirtyTileCount = dirtyTiles.length;
@@ -1137,5 +1143,15 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
                 if (anim) stopChain(anim);
             });
         }
+    }
+
+    public toggleDirtyMask(): boolean {
+        this.useDirtyMask = !this.useDirtyMask;
+        // Force full redraw when toggling
+        if (this.useDirtyMask) {
+            this.dirtyMask.clear();
+        }
+        this.hasChanges = true;
+        return this.useDirtyMask;
     }
 } 
