@@ -1,3 +1,6 @@
+import { Tile } from "./types";
+import { logger } from "./util/logger";
+
 export class DirtyMask {
     private mask: boolean[][];
 
@@ -9,10 +12,19 @@ export class DirtyMask {
             .map(() => Array(width).fill(false));
     }
 
-    public markDirty(x: number, y: number) {
-        if (x >= 0 && x < this.width && 
-            y >= 0 && y < this.height) {
-            this.mask[y][x] = true;
+    public markDirty(tile: Tile) {
+
+        if(tile.x !== Math.floor(tile.x) || tile.y !== Math.floor(tile.y)) {
+            logger.warn(`Marking non-integer tile ${tile.x},${tile.y} as dirty`);
+
+            // compute the bounding box of the tile 
+        }
+
+
+        if (tile.x >= 0 && tile.x < this.width && 
+            tile.y >= 0 && tile.y < this.height) {
+            logger.debug(`Marking tile ${tile.x},${tile.y} as dirty`);
+            this.mask[tile.y][tile.x] = true;
         }
     }
 

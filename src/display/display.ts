@@ -281,7 +281,7 @@ export class Display {
         };
         
         this.tileMap.set(id, tile);
-        this.dirtyMask.markDirty(x, y);
+        this.dirtyMask.markDirty(tile);
         return id;
     }
 
@@ -300,10 +300,10 @@ export class Display {
             }
 
             logger.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
-            this.dirtyMask.markDirty(tile.x, tile.y);
+            this.dirtyMask.markDirty(tile);
             tile.x = newX;
             tile.y = newY;
-            this.dirtyMask.markDirty(newX, newY);
+            this.dirtyMask.markDirty(tile);
         }
     }
 
@@ -317,7 +317,7 @@ export class Display {
             }
             
             logger.verbose(`Removing tile ${tileId}`);
-            this.dirtyMask.markDirty(tile.x, tile.y);
+            this.dirtyMask.markDirty(tile);
 
             this.symbolAnimations.delete(tileId);
             this.colorAnimations.delete(tileId);
@@ -332,7 +332,7 @@ export class Display {
             this.hasChanges = true;
             tile.color = newColor;
 
-            this.dirtyMask.markDirty(tile.x, tile.y);
+            this.dirtyMask.markDirty(tile);
         }
     }
 
@@ -865,7 +865,7 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
                 this.symbolAnimations.delete(tileId);
             }
 
-            this.dirtyMask.markDirty(tile.x, tile.y);
+            this.dirtyMask.markDirty(tile);
         }
     }
 
@@ -922,7 +922,7 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
                 this.colorAnimations.delete(tileId);
             }
 
-            this.dirtyMask.markDirty(tile.x, tile.y);
+            this.dirtyMask.markDirty(tile);
         }
     }
 
@@ -1072,7 +1072,7 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
             animations.offsetSymbolY = updateAnimation(animations.offsetSymbolY, 'offsetSymbolY');
             animations.bgPercent = updateAnimation(animations.bgPercent, 'bgPercent');
 
-            this.dirtyMask.markDirty(tile.x, tile.y);
+            this.dirtyMask.markDirty(tile);
         }
     }
 
