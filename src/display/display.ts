@@ -340,15 +340,23 @@ export class Display {
         // Group tiles by cell coordinates
         const dirtyTilesByCell = new Map<string, Tile[]>();
         
-        Array.from(this.tileMap.values())
-            .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y))
-            .forEach(tile => {
-                const key = `${tile.x},${tile.y}`;
-                if (!dirtyTilesByCell.has(key)) {
-                    dirtyTilesByCell.set(key, []);
-                }
-                dirtyTilesByCell.get(key)!.push(tile);
-            });
+        const dirtyTiles = Array.from(this.tileMap.values())
+            .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y));
+
+        // Update metrics for dirty tiles
+        this.metrics.lastDirtyTileCount = dirtyTiles.length;
+        this.metrics.averageDirtyTileCount = 
+            (this.metrics.averageDirtyTileCount * this.metrics.totalRenderCalls + dirtyTiles.length) /
+            (this.metrics.totalRenderCalls + 1);
+
+        // Continue with grouping and rendering
+        dirtyTiles.forEach(tile => {
+            const key = `${tile.x},${tile.y}`;
+            if (!dirtyTilesByCell.has(key)) {
+                dirtyTilesByCell.set(key, []);
+            }
+            dirtyTilesByCell.get(key)!.push(tile);
+        });
 
         // Process each cell
         for (const [_, tiles] of dirtyTilesByCell) {
