@@ -277,8 +277,8 @@ export class Display {
             scaleSymbolY: 1.0,
             rotation: 0,
             noClip: config?.noClip ?? false,
-            blendMode: config?.blendMode ?? BlendMode.SourceOver
-        };
+            blendMode: config?.blendMode ?? BlendMode.SourceOver,
+         };
         
         this.tileMap.set(id, tile);
         this.dirtyMask.markDirty(tile);
