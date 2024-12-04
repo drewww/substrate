@@ -26,11 +26,12 @@ Display
 
   - sorting tiles for every render seems expensive and we could just ensure it on insert and update
   - cache rendered symbols somewhere and do copys instead of fillText every time
+    - THIS WAS HARD. DPI scaling bullshit. Couldn't get sizes right. 
   -  does our use of graphics contexts cost performance? `.save()` seems to be expensive??
   - add back in "dirty" concept
   - add culling of opaque tiles that are behind other tiles
   
-
+ - consider some way to "bake" a tile -- when you create a tile, ask for it to be rendered out and then get an ID for a pre-rendered tile and future creates can use that id. Then instead of render logic for the tile, we C&P the cached version.
 
  - DONE Add a "tile group" concept?
  - DONE Add "move tile" operation that maintains state on the tile

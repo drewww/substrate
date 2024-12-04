@@ -2,6 +2,7 @@ import { TextParser } from './util/text-parser';
 import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from './util/logger';
+import { DirtyMask } from './dirty-mask';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -129,6 +130,8 @@ export class Display {
     
     private textParser: TextParser;
 
+    private dirtyMask: DirtyMask;
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -220,6 +223,8 @@ export class Display {
             'w': '#FFFFFFFF',  // white
         });
 
+        this.dirtyMask = new DirtyMask(options.worldWidth, options.worldHeight);
+
         logger.info('Display initialization complete');
 
         this.boundRenderFrame = this.renderFrame.bind(this);
@@ -271,6 +276,7 @@ export class Display {
         };
         
         this.tileMap.set(id, tile);
+        this.dirtyMask.markDirty(x, y);
         return id;
     }
 
@@ -291,11 +297,14 @@ export class Display {
             logger.verbose(`Moving tile ${tileId} to (${newX},${newY})`);
             tile.x = newX;
             tile.y = newY;
+            this.dirtyMask.markDirty(newX, newY);
+            this.dirtyMask.markDirty(tile.x, tile.y);
         }
     }
 
     public removeTile(tileId: TileId): void {
-        if (this.tileMap.has(tileId)) {
+        const tile = this.tileMap.get(tileId);
+        if (tile) {
             this.hasChanges = true;
             if (!this.tileMap.has(tileId)) {
                 logger.warn(`Attempted to remove non-existent tile: ${tileId}`);
@@ -303,6 +312,8 @@ export class Display {
             }
             
             logger.verbose(`Removing tile ${tileId}`);
+            this.dirtyMask.markDirty(tile.x, tile.y);
+
             this.symbolAnimations.delete(tileId);
             this.colorAnimations.delete(tileId);
             this.valueAnimations.delete(tileId);
@@ -310,15 +321,35 @@ export class Display {
         }
     }
 
+    public updateTileColor(tileId: TileId, newColor: Color): void {
+        const tile = this.tileMap.get(tileId);
+        if (tile && tile.color !== newColor) {
+            this.hasChanges = true;
+            tile.color = newColor;
+            this.dirtyMask.markDirty(tile.x, tile.y);
+        }
+    }
+
     private updateWorldCanvas(): void {
-        this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
-        
-        const sortedTiles = Array.from(this.tileMap.values())
+        if (!this.dirtyMask.hasDirtyTiles()) return;
+
+        // Find all tiles that need rendering
+        const tilesToRender = Array.from(this.tileMap.values())
+            .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y))
             .sort((a, b) => a.zIndex - b.zIndex);
 
-        sortedTiles.forEach(tile => {
+        // Clear and redraw each dirty tile
+        tilesToRender.forEach(tile => {
+            this.worldCtx.clearRect(
+                tile.x * this.cellWidthScaled,
+                tile.y * this.cellHeightScaled,
+                this.cellWidthScaled,
+                this.cellHeightScaled
+            );
             this.renderTile(tile);
         });
+
+        this.dirtyMask.clear();
     }
 
     private renderTile(tile: Tile): void {
@@ -799,6 +830,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             if (!animation.loop && progress >= 1) {
                 this.symbolAnimations.delete(tileId);
             }
+
+            this.dirtyMask.markDirty(tile.x, tile.y);
         }
     }
 
@@ -854,6 +887,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             if (!animations.fg && !animations.bg) {
                 this.colorAnimations.delete(tileId);
             }
+
+            this.dirtyMask.markDirty(tile.x, tile.y);
         }
     }
 
@@ -1002,6 +1037,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             animations.offsetSymbolX = updateAnimation(animations.offsetSymbolX, 'offsetSymbolX');
             animations.offsetSymbolY = updateAnimation(animations.offsetSymbolY, 'offsetSymbolY');
             animations.bgPercent = updateAnimation(animations.bgPercent, 'bgPercent');
+
+            this.dirtyMask.markDirty(tile.x, tile.y);
         }
     }
 
