@@ -142,6 +142,7 @@ export class LaserTest extends BaseTest {
     }
 
     protected run(): void {
+        this.display.setBackground(' ', "#000000FF", "#000000FF");
         this.startNewLine();
     }
 
