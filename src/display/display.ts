@@ -135,6 +135,8 @@ export class Display {
     private dirtyMask: DirtyMask;
     private useDirtyMask: boolean = true;
 
+    private frameCallbacks: Set<(display: Display) => void> = new Set();
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -510,6 +512,9 @@ export class Display {
         const animationEnd = performance.now();
         const renderStart = animationEnd;
 
+        // Call frame callbacks with 'this'
+        this.frameCallbacks.forEach(callback => callback(this));
+
         if (this.hasChanges) {
             this.updateWorldCanvas();
             this.hasChanges = false;
@@ -541,6 +546,8 @@ export class Display {
         }
 
         this.updateMetrics(renderStart);
+
+       
 
         if (this.isRunning) {
             requestAnimationFrame(this.boundRenderFrame);
@@ -1157,5 +1164,17 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         }
         this.hasChanges = true;
         return this.useDirtyMask;
+    }
+
+    public addFrameCallback(callback: (display: Display) => void): void {
+        this.frameCallbacks.add(callback);
+    }
+
+    public removeFrameCallback(callback: (display: Display) => void): void {
+        this.frameCallbacks.delete(callback);
+    }
+
+    public getDirtyMask(): readonly boolean[][] {
+        return this.dirtyMask.getMask();
     }
 } 
