@@ -36,6 +36,8 @@ export class AnimationLoadTest extends BaseTest {
             '#00FFFFFF'  // Cyan
         ];
 
+        this.display.setBackground(' ', '#000000FF', '#000000FF');
+
         // Fill entire world with animated tiles
         for (let y = 0; y < this.display.getWorldHeight(); y++) {
             for (let x = 0; x < this.display.getWorldWidth(); x++) {
@@ -43,7 +45,7 @@ export class AnimationLoadTest extends BaseTest {
                     x, y, 
                     symbols[0], 
                     colors[0], 
-                    '#000000FF', 
+                    '#555555FF', 
                     1
                 );
 
@@ -54,7 +56,7 @@ export class AnimationLoadTest extends BaseTest {
                 this.display.addColorAnimation(tileId, {
                     fg: {
                         start: '#FF0000FF',
-                        end: '#0000FFFF',
+                        end: colors[x % colors.length],
                         duration: 3.0,
                         reverse: true,
                         offset: (x + y) * 0.05,
@@ -63,7 +65,7 @@ export class AnimationLoadTest extends BaseTest {
                     },
                     bg: {
                         start: '#00FF00FF',
-                        end: '#FF00FFFF',
+                        end: colors[x % colors.length],
                         duration: 4.0,
                         reverse: true,
                         offset: (x * y) * 0.01,
@@ -88,26 +90,26 @@ export class AnimationLoadTest extends BaseTest {
                 });
 
                 // 4. Additional color animation layer - Opacity pulsing
-                this.display.addColorAnimation(tileId, {
-                    fg: {
-                        start: '#FFFFFF00',
-                        end: '#FFFFFFFF',
-                        duration: 2.0,
-                        reverse: true,
-                        offset: (x - y) * 0.03,
-                        easing: Easing.bounceInOut,
-                        loop: true
-                    },
-                    bg: {
-                        start: '#00000000',
-                        end: '#000000FF',
-                        duration: 2.5,
-                        reverse: true,
-                        offset: Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0.5,
-                        loop: true
-                    },
-                    startTime: startTime
-                });
+                // this.display.addColorAnimation(tileId, {
+                //     fg: {
+                //         start: '#FFFFFF00',
+                //         end: '#FFFFFFFF',
+                //         duration: 2.0,
+                //         reverse: true,
+                //         offset: (x - y) * 0.03,
+                //         easing: Easing.bounceInOut,
+                //         loop: true
+                //     },
+                //     bg: {
+                //         start: '#00000000',
+                //         end: '#000000FF',
+                //         duration: 2.5,
+                //         reverse: true,
+                //         offset: Math.sin(x * 0.1) * Math.cos(y * 0.1) * 0.5,
+                //         loop: true
+                //     },
+                //     startTime: startTime
+                // });
 
                 this.animatedTiles.push(tileId);
             }

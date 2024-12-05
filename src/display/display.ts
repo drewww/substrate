@@ -371,6 +371,8 @@ export class Display {
             tiles.sort((a, b) => a.zIndex - b.zIndex);
             
             // Clear cell once
+            // BE AWARE -- this was the site of a very odd bug where the background color was not being cleared. 
+            // Before, it was a clearRect. But for some reason 
             this.worldCtx.fillStyle = '#00000000';
             this.worldCtx.fillRect(
                 tiles[0].x * this.cellWidthScaled,
@@ -417,7 +419,7 @@ export class Display {
             this.worldCtx.restore();
         }
 
-        logger.debug(`Rendering tile ${tile.id} with background color ${tile.backgroundColor}`);
+        // logger.debug(`Rendering tile ${tile.id} with background color ${tile.backgroundColor}`);
         
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
             const bgPercent = tile.bgPercent ?? 1;
