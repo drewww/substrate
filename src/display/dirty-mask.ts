@@ -15,7 +15,7 @@ export class DirtyMask {
 
         const tilesToMark: {x: number, y: number}[] = [];
 
-        if(tile.x !== Math.floor(tile.x) || tile.y !== Math.floor(tile.y)) {
+        if(tile.x !== Math.floor(tile.x) || tile.y !== Math.floor(tile.y) || tile.noClip) {
             // logger.debug(`Marking non-integer tile ${tile.x},${tile.y} as dirty`);
 
             // compute the bounding box of the tile using the acutal width and height of the tile
