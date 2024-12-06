@@ -61,9 +61,15 @@ export class InputManager {
     public setMode(mode: string): void {}
     public setMap(map: string): void {}
     public registerCallback(callback: ActionCallback, order: number, mode?: string): void {}
-    public getConfigErrors(): ConfigError[] {}
-    public listActions(mode: string): string[] {}
-    public listKeysForAction(mode: string, action: string): string[] {}
+    public getConfigErrors(): ConfigError[] {
+        return this.configErrors;
+    }
+    public listActions(mode: string): string[] {
+        return [];
+    }
+    public listKeysForAction(mode: string, action: string): string[] {
+        return [];
+    }
 
     private handleKeyDown(event: KeyboardEvent): void {}
     private handleKeyUp(event: KeyboardEvent): void {}

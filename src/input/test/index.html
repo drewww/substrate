@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Input Tests</title>
+    <style>
+        body {
+            font-family: monospace;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+    Input Manager Tests
+    ==================
+    
+    <script type="module">
+        import { InputTest } from './input-test.js';
+        
+        async function runTests() {
+            const test = new InputTest();
+            await test.run();
+        }
+        
+        runTests();
+    </script>
+</body>
+</html> 
