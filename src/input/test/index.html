@@ -2,19 +2,31 @@
 <html>
 <head>
     <title>Input Tests</title>
-    <style>
-        body {
-            font-family: monospace;
-            white-space: pre;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../styles.css">
 </head>
 <body>
-    Input Manager Tests
-    ==================
+    <h1>Input Manager Tests</h1>
+
+    <div class="container">
+        <div class="column">
+            <div>Configuration:</div>
+            <textarea id="config" rows="10" cols="60"></textarea>
+            <button id="load-config">Load Configuration</button>
+            <pre id="config-status"></pre>
+        </div>
+
+        <div class="column">
+            <div>Raw Input Events:</div>
+            <pre id="input-log"></pre>
+
+            <div>Triggered Actions:</div>
+            <pre id="action-log"></pre>
+        </div>
+    </div>
     
     <script type="module">
-        import { InputTest } from './input-test.js';
+        import { InputTest } from './input-test.ts';
         
         async function runTests() {
             const test = new InputTest();
