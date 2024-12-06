@@ -48,3 +48,16 @@ Display
     - consider different sizing? for not following the cell grid at all??
  - DONE delete buffer canvas, not sure why we're triple buffered right now. seems not to be used for anything.
  - DONE Refactor overlays to use the same logic as any other cell. 
+
+
+
+
+MODULE LIST
+-----------
+ * Display (v1.0 done)
+ * Input (v0.0)
+ * Game (v0.0)
+ * World (v0.0)
+ * Entity (v0.0)
+ * UI?? menus? Compositing displays with other things?
+ 
