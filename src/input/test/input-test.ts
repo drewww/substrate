@@ -53,7 +53,18 @@ Shift+a          sprint-left`;
     private loadConfig(): void {
         this.configStatus.textContent = '';
         try {
+            // Create a fresh input manager
+            this.inputManager = new InputManager();
+            
+            // Re-register our callback
+            this.inputManager.registerCallback((eventType, action, parameters, modifiers) => {
+                this.logAction(eventType, action, parameters, modifiers);
+                return false; // Don't stop propagation
+            }, 0);
+            
+            // Load the new config
             this.inputManager.loadConfig(this.configTextarea.value);
+            
             const errors = this.inputManager.getConfigErrors();
             if (errors.length > 0) {
                 this.configStatus.textContent = 'Configuration loaded with warnings:\n' + 

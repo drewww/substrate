@@ -56,11 +56,209 @@ export class InputManager {
         window.addEventListener('keyup', this.handleKeyUp.bind(this));
     }
 
-    // Would you like me to continue with the implementation of these methods?
-    public loadConfig(configText: string): void {}
-    public setMode(mode: string): void {}
-    public setMap(map: string): void {}
-    public registerCallback(callback: ActionCallback, order: number, mode?: string): void {}
+    public loadConfig(configText: string): void {
+        this.configErrors = [];
+        this.modes = {}; // Clear existing modes
+        this.parseConfig(configText);
+        
+        // Reset current mode/map
+        this.currentMode = '';
+        this.currentMap = '';
+
+        // Set to first mode and its default map if available
+        const firstMode = Object.keys(this.modes)[0];
+        if (firstMode) {
+            this.currentMode = firstMode;
+            this.currentMap = this.modes[firstMode].defaultMap;
+        }
+    }
+
+    private parseConfig(configText: string): void {
+        let currentMode: string | null = null;
+        let currentMap: string | null = null;
+        let lineNumber = 0;
+        
+        const lines = configText.split('\n');
+        
+        for (const line of lines) {
+            lineNumber++;
+            const trimmedLine = line.trim();
+            
+            // Skip empty lines and comments
+            if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+            
+            // Parse mode header
+            if (trimmedLine.startsWith('mode:')) {
+                const mode = trimmedLine.substring(5).trim();
+                if (!this.isValidIdentifier(mode)) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: `Invalid mode identifier: ${mode}`,
+                        line: lineNumber
+                    });
+                    continue;
+                }
+                currentMode = mode;
+                if (!this.modes[currentMode]) {
+                    this.modes[currentMode] = {
+                        maps: {},
+                        defaultMap: ''
+                    };
+                }
+                continue;
+            }
+            
+            // Parse map header
+            if (trimmedLine.startsWith('map:')) {
+                if (!currentMode) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: 'Map specified before mode',
+                        line: lineNumber
+                    });
+                    continue;
+                }
+                
+                const parts = trimmedLine.substring(4).trim().split(/\s+/);
+                const mapName = parts[0];
+                const isDefault = parts.includes('default');
+                
+                if (!this.isValidIdentifier(mapName)) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: `Invalid map identifier: ${mapName}`,
+                        line: lineNumber
+                    });
+                    continue;
+                }
+                
+                currentMap = mapName;
+                if (!this.modes[currentMode].maps[currentMap]) {
+                    this.modes[currentMode].maps[currentMap] = {};
+                }
+                
+                if (isDefault) {
+                    if (this.modes[currentMode].defaultMap) {
+                        this.configErrors.push({
+                            type: 'warning',
+                            message: `Multiple default maps specified for mode ${currentMode}. Using ${currentMap}`,
+                            mode: currentMode,
+                            line: lineNumber
+                        });
+                    }
+                    this.modes[currentMode].defaultMap = currentMap;
+                }
+                continue;
+            }
+            
+            // End of metadata section
+            if (trimmedLine === '---') {
+                continue;
+            }
+            
+            // Parse key mappings
+            if (!currentMode || !currentMap) {
+                this.configErrors.push({
+                    type: 'error',
+                    message: 'Key mapping specified before mode and map',
+                    line: lineNumber
+                });
+                continue;
+            }
+            
+            // Split line into keys, actions, and parameters using whitespace
+            // But preserve spaces within quoted strings if we add those later
+            const parts = trimmedLine.split(/\s+/);
+            if (parts.length < 2) {
+                this.configErrors.push({
+                    type: 'error',
+                    message: `Invalid key mapping format: "${trimmedLine}". Expected "<key>[,<key>...] <action> [parameters...]"`,
+                    mode: currentMode,
+                    map: currentMap,
+                    line: lineNumber
+                });
+                continue;
+            }
+            
+            // First part is the key list
+            const keyList = parts[0].split(',').map(k => k.trim());
+            
+            // Second part is the action
+            const action = parts[1];
+            
+            // Remaining parts are parameters
+            const parameters = parts.slice(2);
+            
+            // Validate action
+            if (!this.isValidAction(action)) {
+                this.configErrors.push({
+                    type: 'error',
+                    message: `Invalid action name: ${action}`,
+                    mode: currentMode,
+                    map: currentMap,
+                    line: lineNumber
+                });
+                continue;
+            }
+            
+            // Add mappings - each key in the comma-separated list maps to the same action
+            for (const key of keyList) {
+                const keyConfig = {
+                    action,
+                    parameters
+                };
+                
+                if (!this.modes[currentMode].maps[currentMap][key]) {
+                    this.modes[currentMode].maps[currentMap][key] = [];
+                }
+                this.modes[currentMode].maps[currentMap][key].push(keyConfig);
+            }
+        }
+        
+        // Set default maps where none specified
+        for (const [mode, config] of Object.entries(this.modes)) {
+            if (!config.defaultMap && Object.keys(config.maps).length > 0) {
+                config.defaultMap = Object.keys(config.maps)[0];
+                this.configErrors.push({
+                    type: 'warning',
+                    message: `No default map specified for mode ${mode}. Using ${config.defaultMap}`,
+                    mode
+                });
+            }
+        }
+    }
+    
+    private isValidIdentifier(id: string): boolean {
+        return /^[a-zA-Z][a-zA-Z0-9-]*$/.test(id);
+    }
+    
+    private isValidAction(action: string): boolean {
+        return /^[a-zA-Z][a-zA-Z-]*$/.test(action);
+    }
+
+    public setMode(mode: string): void {
+        if (!this.modes[mode]) {
+            throw new Error(`Mode '${mode}' does not exist`);
+        }
+        this.currentMode = mode;
+        this.currentMap = this.modes[mode].defaultMap;
+    }
+
+    public setMap(map: string): void {
+        if (!this.currentMode) {
+            throw new Error('No mode selected');
+        }
+        if (!this.modes[this.currentMode].maps[map]) {
+            throw new Error(`Map '${map}' does not exist in mode '${this.currentMode}'`);
+        }
+        this.currentMap = map;
+    }
+
+    public registerCallback(callback: ActionCallback, order: number, mode?: string): void {
+        this.callbacks.push({ callback, order, mode });
+        // Sort callbacks by order (lower numbers execute first)
+        this.callbacks.sort((a, b) => a.order - b.order);
+    }
     public getConfigErrors(): ConfigError[] {
         return this.configErrors;
     }
@@ -71,11 +269,97 @@ export class InputManager {
         return [];
     }
 
-    private handleKeyDown(event: KeyboardEvent): void {}
-    private handleKeyUp(event: KeyboardEvent): void {}
-    private parseConfig(configText: string): void {}
-    private updateModifierState(event: KeyboardEvent): void {}
-    private triggerCallbacks(eventType: string, action: string, parameters: string[]): void {}
+    private handleKeyDown(event: KeyboardEvent): void {
+        // Update modifier state
+        this.updateModifierState(event);
+        
+        // Add to active keys
+        this.activeKeys.add(event.key);
+
+        // Find and trigger matching actions
+        if (this.currentMode && this.currentMap) {
+            const modeConfig = this.modes[this.currentMode];
+            const mapConfig = modeConfig.maps[this.currentMap];
+            
+            // Check for exact key match
+            if (mapConfig[event.key]) {
+                for (const keyConfig of mapConfig[event.key]) {
+                    this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                }
+            }
+
+            // Check for modifier combinations
+            const modifierKey = this.getModifierKeyCombo(event);
+            if (modifierKey && mapConfig[modifierKey]) {
+                for (const keyConfig of mapConfig[modifierKey]) {
+                    this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                }
+            }
+        }
+    }
+
+    private handleKeyUp(event: KeyboardEvent): void {
+        // Find and trigger matching actions before removing from active keys
+        if (this.currentMode && this.currentMap) {
+            const modeConfig = this.modes[this.currentMode];
+            const mapConfig = modeConfig.maps[this.currentMap];
+            
+            if (mapConfig[event.key]) {
+                for (const keyConfig of mapConfig[event.key]) {
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                }
+            }
+
+            const modifierKey = this.getModifierKeyCombo(event);
+            if (modifierKey && mapConfig[modifierKey]) {
+                for (const keyConfig of mapConfig[modifierKey]) {
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                }
+            }
+        }
+
+        // Remove from active keys
+        this.activeKeys.delete(event.key);
+        
+        // Update modifier state
+        this.updateModifierState(event);
+    }
+
+    private updateModifierState(event: KeyboardEvent): void {
+        this.modifierState = {
+            ctrl: event.ctrlKey,
+            shift: event.shiftKey,
+            alt: event.altKey,
+            meta: event.metaKey
+        };
+    }
+
+    private getModifierKeyCombo(event: KeyboardEvent): string | null {
+        const modifiers: string[] = [];
+        if (event.ctrlKey) modifiers.push('control');
+        if (event.shiftKey) modifiers.push('shift');
+        if (event.altKey) modifiers.push('alt');
+        if (event.metaKey) modifiers.push('meta');
+        
+        if (modifiers.length === 0) return null;
+        
+        return `${modifiers.join('+')}+${event.key}`;
+    }
+
+    private triggerCallbacks(eventType: string, action: string, parameters: string[]): void {
+        for (const registration of this.callbacks) {
+            // Skip if callback is mode-specific and doesn't match current mode
+            if (registration.mode && registration.mode !== this.currentMode) {
+                continue;
+            }
+            
+            const result = registration.callback(eventType, action, parameters, this.modifierState);
+            
+            // If callback returns true, stop propagation
+            if (result === true) break;
+        }
+    }
+
     private startRepeat(key: string): void {}
     private stopRepeat(key: string): void {}
 } 
