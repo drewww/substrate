@@ -203,15 +203,22 @@ export class InputManager {
             
             // Add mappings - each key in the comma-separated list maps to the same action
             for (const key of keyList) {
+                // Normalize the key or key combination
+                const normalizedKey = key.includes('+')
+                    ? key.split('+')
+                        .map(part => this.normalizeKey(part.trim()))
+                        .join('+')
+                    : this.normalizeKey(key);
+
                 const keyConfig = {
                     action,
                     parameters
                 };
                 
-                if (!this.modes[currentMode].maps[currentMap][key]) {
-                    this.modes[currentMode].maps[currentMap][key] = [];
+                if (!this.modes[currentMode].maps[currentMap][normalizedKey]) {
+                    this.modes[currentMode].maps[currentMap][normalizedKey] = [];
                 }
-                this.modes[currentMode].maps[currentMap][key].push(keyConfig);
+                this.modes[currentMode].maps[currentMap][normalizedKey].push(keyConfig);
             }
         }
         
@@ -270,26 +277,25 @@ export class InputManager {
     }
 
     private handleKeyDown(event: KeyboardEvent): void {
-        // Update modifier state
         this.updateModifierState(event);
         
-        // Add to active keys
-        this.activeKeys.add(event.key);
+        // Normalize the key
+        const normalizedKey = this.normalizeKey(event.key);
+        this.activeKeys.add(normalizedKey);
 
-        // Find and trigger matching actions
         if (this.currentMode && this.currentMap) {
             const modeConfig = this.modes[this.currentMode];
             const mapConfig = modeConfig.maps[this.currentMap];
             
-            // Check for exact key match
-            if (mapConfig[event.key]) {
-                for (const keyConfig of mapConfig[event.key]) {
+            // Check for exact key match with normalized key
+            if (mapConfig[normalizedKey]) {
+                for (const keyConfig of mapConfig[normalizedKey]) {
                     this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
                 }
             }
 
-            // Check for modifier combinations
-            const modifierKey = this.getModifierKeyCombo(event);
+            // Check for modifier combinations with normalized key
+            const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
             if (modifierKey && mapConfig[modifierKey]) {
                 for (const keyConfig of mapConfig[modifierKey]) {
                     this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
@@ -310,7 +316,7 @@ export class InputManager {
                 }
             }
 
-            const modifierKey = this.getModifierKeyCombo(event);
+            const modifierKey = this.getModifierKeyCombo(event, this.normalizeKey(event.key));
             if (modifierKey && mapConfig[modifierKey]) {
                 for (const keyConfig of mapConfig[modifierKey]) {
                     this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
@@ -334,16 +340,16 @@ export class InputManager {
         };
     }
 
-    private getModifierKeyCombo(event: KeyboardEvent): string | null {
+    private getModifierKeyCombo(event: KeyboardEvent, normalizedKey: string): string | null {
         const modifiers: string[] = [];
-        if (event.ctrlKey) modifiers.push('control');
-        if (event.shiftKey) modifiers.push('shift');
-        if (event.altKey) modifiers.push('alt');
-        if (event.metaKey) modifiers.push('meta');
+        if (event.ctrlKey) modifiers.push('Control');
+        if (event.shiftKey) modifiers.push('Shift');
+        if (event.altKey) modifiers.push('Alt');
+        if (event.metaKey) modifiers.push('Meta');
         
         if (modifiers.length === 0) return null;
         
-        return `${modifiers.join('+')}+${event.key}`;
+        return `${modifiers.join('+')}+${normalizedKey}`;
     }
 
     private triggerCallbacks(eventType: string, action: string, parameters: string[]): void {
@@ -362,4 +368,12 @@ export class InputManager {
 
     private startRepeat(key: string): void {}
     private stopRepeat(key: string): void {}
+
+    private normalizeKey(key: string): string {
+        // Don't lowercase special keys that start with uppercase
+        if (key.length > 1 && key.match(/^[A-Z]/)) {
+            return key;
+        }
+        return key.toLowerCase();
+    }
 } 
