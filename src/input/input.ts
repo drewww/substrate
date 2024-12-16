@@ -502,4 +502,41 @@ export class InputManager {
         }
         return Object.keys(this.modes[this.currentMode].maps);
     }
+
+    public getConfigStats(): { 
+        modes: { name: string, mapCount: number }[],
+        totalMappings: number,
+        errorCount: number,
+        warningCount: number 
+    } {
+        const modes = Object.entries(this.modes).map(([name, config]) => ({
+            name,
+            mapCount: Object.keys(config.maps).length
+        }));
+
+        const totalMappings = Object.values(this.modes).reduce((total, mode) => {
+            return total + Object.values(mode.maps).reduce((modeTotal, map) => {
+                return modeTotal + Object.values(map).reduce((mapTotal, actions) => 
+                    mapTotal + actions.length, 0);
+            }, 0);
+        }, 0);
+
+        const errorCount = this.configErrors.filter(e => e.type === 'error').length;
+        const warningCount = this.configErrors.filter(e => e.type === 'warning').length;
+
+        return {
+            modes,
+            totalMappings,
+            errorCount,
+            warningCount
+        };
+    }
+
+    public getModes(): { [mode: string]: ModeConfig } {
+        return this.modes;
+    }
+
+    public getCurrentMode(): string {
+        return this.currentMode;
+    }
 } 

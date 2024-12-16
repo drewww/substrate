@@ -7,6 +7,7 @@ export class InputTest {
     private inputLog: HTMLPreElement;
     private actionLog: HTMLPreElement;
     private mapSelect: HTMLSelectElement;
+    private modeSelect: HTMLSelectElement;
     
     constructor() {
         this.inputManager = new InputManager();
@@ -17,6 +18,7 @@ export class InputTest {
         this.inputLog = document.getElementById('input-log') as HTMLPreElement;
         this.actionLog = document.getElementById('action-log') as HTMLPreElement;
         this.mapSelect = document.getElementById('map-select') as HTMLSelectElement;
+        this.modeSelect = document.getElementById('mode-select') as HTMLSelectElement;
 
         // Set default config
         this.configTextarea.value = this.getDefaultConfig();
@@ -25,6 +27,7 @@ export class InputTest {
         document.getElementById('load-config')!.onclick = () => this.loadConfig();
         document.getElementById('clear-logs')!.onclick = () => this.clearLogs();
         this.mapSelect.onchange = () => this.changeMap();
+        this.modeSelect.onchange = () => this.changeMode();
         
         // Setup input logging
         this.setupEventListeners();
@@ -53,9 +56,32 @@ export class InputTest {
         }
     }
 
+    private updateModeSelect(): void {
+        // Clear existing options
+        this.modeSelect.innerHTML = '';
+        
+        // Get available modes from input manager
+        const modes = Object.keys(this.inputManager.getModes());
+        
+        // Add options for each mode
+        for (const mode of modes) {
+            const option = document.createElement('option');
+            option.value = mode;
+            option.textContent = mode;
+            this.modeSelect.appendChild(option);
+        }
+
+        // Select current mode if any
+        const currentMode = this.inputManager.getCurrentMode();
+        if (currentMode) {
+            this.modeSelect.value = currentMode;
+        }
+    }
+
     private getDefaultConfig(): string {
         return `mode: game
 ==========
+
 map: wasd default
 ---
 w,ArrowUp        move    up
@@ -78,7 +104,20 @@ Control         crouch
 Shift+k         sprint  up
 Shift+j         sprint  down
 Shift+h         sprint  left
-Shift+l         sprint  right`;
+Shift+l         sprint  right
+
+
+mode: menu
+==========
+
+map: default
+---
+ArrowUp         move    up
+ArrowDown       move    down
+ArrowLeft       move    left
+ArrowRight      move    right
+Enter           select`;
+;
     }
 
     private loadConfig(): void {
@@ -87,7 +126,8 @@ Shift+l         sprint  right`;
             // Load the new config
             this.inputManager.loadConfig(this.configTextarea.value);
             
-            // Update map selector
+            // Update selectors
+            this.updateModeSelect();
             this.updateMapSelect();
             
             const errors = this.inputManager.getConfigErrors();
@@ -95,7 +135,19 @@ Shift+l         sprint  right`;
                 this.configStatus.textContent = 'Configuration loaded with warnings:\n' + 
                     errors.map(e => `${e.type}: ${e.message}`).join('\n');
             } else {
-                this.configStatus.textContent = 'Configuration loaded successfully';
+                const stats = this.inputManager.getConfigStats();
+                const modeList = stats.modes
+                    .map((m: { name: string, mapCount: number }) => 
+                        `  ${m.name} (${m.mapCount} maps)`)
+                    .join('\n');
+                
+                this.configStatus.textContent = 
+                    'Configuration loaded successfully\n\n' +
+                    'Modes loaded:\n' +
+                    modeList + '\n\n' +
+                    `Total key mappings: ${stats.totalMappings}\n` +
+                    `Errors: ${stats.errorCount}\n` +
+                    `Warnings: ${stats.warningCount}`;
             }
         } catch (e: any) {
             this.configStatus.textContent = `Error loading configuration: ${e.message}`;
@@ -162,5 +214,13 @@ Shift+l         sprint  right`;
     public async run(): Promise<void> {
         // Initial load of default config
         this.loadConfig();
+    }
+
+    private changeMode(): void {
+        const selectedMode = this.modeSelect.value;
+        if (selectedMode) {
+            this.inputManager.setMode(selectedMode);
+            this.updateMapSelect(); // Update available maps for new mode
+        }
     }
 } 
