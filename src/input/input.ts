@@ -395,6 +395,12 @@ export class InputManager {
         
         const normalizedKey = this.normalizeKey(event.key);
         
+        // Skip standalone modifier keys entirely
+        if (normalizedKey === 'control' || normalizedKey === 'shift' || 
+            normalizedKey === 'alt' || normalizedKey === 'meta') {
+            return;
+        }
+
         // Prevent default browser behavior for arrow keys
         if (normalizedKey.startsWith('Arrow') || normalizedKey === 'Enter') {
             event.preventDefault();
@@ -403,36 +409,54 @@ export class InputManager {
         // Only process the keydown if it's not already active (prevent key repeat)
         if (!this.activeKeys.has(normalizedKey)) {
             this.activeKeys.add(normalizedKey);
-
-            const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
             
             if (this.currentMode && this.currentMap) {
                 const modeConfig = this.modes[this.currentMode];
                 const mapConfig = modeConfig.maps[this.currentMap];
                 
-                // Check for pass key BEFORE any modifier key filtering
-                if (mapConfig['pass'] && !modifierKey) {
-                    for (const keyConfig of mapConfig['pass']) {
-                        const parameters = [...keyConfig.parameters, event.key];
-                        this.triggerCallbacks('down', keyConfig.action, parameters, event.key);
-                    }
-                    return;
-                }
+                // Try normal key mappings first
+                const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
+                let handled = false;
                 
-              
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
                         this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
+                        handled = true;
                     }
-                    this.startRepeat(normalizedKey);
-                    return;
+                    if (handled) {
+                        this.startRepeat(normalizedKey);
+                        return;
+                    }
                 }
                 
                 if (mapConfig[normalizedKey]) {
                     for (const keyConfig of mapConfig[normalizedKey]) {
                         this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
+                        handled = true;
                     }
-                    this.startRepeat(normalizedKey);
+                    if (handled) {
+                        this.startRepeat(normalizedKey);
+                        return;
+                    }
+                }
+                
+                // If no normal mapping handled it, try pass as fallback
+                if (!handled && mapConfig['pass']) {
+                    for (const keyConfig of mapConfig['pass']) {
+                        const activeModifiers = [];
+                        if (this.modifierState.ctrl) activeModifiers.push('ctrl');
+                        if (this.modifierState.shift) activeModifiers.push('shift');
+                        if (this.modifierState.alt) activeModifiers.push('alt');
+                        if (this.modifierState.meta) activeModifiers.push('meta');
+                        
+                        const parameters = [
+                            ...keyConfig.parameters,
+                            normalizedKey,
+                            ...activeModifiers
+                        ];
+                        
+                        this.triggerCallbacks('down', keyConfig.action, parameters, normalizedKey);
+                    }
                 }
             }
         }
@@ -441,22 +465,53 @@ export class InputManager {
     private handleKeyUp(event: KeyboardEvent): void {
         const normalizedKey = this.normalizeKey(event.key);
         
+        // Skip standalone modifier keys entirely
+        if (normalizedKey === 'control' || normalizedKey === 'shift' || 
+            normalizedKey === 'alt' || normalizedKey === 'meta') {
+            // Update modifier state before returning
+            this.updateModifierState(event);
+            return;
+        }
+        
         // Stop the repeat timer for this key
         this.stopRepeat(normalizedKey);
 
-        // Find and trigger matching actions before removing from active keys
         if (this.currentMode && this.currentMap) {
             const modeConfig = this.modes[this.currentMode];
             const mapConfig = modeConfig.maps[this.currentMap];
             
+            // Try normal key mappings first
+            let handled = false;
             const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
+            
             if (modifierKey && mapConfig[modifierKey]) {
                 for (const keyConfig of mapConfig[modifierKey]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, event.key);
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, normalizedKey);
+                    handled = true;
                 }
             } else if (mapConfig[normalizedKey]) {
                 for (const keyConfig of mapConfig[normalizedKey]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, event.key);
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, normalizedKey);
+                    handled = true;
+                }
+            }
+            
+            // If no normal mapping handled it, try pass as fallback
+            if (!handled && mapConfig['pass']) {
+                for (const keyConfig of mapConfig['pass']) {
+                    const activeModifiers = [];
+                    if (this.modifierState.ctrl) activeModifiers.push('ctrl');
+                    if (this.modifierState.shift) activeModifiers.push('shift');
+                    if (this.modifierState.alt) activeModifiers.push('alt');
+                    if (this.modifierState.meta) activeModifiers.push('meta');
+                    
+                    const parameters = [
+                        ...keyConfig.parameters,
+                        normalizedKey,
+                        ...activeModifiers
+                    ];
+                    
+                    this.triggerCallbacks('up', keyConfig.action, parameters, normalizedKey);
                 }
             }
         }
