@@ -21,16 +21,12 @@ export class InputTest {
 
         // Setup event listeners
         document.getElementById('load-config')!.onclick = () => this.loadConfig();
-        document.getElementById('clear-input-log')!.onclick = () => this.clearInputLog();
-        document.getElementById('clear-action-log')!.onclick = () => this.clearActionLog();
+        document.getElementById('clear-logs')!.onclick = () => this.clearLogs();
         this.setupEventListeners();
     }
 
-    private clearInputLog(): void {
+    private clearLogs(): void {
         this.inputLog.textContent = '';
-    }
-
-    private clearActionLog(): void {
         this.actionLog.textContent = '';
     }
 

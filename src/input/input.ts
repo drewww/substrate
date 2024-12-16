@@ -279,54 +279,62 @@ export class InputManager {
     private handleKeyDown(event: KeyboardEvent): void {
         this.updateModifierState(event);
         
-        // Normalize the key
         const normalizedKey = this.normalizeKey(event.key);
-        this.activeKeys.add(normalizedKey);
-
-        if (this.currentMode && this.currentMap) {
-            const modeConfig = this.modes[this.currentMode];
-            const mapConfig = modeConfig.maps[this.currentMap];
+        
+        // Only process the keydown if it's not already active (prevent key repeat)
+        if (!this.activeKeys.has(normalizedKey)) {
+            this.activeKeys.add(normalizedKey);
             
-            // First check for modifier combinations with normalized key
-            const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
-            if (modifierKey && mapConfig[modifierKey]) {
-                for (const keyConfig of mapConfig[modifierKey]) {
-                    this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+            if (this.currentMode && this.currentMap) {
+                const modeConfig = this.modes[this.currentMode];
+                const mapConfig = modeConfig.maps[this.currentMap];
+                
+                // First check for modifier combinations
+                const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
+                if (modifierKey && mapConfig[modifierKey]) {
+                    for (const keyConfig of mapConfig[modifierKey]) {
+                        this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                    }
+                    this.startRepeat(normalizedKey);
+                    return;
                 }
-                return; // Exit early if we found and triggered a modifier combo
-            }
 
-            // Only check for exact key match if no modifier combo was found
-            if (mapConfig[normalizedKey]) {
-                for (const keyConfig of mapConfig[normalizedKey]) {
-                    this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                // Only check for exact key match if no modifier combo was found
+                if (mapConfig[normalizedKey]) {
+                    for (const keyConfig of mapConfig[normalizedKey]) {
+                        this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                    }
+                    this.startRepeat(normalizedKey);
                 }
             }
         }
     }
 
     private handleKeyUp(event: KeyboardEvent): void {
+        const normalizedKey = this.normalizeKey(event.key);
+        
+        // Stop the repeat timer for this key
+        this.stopRepeat(normalizedKey);
+
         // Find and trigger matching actions before removing from active keys
         if (this.currentMode && this.currentMap) {
             const modeConfig = this.modes[this.currentMode];
             const mapConfig = modeConfig.maps[this.currentMap];
             
-            if (mapConfig[event.key]) {
-                for (const keyConfig of mapConfig[event.key]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
-                }
-            }
-
-            const modifierKey = this.getModifierKeyCombo(event, this.normalizeKey(event.key));
+            const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
             if (modifierKey && mapConfig[modifierKey]) {
                 for (const keyConfig of mapConfig[modifierKey]) {
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                }
+            } else if (mapConfig[normalizedKey]) {
+                for (const keyConfig of mapConfig[normalizedKey]) {
                     this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
                 }
             }
         }
 
         // Remove from active keys
-        this.activeKeys.delete(event.key);
+        this.activeKeys.delete(normalizedKey);
         
         // Update modifier state
         this.updateModifierState(event);
@@ -367,8 +375,48 @@ export class InputManager {
         }
     }
 
-    private startRepeat(key: string): void {}
-    private stopRepeat(key: string): void {}
+    private startRepeat(key: string): void {
+        // Clear any existing timer for this key
+        this.stopRepeat(key);
+        
+        // Start a new repeat timer
+        this.repeatTimers[key] = window.setInterval(() => {
+            if (this.currentMode && this.currentMap) {
+                const modeConfig = this.modes[this.currentMode];
+                const mapConfig = modeConfig.maps[this.currentMap];
+                
+                // Check for modifier combinations first
+                const modifierKey = this.getModifierKeyCombo({ 
+                    key,
+                    ctrlKey: this.modifierState.ctrl,
+                    shiftKey: this.modifierState.shift,
+                    altKey: this.modifierState.alt,
+                    metaKey: this.modifierState.meta
+                } as KeyboardEvent, this.normalizeKey(key));
+
+                if (modifierKey && mapConfig[modifierKey]) {
+                    for (const keyConfig of mapConfig[modifierKey]) {
+                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters);
+                    }
+                    return;
+                }
+
+                // Check for plain key if no modifier combo was found
+                if (mapConfig[key]) {
+                    for (const keyConfig of mapConfig[key]) {
+                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters);
+                    }
+                }
+            }
+        }, this.repeatInterval);
+    }
+
+    private stopRepeat(key: string): void {
+        if (this.repeatTimers[key]) {
+            window.clearInterval(this.repeatTimers[key]);
+            delete this.repeatTimers[key];
+        }
+    }
 
     private normalizeKey(key: string): string {
         // Don't lowercase special keys that start with uppercase
