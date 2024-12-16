@@ -351,6 +351,11 @@ export class InputManager {
         
         const normalizedKey = this.normalizeKey(event.key);
         
+        // Prevent default browser behavior for arrow keys
+        if (normalizedKey.startsWith('Arrow') || normalizedKey === 'Enter') {
+            event.preventDefault();
+        }
+        
         // Only process the keydown if it's not already active (prevent key repeat)
         if (!this.activeKeys.has(normalizedKey)) {
             this.activeKeys.add(normalizedKey);
