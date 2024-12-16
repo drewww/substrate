@@ -396,8 +396,7 @@ export class InputManager {
         const normalizedKey = this.normalizeKey(event.key);
         
         // Skip standalone modifier keys entirely
-        if (normalizedKey === 'control' || normalizedKey === 'shift' || 
-            normalizedKey === 'alt' || normalizedKey === 'meta') {
+        if (this.isModifierKey(normalizedKey)) {
             return;
         }
 
@@ -456,6 +455,10 @@ export class InputManager {
                         ];
                         
                         this.triggerCallbacks('down', keyConfig.action, parameters, normalizedKey);
+                    }
+
+                    if(!modifierKey) {
+                        this.startRepeat(normalizedKey);
                     }
                 }
             }
@@ -562,6 +565,11 @@ export class InputManager {
     }
 
     private startRepeat(key: string): void {
+        // Don't start repeat for modifier keys
+        if (this.isModifierKey(key)) {
+            return;
+        }
+
         // Clear any existing timer for this key
         this.stopRepeat(key);
         
@@ -571,26 +579,47 @@ export class InputManager {
                 const modeConfig = this.modes[this.currentMode];
                 const mapConfig = modeConfig.maps[this.currentMap];
                 
-                // Check for modifier combinations first
+                const normalizedKey = this.normalizeKey(key);
+                
+                // Try normal key mappings first
                 const modifierKey = this.getModifierKeyCombo({ 
-                    key,
+                    key: normalizedKey,
                     ctrlKey: this.modifierState.ctrl,
                     shiftKey: this.modifierState.shift,
                     altKey: this.modifierState.alt,
                     metaKey: this.modifierState.meta
-                } as KeyboardEvent, this.normalizeKey(key));
-
+                } as KeyboardEvent, normalizedKey);
+                
+                let handled = false;
+                
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
-                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters, key);
+                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters, normalizedKey);
+                        handled = true;
                     }
-                    return;
+                } else if (mapConfig[normalizedKey]) {
+                    for (const keyConfig of mapConfig[normalizedKey]) {
+                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters, normalizedKey);
+                        handled = true;
+                    }
                 }
-
-                // Check for plain key if no modifier combo was found
-                if (mapConfig[key]) {
-                    for (const keyConfig of mapConfig[key]) {
-                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters, key);
+                
+                // If no normal mapping handled it, try pass as fallback
+                if (!handled && mapConfig['pass']) {
+                    for (const keyConfig of mapConfig['pass']) {
+                        const activeModifiers = [];
+                        if (this.modifierState.ctrl) activeModifiers.push('ctrl');
+                        if (this.modifierState.shift) activeModifiers.push('shift');
+                        if (this.modifierState.alt) activeModifiers.push('alt');
+                        if (this.modifierState.meta) activeModifiers.push('meta');
+                        
+                        const parameters = [
+                            ...keyConfig.parameters,
+                            normalizedKey,
+                            ...activeModifiers
+                        ];
+                        
+                        this.triggerCallbacks('repeat', keyConfig.action, parameters, normalizedKey);
                     }
                 }
             }
@@ -654,5 +683,14 @@ export class InputManager {
 
     public getCurrentMode(): string {
         return this.currentMode;
+    }
+
+    // Add helper method to check for modifier keys
+    private isModifierKey(key: string): boolean {
+        const normalizedKey = this.normalizeKey(key);
+        return normalizedKey === 'control' || 
+               normalizedKey === 'shift' || 
+               normalizedKey === 'alt' || 
+               normalizedKey === 'meta';
     }
 } 
