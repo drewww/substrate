@@ -80,19 +80,31 @@ export class InputManager {
     }
 
     private clearAllStates(): void {
-        // Stop all repeat timers
+        // Stop all repeat timers first
         for (const key in this.repeatTimers) {
             this.stopRepeat(key);
         }
         
-        // Clear active keys set
+        // Clear active keys set and trigger 'up' events
         for (const key of this.activeKeys) {
-            // Trigger 'up' events for any keys that were down
             if (this.currentMode && this.currentMap) {
                 const modeConfig = this.modes[this.currentMode];
                 const mapConfig = modeConfig.maps[this.currentMap];
                 
-                if (mapConfig[key]) {
+                // Check for modifier combinations first
+                const modifierKey = this.getModifierKeyCombo({ 
+                    key,
+                    ctrlKey: this.modifierState.ctrl,
+                    shiftKey: this.modifierState.shift,
+                    altKey: this.modifierState.alt,
+                    metaKey: this.modifierState.meta
+                } as KeyboardEvent, this.normalizeKey(key));
+
+                if (modifierKey && mapConfig[modifierKey]) {
+                    for (const keyConfig of mapConfig[modifierKey]) {
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                    }
+                } else if (mapConfig[key]) {
                     for (const keyConfig of mapConfig[key]) {
                         this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
                     }
@@ -312,6 +324,10 @@ export class InputManager {
         if (!this.modes[this.currentMode].maps[map]) {
             throw new Error(`Map '${map}' does not exist in mode '${this.currentMode}'`);
         }
+        
+        // Clear states before changing maps
+        this.clearAllStates();
+        
         this.currentMap = map;
     }
 

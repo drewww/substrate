@@ -25,6 +25,8 @@ export class InputTest {
         document.getElementById('load-config')!.onclick = () => this.loadConfig();
         document.getElementById('clear-logs')!.onclick = () => this.clearLogs();
         this.mapSelect.onchange = () => this.changeMap();
+        
+        // Setup input logging
         this.setupEventListeners();
     }
 
@@ -82,15 +84,6 @@ Shift+l         sprint  right`;
     private loadConfig(): void {
         this.configStatus.textContent = '';
         try {
-            // Create a fresh input manager
-            this.inputManager = new InputManager();
-            
-            // Re-register our callback
-            this.inputManager.registerCallback((eventType, action, parameters, modifiers) => {
-                this.logAction(eventType, action, parameters, modifiers);
-                return false; // Don't stop propagation
-            }, 0);
-            
             // Load the new config
             this.inputManager.loadConfig(this.configTextarea.value);
             
@@ -122,6 +115,7 @@ Shift+l         sprint  right`;
             this.logInput('keyup', e);
         });
 
+        // Register action callback once here, not in loadConfig
         this.inputManager.registerCallback((eventType, action, parameters, modifiers) => {
             this.logAction(eventType, action, parameters, modifiers);
             return false; // Don't stop propagation
