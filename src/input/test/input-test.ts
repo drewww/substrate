@@ -91,12 +91,32 @@ Shift+d          sprint  right`;
     }
 
     private logInput(type: string, event: KeyboardEvent): void {
-        const log = `${type}: ${event.key} (ctrl: ${event.ctrlKey}, shift: ${event.shiftKey}, alt: ${event.altKey}, meta: ${event.metaKey})`;
+        const columns = [
+            type.padEnd(8),                    // 'keydown ' or 'keyup   '
+            event.key.padEnd(12),              // key name
+            'ctrl:'  + (event.ctrlKey  ? 'Y' : 'N').padEnd(3),
+            'shift:' + (event.shiftKey ? 'Y' : 'N').padEnd(3),
+            'alt:'   + (event.altKey   ? 'Y' : 'N').padEnd(3),
+            'meta:'  + (event.metaKey  ? 'Y' : 'N').padEnd(3)
+        ];
+        
+        const log = columns.join(' ');
         this.appendToLog(this.inputLog, log);
     }
 
     private logAction(eventType: string, action: string, parameters: string[], modifiers: Record<string, boolean>): void {
-        const log = `${eventType}.${action} - params: [${parameters.join(', ')}], modifiers: ${JSON.stringify(modifiers)}`;
+        const modifierStr = Object.entries(modifiers)
+            .map(([key, value]) => `${key}:${value ? 'Y' : 'N'}`)
+            .join(' ');
+
+        const columns = [
+            eventType.padEnd(6),               // 'down  ' or 'up    '
+            action.padEnd(15),                 // action name
+            `[${parameters.join(', ')}]`.padEnd(20),
+            modifierStr
+        ];
+        
+        const log = columns.join(' ');
         this.appendToLog(this.actionLog, log);
     }
 
