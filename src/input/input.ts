@@ -287,17 +287,18 @@ export class InputManager {
             const modeConfig = this.modes[this.currentMode];
             const mapConfig = modeConfig.maps[this.currentMap];
             
-            // Check for exact key match with normalized key
-            if (mapConfig[normalizedKey]) {
-                for (const keyConfig of mapConfig[normalizedKey]) {
-                    this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
-                }
-            }
-
-            // Check for modifier combinations with normalized key
+            // First check for modifier combinations with normalized key
             const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
             if (modifierKey && mapConfig[modifierKey]) {
                 for (const keyConfig of mapConfig[modifierKey]) {
+                    this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                }
+                return; // Exit early if we found and triggered a modifier combo
+            }
+
+            // Only check for exact key match if no modifier combo was found
+            if (mapConfig[normalizedKey]) {
+                for (const keyConfig of mapConfig[normalizedKey]) {
                     this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
                 }
             }

@@ -21,7 +21,17 @@ export class InputTest {
 
         // Setup event listeners
         document.getElementById('load-config')!.onclick = () => this.loadConfig();
+        document.getElementById('clear-input-log')!.onclick = () => this.clearInputLog();
+        document.getElementById('clear-action-log')!.onclick = () => this.clearActionLog();
         this.setupEventListeners();
+    }
+
+    private clearInputLog(): void {
+        this.inputLog.textContent = '';
+    }
+
+    private clearActionLog(): void {
+        this.actionLog.textContent = '';
     }
 
     private setupEventListeners(): void {
@@ -47,7 +57,10 @@ s,ArrowDown      move    down
 a,ArrowLeft      move    left
 d,ArrowRight     move    right
 Control          crouch
-Shift+a          sprint-left`;
+Shift+w          sprint  up
+Shift+s          sprint  down
+Shift+a          sprint  left
+Shift+d          sprint  right`;
     }
 
     private loadConfig(): void {
