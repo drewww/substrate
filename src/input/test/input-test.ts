@@ -119,8 +119,8 @@ ArrowUp         move    up
 ArrowDown       move    down
 ArrowLeft       move    left
 ArrowRight      move    right
-Enter           select`;
-;
+Enter           select
+pass            all`;
     }
 
     private loadConfig(): void {

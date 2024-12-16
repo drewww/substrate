@@ -25,6 +25,7 @@ type KeyMap = {
     [key: string]: {
         action: string;
         parameters: string[];
+        isPass: boolean;
     }[];
 };
 
@@ -102,11 +103,11 @@ export class InputManager {
 
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
-                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, key);
                     }
                 } else if (mapConfig[key]) {
                     for (const keyConfig of mapConfig[key]) {
-                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, key);
                     }
                 }
             }
@@ -282,7 +283,6 @@ export class InputManager {
         
         // Add mappings - each key in the comma-separated list maps to the same action
         for (const key of keyList) {
-            // Normalize the key or key combination
             const normalizedKey = key.includes('+')
                 ? key.split('+')
                     .map(part => this.normalizeKey(part.trim()))
@@ -291,7 +291,8 @@ export class InputManager {
 
             const keyConfig = {
                 action,
-                parameters
+                parameters,
+                isPass: key === 'pass'
             };
             
             if (!this.modes[mode].maps[map][normalizedKey]) {
@@ -398,29 +399,38 @@ export class InputManager {
         if (normalizedKey.startsWith('Arrow') || normalizedKey === 'Enter') {
             event.preventDefault();
         }
-        
+
         // Only process the keydown if it's not already active (prevent key repeat)
         if (!this.activeKeys.has(normalizedKey)) {
             this.activeKeys.add(normalizedKey);
+
+            const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
             
             if (this.currentMode && this.currentMap) {
                 const modeConfig = this.modes[this.currentMode];
                 const mapConfig = modeConfig.maps[this.currentMap];
                 
-                // First check for modifier combinations
-                const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
+                // Check for pass key BEFORE any modifier key filtering
+                if (mapConfig['pass'] && !modifierKey) {
+                    for (const keyConfig of mapConfig['pass']) {
+                        const parameters = [...keyConfig.parameters, event.key];
+                        this.triggerCallbacks('down', keyConfig.action, parameters, event.key);
+                    }
+                    return;
+                }
+                
+              
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
-                        this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                        this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
                     }
                     this.startRepeat(normalizedKey);
                     return;
                 }
-
-                // Only check for exact key match if no modifier combo was found
+                
                 if (mapConfig[normalizedKey]) {
                     for (const keyConfig of mapConfig[normalizedKey]) {
-                        this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters);
+                        this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
                     }
                     this.startRepeat(normalizedKey);
                 }
@@ -442,11 +452,11 @@ export class InputManager {
             const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
             if (modifierKey && mapConfig[modifierKey]) {
                 for (const keyConfig of mapConfig[modifierKey]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, event.key);
                 }
             } else if (mapConfig[normalizedKey]) {
                 for (const keyConfig of mapConfig[normalizedKey]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, event.key);
                 }
             }
         }
@@ -479,14 +489,17 @@ export class InputManager {
         return `${modifiers.join('+')}+${normalizedKey}`;
     }
 
-    private triggerCallbacks(eventType: string, action: string, parameters: string[]): void {
+    private triggerCallbacks(eventType: string, action: string, parameters: string[], key: string): void {
         for (const registration of this.callbacks) {
             // Skip if callback is mode-specific and doesn't match current mode
             if (registration.mode && registration.mode !== this.currentMode) {
                 continue;
             }
             
-            const result = registration.callback(eventType, action, parameters, this.modifierState);
+            // For 'pass' action, append the key name to parameters
+            const finalParameters = action === 'pass' ? [...parameters, key] : parameters;
+            
+            const result = registration.callback(eventType, action, finalParameters, this.modifierState);
             
             // If callback returns true, stop propagation
             if (result === true) break;
@@ -514,7 +527,7 @@ export class InputManager {
 
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
-                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters);
+                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters, key);
                     }
                     return;
                 }
@@ -522,7 +535,7 @@ export class InputManager {
                 // Check for plain key if no modifier combo was found
                 if (mapConfig[key]) {
                     for (const keyConfig of mapConfig[key]) {
-                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters);
+                        this.triggerCallbacks('repeat', keyConfig.action, keyConfig.parameters, key);
                     }
                 }
             }
