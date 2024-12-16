@@ -8,6 +8,7 @@ export class InputTest {
     private actionLog: HTMLPreElement;
     private mapSelect: HTMLSelectElement;
     private modeSelect: HTMLSelectElement;
+    private actionBindings: HTMLPreElement;
     
     constructor() {
         this.inputManager = new InputManager();
@@ -19,6 +20,7 @@ export class InputTest {
         this.actionLog = document.getElementById('action-log') as HTMLPreElement;
         this.mapSelect = document.getElementById('map-select') as HTMLSelectElement;
         this.modeSelect = document.getElementById('mode-select') as HTMLSelectElement;
+        this.actionBindings = document.getElementById('action-bindings') as HTMLPreElement;
 
         // Set default config
         this.configTextarea.value = this.getDefaultConfig();
@@ -37,6 +39,7 @@ export class InputTest {
         const selectedMap = this.mapSelect.value;
         if (selectedMap) {
             this.inputManager.setMap(selectedMap);
+            this.updateActionBindings();
         }
     }
 
@@ -129,6 +132,7 @@ Enter           select`;
             // Update selectors
             this.updateModeSelect();
             this.updateMapSelect();
+            this.updateActionBindings();
             
             const errors = this.inputManager.getConfigErrors();
             if (errors.length > 0) {
@@ -225,7 +229,37 @@ Enter           select`;
         const selectedMode = this.modeSelect.value;
         if (selectedMode) {
             this.inputManager.setMode(selectedMode);
-            this.updateMapSelect(); // Update available maps for new mode
+            this.updateMapSelect();
+            this.updateActionBindings();
         }
+    }
+
+    private updateActionBindings(): void {
+        if (!this.inputManager.getCurrentMode()) {
+            this.actionBindings.textContent = 'No mode selected';
+            return;
+        }
+
+        const mode = this.inputManager.getCurrentMode();
+        const actions = this.inputManager.listActions(mode);
+        const currentMap = this.mapSelect.value;
+        
+        const lines = actions.map(action => {
+            const allKeys = this.inputManager.listKeysForAction(mode, action);
+            // Only show keys that don't have a map specification or match current map
+            const currentMapKeys = allKeys.filter(key => 
+                !key.includes('(') || key.includes(`(${currentMap})`));
+            
+            // If there are no keys for this action in the current map, skip it
+            if (currentMapKeys.length === 0) {
+                return null;
+            }
+
+            // Remove the map specification from the keys since we're only showing current map
+            const cleanKeys = currentMapKeys.map(key => key.split(' (')[0]);
+            return `${action.padEnd(15)} ${cleanKeys.join(', ')}`;
+        }).filter(Boolean); // Remove null entries
+
+        this.actionBindings.textContent = lines.join('\n');
     }
 } 

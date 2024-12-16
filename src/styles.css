@@ -77,3 +77,22 @@ textarea {
     border-radius: 5px;
     z-index: 1000;
 } 
+
+.container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+.column {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+/* Make sure textareas and pre elements don't overflow their containers */
+textarea, pre {
+    width: 100%;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}

@@ -339,11 +339,54 @@ export class InputManager {
     public getConfigErrors(): ConfigError[] {
         return this.configErrors;
     }
+    
     public listActions(mode: string): string[] {
-        return [];
+        if (!this.modes[mode]) {
+            return [];
+        }
+    
+        // Get all maps for this mode
+        const modeConfig = this.modes[mode];
+        
+        // Create a Set to store unique actions
+        const actions = new Set<string>();
+        
+        // For each map in the mode
+        Object.values(modeConfig.maps).forEach(map => {
+            // For each key binding in the map
+            Object.values(map).forEach(keyConfigs => {
+                // For each action configured for this key
+                keyConfigs.forEach(config => {
+                    actions.add(config.action);
+                });
+            });
+        });
+        
+        return Array.from(actions).sort();
     }
+    
     public listKeysForAction(mode: string, action: string): string[] {
-        return [];
+        if (!this.modes[mode]) {
+            return [];
+        }
+    
+        const modeConfig = this.modes[mode];
+        const keys: string[] = [];
+        
+        // For each map in the mode
+        Object.entries(modeConfig.maps).forEach(([mapName, map]) => {
+            // For each key binding in the map
+            Object.entries(map).forEach(([key, keyConfigs]) => {
+                // If any action for this key matches our target action
+                if (keyConfigs.some(config => config.action.toLowerCase() === action.toLowerCase())) {
+                    // Add the key with the map name if it's not the default map
+                    const isDefault = mapName === modeConfig.defaultMap;
+                    keys.push(isDefault ? key : `${key} (${mapName})`);
+                }
+            });
+        });
+        
+        return keys.sort();
     }
 
     private handleKeyDown(event: KeyboardEvent): void {
