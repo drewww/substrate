@@ -175,13 +175,17 @@ Enter           select`;
     }
 
     private logInput(type: string, event: KeyboardEvent): void {
+        const modifiers = [
+            event.ctrlKey ? 'ctrl' : '',
+            event.shiftKey ? 'shift' : '',
+            event.altKey ? 'alt' : '',
+            event.metaKey ? 'meta' : ''
+        ].filter(Boolean).join(' ');
+
         const columns = [
             type.padEnd(8),                    // 'keydown ' or 'keyup   '
             event.key.padEnd(12),              // key name
-            'ctrl:'  + (event.ctrlKey  ? 'Y' : 'N').padEnd(3),
-            'shift:' + (event.shiftKey ? 'Y' : 'N').padEnd(3),
-            'alt:'   + (event.altKey   ? 'Y' : 'N').padEnd(3),
-            'meta:'  + (event.metaKey  ? 'Y' : 'N').padEnd(3)
+            modifiers
         ];
         
         const log = columns.join(' ');
@@ -190,7 +194,8 @@ Enter           select`;
 
     private logAction(eventType: string, action: string, parameters: string[], modifiers: Record<string, boolean>): void {
         const modifierStr = Object.entries(modifiers)
-            .map(([key, value]) => `${key}:${value ? 'Y' : 'N'}`)
+            .filter(([_, value]) => value)
+            .map(([key]) => key)
             .join(' ');
 
         const columns = [
