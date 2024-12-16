@@ -57,8 +57,14 @@ export class InputManager {
     }
 
     public loadConfig(configText: string): void {
+        // Clear all active states
+        this.clearAllStates();
+        
+        // Clear existing configuration
         this.configErrors = [];
-        this.modes = {}; // Clear existing modes
+        this.modes = {};
+        
+        // Parse new configuration
         this.parseConfig(configText);
         
         // Reset current mode/map
@@ -73,9 +79,41 @@ export class InputManager {
         }
     }
 
+    private clearAllStates(): void {
+        // Stop all repeat timers
+        for (const key in this.repeatTimers) {
+            this.stopRepeat(key);
+        }
+        
+        // Clear active keys set
+        for (const key of this.activeKeys) {
+            // Trigger 'up' events for any keys that were down
+            if (this.currentMode && this.currentMap) {
+                const modeConfig = this.modes[this.currentMode];
+                const mapConfig = modeConfig.maps[this.currentMap];
+                
+                if (mapConfig[key]) {
+                    for (const keyConfig of mapConfig[key]) {
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters);
+                    }
+                }
+            }
+        }
+        this.activeKeys.clear();
+
+        // Reset modifier state
+        this.modifierState = {
+            ctrl: false,
+            shift: false,
+            alt: false,
+            meta: false
+        };
+    }
+
     private parseConfig(configText: string): void {
         let currentMode: string | null = null;
         let currentMap: string | null = null;
+        let inMetadata = true;
         let lineNumber = 0;
         
         const lines = configText.split('\n');
@@ -87,18 +125,29 @@ export class InputManager {
             // Skip empty lines and comments
             if (!trimmedLine || trimmedLine.startsWith('#')) continue;
             
+            // Check for mode section start (marked by =====)
+            if (trimmedLine.match(/^=+$/)) {
+                // Continue with current mode, but reset map and metadata state
+                currentMap = null;
+                inMetadata = true;
+                continue;
+            }
+
             // Parse mode header
             if (trimmedLine.startsWith('mode:')) {
-                const mode = trimmedLine.substring(5).trim();
-                if (!this.isValidIdentifier(mode)) {
+                currentMode = trimmedLine.substring(5).trim();
+                currentMap = null;
+                inMetadata = true;
+                
+                if (!this.isValidIdentifier(currentMode)) {
                     this.configErrors.push({
                         type: 'error',
-                        message: `Invalid mode identifier: ${mode}`,
+                        message: `Invalid mode identifier: ${currentMode}`,
                         line: lineNumber
                     });
                     continue;
                 }
-                currentMode = mode;
+                
                 if (!this.modes[currentMode]) {
                     this.modes[currentMode] = {
                         maps: {},
@@ -107,7 +156,7 @@ export class InputManager {
                 }
                 continue;
             }
-            
+
             // Parse map header
             if (trimmedLine.startsWith('map:')) {
                 if (!currentMode) {
@@ -133,95 +182,45 @@ export class InputManager {
                 }
                 
                 currentMap = mapName;
-                if (!this.modes[currentMode].maps[currentMap]) {
-                    this.modes[currentMode].maps[currentMap] = {};
+                if (!this.modes[currentMode].maps[mapName]) {
+                    this.modes[currentMode].maps[mapName] = {};
                 }
                 
                 if (isDefault) {
                     if (this.modes[currentMode].defaultMap) {
                         this.configErrors.push({
                             type: 'warning',
-                            message: `Multiple default maps specified for mode ${currentMode}. Using ${currentMap}`,
+                            message: `Multiple default maps specified for mode ${currentMode}. Using ${mapName}`,
                             mode: currentMode,
                             line: lineNumber
                         });
                     }
-                    this.modes[currentMode].defaultMap = currentMap;
+                    this.modes[currentMode].defaultMap = mapName;
                 }
                 continue;
             }
-            
-            // End of metadata section
-            if (trimmedLine === '---') {
-                continue;
-            }
-            
-            // Parse key mappings
-            if (!currentMode || !currentMap) {
-                this.configErrors.push({
-                    type: 'error',
-                    message: 'Key mapping specified before mode and map',
-                    line: lineNumber
-                });
-                continue;
-            }
-            
-            // Split line into keys, actions, and parameters using whitespace
-            // But preserve spaces within quoted strings if we add those later
-            const parts = trimmedLine.split(/\s+/);
-            if (parts.length < 2) {
-                this.configErrors.push({
-                    type: 'error',
-                    message: `Invalid key mapping format: "${trimmedLine}". Expected "<key>[,<key>...] <action> [parameters...]"`,
-                    mode: currentMode,
-                    map: currentMap,
-                    line: lineNumber
-                });
-                continue;
-            }
-            
-            // First part is the key list
-            const keyList = parts[0].split(',').map(k => k.trim());
-            
-            // Second part is the action
-            const action = parts[1];
-            
-            // Remaining parts are parameters
-            const parameters = parts.slice(2);
-            
-            // Validate action
-            if (!this.isValidAction(action)) {
-                this.configErrors.push({
-                    type: 'error',
-                    message: `Invalid action name: ${action}`,
-                    mode: currentMode,
-                    map: currentMap,
-                    line: lineNumber
-                });
-                continue;
-            }
-            
-            // Add mappings - each key in the comma-separated list maps to the same action
-            for (const key of keyList) {
-                // Normalize the key or key combination
-                const normalizedKey = key.includes('+')
-                    ? key.split('+')
-                        .map(part => this.normalizeKey(part.trim()))
-                        .join('+')
-                    : this.normalizeKey(key);
 
-                const keyConfig = {
-                    action,
-                    parameters
-                };
-                
-                if (!this.modes[currentMode].maps[currentMap][normalizedKey]) {
-                    this.modes[currentMode].maps[currentMap][normalizedKey] = [];
+            // Check for metadata section separator
+            if (trimmedLine === '---') {
+                inMetadata = false;
+                continue;
+            }
+
+            // Parse key mappings
+            if (!inMetadata) {
+                if (!currentMode || !currentMap) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: 'Key mapping specified before mode/map',
+                        line: lineNumber
+                    });
+                    continue;
                 }
-                this.modes[currentMode].maps[currentMap][normalizedKey].push(keyConfig);
+
+                this.parseKeyMapping(trimmedLine, currentMode, currentMap, lineNumber);
             }
         }
-        
+
         // Set default maps where none specified
         for (const [mode, config] of Object.entries(this.modes)) {
             if (!config.defaultMap && Object.keys(config.maps).length > 0) {
@@ -232,6 +231,61 @@ export class InputManager {
                     mode
                 });
             }
+        }
+    }
+
+    private parseKeyMapping(line: string, mode: string, map: string, lineNumber: number): void {
+        const parts = line.split(/\s+/);
+        if (parts.length < 2) {
+            this.configErrors.push({
+                type: 'error',
+                message: `Invalid key mapping format: "${line}". Expected "<key>[,<key>...] <action> [parameters...]"`,
+                mode: mode,
+                map: map,
+                line: lineNumber
+            });
+            return;
+        }
+
+        // First part is the key list
+        const keyList = parts[0].split(',').map(k => k.trim());
+        
+        // Second part is the action
+        const action = parts[1];
+        
+        // Remaining parts are parameters
+        const parameters = parts.slice(2);
+        
+        // Validate action
+        if (!this.isValidAction(action)) {
+            this.configErrors.push({
+                type: 'error',
+                message: `Invalid action name: ${action}`,
+                mode: mode,
+                map: map,
+                line: lineNumber
+            });
+            return;
+        }
+        
+        // Add mappings - each key in the comma-separated list maps to the same action
+        for (const key of keyList) {
+            // Normalize the key or key combination
+            const normalizedKey = key.includes('+')
+                ? key.split('+')
+                    .map(part => this.normalizeKey(part.trim()))
+                    .join('+')
+                : this.normalizeKey(key);
+
+            const keyConfig = {
+                action,
+                parameters
+            };
+            
+            if (!this.modes[mode].maps[map][normalizedKey]) {
+                this.modes[mode].maps[map][normalizedKey] = [];
+            }
+            this.modes[mode].maps[map][normalizedKey].push(keyConfig);
         }
     }
     
@@ -424,5 +478,12 @@ export class InputManager {
             return key;
         }
         return key.toLowerCase();
+    }
+
+    public getAvailableMaps(): string[] {
+        if (!this.currentMode || !this.modes[this.currentMode]) {
+            return [];
+        }
+        return Object.keys(this.modes[this.currentMode].maps);
     }
 } 

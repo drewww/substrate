@@ -102,6 +102,34 @@ When switching maps, let prior key states continue to be processed. So, fire a `
 If two maps are listed as default, the last one wins. Print a configuration warning. If no map is listed as default, the first map is used.
 
 
+FULL CONFIG STRUCTURE
+---------------------
+
+mode: game
+==========
+map: wasd default
+---
+w,ArrowUp   move    up
+s,ArrowDown move    down
+a,ArrowLeft move    left
+d,ArrowRight move    right
+
+map: hjkl
+---
+h,ArrowLeft move    left
+j,ArrowDown move    down
+k,ArrowUp   move    up
+l,ArrowRight move    right
+
+mode: menu
+==========
+map: default
+---
+enter,ArrowDown start-game
+
+
+
+
 API NOTES
 ---------
 

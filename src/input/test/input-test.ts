@@ -6,6 +6,7 @@ export class InputTest {
     private configStatus: HTMLPreElement;
     private inputLog: HTMLPreElement;
     private actionLog: HTMLPreElement;
+    private mapSelect: HTMLSelectElement;
     
     constructor() {
         this.inputManager = new InputManager();
@@ -15,6 +16,7 @@ export class InputTest {
         this.configStatus = document.getElementById('config-status') as HTMLPreElement;
         this.inputLog = document.getElementById('input-log') as HTMLPreElement;
         this.actionLog = document.getElementById('action-log') as HTMLPreElement;
+        this.mapSelect = document.getElementById('map-select') as HTMLSelectElement;
 
         // Set default config
         this.configTextarea.value = this.getDefaultConfig();
@@ -22,7 +24,89 @@ export class InputTest {
         // Setup event listeners
         document.getElementById('load-config')!.onclick = () => this.loadConfig();
         document.getElementById('clear-logs')!.onclick = () => this.clearLogs();
+        this.mapSelect.onchange = () => this.changeMap();
         this.setupEventListeners();
+    }
+
+    private changeMap(): void {
+        const selectedMap = this.mapSelect.value;
+        if (selectedMap) {
+            this.inputManager.setMap(selectedMap);
+        }
+    }
+
+    private updateMapSelect(): void {
+        // Clear existing options
+        this.mapSelect.innerHTML = '';
+        
+        // Get available maps from input manager
+        const maps = this.inputManager.getAvailableMaps();
+        
+        // Add options for each map
+        for (const map of maps) {
+            const option = document.createElement('option');
+            option.value = map;
+            option.textContent = map;
+            this.mapSelect.appendChild(option);
+        }
+    }
+
+    private getDefaultConfig(): string {
+        return `mode: game
+==========
+map: wasd default
+---
+w,ArrowUp        move    up
+s,ArrowDown      move    down
+a,ArrowLeft      move    left
+d,ArrowRight     move    right
+Control          crouch
+Shift+w          sprint  up
+Shift+s          sprint  down
+Shift+a          sprint  left
+Shift+d          sprint  right
+
+map: vi alternate
+---
+k               move    up
+j               move    down
+h               move    left
+l               move    right
+Control         crouch
+Shift+k         sprint  up
+Shift+j         sprint  down
+Shift+h         sprint  left
+Shift+l         sprint  right`;
+    }
+
+    private loadConfig(): void {
+        this.configStatus.textContent = '';
+        try {
+            // Create a fresh input manager
+            this.inputManager = new InputManager();
+            
+            // Re-register our callback
+            this.inputManager.registerCallback((eventType, action, parameters, modifiers) => {
+                this.logAction(eventType, action, parameters, modifiers);
+                return false; // Don't stop propagation
+            }, 0);
+            
+            // Load the new config
+            this.inputManager.loadConfig(this.configTextarea.value);
+            
+            // Update map selector
+            this.updateMapSelect();
+            
+            const errors = this.inputManager.getConfigErrors();
+            if (errors.length > 0) {
+                this.configStatus.textContent = 'Configuration loaded with warnings:\n' + 
+                    errors.map(e => `${e.type}: ${e.message}`).join('\n');
+            } else {
+                this.configStatus.textContent = 'Configuration loaded successfully';
+            }
+        } catch (e: any) {
+            this.configStatus.textContent = `Error loading configuration: ${e.message}`;
+        }
     }
 
     private clearLogs(): void {
@@ -42,48 +126,6 @@ export class InputTest {
             this.logAction(eventType, action, parameters, modifiers);
             return false; // Don't stop propagation
         }, 0);
-    }
-
-    private getDefaultConfig(): string {
-        return `mode: game
-map: wasd default
----
-w,ArrowUp        move    up
-s,ArrowDown      move    down
-a,ArrowLeft      move    left
-d,ArrowRight     move    right
-Control          crouch
-Shift+w          sprint  up
-Shift+s          sprint  down
-Shift+a          sprint  left
-Shift+d          sprint  right`;
-    }
-
-    private loadConfig(): void {
-        this.configStatus.textContent = '';
-        try {
-            // Create a fresh input manager
-            this.inputManager = new InputManager();
-            
-            // Re-register our callback
-            this.inputManager.registerCallback((eventType, action, parameters, modifiers) => {
-                this.logAction(eventType, action, parameters, modifiers);
-                return false; // Don't stop propagation
-            }, 0);
-            
-            // Load the new config
-            this.inputManager.loadConfig(this.configTextarea.value);
-            
-            const errors = this.inputManager.getConfigErrors();
-            if (errors.length > 0) {
-                this.configStatus.textContent = 'Configuration loaded with warnings:\n' + 
-                    errors.map(e => `${e.type}: ${e.message}`).join('\n');
-            } else {
-                this.configStatus.textContent = 'Configuration loaded successfully';
-            }
-        } catch (e: any) {
-            this.configStatus.textContent = `Error loading configuration: ${e.message}`;
-        }
     }
 
     private logInput(type: string, event: KeyboardEvent): void {
