@@ -339,20 +339,20 @@ export class InputManager {
         // Second part is the action
         const action = parts[1];
         
-        // Remaining parts are parameters
-        const parameters = parts.slice(2);
-        
-        // Validate action
-        if (!this.isValidAction(action)) {
+        // Validate action name format (letters and dashes only)
+        if (!this.isValidActionName(action)) {
             this.configErrors.push({
                 type: 'error',
-                message: `Invalid action name: ${action}`,
+                message: `Invalid action name "${action}". Action names must contain only letters and dashes`,
                 mode: mode,
                 map: map,
                 line: lineNumber
             });
             return;
         }
+        
+        // Remaining parts are parameters
+        const parameters = parts.slice(2);
         
         // Add mappings - each key in the comma-separated list maps to the same action
         for (const key of keyList) {
@@ -378,7 +378,7 @@ export class InputManager {
         return /^[a-zA-Z][a-zA-Z0-9-]*$/.test(id);
     }
     
-    private isValidAction(action: string): boolean {
+    private isValidActionName(action: string): boolean {
         return /^[a-zA-Z][a-zA-Z-]*$/.test(action);
     }
 

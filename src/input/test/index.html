@@ -9,6 +9,15 @@
             white-space: pre;
             overflow-x: auto;
         }
+        .config-controls {
+            margin-bottom: 10px;
+        }
+        .config-controls select {
+            margin-right: 10px;
+        }
+        .config-controls label {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -16,10 +25,13 @@
 
     <div class="container">
         <div class="column">
-            <div>Configuration:</div>
+            <div class="config-controls">
+                <label for="config-select">Configuration:</label>
+                <select id="config-select"></select>
+            </div>
             <textarea id="config" rows="10" cols="60"></textarea>
             <button id="load-config">Load Configuration</button>
-            <div>
+            <div class="config-controls">
                 <label for="mode-select">Mode:</label>
                 <select id="mode-select"></select>
                 <label for="map-select">Map:</label>

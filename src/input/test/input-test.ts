@@ -10,6 +10,72 @@ export class InputTest {
     private modeSelect: HTMLSelectElement;
     private actionBindings: HTMLPreElement;
     
+    private readonly configs: { [key: string]: string } = {
+        'standard': `mode: game
+==========
+map: wasd default
+---
+w,ArrowUp        move    up
+s,ArrowDown      move    down
+a,ArrowLeft      move    left
+d,ArrowRight     move    right
+Control          crouch
+Shift+w          sprint  up
+Shift+s          sprint  down
+Shift+a          sprint  left
+Shift+d          sprint  right
+
+map: vi alternate
+---
+k               move    up
+j               move    down
+h               move    left
+l               move    right
+Control         crouch
+Shift+k         sprint  up
+Shift+j         sprint  down
+Shift+h         sprint  left
+Shift+l         sprint  right
+
+mode: menu
+==========
+map: default
+---
+ArrowUp         move    up
+ArrowDown       move    down
+ArrowLeft       move    left
+ArrowRight      move    right
+Enter           select
+
+mode: raw
+==========
+map: pass`,
+        'invalid-bindings': `mode: game
+==========
+map: test default
+---
+# Invalid modifier
+Alt+Ctrl+x      move    up
+# Invalid special key
+NotAKey         move    down
+# Invalid action name (numbers)
+a               move123  left
+# Invalid action name (special chars)
+s               move!    right
+# Old pass syntax
+pass            all
+# Invalid modifier format
+Control+        move    up
+# Multiple errors in one line
+@#$             bad!    wrong!
+# Missing action
+w
+# Missing key
+               move    up
+# Invalid action name (starts with dash)
+q              -move    up`,
+    };
+
     constructor() {
         this.inputManager = new InputManager();
         
@@ -21,6 +87,19 @@ export class InputTest {
         this.mapSelect = document.getElementById('map-select') as HTMLSelectElement;
         this.modeSelect = document.getElementById('mode-select') as HTMLSelectElement;
         this.actionBindings = document.getElementById('action-bindings') as HTMLPreElement;
+
+        // Setup config selector
+        const configSelect = document.getElementById('config-select') as HTMLSelectElement;
+        for (const name of this.getConfigNames()) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            configSelect.appendChild(option);
+        }
+        configSelect.onchange = () => {
+            this.configTextarea.value = this.configs[configSelect.value as keyof typeof this.configs];
+            this.loadConfig();
+        };
 
         // Set default config
         this.configTextarea.value = this.getDefaultConfig();
@@ -81,47 +160,12 @@ export class InputTest {
         }
     }
 
+    public getConfigNames(): string[] {
+        return Object.keys(this.configs);
+    }
+
     private getDefaultConfig(): string {
-        return `mode: game
-==========
-map: wasd default
----
-w,ArrowUp        move    up
-s,ArrowDown      move    down
-a,ArrowLeft      move    left
-d,ArrowRight     move    right
-Control          crouch
-Shift+w          sprint  up
-Shift+s          sprint  down
-Shift+a          sprint  left
-Shift+d          sprint  right
-
-map: vi alternate
----
-k               move    up
-j               move    down
-h               move    left
-l               move    right
-Control         crouch
-Shift+k         sprint  up
-Shift+j         sprint  down
-Shift+h         sprint  left
-Shift+l         sprint  right
-
-mode: menu
-==========
-map: default
----
-ArrowUp         move    up
-ArrowDown       move    down
-ArrowLeft       move    left
-ArrowRight      move    right
-Enter           select
-
-mode: raw
-==========
-map: pass`;
-
+        return this.configs['standard'];
     }
 
     private loadConfig(): void {
