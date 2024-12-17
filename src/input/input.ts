@@ -25,7 +25,6 @@ type KeyMap = {
     [key: string]: {
         action: string;
         parameters: string[];
-        isPass: boolean;
     }[];
 };
 
@@ -140,9 +139,14 @@ export class InputManager {
             
             // Check for mode section start (marked by =====)
             if (trimmedLine.match(/^=+$/)) {
-                // Continue with current mode, but reset map and metadata state
                 currentMap = null;
                 inMetadata = true;
+                continue;
+            }
+
+            // Check for map section separator (marked by ---)
+            if (trimmedLine.match(/^-+$/)) {
+                inMetadata = false;  // Start accepting key mappings
                 continue;
             }
 
@@ -183,8 +187,30 @@ export class InputManager {
                 
                 const parts = trimmedLine.substring(4).trim().split(/\s+/);
                 const mapName = parts[0];
-                const isDefault = parts.includes('default');
                 
+                // Check if this is a pass-through mode
+                if (mapName === 'pass') {
+                    // Pass-through modes can only have one map named 'pass'
+                    if (Object.keys(this.modes[currentMode].maps).length > 0) {
+                        this.configErrors.push({
+                            type: 'error',
+                            message: `Pass-through mode ${currentMode} cannot have other maps`,
+                            line: lineNumber
+                        });
+                        continue;
+                    }
+                    
+                    // Set up pass-through map
+                    currentMap = mapName;
+                    this.modes[currentMode].maps[mapName] = {};
+                    this.modes[currentMode].defaultMap = mapName;
+                    
+                    // Pass-through modes don't accept any key mappings
+                    inMetadata = false;
+                    continue;
+                }
+                
+                // Normal map processing
                 if (!this.isValidIdentifier(mapName)) {
                     this.configErrors.push({
                         type: 'error',
@@ -199,7 +225,7 @@ export class InputManager {
                     this.modes[currentMode].maps[mapName] = {};
                 }
                 
-                if (isDefault) {
+                if (parts.includes('default')) {
                     if (this.modes[currentMode].defaultMap) {
                         this.configErrors.push({
                             type: 'warning',
@@ -213,13 +239,18 @@ export class InputManager {
                 continue;
             }
 
-            // Check for metadata section separator
-            if (trimmedLine === '---') {
-                inMetadata = false;
+            // For pass-through modes, ignore any key mappings
+            if (currentMap === 'pass') {
+                this.configErrors.push({
+                    type: 'error',
+                    message: 'Key mappings not allowed in pass-through mode',
+                    mode: currentMode || '',
+                    line: lineNumber
+                });
                 continue;
             }
 
-            // Parse key mappings
+            // Parse key mappings for normal modes
             if (!inMetadata) {
                 if (!currentMode || !currentMap) {
                     this.configErrors.push({
@@ -231,18 +262,6 @@ export class InputManager {
                 }
 
                 this.parseKeyMapping(trimmedLine, currentMode, currentMap, lineNumber);
-            }
-        }
-
-        // Set default maps where none specified
-        for (const [mode, config] of Object.entries(this.modes)) {
-            if (!config.defaultMap && Object.keys(config.maps).length > 0) {
-                config.defaultMap = Object.keys(config.maps)[0];
-                this.configErrors.push({
-                    type: 'warning',
-                    message: `No default map specified for mode ${mode}. Using ${config.defaultMap}`,
-                    mode
-                });
             }
         }
     }
@@ -262,6 +281,60 @@ export class InputManager {
 
         // First part is the key list
         const keyList = parts[0].split(',').map(k => k.trim());
+        
+        // Check for old pass syntax
+        if (keyList.includes('pass')) {
+            this.configErrors.push({
+                type: 'error',
+                message: `Invalid key binding "pass". Pass-through functionality must be configured as a dedicated mode with "map: pass"`,
+                mode: mode,
+                map: map,
+                line: lineNumber
+            });
+            return;
+        }
+
+        // Validate each key in the list
+        for (const key of keyList) {
+            // Split for modifier keys
+            const keyParts = key.split('+');
+            const mainKey = keyParts[keyParts.length - 1];
+            const modifiers = keyParts.slice(0, -1);
+
+            // Validate modifiers
+            for (const modifier of modifiers) {
+                if (!['Control', 'Shift', 'Alt', 'Meta'].includes(modifier)) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: `Invalid modifier key: "${modifier}" in "${key}"`,
+                        mode: mode,
+                        map: map,
+                        line: lineNumber
+                    });
+                    return;
+                }
+            }
+
+            // Validate main key
+            // List of valid special keys
+            const specialKeys = [
+                'Enter', 'Tab', 'Space', 'Backspace', 'Delete', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
+                'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Escape',
+                'Control', 'Shift', 'Alt', 'Meta'
+            ];
+
+            // Check if it's a single character or special key
+            if (!(mainKey.length === 1 || specialKeys.includes(mainKey))) {
+                this.configErrors.push({
+                    type: 'error',
+                    message: `Invalid key: "${mainKey}" in "${key}"`,
+                    mode: mode,
+                    map: map,
+                    line: lineNumber
+                });
+                return;
+            }
+        }
         
         // Second part is the action
         const action = parts[1];
@@ -291,8 +364,7 @@ export class InputManager {
 
             const keyConfig = {
                 action,
-                parameters,
-                isPass: key === 'pass'
+                parameters
             };
             
             if (!this.modes[mode].maps[map][normalizedKey]) {
@@ -345,9 +417,14 @@ export class InputManager {
         if (!this.modes[mode]) {
             return [];
         }
-    
+
         // Get all maps for this mode
         const modeConfig = this.modes[mode];
+        
+        // If this is a pass-through mode (has only one map named 'pass')
+        if (Object.keys(modeConfig.maps).length === 1 && modeConfig.maps['pass']) {
+            return ['key'];
+        }
         
         // Create a Set to store unique actions
         const actions = new Set<string>();
@@ -395,71 +472,44 @@ export class InputManager {
         
         const normalizedKey = this.normalizeKey(event.key);
         
-        // Skip standalone modifier keys entirely
-        if (this.isModifierKey(normalizedKey)) {
-            return;
-        }
-
-        // Prevent default browser behavior for arrow keys
-        if (normalizedKey.startsWith('Arrow') || normalizedKey === 'Enter') {
-            event.preventDefault();
-        }
-
-        // Only process the keydown if it's not already active (prevent key repeat)
+        // Only process the keydown if it's not already active
         if (!this.activeKeys.has(normalizedKey)) {
             this.activeKeys.add(normalizedKey);
             
             if (this.currentMode && this.currentMap) {
                 const modeConfig = this.modes[this.currentMode];
-                const mapConfig = modeConfig.maps[this.currentMap];
                 
-                // Try normal key mappings first
+                // Handle pass-through mode
+                if (this.currentMap === 'pass') {
+                    const activeModifiers = [];
+                    if (this.modifierState.ctrl) activeModifiers.push('ctrl');
+                    if (this.modifierState.shift) activeModifiers.push('shift');
+                    if (this.modifierState.alt) activeModifiers.push('alt');
+                    if (this.modifierState.meta) activeModifiers.push('meta');
+                    
+                    this.triggerCallbacks('down', 'key', [normalizedKey, ...activeModifiers], normalizedKey);
+                    
+                    // Only start repeat for non-modifier keys
+                    if (!this.isModifierKey(normalizedKey)) {
+                        this.startRepeat(normalizedKey);
+                    }
+                    return;
+                }
+                
+                // Normal mode handling...
+                const mapConfig = modeConfig.maps[this.currentMap];
                 const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
-                let handled = false;
                 
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
                         this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
-                        handled = true;
                     }
-                    if (handled) {
-                        this.startRepeat(normalizedKey);
-                        return;
-                    }
-                }
-                
-                if (mapConfig[normalizedKey]) {
+                    this.startRepeat(normalizedKey);
+                } else if (mapConfig[normalizedKey]) {
                     for (const keyConfig of mapConfig[normalizedKey]) {
                         this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
-                        handled = true;
                     }
-                    if (handled) {
-                        this.startRepeat(normalizedKey);
-                        return;
-                    }
-                }
-                
-                // If no normal mapping handled it, try pass as fallback
-                if (!handled && mapConfig['pass']) {
-                    for (const keyConfig of mapConfig['pass']) {
-                        const activeModifiers = [];
-                        if (this.modifierState.ctrl) activeModifiers.push('ctrl');
-                        if (this.modifierState.shift) activeModifiers.push('shift');
-                        if (this.modifierState.alt) activeModifiers.push('alt');
-                        if (this.modifierState.meta) activeModifiers.push('meta');
-                        
-                        const parameters = [
-                            ...keyConfig.parameters,
-                            normalizedKey,
-                            ...activeModifiers
-                        ];
-                        
-                        this.triggerCallbacks('down', keyConfig.action, parameters, normalizedKey);
-                    }
-
-                    if(!modifierKey) {
-                        this.startRepeat(normalizedKey);
-                    }
+                    this.startRepeat(normalizedKey);
                 }
             }
         }
@@ -468,61 +518,44 @@ export class InputManager {
     private handleKeyUp(event: KeyboardEvent): void {
         const normalizedKey = this.normalizeKey(event.key);
         
-        // Skip standalone modifier keys entirely
-        if (normalizedKey === 'control' || normalizedKey === 'shift' || 
-            normalizedKey === 'alt' || normalizedKey === 'meta') {
-            // Update modifier state before returning
+        // Skip standalone modifier keys
+        if (this.isModifierKey(normalizedKey)) {
             this.updateModifierState(event);
             return;
         }
         
-        // Stop the repeat timer for this key
         this.stopRepeat(normalizedKey);
 
         if (this.currentMode && this.currentMap) {
             const modeConfig = this.modes[this.currentMode];
-            const mapConfig = modeConfig.maps[this.currentMap];
             
-            // Try normal key mappings first
-            let handled = false;
-            const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
-            
-            if (modifierKey && mapConfig[modifierKey]) {
-                for (const keyConfig of mapConfig[modifierKey]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, normalizedKey);
-                    handled = true;
-                }
-            } else if (mapConfig[normalizedKey]) {
-                for (const keyConfig of mapConfig[normalizedKey]) {
-                    this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, normalizedKey);
-                    handled = true;
-                }
-            }
-            
-            // If no normal mapping handled it, try pass as fallback
-            if (!handled && mapConfig['pass']) {
-                for (const keyConfig of mapConfig['pass']) {
-                    const activeModifiers = [];
-                    if (this.modifierState.ctrl) activeModifiers.push('ctrl');
-                    if (this.modifierState.shift) activeModifiers.push('shift');
-                    if (this.modifierState.alt) activeModifiers.push('alt');
-                    if (this.modifierState.meta) activeModifiers.push('meta');
-                    
-                    const parameters = [
-                        ...keyConfig.parameters,
-                        normalizedKey,
-                        ...activeModifiers
-                    ];
-                    
-                    this.triggerCallbacks('up', keyConfig.action, parameters, normalizedKey);
+            // Handle pass-through mode
+            if (this.currentMap === 'pass') {
+                const activeModifiers = [];
+                if (this.modifierState.ctrl) activeModifiers.push('ctrl');
+                if (this.modifierState.shift) activeModifiers.push('shift');
+                if (this.modifierState.alt) activeModifiers.push('alt');
+                if (this.modifierState.meta) activeModifiers.push('meta');
+                
+                this.triggerCallbacks('up', 'key', [normalizedKey, ...activeModifiers], normalizedKey);
+            } else {
+                // Normal mode handling...
+                const mapConfig = modeConfig.maps[this.currentMap];
+                const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
+                
+                if (modifierKey && mapConfig[modifierKey]) {
+                    for (const keyConfig of mapConfig[modifierKey]) {
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, normalizedKey);
+                    }
+                } else if (mapConfig[normalizedKey]) {
+                    for (const keyConfig of mapConfig[normalizedKey]) {
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, normalizedKey);
+                    }
                 }
             }
         }
 
-        // Remove from active keys
         this.activeKeys.delete(normalizedKey);
-        
-        // Update modifier state
         this.updateModifierState(event);
     }
 
@@ -660,7 +693,12 @@ export class InputManager {
         }));
 
         const totalMappings = Object.values(this.modes).reduce((total, mode) => {
-            return total + Object.values(mode.maps).reduce((modeTotal, map) => {
+            return total + Object.entries(mode.maps).reduce((modeTotal, [mapName, map]) => {
+                // For pass-through maps, count as 1 mapping
+                if (mapName === 'pass') {
+                    return modeTotal + 1;
+                }
+                // For normal maps, count actual key bindings
                 return modeTotal + Object.values(map).reduce((mapTotal, actions) => 
                     mapTotal + actions.length, 0);
             }, 0);

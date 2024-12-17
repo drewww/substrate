@@ -84,7 +84,6 @@ export class InputTest {
     private getDefaultConfig(): string {
         return `mode: game
 ==========
-
 map: wasd default
 ---
 w,ArrowUp        move    up
@@ -109,10 +108,8 @@ Shift+j         sprint  down
 Shift+h         sprint  left
 Shift+l         sprint  right
 
-
 mode: menu
 ==========
-
 map: default
 ---
 ArrowUp         move    up
@@ -120,7 +117,11 @@ ArrowDown       move    down
 ArrowLeft       move    left
 ArrowRight      move    right
 Enter           select
-pass            all`;
+
+mode: raw
+==========
+map: pass`;
+
     }
 
     private loadConfig(): void {
