@@ -1,5 +1,7 @@
+import 'reflect-metadata';
 import { ComponentStore } from './component-store';
 import { ComponentUnion } from './component';
+import { REQUIRED_COMPONENTS } from './decorators';
 
 /**
  * Base entity class that manages components
@@ -47,6 +49,19 @@ export class Entity {
    */
   removeComponent<T extends ComponentUnion>(type: T['type']): boolean {
     return this.store.remove(type);
+  }
+
+  /**
+   * Validates that all required components are present
+   * @throws Error if any required component is missing
+   */
+  protected validateRequiredComponents(): void {
+    const required = Reflect.getMetadata(REQUIRED_COMPONENTS, this.constructor) || [];
+    for (const type of required) {
+      if (!this.hasComponent(type)) {
+        throw new Error(`Entity ${this.id} is missing required component: ${type}`);
+      }
+    }
   }
 
   // Optional convenience methods for very common operations
