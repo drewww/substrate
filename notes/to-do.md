@@ -21,6 +21,8 @@ Display
  - DONE look into tile.x/y -- something is odd here. I think we don't want state there? and the tile can get it from the parent cell if necessary?
    - think more broadly about how tiles and cells interact
 
+ - make a test that moves the viewport with fractional numbers and see if it's smooth
+
  Optimization Ideas
  ------------------
 
@@ -55,9 +57,22 @@ Display
 MODULE LIST
 -----------
  * Display (v1.0 done)
- * Input (v0.0)
+ * Input (v1.0 done)
  * Game (v0.0)
+  * Takes inputs. Updates the world based on them, while enforcing game rules.
+  * Owns the core "clock" of the game. Understands time. 
+  * Triggers map generation, loading, saving, puts UI on the screen, etc.
  * World (v0.0)
+  * The world tracks the state of the game. It tracks all the locations in the world and their state. Players and enemies and items and doors and such. 
+  * Changes to the world are made by the game.
+  * In a "model view controller" architecture, the world is the model, the game is the controller. 
+  * Now the "view" ... it's not exactly the display. It's something that sits between that turns a world state into a display state. Sometimes we put this on entities like "draw()" that knows how to update the display. It could be that we have something that scans across all the world objects and then triggers updates to the display. 
  * Entity (v0.0)
+  * Objects in the world. Mostly just collections of state.
+  * They are seriealizeable and deseriealizable. 
  * UI?? menus? Compositing displays with other things?
  
+
+
+
+
