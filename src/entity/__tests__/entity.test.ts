@@ -2,6 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { validate as uuidValidate } from 'uuid';
 import { Entity } from '../entity';
 import { PositionComponent } from '../component';
+import { RequiredComponents } from '../decorators';
+
+@RequiredComponents('position')
+class PositionalEntity extends Entity {
+  validate(): void {
+    this.validateRequiredComponents();
+  }
+}
 
 describe('Entity', () => {
   it('can be constructed with an explicit id', () => {
@@ -55,5 +63,41 @@ describe('Entity', () => {
     expect(removed).toBe(true);
     expect(entity.hasComponent('position')).toBe(false);
     expect(entity.getComponent('position')).toBeUndefined();
+  });
+
+  describe('Required Components', () => {
+    it('validates when required component is present', () => {
+      const entity = new PositionalEntity();
+      entity.setComponent({ 
+        type: 'position', 
+        x: 10, 
+        y: 20 
+      });
+
+      expect(() => entity.validate()).not.toThrow();
+    });
+
+    it('throws when required component is missing', () => {
+      const entity = new PositionalEntity();
+
+      expect(() => entity.validate()).toThrow(
+        /missing required component: position/
+      );
+    });
+
+    it('throws when required component is removed', () => {
+      const entity = new PositionalEntity();
+      entity.setComponent({ 
+        type: 'position', 
+        x: 10, 
+        y: 20 
+      });
+
+      entity.removeComponent('position');
+
+      expect(() => entity.validate()).toThrow(
+        /missing required component: position/
+      );
+    });
   });
 }); 
