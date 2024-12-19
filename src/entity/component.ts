@@ -23,6 +23,14 @@ export interface HealthComponent extends Component {
   max: number;
 }
 
+/**
+ * Serialized entity data structure
+ */
+export interface SerializedEntity {
+  id: string;
+  components: ComponentUnion[];
+}
+
 // Add more component interfaces here as needed
 
 /**

@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
 import { ComponentStore } from './component-store';
-import { ComponentUnion } from './component';
+import { ComponentUnion, SerializedEntity } from './component';
 import { REQUIRED_COMPONENTS } from './decorators';
 
 /**
@@ -9,7 +9,7 @@ import { REQUIRED_COMPONENTS } from './decorators';
  */
 export class Entity {
   private readonly id: string;
-  private store: ComponentStore;
+  protected store: ComponentStore;
 
   constructor(id?: string) {
     this.id = id ?? Entity.generateId();
@@ -72,8 +72,100 @@ export class Entity {
     }
   }
 
+  /**
+   * Validates the entity's current state
+   * @throws Error if validation fails
+   */
+  public validate(): void {
+    // Required components
+    this.validateRequiredComponents();
+    
+    // Future validation types could go here:
+    // - Component dependencies
+    // - Component data validation
+    // - Entity state validation
+    // - etc.
+  }
+
   // Optional convenience methods for very common operations
   setPosition(x: number, y: number): this {
     return this.setComponent({ type: 'position', x, y });
+  }
+
+  /**
+   * Get all components on this entity
+   */
+  getComponents(): ComponentUnion[] {
+    return this.store.values();
+  }
+
+  /**
+   * Get the number of components on this entity
+   */
+  getComponentCount(): number {
+    return this.getComponents().length;
+  }
+
+  /**
+   * Serialize entity to plain object
+   */
+  serialize(): SerializedEntity {
+    return {
+      id: this.id,
+      components: this.getComponents()
+    };
+  }
+
+  /**
+   * Create an entity from serialized data
+   * @throws Error if data is invalid
+   */
+  static deserialize(data: SerializedEntity): Entity {
+    if (!data || typeof data !== 'object') {
+        throw new Error('Invalid serialized data: must be an object');
+    }
+    if (!data.id || typeof data.id !== 'string') {
+        throw new Error('Invalid serialized data: missing or invalid id');
+    }
+    if (!Array.isArray(data.components)) {
+        throw new Error('Invalid serialized data: components must be an array');
+    }
+
+    const entity = new Entity(data.id);
+    for (const component of data.components) {
+        if (!component || typeof component !== 'object' || !('type' in component)) {
+            throw new Error('Invalid serialized data: invalid component format');
+        }
+        entity.setComponent(component);
+    }
+    return entity;
+  }
+
+  /**
+   * Check if entity has all of the specified components
+   */
+  hasAllComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
+    return types.every(type => this.hasComponent(type));
+  }
+
+  /**
+   * Check if entity has any of the specified components
+   */
+  hasAnyComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
+    return types.some(type => this.hasComponent(type));
+  }
+
+  /**
+   * Get all component types on this entity
+   */
+  getComponentTypes(): ComponentUnion['type'][] {
+    return this.getComponents().map(c => c.type);
+  }
+
+  /**
+   * Check if entity lacks all of the specified components
+   */
+  doesNotHaveComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
+    return types.every(type => !this.hasComponent(type));
   }
 } 

@@ -49,4 +49,11 @@ export class ComponentStore {
   getTypes(): string[] {
     return Array.from(this.components.keys());
   }
+
+  /**
+   * Get all components currently stored
+   */
+  values(): ComponentUnion[] {
+    return Array.from(this.components.values());
+  }
 } 
