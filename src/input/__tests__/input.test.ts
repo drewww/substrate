@@ -237,56 +237,121 @@ describe('InputManager', () => {
     });
 
     describe('Event Handling', () => {
+        let mockCallback: ReturnType<typeof vi.fn>;
+
         beforeEach(() => {
-            // Use the standard WASD config
+            mockCallback = vi.fn();
+            inputManager.registerCallback(mockCallback, 0);
+            
+            // Use a simple config for testing
             const config = `
-                mode: game
-                map: wasd default
+                mode: test
+                ==========
+                map: default
                 ---
-                w,ArrowUp        move    up
-                s,ArrowDown      move    down
-                a,ArrowLeft      move    left
-                d,ArrowRight     move    right
-                Control          crouch
-                Shift+w          sprint  up
-                Shift+s          sprint  down
-                Shift+a          sprint  left
-                Shift+d          sprint  right
-                =====
+                w move up
+                Shift+x special param1 param2
             `;
             inputManager.loadConfig(config);
-            inputManager.setMode('game');
+            inputManager.setMode('test');
         });
 
-        it('registers keyboard event listeners', () => {
-            expect(mockAddEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
-            expect(mockAddEventListener).toHaveBeenCalledWith('keyup', expect.any(Function));
-        });
-
-        it('handles key down events', () => {
-            const [[, keydownHandler]] = mockAddEventListener.mock.calls.filter(
-                ([eventName]) => eventName === 'keydown'
-            );
+        it('handles basic keydown/keyup cycle', () => {
+            const keydownHandler = getEventHandler('keydown');
+            const keyupHandler = getEventHandler('keyup');
             
-            const mockEvent = {
+            // Test keydown
+            const downEvent = {
                 type: 'keydown',
                 key: 'w',
                 code: 'KeyW',
-                keyCode: 87,
+                preventDefault: vi.fn(),
                 ctrlKey: false,
                 shiftKey: false,
                 altKey: false,
-                metaKey: false,
-                repeat: false,
-                preventDefault: vi.fn(),
-                stopPropagation: vi.fn(),
-                getModifierState: (mod: string) => false
+                metaKey: false
             } as unknown as KeyboardEvent;
 
-            keydownHandler(mockEvent);
+            keydownHandler(downEvent);
 
-            // Now we can test that the 'move up' action was triggered
-            expect(mockEvent.preventDefault).toHaveBeenCalled();
+            expect(mockCallback).toHaveBeenCalledWith('down', 'move', ['up'], {
+                ctrl: false,
+                shift: false,
+                alt: false,
+                meta: false
+            });
+            expect(downEvent.preventDefault).toHaveBeenCalled();
+            expect(inputManager['activeKeys'].has('w')).toBe(true);
+
+            // Clear mock for next test
+            mockCallback.mockClear();
+
+            // Test keyup
+            const upEvent = {
+                type: 'keyup',
+                key: 'w',
+                code: 'KeyW',
+                preventDefault: vi.fn(),
+                ctrlKey: false,
+                shiftKey: false,
+                altKey: false,
+                metaKey: false
+            } as unknown as KeyboardEvent;
+
+            keyupHandler(upEvent);
+
+            expect(mockCallback).toHaveBeenCalledWith('up', 'move', ['up'], {
+                ctrl: false,
+                shift: false,
+                alt: false,
+                meta: false
+            });
+            expect(inputManager['activeKeys'].has('w')).toBe(false);
+        });
+
+        it('handles modifier key combinations', () => {
+            const keydownHandler = getEventHandler('keydown');
+            
+            const event = {
+                type: 'keydown',
+                key: 'x',
+                code: 'KeyX',
+                preventDefault: vi.fn(),
+                ctrlKey: false,
+                shiftKey: true,
+                altKey: false,
+                metaKey: false
+            } as unknown as KeyboardEvent;
+
+            keydownHandler(event);
+
+            expect(mockCallback).toHaveBeenCalledWith('down', 'special', ['param1', 'param2'], {
+                ctrl: false,
+                shift: true,
+                alt: false,
+                meta: false
+            });
+            expect(event.preventDefault).toHaveBeenCalled();
+        });
+
+        it('ignores unbound keys', () => {
+            const keydownHandler = getEventHandler('keydown');
+            
+            const event = {
+                type: 'keydown',
+                key: 'y',  // Not bound in our config
+                code: 'KeyY',
+                preventDefault: vi.fn(),
+                ctrlKey: false,
+                shiftKey: false,
+                altKey: false,
+                metaKey: false
+            } as unknown as KeyboardEvent;
+
+            keydownHandler(event);
+
+            expect(mockCallback).not.toHaveBeenCalled();
+            expect(event.preventDefault).not.toHaveBeenCalled();
         });
     });
 
