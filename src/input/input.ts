@@ -50,10 +50,20 @@ export class InputManager {
         alt: false,
         meta: false
     };
+    private setIntervalFn: typeof window.setInterval;
+    private clearIntervalFn: typeof window.clearInterval;
 
-    constructor() {
-        window.addEventListener('keydown', this.handleKeyDown.bind(this));
-        window.addEventListener('keyup', this.handleKeyUp.bind(this));
+    constructor(options: {
+        addEventListener?: typeof window.addEventListener,
+        setInterval?: typeof window.setInterval,
+        clearInterval?: typeof window.clearInterval
+    } = {}) {
+        const addListener = options.addEventListener || window.addEventListener;
+        this.setIntervalFn = options.setInterval || window.setInterval;
+        this.clearIntervalFn = options.clearInterval || window.clearInterval;
+
+        addListener('keydown', this.handleKeyDown.bind(this));
+        addListener('keyup', this.handleKeyUp.bind(this));
     }
 
     public loadConfig(configText: string): void {
@@ -165,12 +175,11 @@ export class InputManager {
                     continue;
                 }
                 
-                if (!this.modes[currentMode]) {
-                    this.modes[currentMode] = {
-                        maps: {},
-                        defaultMap: ''
-                    };
-                }
+                // Initialize the mode structure immediately, even for invalid identifiers
+                this.modes[currentMode] = {
+                    maps: {},
+                    defaultMap: ''
+                };
                 continue;
             }
 
@@ -180,6 +189,16 @@ export class InputManager {
                     this.configErrors.push({
                         type: 'error',
                         message: 'Map specified before mode',
+                        line: lineNumber
+                    });
+                    continue;
+                }
+                
+                // Skip map processing if the mode was invalid
+                if (!this.modes[currentMode]) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: `Cannot add map to invalid mode: ${currentMode}`,
                         line: lineNumber
                     });
                     continue;
@@ -488,6 +507,7 @@ export class InputManager {
                     if (this.modifierState.meta) activeModifiers.push('meta');
                     
                     this.triggerCallbacks('down', 'key', [normalizedKey, ...activeModifiers], normalizedKey);
+                    event.preventDefault();
                     
                     // Only start repeat for non-modifier keys
                     if (!this.isModifierKey(normalizedKey)) {
@@ -500,16 +520,23 @@ export class InputManager {
                 const mapConfig = modeConfig.maps[this.currentMap];
                 const modifierKey = this.getModifierKeyCombo(event, normalizedKey);
                 
+                let handled = false;
                 if (modifierKey && mapConfig[modifierKey]) {
                     for (const keyConfig of mapConfig[modifierKey]) {
                         this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
+                        handled = true;
                     }
                     this.startRepeat(normalizedKey);
                 } else if (mapConfig[normalizedKey]) {
                     for (const keyConfig of mapConfig[normalizedKey]) {
                         this.triggerCallbacks('down', keyConfig.action, keyConfig.parameters, normalizedKey);
+                        handled = true;
                     }
                     this.startRepeat(normalizedKey);
+                }
+                
+                if (handled) {
+                    event.preventDefault();
                 }
             }
         }
@@ -598,16 +625,13 @@ export class InputManager {
     }
 
     private startRepeat(key: string): void {
-        // Don't start repeat for modifier keys
         if (this.isModifierKey(key)) {
             return;
         }
 
-        // Clear any existing timer for this key
         this.stopRepeat(key);
         
-        // Start a new repeat timer
-        this.repeatTimers[key] = window.setInterval(() => {
+        this.repeatTimers[key] = this.setIntervalFn(() => {
             if (this.currentMode && this.currentMap) {
                 const modeConfig = this.modes[this.currentMode];
                 const mapConfig = modeConfig.maps[this.currentMap];
@@ -661,7 +685,7 @@ export class InputManager {
 
     private stopRepeat(key: string): void {
         if (this.repeatTimers[key]) {
-            window.clearInterval(this.repeatTimers[key]);
+            this.clearIntervalFn(this.repeatTimers[key]);
             delete this.repeatTimers[key];
         }
     }

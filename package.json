@@ -15,12 +15,26 @@
     "typescript": "^5.2.2",
     "vite": "^5.1.4",
     "vite-plugin-singlefile": "^2.0.0",
-    "vitest": "^2.1.8",
-    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/coverage-v8": "latest",
+    "jsdom": "latest",
+    "vitest": "latest",
     "@types/uuid": "^9.0.0"
   },
   "dependencies": {
     "reflect-metadata": "^0.1.13",
     "uuid": "^9.0.0"
+  },
+  "vitest": {
+    "environment": "jsdom",
+    "setupFiles": ["./src/test/setup.ts"],
+    "globals": true,
+    "coverage": {
+      "provider": "v8",
+      "reporter": ["text", "html"],
+      "exclude": [
+        "node_modules/",
+        "dist/"
+      ]
+    }
   }
 }
