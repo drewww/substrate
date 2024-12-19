@@ -413,6 +413,26 @@ export class InputManager {
         if (!this.modes[mode]) {
             throw new Error(`Mode '${mode}' does not exist`);
         }
+
+        // Before changing modes, trigger 'up' events for all active keys
+        if (this.currentMode && this.currentMap) {
+            const mapConfig = this.modes[this.currentMode].maps[this.currentMap];
+            for (const key of this.activeKeys) {
+                if (mapConfig[key]) {
+                    for (const keyConfig of mapConfig[key]) {
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, key);
+                    }
+                }
+            }
+        }
+
+        // Clear active keys and repeat timers without triggering additional events
+        for (const key of this.activeKeys) {
+            this.stopRepeat(key);
+        }
+        this.activeKeys.clear();
+
+        // Set the new mode and its default map
         this.currentMode = mode;
         this.currentMap = this.modes[mode].defaultMap;
     }
