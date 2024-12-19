@@ -30,6 +30,7 @@ export interface HealthComponent extends Component {
 export interface SerializedEntity {
   id: string;
   components: ComponentUnion[];
+  tags?: string[];
 }
 
 // Add more component interfaces here as needed

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { validate as uuidValidate } from 'uuid';
 import { Entity } from '../entity';
-import { PositionComponent } from '../component';
+import { PositionComponent, SerializedEntity } from '../component';
 import { RequiredComponents } from '../decorators';
 import { ComponentUnion } from '../component';
 
@@ -513,6 +513,92 @@ describe('Entity', () => {
         x: 20,
         y: 20,
         modified: true
+      });
+    });
+  });
+
+  describe('Tags', () => {
+    let entity: Entity;
+
+    beforeEach(() => {
+      entity = new Entity();
+    });
+
+    it('can add and check tags', () => {
+      entity.addTag('enemy');
+      expect(entity.hasTag('enemy')).toBe(true);
+      expect(entity.hasTag('player')).toBe(false);
+    });
+
+    it('can remove tags', () => {
+      entity.addTag('enemy');
+      expect(entity.removeTag('enemy')).toBe(true);
+      expect(entity.hasTag('enemy')).toBe(false);
+      expect(entity.removeTag('nonexistent')).toBe(false);
+    });
+
+    it('can add multiple tags', () => {
+      entity.addTags(['enemy', 'flying', 'boss']);
+      expect(entity.hasTag('enemy')).toBe(true);
+      expect(entity.hasTag('flying')).toBe(true);
+      expect(entity.hasTag('boss')).toBe(true);
+    });
+
+    it('can get all tags', () => {
+      entity.addTags(['enemy', 'flying', 'boss']);
+      const tags = entity.getTags();
+      expect(tags).toHaveLength(3);
+      expect(tags).toContain('enemy');
+      expect(tags).toContain('flying');
+      expect(tags).toContain('boss');
+    });
+
+    it('can clear all tags', () => {
+      entity.addTags(['enemy', 'flying', 'boss']);
+      entity.clearTags();
+      expect(entity.getTags()).toHaveLength(0);
+      expect(entity.hasTag('enemy')).toBe(false);
+    });
+
+    it('maintains unique tags', () => {
+      entity.addTag('enemy');
+      entity.addTag('enemy');
+      expect(entity.getTags()).toHaveLength(1);
+    });
+
+    it('is chainable', () => {
+      entity
+        .addTag('enemy')
+        .addTag('flying')
+        .addTags(['boss', 'ranged']);
+      
+      expect(entity.getTags()).toHaveLength(4);
+    });
+
+    describe('Serialization', () => {
+      it('includes tags in serialization', () => {
+        entity.addTags(['enemy', 'flying']);
+        const serialized = entity.serialize();
+        expect(serialized.tags).toEqual(['enemy', 'flying']);
+      });
+
+      it('restores tags from serialized data', () => {
+        const original = new Entity();
+        original.addTags(['enemy', 'flying']);
+        
+        const serialized = original.serialize();
+        const deserialized = Entity.deserialize(serialized);
+        
+        expect(deserialized.getTags()).toEqual(original.getTags());
+      });
+
+      it('handles missing tags in serialized data', () => {
+        const data = {
+          id: 'test',
+          components: []
+        };
+        const entity = Entity.deserialize(data as SerializedEntity);
+        expect(entity.getTags()).toHaveLength(0);
       });
     });
   });

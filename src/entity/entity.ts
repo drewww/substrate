@@ -11,6 +11,7 @@ export class Entity {
   private readonly id: string;
   protected store: ComponentStore;
   private changedComponents: Set<ComponentUnion['type']> = new Set();
+  private tags: Set<string> = new Set();
 
   constructor(id?: string) {
     this.id = id ?? Entity.generateId();
@@ -117,7 +118,8 @@ export class Entity {
   serialize(): SerializedEntity {
     return {
       id: this.id,
-      components: this.getComponents()
+      components: this.getComponents(),
+      tags: Array.from(this.tags)
     };
   }
 
@@ -143,6 +145,11 @@ export class Entity {
         }
         entity.setComponent(component);
     }
+
+    if (Array.isArray(data.tags)) {
+      entity.addTags(data.tags);
+    }
+
     return entity;
   }
 
@@ -203,5 +210,49 @@ export class Entity {
       component.modified = false;
     }
     this.changedComponents.clear();
+  }
+
+  /**
+   * Add a tag to the entity
+   */
+  addTag(tag: string): this {
+    this.tags.add(tag);
+    return this;
+  }
+
+  /**
+   * Remove a tag from the entity
+   */
+  removeTag(tag: string): boolean {
+    return this.tags.delete(tag);
+  }
+
+  /**
+   * Check if entity has a specific tag
+   */
+  hasTag(tag: string): boolean {
+    return this.tags.has(tag);
+  }
+
+  /**
+   * Get all tags on this entity
+   */
+  getTags(): string[] {
+    return Array.from(this.tags);
+  }
+
+  /**
+   * Add multiple tags at once
+   */
+  addTags(tags: string[]): this {
+    tags.forEach(tag => this.tags.add(tag));
+    return this;
+  }
+
+  /**
+   * Remove all tags from the entity
+   */
+  clearTags(): void {
+    this.tags.clear();
   }
 } 
