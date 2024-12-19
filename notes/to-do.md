@@ -51,7 +51,7 @@ Display
  - DONE delete buffer canvas, not sure why we're triple buffered right now. seems not to be used for anything.
  - DONE Refactor overlays to use the same logic as any other cell. 
 
-
+ - Add mouse input support. Not sure where it goes. Eventually you want to get entities back for a location. Display knows about the viewport and the tiles, but how to trace backwards? I guess it's just a mapping of screen space to game space and that's all the Display knows. Then the World query systems can get you entities for that location. 
 
 
 MODULE LIST
@@ -67,7 +67,7 @@ MODULE LIST
   * Changes to the world are made by the game.
   * In a "model view controller" architecture, the world is the model, the game is the controller. 
   * Now the "view" ... it's not exactly the display. It's something that sits between that turns a world state into a display state. Sometimes we put this on entities like "draw()" that knows how to update the display. It could be that we have something that scans across all the world objects and then triggers updates to the display. 
- * Entity (v0.0)
+ * Entity (v1.0)
   * Objects in the world. Mostly just collections of state.
   * They are seriealizeable and deseriealizable. 
  * UI?? menus? Compositing displays with other things?
@@ -75,4 +75,26 @@ MODULE LIST
 
 
 
+THINKING
+--------
+
+So let's think about the game we want to make. If we are turn-based, it's clear that everything is always in a tile.
+
+I'm curious about real-time. Now one version of real-time is just you can move whenever you want and it has some amount of time cost to do that (maybe decreasing the more you move in that direction). Even if the animation is tweening locations between two states, it's still fundamenteally discrete tile locations. The animation lines up with the move cooldown, basically.
+
+The one thing I'm thinking about that might violate that is jumping. I had the idea that maybe you press space and a direction and you jump.
+
+Let's map out the interaction. One approach might be you hit space to enter jump "mode" and then any direction you press will jump in that direction.
+
+
+Related question -- if speed becomes a thing, how does that work? One model is you "heat up" and your cooldowns get lower. And it fades as you don't move. That all tracks.
+
+Now to cross that with the jump idea. If you press space and then move, you jump two spaces in that direction. If you move enough times before you press jump 
+Now to cross that with the jump idea. If you press space and then move, you jump two spaces in that direction. If you have momentum in a direction and press jump, it will jump you in that direction. Okay.
+
+And does that violate the "you always exist in a space" question? I thiiiink no. You trigger the animation, but put the entity immediately in the new space and start the cooldown. If the cooldowns are timed right, it will work.
+
+If you buffer another move command while in move CD, it can chain the animations so they stay smooth. Maybe "escape" clears the buffer.
+
+What about collision detection? When a move is made, we can compute whether the path and destination are valid. I guess traditional collision detection is to move the object and let the world push back. But we could also do it in advance.
 
