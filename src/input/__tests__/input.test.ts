@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, expect, vi } from 'vitest';
+import { describe, beforeEach, it, expect, vi, afterEach } from 'vitest';
 import { InputManager } from '../input';
 
 describe('InputManager', () => {
@@ -8,10 +8,11 @@ describe('InputManager', () => {
     let mockClearInterval: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
+        vi.useFakeTimers();
         mockAddEventListener = vi.fn();
         mockSetInterval = vi.fn();
         mockClearInterval = vi.fn();
-
+        
         inputManager = new InputManager({
             addEventListener: mockAddEventListener,
             setInterval: mockSetInterval,
@@ -19,18 +20,31 @@ describe('InputManager', () => {
         });
     });
 
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    // Helper function to safely get event handler
+    const getEventHandler = (eventName: string): ((event: KeyboardEvent) => void) => {
+        const handler = mockAddEventListener.mock.calls
+            .find(([event]) => event === eventName)?.[1];
+        
+        if (!handler) {
+            throw new Error(`No handler found for ${eventName} event`);
+        }
+        
+        return handler as (event: KeyboardEvent) => void;
+    };
+
     describe('Configuration Parsing', () => {
         it('parses a basic mode and map configuration', () => {
             const config = `
                 mode: game
-                map: default default
+                ==========
+                map: default
                 ---
-                w move-up
-                s move-down
-                a move-left
-                d move-right
-                =====
-            `;
+                w move up
+                s move down`;
             inputManager.loadConfig(config);
             expect(inputManager.getConfigErrors()).toHaveLength(0);
             expect(inputManager.getModes().game).toBeDefined();
@@ -40,10 +54,10 @@ describe('InputManager', () => {
         it('handles pass-through mode correctly', () => {
             const config = `
                 mode: system
+                ==========
                 map: pass
                 ---
-                =====
-            `;
+                # No key mappings allowed here`;
             inputManager.loadConfig(config);
             expect(inputManager.getConfigErrors()).toHaveLength(0);
             expect(inputManager.listActions('system')).toEqual(['key']);
@@ -93,14 +107,13 @@ describe('InputManager', () => {
     describe('Key Mapping Validation', () => {
         it('validates basic key mappings', () => {
             const config = `
-                mode: game
+                mode: test
+                ==========
                 map: default
                 ---
-                w move-up
-                Control+s save
-                Shift+Alt+x quit
-                =====
-            `;
+                w move up
+                Control+s move down
+                Shift+Alt+x action param1 param2`;
             inputManager.loadConfig(config);
             expect(inputManager.getConfigErrors()).toHaveLength(0);
         });
@@ -185,16 +198,15 @@ describe('InputManager', () => {
         it('provides configuration statistics', () => {
             const config = `
                 mode: game
-                map: default default
+                ==========
+                map: default
                 ---
-                w move-up
-                s move-down
-                =====
-                mode: menu
-                map: pass
-                ---
-                =====
-            `;
+                w move up
+                s move down
+
+                mode: system
+                ==========
+                map: pass`;
             inputManager.loadConfig(config);
             const stats = inputManager.getConfigStats();
             
@@ -275,6 +287,127 @@ describe('InputManager', () => {
 
             // Now we can test that the 'move up' action was triggered
             expect(mockEvent.preventDefault).toHaveBeenCalled();
+        });
+    });
+
+    describe('Repeat Key Handling', () => {
+        it('triggers repeat events for held keys', async () => {
+            const mockCallback = vi.fn();
+            inputManager.registerCallback(mockCallback, 0);
+            
+            const config = `
+                mode: game
+                map: default default
+                ---
+                w move up
+                =====
+            `;
+            inputManager.loadConfig(config);
+            inputManager.setMode('game');
+
+            // Mock setInterval to execute callback immediately
+            mockSetInterval.mockImplementation((callback) => {
+                callback();
+                return 123;
+            });
+
+            const mockEvent = {
+                key: 'w',
+                preventDefault: vi.fn(),
+                ctrlKey: false,
+                shiftKey: false,
+                altKey: false,
+                metaKey: false
+            } as unknown as KeyboardEvent;
+            
+            const keydownHandler = getEventHandler('keydown');
+            keydownHandler(mockEvent);
+
+            // No need to wait since we're executing callback immediately
+            expect(mockCallback).toHaveBeenCalledWith('repeat', 'move', ['up'], expect.any(Object));
+        });
+    });
+
+    describe('Modifier Key Handling', () => {
+        it('handles complex modifier combinations', () => {
+            const config = `
+                mode: test
+                map: default default
+                ---
+                Control+Shift+a action params
+            `;
+            inputManager.loadConfig(config);
+            inputManager.setMode('test');
+
+            const mockCallback = vi.fn();
+            inputManager.registerCallback(mockCallback, 0);
+
+            // Test with correct modifier combination
+            const mockEvent = {
+                key: 'a',
+                ctrlKey: true,
+                shiftKey: true,
+                altKey: false,
+                metaKey: false,
+                preventDefault: vi.fn()
+            } as unknown as KeyboardEvent;
+
+            const keydownHandler = getEventHandler('keydown');
+            keydownHandler(mockEvent);
+
+            expect(mockCallback).toHaveBeenCalledWith('down', 'action', ['params'], expect.any(Object));
+        });
+    });
+
+    describe('Mode and Map Changes', () => {
+        it('clears active keys when changing maps', () => {
+
+            // TODO: Implement this test
+            
+        });
+    });
+
+    describe('Pass-through Mode', () => {
+        it('forwards all keys in pass-through mode', () => {
+            const config = `
+                mode: passthrough
+                map: pass
+            `;
+            inputManager.loadConfig(config);
+            inputManager.setMode('passthrough');
+
+            const mockCallback = vi.fn();
+            inputManager.registerCallback(mockCallback, 0);
+
+            // Test with any key
+            const mockEvent = {
+                key: 'x',
+                preventDefault: vi.fn()
+            } as unknown as KeyboardEvent;
+
+            const keydownHandler = getEventHandler('keydown');
+            keydownHandler(mockEvent);
+
+            expect(mockCallback).toHaveBeenCalledWith('down', 'key', ['x'], expect.any(Object));
+        });
+    });
+
+    describe('Error Handling', () => {
+        it('handles missing mode/map gracefully', () => {
+            expect(() => inputManager.setMode('nonexistent')).toThrow();
+            expect(() => inputManager.setMap('nonexistent')).toThrow();
+        });
+
+        it('validates action names', () => {
+            const config = `
+                mode: test
+                map: default default
+                ---
+                w invalid!action
+            `;
+            inputManager.loadConfig(config);
+            const errors = inputManager.getConfigErrors();
+            expect(errors.some(e => e.message.includes('Invalid action name'))).toBe(true);
         });
     });
 }); 

@@ -149,6 +149,14 @@ export class InputManager {
             
             // Check for mode section start (marked by =====)
             if (trimmedLine.match(/^=+$/)) {
+                if (!currentMode || !trimmedLine.startsWith('='.repeat(10))) {
+                    this.configErrors.push({
+                        type: 'error',
+                        message: `Invalid section separator: ${trimmedLine}. Mode separators must be exactly 10 '=' characters and must follow a mode declaration`,
+                        line: lineNumber
+                    });
+                    continue;
+                }
                 currentMap = null;
                 inMetadata = true;
                 continue;
@@ -409,18 +417,32 @@ export class InputManager {
         this.currentMap = this.modes[mode].defaultMap;
     }
 
-    public setMap(map: string): void {
-        if (!this.currentMode) {
-            throw new Error('No mode selected');
+    public setMap(mapName: string): void {
+        if (!this.currentMode || !this.modes[this.currentMode].maps[mapName]) {
+            throw new Error(`Map ${mapName} not found in mode ${this.currentMode}`);
         }
-        if (!this.modes[this.currentMode].maps[map]) {
-            throw new Error(`Map '${map}' does not exist in mode '${this.currentMode}'`);
+
+        // Before changing maps, trigger 'up' events for all active keys
+        const oldMap = this.currentMap;
+        if (oldMap) {
+            const mapConfig = this.modes[this.currentMode].maps[oldMap];
+            for (const key of this.activeKeys) {
+                if (mapConfig[key]) {
+                    for (const keyConfig of mapConfig[key]) {
+                        this.triggerCallbacks('up', keyConfig.action, keyConfig.parameters, key);
+                    }
+                }
+            }
         }
+
+        // Clear active keys and repeat timers without triggering additional events
+        for (const key of this.activeKeys) {
+            this.stopRepeat(key);
+        }
+        this.activeKeys.clear();
         
-        // Clear states before changing maps
-        this.clearAllStates();
-        
-        this.currentMap = map;
+        // Set the new map
+        this.currentMap = mapName;
     }
 
     public registerCallback(callback: ActionCallback, order: number, mode?: string): void {
@@ -608,16 +630,20 @@ export class InputManager {
     }
 
     private triggerCallbacks(eventType: string, action: string, parameters: string[], key: string): void {
+        const modifierState = {
+            ctrl: this.modifierState.ctrl,
+            shift: this.modifierState.shift,
+            alt: this.modifierState.alt,
+            meta: this.modifierState.meta
+        };
+
         for (const registration of this.callbacks) {
             // Skip if callback is mode-specific and doesn't match current mode
             if (registration.mode && registration.mode !== this.currentMode) {
                 continue;
             }
             
-            // For 'pass' action, append the key name to parameters
-            const finalParameters = action === 'pass' ? [...parameters, key] : parameters;
-            
-            const result = registration.callback(eventType, action, finalParameters, this.modifierState);
+            const result = registration.callback(eventType, action, parameters, modifierState);
             
             // If callback returns true, stop propagation
             if (result === true) break;
