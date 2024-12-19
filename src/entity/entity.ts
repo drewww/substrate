@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { v4 as uuidv4 } from 'uuid';
 import { ComponentStore } from './component-store';
 import { ComponentUnion } from './component';
 import { REQUIRED_COMPONENTS } from './decorators';
@@ -10,9 +11,16 @@ export class Entity {
   private readonly id: string;
   private store: ComponentStore;
 
-  constructor(id: string) {
-    this.id = id;
+  constructor(id?: string) {
+    this.id = id ?? Entity.generateId();
     this.store = new ComponentStore();
+  }
+
+  /**
+   * Generate a unique entity ID using UUID v4
+   */
+  private static generateId(): string {
+    return uuidv4();
   }
 
   /**
