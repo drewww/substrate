@@ -3,6 +3,7 @@
  */
 export interface Component {
   readonly type: string;
+  modified?: boolean;
 }
 
 /**

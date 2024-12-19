@@ -10,6 +10,7 @@ import { REQUIRED_COMPONENTS } from './decorators';
 export class Entity {
   private readonly id: string;
   protected store: ComponentStore;
+  private changedComponents: Set<ComponentUnion['type']> = new Set();
 
   constructor(id?: string) {
     this.id = id ?? Entity.generateId();
@@ -41,7 +42,11 @@ export class Entity {
    * Set a component
    */
   setComponent<T extends ComponentUnion>(component: T): this {
-    this.store.set(component);
+    this.store.set({
+      ...component,
+      modified: true
+    });
+    this.changedComponents.add(component.type);
     return this;
   }
 
@@ -167,5 +172,36 @@ export class Entity {
    */
   doesNotHaveComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
     return types.every(type => !this.hasComponent(type));
+  }
+
+  /**
+   * Check if a specific component has been modified
+   */
+  hasComponentChanged<T extends ComponentUnion>(type: T['type']): boolean {
+    return this.changedComponents.has(type);
+  }
+
+  /**
+   * Get all component types that have been modified
+   */
+  getChangedComponents(): ComponentUnion['type'][] {
+    return Array.from(this.changedComponents);
+  }
+
+  /**
+   * Check if any components have been modified
+   */
+  hasChanges(): boolean {
+    return this.changedComponents.size > 0;
+  }
+
+  /**
+   * Clear all modification flags (typically called at end of frame)
+   */
+  clearChanges(): void {
+    for (const component of this.getComponents()) {
+      component.modified = false;
+    }
+    this.changedComponents.clear();
   }
 } 

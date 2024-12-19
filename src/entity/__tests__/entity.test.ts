@@ -37,16 +37,12 @@ describe('Entity', () => {
 
   it('can add and retrieve a component', () => {
     const entity = new Entity();
-    const position: PositionComponent = { 
-      type: 'position',
-      x: 10, 
-      y: 20 
-    };
-
-    entity.setComponent(position);
+    const position = { type: 'position' as const, x: 10, y: 20 };
     
+    entity.setComponent(position);
     const retrieved = entity.getComponent('position');
-    expect(retrieved).toEqual(position);
+    
+    expect(retrieved).toMatchObject(position);
   });
 
   it('can add and remove a component', () => {
@@ -294,8 +290,16 @@ describe('Entity', () => {
       const deserialized = Entity.deserialize(serialized);
 
       expect(deserialized.getId()).toBe(original.getId());
-      expect(deserialized.getComponent('position')).toEqual({ type: 'position', x: 10, y: 20 });
-      expect(deserialized.getComponent('health')).toEqual({ type: 'health', current: 100, max: 100 });
+      expect(deserialized.getComponent('position')).toMatchObject({ 
+        type: 'position', 
+        x: 10, 
+        y: 20 
+      });
+      expect(deserialized.getComponent('health')).toMatchObject({ 
+        type: 'health', 
+        current: 100, 
+        max: 100 
+      });
     });
 
     it('preserves required components through serialization', () => {
@@ -333,7 +337,7 @@ describe('Entity', () => {
       const serialized = original.serialize();
       const deserialized = Entity.deserialize(serialized);
 
-      expect(deserialized.getComponent('position')).toEqual(complexComponent);
+      expect(deserialized.getComponent('position')).toMatchObject(complexComponent);
     });
 
     it('maintains component order through serialization', () => {
@@ -432,6 +436,84 @@ describe('Entity', () => {
                 'Invalid serialized data: invalid component format'
             );
         });
+    });
+  });
+
+  describe('Component Change Tracking', () => {
+    let entity: Entity;
+
+    beforeEach(() => {
+      entity = new Entity();
+    });
+
+    it('marks component as modified when added', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      
+      expect(entity.hasComponentChanged('position')).toBe(true);
+      expect(entity.getComponent('position')?.modified).toBe(true);
+    });
+
+    it('tracks changes when component is updated', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      entity.clearChanges();
+      
+      entity.setComponent({ type: 'position', x: 10, y: 20 });
+      
+      expect(entity.hasComponentChanged('position')).toBe(true);
+      expect(entity.getComponent('position')?.modified).toBe(true);
+    });
+
+    it('clears modification flags', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      entity.clearChanges();
+      
+      expect(entity.hasComponentChanged('position')).toBe(false);
+      expect(entity.getComponent('position')?.modified).toBe(false);
+    });
+
+    it('tracks multiple component changes', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      entity.setComponent({ type: 'health', current: 100, max: 100 });
+      
+      const changedComponents = entity.getChangedComponents();
+      expect(changedComponents).toHaveLength(2);
+      expect(changedComponents).toContain('position');
+      expect(changedComponents).toContain('health');
+    });
+
+    it('maintains change flags through multiple updates', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      entity.setComponent({ type: 'position', x: 10, y: 20 });
+      
+      expect(entity.hasComponentChanged('position')).toBe(true);
+      expect(entity.getComponent('position')?.modified).toBe(true);
+    });
+
+    it('only clears flags for existing components', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      entity.setComponent({ type: 'health', current: 100, max: 100 });
+      entity.clearChanges();
+      
+      // Add new component after clearing
+      entity.setComponent({ type: 'position', x: 10, y: 20 });
+      
+      expect(entity.hasComponentChanged('position')).toBe(true);
+      expect(entity.hasComponentChanged('health')).toBe(false);
+    });
+
+    it('handles rapid changes within same frame', () => {
+      entity.setComponent({ type: 'position', x: 0, y: 0 });
+      entity.setComponent({ type: 'position', x: 10, y: 10 });
+      entity.setComponent({ type: 'position', x: 20, y: 20 });
+      
+      // Should still just show as one change
+      expect(entity.getChangedComponents()).toHaveLength(1);
+      expect(entity.getComponent('position')).toEqual({
+        type: 'position',
+        x: 20,
+        y: 20,
+        modified: true
+      });
     });
   });
 }); 
