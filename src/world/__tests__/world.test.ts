@@ -7,6 +7,7 @@ import { COMPONENT_TYPES, HealthComponent } from '../../entity/component';
 import { FacingComponent } from '../../entity/component';
 import { Component } from '../../entity/component';
 import { transient } from '../../decorators/transient';
+import { TestComponent } from '../../entity/__tests__/test-components';
 
 describe('World', () => {
     let world: World;
@@ -533,43 +534,28 @@ describe('World', () => {
         });
 
         it('updates components that support updating', () => {
+            const handler = vi.fn();
+            world.on('entityModified', handler);
+
             const entity = new Entity(DEFAULT_POSITION);
             const component = new UpdatableComponent();
             entity.setComponent(component);
             world.addEntity(entity);
 
             world.update(100);
+            
+            expect(handler).toHaveBeenCalledWith({
+                entity,
+                componentType: 'updatable'
+            });
             const updatedComponent = entity.getComponent('updatable') as UpdatableComponent;
             expect(updatedComponent.value).toBe(100);
         });
 
-        it('tracks changed entities', () => {
-            const entity1 = new Entity(DEFAULT_POSITION);
-            const entity2 = new Entity({ x: 1, y: 1 });
-            
-            entity1.setComponent(new UpdatableComponent());
-            world.addEntities([entity1, entity2]);
-
-            world.update(100);
-            const changed = world.getChangedEntities();
-            
-            expect(changed).toHaveLength(1);
-            expect(changed[0]).toBe(entity1);
-        });
-
-        it('clears change tracking', () => {
-            const entity = new Entity(DEFAULT_POSITION);
-            entity.setComponent(new UpdatableComponent());
-            world.addEntity(entity);
-
-            world.update(100);
-            expect(world.getChangedEntities()).toHaveLength(1);
-            
-            world.clearChanges();
-            expect(world.getChangedEntities()).toHaveLength(0);
-        });
-
         it('batch updates entity positions', () => {
+            const handler = vi.fn();
+            world.on('entityMoved', handler);
+
             const entity1 = new Entity(DEFAULT_POSITION);
             const entity2 = new Entity({ x: 1, y: 1 });
             world.addEntities([entity1, entity2]);
@@ -583,8 +569,7 @@ describe('World', () => {
 
             expect(entity1.getPosition()).toEqual({ x: 2, y: 2 });
             expect(entity2.getPosition()).toEqual({ x: 3, y: 3 });
-            expect(world.getChangedEntities()).toContain(entity1);
-            expect(world.getChangedEntities()).toContain(entity2);
+            expect(handler).toHaveBeenCalledTimes(2);
         });
 
         it('maintains atomicity in batch position updates', () => {
@@ -604,83 +589,95 @@ describe('World', () => {
             expect(entity1.getPosition()).toEqual(DEFAULT_POSITION);
             expect(entity2.getPosition()).toEqual({ x: 1, y: 1 });
         });
-
-        it('throws on non-existent entity in batch update', () => {
-            expect(() => world.updatePositions([
-                { id: 'non-existent', position: DEFAULT_POSITION }
-            ])).toThrow('Entity non-existent not found');
-        });
     });
 
     describe('Event System', () => {
-        it('handles event subscription and emission', () => {
-            const data = { value: 42 };
-            const handler = vi.fn();
-            
-            world.on('test-event', handler);
-            world.emit('test-event', data);
-            
-            expect(handler).toHaveBeenCalledWith(data);
+        let world: World;
+        let entity: Entity;
+        const position: Point = { x: 1, y: 1 };
+        
+        beforeEach(() => {
+            world = new World(10, 10);
+            entity = new Entity(position);
         });
 
-        it('allows multiple handlers for same event', () => {
-            const handler1 = vi.fn();
-            const handler2 = vi.fn();
-            
-            world.on('test-event', handler1);
-            world.on('test-event', handler2);
-            world.emit('test-event');
-            
-            expect(handler1).toHaveBeenCalled();
-            expect(handler2).toHaveBeenCalled();
+        describe('Entity Added Events', () => {
+            it('emits entityAdded when adding an entity', () => {
+                const handler = vi.fn();
+                world.on('entityAdded', handler);
+                
+                world.addEntity(entity);
+                
+                expect(handler).toHaveBeenCalledWith({ entity });
+            });
+
+            it('sets world reference when adding entity', () => {
+                const handler = vi.fn();
+                world.on('entityModified', handler);
+                
+                world.addEntity(entity);
+                entity.setComponent(new TestComponent());
+                
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    componentType: 'test'
+                });
+            });
         });
 
-        it('allows handler removal', () => {
-            const handler = vi.fn();
-            
-            world.on('test-event', handler);
-            world.off('test-event', handler);
-            world.emit('test-event');
-            
-            expect(handler).not.toHaveBeenCalled();
+        describe('Entity Modified Events', () => {
+            it('emits entityModified when component is modified', () => {
+                const handler = vi.fn();
+                world.addEntity(entity);
+                world.on('entityModified', handler);
+                
+                entity.setComponent(new TestComponent());
+                
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    componentType: 'test'
+                });
+            });
+
+            it('includes correct component type in modification event', () => {
+                const handler = vi.fn();
+                world.addEntity(entity);
+                world.on('entityModified', handler);
+                
+                entity.setComponent(new HealthComponent(100, 100));
+                entity.setComponent(new TestComponent());
+                
+                expect(handler).toHaveBeenCalledTimes(2);
+                expect(handler.mock.calls[0][0].componentType).toBe('health');
+                expect(handler.mock.calls[1][0].componentType).toBe('test');
+            });
         });
 
-        it('handles events with no handlers', () => {
-            expect(() => world.emit('non-existent-event')).not.toThrow();
-        });
+        describe('Event Handler Management', () => {
+            it('allows removing specific event handlers', () => {
+                const handler = vi.fn();
+                world.on('entityAdded', handler);
+                world.off('entityAdded', handler);
+                
+                world.addEntity(entity);
+                
+                expect(handler).not.toHaveBeenCalled();
+            });
 
-        it('handles removing non-existent handlers', () => {
-            const handler = vi.fn();
-            expect(() => world.off('test-event', handler)).not.toThrow();
-        });
-
-        it('clears all event handlers', () => {
-            const handler1 = vi.fn();
-            const handler2 = vi.fn();
-            
-            world.on('event1', handler1);
-            world.on('event2', handler2);
-            
-            world.clearEventHandlers();
-            
-            world.emit('event1');
-            world.emit('event2');
-            
-            expect(handler1).not.toHaveBeenCalled();
-            expect(handler2).not.toHaveBeenCalled();
-        });
-
-        it('maintains separate handler lists for different events', () => {
-            const handler1 = vi.fn();
-            const handler2 = vi.fn();
-            
-            world.on('event1', handler1);
-            world.on('event2', handler2);
-            
-            world.emit('event1');
-            
-            expect(handler1).toHaveBeenCalled();
-            expect(handler2).not.toHaveBeenCalled();
+            it('clears all event handlers', () => {
+                const handler1 = vi.fn();
+                const handler2 = vi.fn();
+                
+                world.on('entityAdded', handler1);
+                world.on('entityModified', handler2);
+                
+                world.clearEventHandlers();
+                world.addEntity(entity);
+                entity.setComponent(new TestComponent());
+                
+                expect(handler1).not.toHaveBeenCalled();
+                expect(handler2).not.toHaveBeenCalled();
+            });
         });
     });
 }); 

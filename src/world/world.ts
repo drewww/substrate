@@ -14,13 +14,19 @@ interface UpdatableComponent {
     value?: number;
 }
 
-type WorldEventHandler = (data: any) => void;
+export type WorldEventMap = {
+    'entityAdded': { entity: Entity };
+    'entityRemoved': { entity: Entity, position: Point };
+    'entityMoved': { entity: Entity, from: Point, to: Point };
+    'entityModified': { entity: Entity, componentType: string };
+}
+
+type WorldEventHandler<T extends keyof WorldEventMap> = (data: WorldEventMap[T]) => void;
 
 export class World {
     private entities: Map<string, Entity> = new Map();
     private spatialMap: Map<string, Set<string>> = new Map();
-    private changedEntities: Set<string> = new Set();
-    private eventHandlers = new Map<string, Set<WorldEventHandler>>();
+    private eventHandlers = new Map<string, Set<WorldEventHandler<any>>>();
     
     constructor(private readonly width: number, private readonly height: number) {}
 
@@ -40,6 +46,7 @@ export class World {
         }
 
         const entityId = entity.getId();
+        entity.setWorld(this);
         this.entities.set(entityId, entity);
 
         const key = this.pointToKey(position);
@@ -49,6 +56,8 @@ export class World {
             this.spatialMap.set(key, entitiesAtPosition);
         }
         entitiesAtPosition.add(entityId);
+
+        this.emit('entityAdded', { entity });
     }
 
     /**
@@ -69,6 +78,7 @@ export class World {
         for (const entity of entities) {
             const position = entity.getPosition();
             const entityId = entity.getId();
+            entity.setWorld(this);
             this.entities.set(entityId, entity);
 
             const key = this.pointToKey(position);
@@ -78,6 +88,8 @@ export class World {
                 this.spatialMap.set(key, entitiesAtPosition);
             }
             entitiesAtPosition.add(entityId);
+            
+            this.emit('entityAdded', { entity });
         }
     }
 
@@ -111,6 +123,12 @@ export class World {
         newSet.add(entityId);
 
         entity.setPosition(newPosition.x, newPosition.y);
+
+        this.emit('entityMoved', {
+            entity,
+            from: oldPosition,
+            to: newPosition
+        });
     }
 
     public removeEntity(entityId: string): void {
@@ -126,6 +144,8 @@ export class World {
         }
 
         this.entities.delete(entityId);
+
+        this.emit('entityRemoved', { entity, position });
     }
 
     public getEntitiesAt(position: Point): Entity[] {
@@ -361,7 +381,6 @@ export class World {
 
     public update(deltaTime: number): void {
         for (const entity of this.entities.values()) {
-            // Get component types first
             const componentTypes = entity.getComponentTypes();
             
             for (const type of componentTypes) {
@@ -374,26 +393,13 @@ export class World {
 
                 if (isUpdatable(component)) {
                     component.update(deltaTime);
-                    this.changedEntities.add(entity.getId());
+                    this.emit('entityModified', {
+                        entity,
+                        componentType: type
+                    });
                 }
             }
         }
-    }
-
-    /**
-     * Get all entities that have changed since last update
-     */
-    public getChangedEntities(): Entity[] {
-        return Array.from(this.changedEntities)
-            .map(id => this.entities.get(id))
-            .filter((entity): entity is Entity => entity !== undefined);
-    }
-
-    /**
-     * Clear all change flags after systems have processed updates
-     */
-    public clearChanges(): void {
-        this.changedEntities.clear();
     }
 
     /**
@@ -415,14 +421,13 @@ export class World {
         // Apply all updates
         for (const { id, position } of updates) {
             this.moveEntity(id, position);
-            this.changedEntities.add(id);
         }
     }
 
     /**
      * Register an event handler
      */
-    public on(event: string, handler: WorldEventHandler): void {
+    public on(event: string, handler: WorldEventHandler<any>): void {
         if (!this.eventHandlers.has(event)) {
             this.eventHandlers.set(event, new Set());
         }
@@ -432,7 +437,7 @@ export class World {
     /**
      * Remove an event handler
      */
-    public off(event: string, handler: WorldEventHandler): void {
+    public off(event: string, handler: WorldEventHandler<any>): void {
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
             handlers.delete(handler);

@@ -6,6 +6,7 @@ import { REQUIRED_COMPONENTS } from './decorators';
 import { Point } from '../types';
 import { isTransient } from '../decorators/transient';
 import { Component } from './component';
+import { World } from '../world/world';
 
 /**
  * Base entity class that manages components
@@ -17,6 +18,7 @@ export class Entity {
   private tags: Set<string> = new Set();
   private position: Point;
   private positionChanged: boolean = false;
+  private world?: World;
 
   constructor(position: Point, id?: string) {
     this.id = id ?? Entity.generateId();
@@ -42,7 +44,6 @@ export class Entity {
    * Get a component by type
    */
   getComponent(type: string): Component | undefined {
-    // Return the actual stored component, not a copy
     return this.store.get(type);
   }
 
@@ -57,6 +58,13 @@ export class Entity {
     copy.modified = true;
     this.store.set(copy);
     this.changedComponents.add(component.type);
+    
+    if (this.world) {
+      this.world.emit('entityModified', {
+        entity: this,
+        componentType: component.type
+      });
+    }
     return this;
   }
 
@@ -305,5 +313,12 @@ export class Entity {
    */
   getComponentCount(): number {
     return this.store.size();
+  }
+
+  /**
+   * Set the world reference
+   */
+  public setWorld(world: World): void {
+    this.world = world;
   }
 } 
