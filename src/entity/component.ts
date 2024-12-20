@@ -1,14 +1,36 @@
-import { transient } from "../decorators/transient";
+import { isTransient, transient } from "../decorators/transient";
 import { Direction, Point } from "../types";
 
 /**
  * Base type for all components
  */
 export abstract class Component {
-  readonly type!: string;
+  abstract readonly type: string;
 
   @transient
   modified?: boolean;
+
+  toJSON(): object {
+    const json: any = {};
+    for (const key of Object.keys(this)) {
+      // Use the isTransient helper to check if property should be excluded
+      if (isTransient(this, key)) continue;
+      
+      const value = (this as any)[key];
+      if (value !== undefined) {
+        json[key] = value;
+      }
+    }
+    return json;
+  }
+
+  static fromJSON(data: any): ComponentUnion {
+    const ComponentClass = COMPONENT_TYPES[data.type];
+    if (!ComponentClass) {
+      throw new Error(`Unknown component type: ${data.type}`);
+    }
+    return ComponentClass.fromJSON(data);
+  }
 }
 
 /**
@@ -23,6 +45,10 @@ export class PositionComponent extends Component {
     super();
     this.x = x;
     this.y = y;
+  }
+
+  static fromJSON(data: any): PositionComponent {
+    return new PositionComponent(data.x, data.y);
   }
 }
 
@@ -39,6 +65,10 @@ export class HealthComponent extends Component {
     this.current = current;
     this.max = max;
   }
+
+  static fromJSON(data: any): HealthComponent {
+    return new HealthComponent(data.current, data.max);
+  }
 }
 
 /**
@@ -52,7 +82,23 @@ export class FacingComponent extends Component {
     super();
     this.direction = direction;
   }
+
+  static fromJSON(data: any): FacingComponent {
+    return new FacingComponent(data.direction);
+  }
 }
+
+/**
+ * Registry of all component types
+ * Update this when adding new components
+ */
+export const COMPONENT_TYPES: Record<string, {
+  fromJSON(data: any): ComponentUnion;
+}> = {
+  'position': PositionComponent,
+  'health': HealthComponent,
+  'facing': FacingComponent,
+};
 
 /**
  * Serialized entity data structure

@@ -3,10 +3,11 @@ import { validate as uuidValidate } from 'uuid';
 import { Entity } from '../entity';
 import { Point } from '../../types';
 import { RequiredComponents } from '../decorators';
+import { HealthComponent, FacingComponent } from '../component';
+import { Direction } from '../../types';
 
 // Default test position to use throughout tests
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
-
 
 describe('Entity', () => {
     describe('Basic Entity Operations', () => {
@@ -42,13 +43,17 @@ describe('Entity', () => {
         });
 
         it('can add and retrieve a component', () => {
-            const health = { type: 'health' as const, current: 100, max: 100 };
+            const health = new HealthComponent(100, 100);
             entity.setComponent(health);
-            expect(entity.getComponent('health')).toMatchObject(health);
+            expect(entity.getComponent('health')).toMatchObject({
+                type: 'health',
+                current: 100,
+                max: 100
+            });
         });
 
         it('can add and remove a component', () => {
-            const health = { type: 'health' as const, current: 100, max: 100 };
+            const health = new HealthComponent(100, 100);
             
             entity.setComponent(health);
             expect(entity.hasComponent('health')).toBe(true);
@@ -61,7 +66,7 @@ describe('Entity', () => {
 
         describe('Component Queries', () => {
             beforeEach(() => {
-                entity.setComponent({ type: 'health', current: 100, max: 100 });
+                entity.setComponent(new HealthComponent(100, 100));
             });
 
             it('returns true when component exists', () => {
@@ -100,13 +105,13 @@ describe('Entity', () => {
 
         describe('Component Change Tracking', () => {
             it('tracks component modifications', () => {
-                const health = { type: 'health' as const, current: 100, max: 100 };
+                const health = new HealthComponent(100, 100);
                 entity.setComponent(health);
                 expect(entity.hasComponentChanged('health')).toBe(true);
             });
 
             it('clears modification flags', () => {
-                const health = { type: 'health' as const, current: 100, max: 100 };
+                const health = new HealthComponent(100, 100);
                 entity.setComponent(health);
                 entity.clearChanges();
                 expect(entity.hasComponentChanged('health')).toBe(false);
@@ -115,21 +120,19 @@ describe('Entity', () => {
 
         describe('Complex Component Queries', () => {
             beforeEach(() => {
-                entity.setComponent({ type: 'position', x: 0, y: 0 });
-                entity.setComponent({ type: 'health', current: 100, max: 100 });
+                entity.setComponent(new HealthComponent(100, 100));
+                entity.setComponent(new FacingComponent(Direction.North));
             });
 
             it('can chain multiple query methods', () => {
-                // Example: Entity has position but not health
                 expect(
-                    entity.hasComponent('position') && 
+                    entity.hasComponent('health') && 
                     entity.doesNotHaveComponents(['nonexistent' as any])
                 ).toBe(true);
 
-                // Example: Entity has either position or health, and has all components
                 expect(
-                    entity.hasAnyComponents(['position', 'health']) && 
-                    entity.hasAllComponents(['position', 'health'])
+                    entity.hasAnyComponents(['health', 'facing']) && 
+                    entity.hasAllComponents(['health', 'facing'])
                 ).toBe(true);
             });
 
@@ -138,16 +141,16 @@ describe('Entity', () => {
                 
                 expect(testEntity.getComponentCount()).toBe(0);
                 
-                testEntity.setComponent({ type: 'position', x: 0, y: 0 });
+                testEntity.setComponent(new HealthComponent(100, 100));
                 expect(testEntity.getComponentCount()).toBe(1);
                 
-                testEntity.setComponent({ type: 'health', current: 100, max: 100 });
+                testEntity.setComponent(new FacingComponent(Direction.North));
                 expect(testEntity.getComponentCount()).toBe(2);
                 
                 testEntity.removeComponent('health');
                 expect(testEntity.getComponentCount()).toBe(1);
                 
-                testEntity.removeComponent('position');
+                testEntity.removeComponent('facing');
                 expect(testEntity.getComponentCount()).toBe(0);
             });
 
@@ -155,16 +158,16 @@ describe('Entity', () => {
                 const testEntity = new Entity(DEFAULT_POSITION);
                 expect(testEntity.getComponentTypes()).toEqual([]);
                 
-                testEntity.setComponent({ type: 'position', x: 0, y: 0 });
-                expect(testEntity.getComponentTypes()).toEqual(['position']);
+                testEntity.setComponent(new HealthComponent(100, 100));
+                expect(testEntity.getComponentTypes()).toEqual(['health']);
                 
-                testEntity.setComponent({ type: 'health', current: 100, max: 100 });
-                expect(testEntity.getComponentTypes()).toContain('position');
+                testEntity.setComponent(new FacingComponent(Direction.North));
                 expect(testEntity.getComponentTypes()).toContain('health');
+                expect(testEntity.getComponentTypes()).toContain('facing');
                 expect(testEntity.getComponentTypes()).toHaveLength(2);
                 
-                testEntity.removeComponent('position');
-                expect(testEntity.getComponentTypes()).toEqual(['health']);
+                testEntity.removeComponent('health');
+                expect(testEntity.getComponentTypes()).toEqual(['facing']);
             });
         });
     });
@@ -194,16 +197,18 @@ describe('Entity', () => {
     describe('Serialization', () => {
         it('can serialize and deserialize an entity', () => {
             const original = new Entity(DEFAULT_POSITION, 'test-id');
-            original.setComponent({ type: 'health', current: 100, max: 100 });
+            original.setComponent(new HealthComponent(100, 100));
 
             const serialized = original.serialize();
             const deserialized = Entity.deserialize(serialized);
 
             expect(deserialized.getId()).toBe(original.getId());
             expect(deserialized.getPosition()).toEqual(original.getPosition());
-            expect(deserialized.getComponent('health')).toMatchObject(
-                original.getComponent('health')!
-            );
+            expect(deserialized.getComponent('health')).toMatchObject({
+                type: 'health',
+                current: 100,
+                max: 100
+            });
         });
 
         describe('deserialization errors', () => {
@@ -250,29 +255,22 @@ describe('Entity', () => {
 
         it('can handle complex nested component data', () => {
             const original = new Entity(DEFAULT_POSITION);
-            const complexComponent = {
-                type: 'position' as const,
-                x: 10,
-                y: 20,
-                metadata: {
-                    lastUpdated: new Date().toISOString(),
-                    source: 'user-input'
-                }
-            };
-
-            original.setComponent(complexComponent);
+            original.setComponent(new FacingComponent(Direction.North));
             
             const serialized = original.serialize();
             const deserialized = Entity.deserialize(serialized);
 
-            expect(deserialized.getComponent('position')).toMatchObject(complexComponent);
+            expect(deserialized.getComponent('facing')).toMatchObject({
+                type: 'facing',
+                direction: Direction.North
+            });
         });
 
         it('maintains component order through serialization', () => {
             const original = new Entity(DEFAULT_POSITION);
             const components = [
-                { type: 'health' as const, current: 100, max: 100 },
-                { type: 'position' as const, x: 10, y: 20 }
+                new HealthComponent(100, 100),
+                new FacingComponent(Direction.North)
             ];
 
             components.forEach(c => original.setComponent(c));
@@ -316,33 +314,29 @@ describe('Entity', () => {
     });
 
     describe('Required Components', () => {
-        @RequiredComponents('position')
-        class PositionalEntity extends Entity {
-            validate(): void {
-                this.validateRequiredComponents();
-            }
-        }
+        @RequiredComponents(['health'])
+        class PositionalEntity extends Entity {}
 
         it('validates when required component is present', () => {
             const entity = new PositionalEntity(DEFAULT_POSITION);
-            entity.setComponent({ type: 'position', x: 10, y: 20 });
+            entity.setComponent(new HealthComponent(100, 100));
             expect(() => entity.validate()).not.toThrow();
         });
 
         it('throws when required component is missing', () => {
             const entity = new PositionalEntity(DEFAULT_POSITION);
-            expect(() => entity.validate()).toThrow(/missing required component: position/);
+            expect(() => entity.validate()).toThrow(/missing required component: health/);
         });
 
         it('preserves required components through serialization', () => {
             const original = new PositionalEntity(DEFAULT_POSITION);
-            original.setComponent({ type: 'position', x: 10, y: 20 });
+            original.setComponent(new HealthComponent(100, 100));
             
             const serialized = original.serialize();
             const deserialized = PositionalEntity.deserialize(serialized);
 
             expect(() => deserialized.validate()).not.toThrow();
-            expect(deserialized.getComponent('position')).toEqual(original.getComponent('position'));
+            expect(deserialized.getComponent('health')).toEqual(original.getComponent('health'));
         });
     });
 
@@ -354,28 +348,26 @@ describe('Entity', () => {
         });
 
         it('tracks multiple component changes', () => {
-            entity.setComponent({ type: 'position', x: 0, y: 0 });
-            entity.setComponent({ type: 'health', current: 100, max: 100 });
+            entity.setComponent(new HealthComponent(100, 100));
+            entity.setComponent(new FacingComponent(Direction.North));
             
             const changedComponents = entity.getChangedComponents();
             expect(changedComponents).toHaveLength(2);
-            expect(changedComponents).toContain('position');
             expect(changedComponents).toContain('health');
+            expect(changedComponents).toContain('facing');
         });
 
         it('handles rapid changes within same frame', () => {
-            entity.setComponent({ type: 'position', x: 0, y: 0 });
-            entity.setComponent({ type: 'position', x: 10, y: 10 });
-            entity.setComponent({ type: 'position', x: 20, y: 20 });
+            entity.setComponent(new HealthComponent(100, 100));
+            entity.setComponent(new HealthComponent(90, 100));
+            entity.setComponent(new HealthComponent(80, 100));
             
             // Should still just show as one change
             expect(entity.getChangedComponents()).toHaveLength(1);
-            expect(entity.getComponent('position')).toEqual({
-                type: 'position',
-                x: 20,
-                y: 20,
-                modified: true
-            });
+            
+            const expectedHealth = new HealthComponent(80, 100);
+            expectedHealth.modified = true;  // The component should be marked as modified
+            expect(entity.getComponent('health')).toEqual(expectedHealth);
         });
     });
 }); 

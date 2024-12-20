@@ -3,6 +3,8 @@ import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Direction } from '../../types';
+import { HealthComponent } from '../../entity/component';
+import { FacingComponent } from '../../entity/component';
 
 describe('World', () => {
     let world: World;
@@ -166,7 +168,7 @@ describe('World', () => {
                 const entity1 = new Entity(DEFAULT_POSITION);
                 const entity2 = new Entity(DEFAULT_POSITION);
 
-                entity1.setComponent({ type: 'facing', direction: Direction.North });
+                entity1.setComponent(new FacingComponent(Direction.North));
                 
                 world.addEntity(entity1);
                 world.addEntity(entity2);
@@ -180,9 +182,9 @@ describe('World', () => {
                 const entity1 = new Entity(DEFAULT_POSITION);
                 const entity2 = new Entity(DEFAULT_POSITION);
 
-                entity1.setComponent({ type: 'health', current: 100, max: 100 });
-                entity1.setComponent({ type: 'facing', direction: Direction.East });
-                entity2.setComponent({ type: 'health', current: 100, max: 100 });
+                entity1.setComponent(new HealthComponent(100, 100));
+                entity1.setComponent(new FacingComponent(Direction.East));
+                entity2.setComponent(new HealthComponent(100, 100));
 
                 world.addEntity(entity1);
                 world.addEntity(entity2);
@@ -277,17 +279,15 @@ describe('World', () => {
         });
 
         it('preserves entity components after serialization', () => {
-            const entity = new Entity(DEFAULT_POSITION);
-            entity.setComponent({ type: 'health', current: 100, max: 100 });
-            entity.setComponent({ type: 'facing', direction: Direction.North });
+            const entity = new Entity({ x: 5, y: 5 });
+            entity.setComponent(new HealthComponent(100, 100));
+            entity.setComponent(new FacingComponent(Direction.North));
             world.addEntity(entity);
 
             const serialized = world.serialize();
             const deserialized = World.deserialize(serialized);
 
-            const [restoredEntity] = deserialized.getEntitiesAt(DEFAULT_POSITION);
-            expect(restoredEntity.hasComponent('health')).toBe(true);
-            expect(restoredEntity.hasComponent('facing')).toBe(true);
+            const [restoredEntity] = deserialized.getEntitiesAt({ x: 5, y: 5 });
             expect(restoredEntity.getComponent('health')).toMatchObject({
                 type: 'health',
                 current: 100,
@@ -329,6 +329,32 @@ describe('World', () => {
             
             expect(() => World.deserialize('{}'))
                 .toThrow(/Failed to deserialize world/);
+        });
+
+        it('excludes transient properties during serialization', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            const healthComponent = new HealthComponent(100, 100);
+            
+            entity.setComponent(healthComponent);
+            healthComponent.modified = true;  // Set transient property
+            
+            world.addEntity(entity);
+            
+            const serialized = world.serialize();
+            const parsed = JSON.parse(serialized);
+            const serializedComponent = parsed.entities[0].components[0];
+            
+            // Verify the component was serialized but without the transient property
+            expect(serializedComponent.type).toBe('health');
+            expect(serializedComponent.current).toBe(100);
+            expect(serializedComponent.max).toBe(100);
+            expect(serializedComponent.modified).toBeUndefined();
+            
+            // Verify deserialization works and transient property is reset
+            const deserialized = World.deserialize(serialized);
+            const deserializedEntity = deserialized.getAllEntities()[0];
+            const deserializedComponent = deserializedEntity.getComponent('health') as HealthComponent;
+            expect(deserializedComponent.modified).toBeUndefined();
         });
     });
 }); 

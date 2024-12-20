@@ -7,9 +7,16 @@ export const OPTIONAL_COMPONENTS = Symbol('optionalComponents');
 /**
  * Decorator to mark required components for an entity
  */
-export function RequiredComponents(...types: string[]) {
+export function RequiredComponents(components: string[]) {
   return function (constructor: Function) {
-    Reflect.defineMetadata(REQUIRED_COMPONENTS, types, constructor);
+    constructor.prototype.requiredComponents = components;
+    constructor.prototype.validateRequiredComponents = function() {
+      for (const component of components) {
+        if (!this.hasComponent(component)) {
+          throw new Error(`Entity ${this.getId()} is missing required component: ${component}`);
+        }
+      }
+    };
   };
 }
 

@@ -1,7 +1,7 @@
 import { ComponentUnion, SerializedEntity } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
-import { PositionComponent, HealthComponent, FacingComponent } from '../entity/component';
+import { Component } from '../entity/component';
 
 interface SerializedWorld {
     width: number;
@@ -220,34 +220,9 @@ export class World {
             for (const entityData of data.entities) {
                 const entity = new Entity(entityData.position, entityData.id);
                 
-                // Restore components
+                // Restore components using Component.fromJSON
                 for (const componentData of entityData.components) {
-                    let component: ComponentUnion;
-                    switch ((componentData as ComponentUnion).type) {
-                        case 'position':
-                            const pos = componentData as PositionComponent;
-                            component = new PositionComponent(
-                                pos.x,
-                                pos.y
-                            );
-                            break;
-                        case 'health':
-                            const health = componentData as HealthComponent;
-                            component = new HealthComponent(
-                                health.current,
-                                health.max
-                            );
-                            break;
-                        case 'facing':
-                            const facing = componentData as FacingComponent;
-                            component = new FacingComponent(
-                                facing.direction
-                            );
-                            break;
-                        default:
-                            throw new Error(`Unknown component type: ${(componentData as ComponentUnion).type}`);
-                    }
-                    entity.setComponent(component);
+                    entity.setComponent(Component.fromJSON(componentData));
                 }
 
                 // Restore tags
@@ -255,7 +230,6 @@ export class World {
                     entity.addTags(entityData.tags);
                 }
 
-                // Add to world at the correct position
                 world.addEntity(entity);
             }
 
