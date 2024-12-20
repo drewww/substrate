@@ -53,7 +53,6 @@ class WorldTest {
         this.worldDebug.toggle();
 
         this.setupControls();
-        this.updateStats();
         logger.info('World Renderer Test initialized');
     }
 
@@ -94,7 +93,6 @@ class WorldTest {
     private addRandomEntity() {
         const entity = new Entity(this.getRandomPosition());
         this.world.addEntity(entity);
-        this.updateStats();
     }
 
     private removeRandomEntity() {
@@ -102,7 +100,6 @@ class WorldTest {
         if (entities.length > 0) {
             const randomEntity = entities[Math.floor(Math.random() * entities.length)];
             this.world.removeEntity(randomEntity.getId());
-            this.updateStats();
         }
     }
 
@@ -147,13 +144,6 @@ class WorldTest {
         } else if (this.intervalId !== null) {
             window.clearInterval(this.intervalId);
             this.intervalId = null;
-        }
-    }
-
-    private updateStats() {
-        const stats = document.getElementById('stats');
-        if (stats) {
-            stats.textContent = `Entities: ${this.world.getEntities().length}`;
         }
     }
 }
