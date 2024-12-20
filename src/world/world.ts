@@ -131,4 +131,55 @@ export class World {
         return Array.from(this.entities.values())
             .filter(entity => componentTypes.every(type => entity.hasComponent(type)));
     }
+
+    /**
+     * Add multiple entities to the world at once
+     * @throws Error if any position is out of bounds
+     */
+    public addEntities(entities: Array<{ entity: Entity, position: Point }>): void {
+        // Validate all positions first to ensure atomicity
+        for (const { position } of entities) {
+            if (position.x < 0 || position.x >= this.width || 
+                position.y < 0 || position.y >= this.height) {
+                throw new Error(`Position ${position.x},${position.y} is out of bounds`);
+            }
+        }
+
+        // Add all entities
+        for (const { entity, position } of entities) {
+            const entityId = entity.getId();
+            this.entities.set(entityId, entity);
+
+            const key = this.pointToKey(position);
+            let entitiesAtPosition = this.spatialMap.get(key);
+            if (!entitiesAtPosition) {
+                entitiesAtPosition = new Set();
+                this.spatialMap.set(key, entitiesAtPosition);
+            }
+            entitiesAtPosition.add(entityId);
+
+            entity.setPosition(position.x, position.y);
+        }
+    }
+
+    /**
+     * Remove multiple entities from the world at once
+     * Silently ignores non-existent entity IDs
+     */
+    public removeEntities(entityIds: string[]): void {
+        for (const entityId of entityIds) {
+            const entity = this.entities.get(entityId);
+            if (!entity) continue;
+
+            const position = entity.getPosition();
+            const key = this.pointToKey(position);
+            const entitiesAtPosition = this.spatialMap.get(key);
+            entitiesAtPosition?.delete(entityId);
+            if (entitiesAtPosition?.size === 0) {
+                this.spatialMap.delete(key);
+            }
+
+            this.entities.delete(entityId);
+        }
+    }
 } 

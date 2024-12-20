@@ -209,4 +209,63 @@ describe('World', () => {
             });
         });
     });
+
+    describe('Batch Operations', () => {
+        it('can add multiple entities at once', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity(DEFAULT_POSITION);
+            const pos2: Point = { x: 1, y: 1 };
+
+            world.addEntities([
+                { entity: entity1, position: DEFAULT_POSITION },
+                { entity: entity2, position: pos2 }
+            ]);
+
+            expect(world.getEntitiesAt(DEFAULT_POSITION)).toContain(entity1);
+            expect(world.getEntitiesAt(pos2)).toContain(entity2);
+            expect(world.getAllEntities()).toHaveLength(2);
+        });
+
+        it('maintains atomicity when batch adding entities', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity(DEFAULT_POSITION);
+            const validPos: Point = { x: 1, y: 1 };
+            const invalidPos: Point = { x: -1, y: 0 };
+
+            // Should fail to add any entities if one position is invalid
+            expect(() => world.addEntities([
+                { entity: entity1, position: validPos },
+                { entity: entity2, position: invalidPos }
+            ])).toThrow(/Position .* is out of bounds/);
+
+            expect(world.getAllEntities()).toHaveLength(0);
+        });
+
+        it('can remove multiple entities at once', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity(DEFAULT_POSITION);
+            const pos2: Point = { x: 1, y: 1 };
+
+            world.addEntity(entity1, DEFAULT_POSITION);
+            world.addEntity(entity2, pos2);
+
+            world.removeEntities([entity1.getId(), entity2.getId()]);
+
+            expect(world.getAllEntities()).toHaveLength(0);
+            expect(world.getEntitiesAt(DEFAULT_POSITION)).toHaveLength(0);
+            expect(world.getEntitiesAt(pos2)).toHaveLength(0);
+        });
+
+        it('handles non-existent entities in batch removal', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            world.addEntity(entity, DEFAULT_POSITION);
+
+            expect(() => world.removeEntities([
+                entity.getId(),
+                'non-existent-id'
+            ])).not.toThrow();
+
+            expect(world.getAllEntities()).toHaveLength(0);
+        });
+    });
 }); 
