@@ -1,3 +1,5 @@
+import { Point } from "../types";
+
 /**
  * Base type for all components
  */
@@ -29,6 +31,7 @@ export interface HealthComponent extends Component {
  */
 export interface SerializedEntity {
   id: string;
+  position: Point;
   components: ComponentUnion[];
   tags?: string[];
 }

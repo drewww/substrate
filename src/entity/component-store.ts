@@ -56,4 +56,11 @@ export class ComponentStore {
   values(): ComponentUnion[] {
     return Array.from(this.components.values());
   }
+
+  /**
+   * Get the number of components stored
+   */
+  size(): number {
+    return this.components.size;
+  }
 } 

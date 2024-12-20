@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ComponentStore } from './component-store';
 import { ComponentUnion, SerializedEntity } from './component';
 import { REQUIRED_COMPONENTS } from './decorators';
+import { Point } from '../types';
 
 /**
  * Base entity class that manages components
@@ -12,9 +13,12 @@ export class Entity {
   protected store: ComponentStore;
   private changedComponents: Set<ComponentUnion['type']> = new Set();
   private tags: Set<string> = new Set();
+  private position: Point;
+  private positionChanged: boolean = false;
 
-  constructor(id?: string) {
+  constructor(position: Point, id?: string) {
     this.id = id ?? Entity.generateId();
+    this.position = { ...position }; // Copy to prevent mutation
     this.store = new ComponentStore();
   }
 
@@ -93,23 +97,45 @@ export class Entity {
     // - etc.
   }
 
-  // Optional convenience methods for very common operations
+  /**
+   * Get the entity's position
+   */
+  getPosition(): Point {
+    return { ...this.position }; // Return copy to prevent direct mutation
+  }
+
+  /**
+   * Set the entity's position
+   */
   setPosition(x: number, y: number): this {
-    return this.setComponent({ type: 'position', x, y });
+    this.position = { x, y };
+    this.positionChanged = true;
+    return this;
   }
 
   /**
-   * Get all components on this entity
+   * Check if position has changed since last update
    */
-  getComponents(): ComponentUnion[] {
-    return this.store.values();
+  hasPositionChanged(): boolean {
+    return this.positionChanged;
   }
 
   /**
-   * Get the number of components on this entity
+   * Clear position changed flag (typically called at end of frame)
    */
-  getComponentCount(): number {
-    return this.getComponents().length;
+  clearPositionChanged(): void {
+    this.positionChanged = false;
+  }
+
+  /**
+   * Clear all change flags
+   */
+  clearChanges(): void {
+    this.positionChanged = false;
+    for (const component of this.getComponents()) {
+      component.modified = false;
+    }
+    this.changedComponents.clear();
   }
 
   /**
@@ -118,6 +144,7 @@ export class Entity {
   serialize(): SerializedEntity {
     return {
       id: this.id,
+      position: { ...this.position },
       components: this.getComponents(),
       tags: Array.from(this.tags)
     };
@@ -125,25 +152,27 @@ export class Entity {
 
   /**
    * Create an entity from serialized data
-   * @throws Error if data is invalid
    */
   static deserialize(data: SerializedEntity): Entity {
     if (!data || typeof data !== 'object') {
-        throw new Error('Invalid serialized data: must be an object');
+      throw new Error('Invalid serialized data: must be an object');
     }
     if (!data.id || typeof data.id !== 'string') {
-        throw new Error('Invalid serialized data: missing or invalid id');
+      throw new Error('Invalid serialized data: missing or invalid id');
     }
-    if (!Array.isArray(data.components)) {
-        throw new Error('Invalid serialized data: components must be an array');
+    if (!data.position || typeof data.position.x !== 'number' || typeof data.position.y !== 'number') {
+      throw new Error('Invalid serialized data: missing or invalid position');
     }
 
-    const entity = new Entity(data.id);
-    for (const component of data.components) {
+    const entity = new Entity(data.position, data.id);
+
+    if (Array.isArray(data.components)) {
+      for (const component of data.components) {
         if (!component || typeof component !== 'object' || !('type' in component)) {
-            throw new Error('Invalid serialized data: invalid component format');
+          throw new Error('Invalid serialized data: invalid component format');
         }
         entity.setComponent(component);
+      }
     }
 
     if (Array.isArray(data.tags)) {
@@ -203,16 +232,6 @@ export class Entity {
   }
 
   /**
-   * Clear all modification flags (typically called at end of frame)
-   */
-  clearChanges(): void {
-    for (const component of this.getComponents()) {
-      component.modified = false;
-    }
-    this.changedComponents.clear();
-  }
-
-  /**
    * Add a tag to the entity
    */
   addTag(tag: string): this {
@@ -254,5 +273,19 @@ export class Entity {
    */
   clearTags(): void {
     this.tags.clear();
+  }
+
+  /**
+   * Get all components on this entity
+   */
+  getComponents(): ComponentUnion[] {
+    return this.store.values();
+  }
+
+  /**
+   * Get the number of components on this entity
+   */
+  getComponentCount(): number {
+    return this.store.size();
   }
 } 
