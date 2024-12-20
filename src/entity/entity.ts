@@ -4,6 +4,7 @@ import { ComponentStore } from './component-store';
 import { ComponentUnion, SerializedEntity } from './component';
 import { REQUIRED_COMPONENTS } from './decorators';
 import { Point } from '../types';
+import { isTransient } from '../decorators/transient';
 
 /**
  * Base entity class that manages components
@@ -279,7 +280,18 @@ export class Entity {
    * Get all components on this entity
    */
   getComponents(): ComponentUnion[] {
-    return this.store.values();
+    return this.store.values().map(component => {
+      const serialized = { ...component };
+      
+      // Remove transient properties
+      for (const key in serialized) {
+        if (isTransient(component, key)) {
+          delete serialized[key];
+        }
+      }
+      
+      return serialized;
+    });
   }
 
   /**

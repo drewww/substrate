@@ -1,6 +1,13 @@
-import { ComponentUnion } from '../entity/component';
+import { ComponentUnion, SerializedEntity } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
+import { PositionComponent, HealthComponent, FacingComponent } from '../entity/component';
+
+interface SerializedWorld {
+    width: number;
+    height: number;
+    entities: SerializedEntity[];
+}
 
 export class World {
     private entities: Map<string, Entity> = new Map();
@@ -180,6 +187,81 @@ export class World {
             }
 
             this.entities.delete(entityId);
+        }
+    }
+
+    /**
+     * Serialize the world and all its entities to a JSON string
+     */
+    public serialize(): string {
+        const serialized: SerializedWorld = {
+            width: this.width,
+            height: this.height,
+            entities: Array.from(this.entities.values()).map(entity => ({
+                id: entity.getId(),
+                position: entity.getPosition(),
+                components: entity.getComponents(),
+                tags: Array.from(entity.getTags())
+            }))
+        };
+
+        return JSON.stringify(serialized);
+    }
+
+    /**
+     * Create a new world from a serialized string
+     * @throws Error if the serialized data is invalid
+     */
+    public static deserialize(serializedWorld: string): World {
+        try {
+            const data: SerializedWorld = JSON.parse(serializedWorld);
+            const world = new World(data.width, data.height);
+
+            for (const entityData of data.entities) {
+                const entity = new Entity(entityData.position, entityData.id);
+                
+                // Restore components
+                for (const componentData of entityData.components) {
+                    let component: ComponentUnion;
+                    switch ((componentData as ComponentUnion).type) {
+                        case 'position':
+                            const pos = componentData as PositionComponent;
+                            component = new PositionComponent(
+                                pos.x,
+                                pos.y
+                            );
+                            break;
+                        case 'health':
+                            const health = componentData as HealthComponent;
+                            component = new HealthComponent(
+                                health.current,
+                                health.max
+                            );
+                            break;
+                        case 'facing':
+                            const facing = componentData as FacingComponent;
+                            component = new FacingComponent(
+                                facing.direction
+                            );
+                            break;
+                        default:
+                            throw new Error(`Unknown component type: ${(componentData as ComponentUnion).type}`);
+                    }
+                    entity.setComponent(component);
+                }
+
+                // Restore tags
+                if (entityData.tags) {
+                    entity.addTags(entityData.tags);
+                }
+
+                // Add to world at the correct position
+                world.addEntity(entity, entityData.position);
+            }
+
+            return world;
+        } catch (error) {
+            throw new Error(`Failed to deserialize world: ${error}`);
         }
     }
 } 

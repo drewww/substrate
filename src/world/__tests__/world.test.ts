@@ -268,4 +268,82 @@ describe('World', () => {
             expect(world.getAllEntities()).toHaveLength(0);
         });
     });
+
+    describe('Serialization', () => {
+        it('can serialize and deserialize an empty world', () => {
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+
+            expect(deserialized.getSize()).toEqual(world.getSize());
+            expect(deserialized.getAllEntities()).toHaveLength(0);
+        });
+
+        it('preserves entity positions after serialization', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            const position: Point = { x: 5, y: 5 };
+            world.addEntity(entity, position);
+
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+
+            const entities = deserialized.getEntitiesAt(position);
+            expect(entities).toHaveLength(1);
+            expect(entities[0].getPosition()).toEqual(position);
+        });
+
+        it('preserves entity components after serialization', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            entity.setComponent({ type: 'health', current: 100, max: 100 });
+            entity.setComponent({ type: 'facing', direction: Direction.North });
+            world.addEntity(entity, DEFAULT_POSITION);
+
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+
+            const [restoredEntity] = deserialized.getEntitiesAt(DEFAULT_POSITION);
+            expect(restoredEntity.hasComponent('health')).toBe(true);
+            expect(restoredEntity.hasComponent('facing')).toBe(true);
+            expect(restoredEntity.getComponent('health')).toMatchObject({
+                type: 'health',
+                current: 100,
+                max: 100
+            });
+            expect(restoredEntity.getComponent('facing')).toMatchObject({
+                type: 'facing',
+                direction: Direction.North
+            });
+        });
+
+        it('preserves entity tags after serialization', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            entity.addTags(['enemy', 'flying']);
+            world.addEntity(entity, DEFAULT_POSITION);
+
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+
+            const [restoredEntity] = deserialized.getEntitiesAt(DEFAULT_POSITION);
+            expect(restoredEntity.hasTag('enemy')).toBe(true);
+            expect(restoredEntity.hasTag('flying')).toBe(true);
+        });
+
+        it('preserves entity IDs after serialization', () => {
+            const entity = new Entity(DEFAULT_POSITION, 'test-id');
+            world.addEntity(entity, DEFAULT_POSITION);
+
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+
+            const [restoredEntity] = deserialized.getEntitiesAt(DEFAULT_POSITION);
+            expect(restoredEntity.getId()).toBe('test-id');
+        });
+
+        it('throws on invalid serialized data', () => {
+            expect(() => World.deserialize('invalid json'))
+                .toThrow(/Failed to deserialize world/);
+            
+            expect(() => World.deserialize('{}'))
+                .toThrow(/Failed to deserialize world/);
+        });
+    });
 }); 
