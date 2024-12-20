@@ -5,6 +5,7 @@ import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { logger } from '../../display/util/logger';
 import { DebugOverlay } from '../../display/test/debug-overlay';
+import { WorldDebugOverlay } from '../../world/debug-overlay';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
@@ -18,6 +19,7 @@ class WorldTest {
     private debugOverlay: DebugOverlay;
     private isRunning = false;
     private intervalId: number | null = null;
+    private worldDebug: WorldDebugOverlay;
 
     constructor() {
         this.setupLogLevel();
@@ -34,7 +36,21 @@ class WorldTest {
             viewportHeight: WORLD_HEIGHT
         });
         this.renderer = new Renderer(this.world, this.display);
-        this.debugOverlay = new DebugOverlay(this.display);
+        
+        // Initialize debug overlays
+        const displayDebugElement = document.getElementById('display-debug');
+        const worldDebugElement = document.getElementById('world-debug');
+        
+        if (!displayDebugElement || !worldDebugElement) {
+            throw new Error('Debug overlay elements not found');
+        }
+
+        this.debugOverlay = new DebugOverlay(this.display, displayDebugElement);
+        this.worldDebug = new WorldDebugOverlay(this.world, worldDebugElement);
+
+        // Show debug overlays by default
+        this.debugOverlay.toggle();
+        this.worldDebug.toggle();
 
         this.setupControls();
         this.updateStats();
@@ -64,7 +80,8 @@ class WorldTest {
         document.getElementById('addEntity')?.addEventListener('click', () => this.addRandomEntity());
         document.getElementById('removeRandom')?.addEventListener('click', () => this.removeRandomEntity());
         document.getElementById('toggleRandom')?.addEventListener('click', () => this.toggleRandom());
-        document.getElementById('toggleDebug')?.addEventListener('click', () => this.debugOverlay.toggle());
+        document.getElementById('toggleDisplayDebug')?.addEventListener('click', () => this.debugOverlay.toggle());
+        document.getElementById('toggleWorldDebug')?.addEventListener('click', () => this.worldDebug.toggle());
     }
 
     private getRandomPosition(): Point {

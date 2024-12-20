@@ -1,31 +1,19 @@
 import { Display } from "../display";
 import { logger } from "../util/logger";
+
 export class DebugOverlay {
-    private element: HTMLDivElement;
+    private isVisible = false;
     private dirtyMaskCanvas: HTMLCanvasElement;
     private dirtyMaskCtx: CanvasRenderingContext2D;
     private metricsDiv: HTMLDivElement;
     private boundUpdate: (display: Display) => void;
 
-    constructor(display: Display) {
+    constructor(
+        private display: Display,
+        private element: HTMLElement
+    ) {
         logger.info('Initializing DebugOverlay');
         
-        // Create container
-        this.element = document.createElement('div');
-        this.element.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre;
-            pointer-events: none;
-            z-index: 1000;
-        `;
-
         // Create metrics div
         this.metricsDiv = document.createElement('div');
         this.element.appendChild(this.metricsDiv);
@@ -46,8 +34,6 @@ export class DebugOverlay {
         const ctx = this.dirtyMaskCanvas.getContext('2d');
         if (!ctx) throw new Error('Failed to get 2D context for dirty mask canvas');
         this.dirtyMaskCtx = ctx;
-
-        document.body.appendChild(this.element);
 
         // Bind update and start animation loop
         this.boundUpdate = (display: Display) => {
@@ -80,10 +66,12 @@ export class DebugOverlay {
     }
 
     public toggle(): void {
-        this.element.style.display = this.element.style.display === 'none' ? 'block' : 'none';
+        this.isVisible = !this.isVisible;
+        this.element.style.display = this.isVisible ? 'block' : 'none';
     }
 
     public remove(): void {
+        this.display.removeFrameCallback(this.boundUpdate);
         this.element.remove();
     }
 } 

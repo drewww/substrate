@@ -477,4 +477,20 @@ export class World {
     public getEntities(): Entity[] {
         return Array.from(this.entities.values());
     }
+
+    public getSpatialMapStats(): Map<string, number> {
+        const stats = new Map<string, number>();
+        for (const [key, entities] of this.spatialMap.entries()) {
+            stats.set(key, entities.size);
+        }
+        return stats;
+    }
+
+    public getEventHandlerCount(): number {
+        let count = 0;
+        for (const handlers of this.eventHandlers.values()) {
+            count += handlers.size;
+        }
+        return count;
+    }
 } 

@@ -14,14 +14,25 @@ export class TestRunner {
         try {
             this.display = new Display({
                 elementId: 'display',
-                cellSize: 12,
+                cellWidth: 12,
+                cellHeight: 12,
                 worldWidth: 50,
                 worldHeight: 50,
                 viewportWidth: 50,
                 viewportHeight: 50
             });
             
-            this.debugOverlay = new DebugOverlay(this.display);
+            // Create debug overlay container
+            const debugElement = document.createElement('div');
+            debugElement.style.cssText = `
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+            `;
+            document.body.appendChild(debugElement);
+            
+            this.debugOverlay = new DebugOverlay(this.display, debugElement);
             console.log('TestRunner initialization complete');
         } catch (error) {
             console.error('Failed to initialize TestRunner:', error);
