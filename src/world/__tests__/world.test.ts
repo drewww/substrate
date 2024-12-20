@@ -407,14 +407,6 @@ describe('World', () => {
             world.addEntities([center, near1, near2, far]);
 
             const nearest = world.findNearestEntities({ x: 5, y: 5 }, 3);
-            console.log('Nearest entities:', nearest.map(e => ({
-                id: e.getId(),
-                position: e.getPosition()
-            })));
-            console.log('Looking for near2:', {
-                id: near2.getId(),
-                position: near2.getPosition()
-            });
 
             expect(nearest).toHaveLength(3);
             expect(nearest).toContain(near1);
@@ -512,6 +504,111 @@ describe('World', () => {
             
             world.removeEntity(entity.getId());
             expect(world.isEmpty()).toBe(true);
+        });
+    });
+
+    describe('Entity Updates', () => {
+        class UpdatableComponent extends Component {
+            type = 'updatable' as const;
+            value: number = 0;
+
+            update(deltaTime: number): void {
+                this.value += deltaTime;
+            }
+
+            static fromJSON(data: any): UpdatableComponent {
+                const comp = new UpdatableComponent();
+                comp.value = data.value;
+                return comp;
+            }
+        }
+
+        beforeEach(() => {
+            // Register the test component
+            const originalTypes = { ...COMPONENT_TYPES };
+            COMPONENT_TYPES['updatable'] = UpdatableComponent;
+            return () => {
+                Object.assign(COMPONENT_TYPES, originalTypes);
+            };
+        });
+
+        it('updates components that support updating', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            const component = new UpdatableComponent();
+            entity.setComponent(component);
+            world.addEntity(entity);
+
+            world.update(100);
+            const updatedComponent = entity.getComponent('updatable') as UpdatableComponent;
+            expect(updatedComponent.value).toBe(100);
+        });
+
+        it('tracks changed entities', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity({ x: 1, y: 1 });
+            
+            entity1.setComponent(new UpdatableComponent());
+            world.addEntities([entity1, entity2]);
+
+            world.update(100);
+            const changed = world.getChangedEntities();
+            
+            expect(changed).toHaveLength(1);
+            expect(changed[0]).toBe(entity1);
+        });
+
+        it('clears change tracking', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            entity.setComponent(new UpdatableComponent());
+            world.addEntity(entity);
+
+            world.update(100);
+            expect(world.getChangedEntities()).toHaveLength(1);
+            
+            world.clearChanges();
+            expect(world.getChangedEntities()).toHaveLength(0);
+        });
+
+        it('batch updates entity positions', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity({ x: 1, y: 1 });
+            world.addEntities([entity1, entity2]);
+
+            const updates = [
+                { id: entity1.getId(), position: { x: 2, y: 2 } },
+                { id: entity2.getId(), position: { x: 3, y: 3 } }
+            ];
+
+            world.updatePositions(updates);
+
+            expect(entity1.getPosition()).toEqual({ x: 2, y: 2 });
+            expect(entity2.getPosition()).toEqual({ x: 3, y: 3 });
+            expect(world.getChangedEntities()).toContain(entity1);
+            expect(world.getChangedEntities()).toContain(entity2);
+        });
+
+        it('maintains atomicity in batch position updates', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity({ x: 1, y: 1 });
+            world.addEntities([entity1, entity2]);
+
+            const updates = [
+                { id: entity1.getId(), position: { x: 2, y: 2 } },
+                { id: entity2.getId(), position: { x: -1, y: 0 } } // Invalid position
+            ];
+
+            expect(() => world.updatePositions(updates))
+                .toThrow(/Position .* is out of bounds/);
+
+            // Verify no changes were made
+            expect(entity1.getPosition()).toEqual(DEFAULT_POSITION);
+            expect(entity2.getPosition()).toEqual({ x: 1, y: 1 });
+        });
+
+        it('throws on non-existent entity in batch update', () => {
+            expect(() => world.updatePositions([
+                { id: 'non-existent', position: DEFAULT_POSITION }
+            ])).toThrow('Entity non-existent not found');
         });
     });
 }); 

@@ -42,6 +42,7 @@ export class Entity {
    * Get a component by type
    */
   getComponent(type: string): Component | undefined {
+    // Return the actual stored component, not a copy
     return this.store.get(type);
   }
 

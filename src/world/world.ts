@@ -9,9 +9,15 @@ interface SerializedWorld {
     entities: SerializedEntity[];
 }
 
+interface UpdatableComponent {
+    update(deltaTime: number): void;
+    value?: number;
+}
+
 export class World {
     private entities: Map<string, Entity> = new Map();
     private spatialMap: Map<string, Set<string>> = new Map();
+    private changedEntities: Set<string> = new Set();
     
     constructor(private readonly width: number, private readonly height: number) {}
 
@@ -348,5 +354,65 @@ export class World {
      */
     public isEmpty(): boolean {
         return this.entities.size === 0;
+    }
+
+    public update(deltaTime: number): void {
+        for (const entity of this.entities.values()) {
+            // Get component types first
+            const componentTypes = entity.getComponentTypes();
+            
+            for (const type of componentTypes) {
+                const component = entity.getComponent(type);
+                if (!component) continue;
+
+                const isUpdatable = (comp: any): comp is (Component & UpdatableComponent) => {
+                    return typeof comp.update === 'function';
+                };
+
+                if (isUpdatable(component)) {
+                    component.update(deltaTime);
+                    this.changedEntities.add(entity.getId());
+                }
+            }
+        }
+    }
+
+    /**
+     * Get all entities that have changed since last update
+     */
+    public getChangedEntities(): Entity[] {
+        return Array.from(this.changedEntities)
+            .map(id => this.entities.get(id))
+            .filter((entity): entity is Entity => entity !== undefined);
+    }
+
+    /**
+     * Clear all change flags after systems have processed updates
+     */
+    public clearChanges(): void {
+        this.changedEntities.clear();
+    }
+
+    /**
+     * Batch update entity positions
+     * @throws Error if any position is invalid or entity doesn't exist
+     */
+    public updatePositions(updates: Array<{ id: string, position: Point }>): void {
+        // Validate all updates first
+        for (const { id, position } of updates) {
+            if (!this.entities.has(id)) {
+                throw new Error(`Entity ${id} not found`);
+            }
+            if (position.x < 0 || position.x >= this.width || 
+                position.y < 0 || position.y >= this.height) {
+                throw new Error(`Position ${position.x},${position.y} is out of bounds`);
+            }
+        }
+
+        // Apply all updates
+        for (const { id, position } of updates) {
+            this.moveEntity(id, position);
+            this.changedEntities.add(id);
+        }
     }
 } 
