@@ -89,14 +89,42 @@ class WorldTest {
         }
     }
 
+    private moveRandomEntity() {
+        const entities = this.world.getEntities();
+        if (entities.length > 0) {
+            const entity = entities[Math.floor(Math.random() * entities.length)];
+            const currentPos = entity.getPosition();
+            
+            // Pick a random orthogonal direction
+            const directions = [
+                { x: 0, y: -1 }, // up
+                { x: 1, y: 0 },  // right
+                { x: 0, y: 1 },  // down
+                { x: -1, y: 0 }  // left
+            ];
+            const direction = directions[Math.floor(Math.random() * directions.length)];
+            
+            const newPos = {
+                x: Math.max(0, Math.min(WORLD_WIDTH - 1, currentPos.x + direction.x)),
+                y: Math.max(0, Math.min(WORLD_HEIGHT - 1, currentPos.y + direction.y))
+            };
+            
+            logger.debug(`Moving entity ${entity.getId()} from (${currentPos.x},${currentPos.y}) to (${newPos.x},${newPos.y})`);
+            this.world.moveEntity(entity.getId(), newPos);
+        }
+    }
+
     private toggleRandom() {
         this.isRunning = !this.isRunning;
         if (this.isRunning) {
             this.intervalId = window.setInterval(() => {
-                if (Math.random() < 0.7) {
+                const action = Math.random();
+                if (action < 0.4) {          // 40% chance to add
                     this.addRandomEntity();
-                } else {
+                } else if (action < 0.6) {   // 20% chance to remove
                     this.removeRandomEntity();
+                } else {                     // 40% chance to move
+                    this.moveRandomEntity();
                 }
             }, 500);
         } else if (this.intervalId !== null) {
