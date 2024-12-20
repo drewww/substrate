@@ -1,4 +1,4 @@
-import { Display } from '../display/display';
+import { Display, Easing } from '../display/display';
 import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
@@ -44,10 +44,35 @@ export class Renderer {
         }
     }
 
-    private onEntityMoved(entity: Entity, newPosition: Point): void {
+    private onEntityMoved(entity: Entity, to: Point): void {
+        logger.debug(`Renderer handling entity move for ${entity.getId()} to (${to.x},${to.y})`);
         const tileId = this.entityTiles.get(entity.getId());
+        
         if (tileId) {
-            this.display.moveTile(tileId, newPosition.x, newPosition.y);
+            const tile = this.display.getTile(tileId);
+            if (tile) {
+                const from = { x: tile.x, y: tile.y };
+                
+                // Add movement animation
+                this.display.addValueAnimation(tileId, {
+                    x: {
+                        start: from.x,
+                        end: to.x,
+                        duration: 0.2, // 200ms
+                        loop: false,
+                        easing: Easing.quadOut
+                    },
+                    y: {
+                        start: from.y,
+                        end: to.y,
+                        duration: 0.2,
+                        loop: false,
+                        easing: Easing.quadOut
+                    }
+                });
+            }
+        } else {
+            logger.warn(`No tile found for moved entity ${entity.getId()}`);
         }
     }
 } 
