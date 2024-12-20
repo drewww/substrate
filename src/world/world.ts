@@ -238,4 +238,67 @@ export class World {
             throw new Error(`Failed to deserialize world: ${error}`);
         }
     }
+
+    /**
+     * Get all entities within a rectangular area (inclusive)
+     */
+    public getEntitiesInArea(topLeft: Point, bottomRight: Point): Entity[] {
+        // Normalize coordinates in case they're provided in wrong order
+        const minX = Math.min(topLeft.x, bottomRight.x);
+        const maxX = Math.max(topLeft.x, bottomRight.x);
+        const minY = Math.min(topLeft.y, bottomRight.y);
+        const maxY = Math.max(topLeft.y, bottomRight.y);
+
+        // Bounds checking
+        if (minX < 0 || maxX >= this.width || minY < 0 || maxY >= this.height) {
+            throw new Error('Area bounds are outside world boundaries');
+        }
+
+        const entities = new Set<Entity>();
+
+        // Scan the area and collect entities
+        for (let x = minX; x <= maxX; x++) {
+            for (let y = minY; y <= maxY; y++) {
+                const entitiesAtPoint = this.getEntitiesAt({ x, y });
+                entitiesAtPoint.forEach(entity => entities.add(entity));
+            }
+        }
+
+        return Array.from(entities);
+    }
+
+    /**
+     * Find the n nearest entities to a position
+     * @param position The reference position
+     * @param n Number of entities to return (default: 1)
+     * @param predicate Optional filter for entities
+     */
+    public findNearestEntities(
+        position: Point, 
+        n: number = 1,
+        predicate?: (entity: Entity) => boolean
+    ): Entity[] {
+        // Bounds checking
+        if (position.x < 0 || position.x >= this.width || 
+            position.y < 0 || position.y >= this.height) {
+            throw new Error('Reference position is outside world boundaries');
+        }
+
+        const entities = predicate 
+            ? this.getAllEntities().filter(predicate)
+            : this.getAllEntities();
+
+        return entities
+            .map(entity => ({
+                entity,
+                distance: this.getManhattanDistance(position, entity.getPosition())
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, n)
+            .map(({ entity }) => entity);
+    }
+
+    private getManhattanDistance(a: Point, b: Point): number {
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
 } 

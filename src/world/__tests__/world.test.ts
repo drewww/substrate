@@ -371,4 +371,77 @@ describe('World', () => {
             Object.assign(COMPONENT_TYPES, originalTypes);
         });
     });
+
+    describe('Spatial Queries', () => {
+        it('finds entities in rectangular area', () => {
+            const entity1 = new Entity({ x: 1, y: 1 });
+            const entity2 = new Entity({ x: 2, y: 2 });
+            const entity3 = new Entity({ x: 4, y: 4 }); // Outside area
+
+            world.addEntities([entity1, entity2, entity3]);
+
+            const entitiesInArea = world.getEntitiesInArea(
+                { x: 0, y: 0 }, 
+                { x: 2, y: 2 }
+            );
+
+            expect(entitiesInArea).toHaveLength(2);
+            expect(entitiesInArea).toContain(entity1);
+            expect(entitiesInArea).toContain(entity2);
+            expect(entitiesInArea).not.toContain(entity3);
+        });
+
+        it('throws when area is out of bounds', () => {
+            expect(() => world.getEntitiesInArea(
+                { x: -1, y: 0 }, 
+                { x: 2, y: 2 }
+            )).toThrow('Area bounds are outside world boundaries');
+        });
+
+        it('finds nearest entities', () => {
+            const center = new Entity({ x: 5, y: 5 });
+            const near1 = new Entity({ x: 4, y: 5 }); // Distance 1
+            const near2 = new Entity({ x: 6, y: 5 }); // Distance 1
+            const far = new Entity({ x: 8, y: 8 });   // Distance 6
+
+            world.addEntities([center, near1, near2, far]);
+
+            const nearest = world.findNearestEntities({ x: 5, y: 5 }, 3);
+            console.log('Nearest entities:', nearest.map(e => ({
+                id: e.getId(),
+                position: e.getPosition()
+            })));
+            console.log('Looking for near2:', {
+                id: near2.getId(),
+                position: near2.getPosition()
+            });
+
+            expect(nearest).toHaveLength(3);
+            expect(nearest).toContain(near1);
+            expect(nearest).toContain(near2);
+            expect(nearest).not.toContain(far);
+        });
+
+        it('finds nearest entities with predicate', () => {
+            const entity1 = new Entity({ x: 4, y: 5 });
+            const entity2 = new Entity({ x: 6, y: 5 });
+            entity2.addTag('special');
+
+            world.addEntities([entity1, entity2]);
+
+            const nearest = world.findNearestEntities(
+                { x: 5, y: 5 }, 
+                1, 
+                entity => entity.hasTag('special')
+            );
+
+            expect(nearest).toHaveLength(1);
+            expect(nearest[0]).toBe(entity2);
+        });
+
+        it('throws when reference position is out of bounds', () => {
+            expect(() => world.findNearestEntities({ x: -1, y: 0 }))
+                .toThrow('Reference position is outside world boundaries');
+        });
+    });
 }); 
