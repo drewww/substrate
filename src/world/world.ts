@@ -465,4 +465,11 @@ export class World {
     public clearEventHandlers(): void {
         this.eventHandlers.clear();
     }
+
+    /**
+     * Get all entities in the world
+     */
+    public getEntities(): Entity[] {
+        return Array.from(this.entities.values());
+    }
 } 

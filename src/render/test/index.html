@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>World Renderer Test</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .controls {
+            margin-top: 1rem;
+        }
+        #stats {
+            font-family: monospace;
+            margin-top: 1rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="display-container">
+        <canvas id="display"></canvas>
+    </div>
+    <div class="controls">
+        <button id="addEntity">Add Entity</button>
+        <button id="removeRandom">Remove Random</button>
+        <button id="toggleRandom">Start/Stop Random</button>
+        <button id="toggleDebug">FPS</button>
+    </div>
+    <div id="stats">
+        Entities: 0
+    </div>
+    <script type="module" src="./main.ts"></script>
+</body>
+</html> 
