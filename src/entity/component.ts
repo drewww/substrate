@@ -1,4 +1,4 @@
-import { Point } from "../types";
+import { Direction, Point } from "../types";
 
 /**
  * Base type for all components
@@ -42,4 +42,11 @@ export interface SerializedEntity {
  * Union of all possible component types
  * Update this when adding new components
  */
-export type ComponentUnion = PositionComponent | HealthComponent; 
+export type ComponentUnion = PositionComponent | HealthComponent | FacingComponent;
+
+// Add this interface
+export interface FacingComponent extends Component {
+    type: 'facing';
+    direction: Direction;
+}
+  

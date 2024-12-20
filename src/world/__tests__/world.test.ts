@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
+import { Direction } from '../../types';
 
 describe('World', () => {
     let world: World;
@@ -127,6 +128,85 @@ describe('World', () => {
             expect(allEntities).toHaveLength(2);
             expect(allEntities).toContain(entity1);
             expect(allEntities).toContain(entity2);
+        });
+
+        describe('Tag Queries', () => {
+            it('finds entities by tag', () => {
+                const entity1 = new Entity(DEFAULT_POSITION);
+                const entity2 = new Entity(DEFAULT_POSITION);
+                const entity3 = new Entity(DEFAULT_POSITION);
+
+                entity1.addTag('enemy');
+                entity2.addTag('enemy');
+                entity2.addTag('flying');
+                entity3.addTag('friendly');
+
+                world.addEntity(entity1, DEFAULT_POSITION);
+                world.addEntity(entity2, DEFAULT_POSITION);
+                world.addEntity(entity3, DEFAULT_POSITION);
+
+                const enemies = world.getEntitiesByTag('enemy');
+                expect(enemies).toHaveLength(2);
+                expect(enemies).toContain(entity1);
+                expect(enemies).toContain(entity2);
+            });
+
+            it('finds entities with multiple tags', () => {
+                const entity1 = new Entity(DEFAULT_POSITION);
+                const entity2 = new Entity(DEFAULT_POSITION);
+
+                entity1.addTags(['enemy', 'flying']);
+                entity2.addTag('enemy');
+
+                world.addEntity(entity1, DEFAULT_POSITION);
+                world.addEntity(entity2, DEFAULT_POSITION);
+
+                const flyingEnemies = world.getEntitiesWithTags(['enemy', 'flying']);
+                expect(flyingEnemies).toHaveLength(1);
+                expect(flyingEnemies[0]).toBe(entity1);
+            });
+        });
+
+        describe('Component Queries', () => {
+            it('finds entities with component', () => {
+                const entity1 = new Entity(DEFAULT_POSITION);
+                const entity2 = new Entity(DEFAULT_POSITION);
+
+                entity1.setComponent({ type: 'facing', direction: Direction.North });
+                
+                world.addEntity(entity1, DEFAULT_POSITION);
+                world.addEntity(entity2, DEFAULT_POSITION);
+
+                const entitiesWithFacing = world.getEntitiesWithComponent('facing');
+                expect(entitiesWithFacing).toHaveLength(1);
+                expect(entitiesWithFacing[0]).toBe(entity1);
+            });
+
+            it('finds entities with multiple components', () => {
+                const entity1 = new Entity(DEFAULT_POSITION);
+                const entity2 = new Entity(DEFAULT_POSITION);
+
+                entity1.setComponent({ type: 'health', current: 100, max: 100 });
+                entity1.setComponent({ type: 'facing', direction: Direction.East });
+                entity2.setComponent({ type: 'health', current: 100, max: 100 });
+
+                world.addEntity(entity1, DEFAULT_POSITION);
+                world.addEntity(entity2, DEFAULT_POSITION);
+
+                const entitiesWithBoth = world.getEntitiesWithComponents(['health', 'facing']);
+                expect(entitiesWithBoth).toHaveLength(1);
+                expect(entitiesWithBoth[0]).toBe(entity1);
+            });
+
+            it('returns empty array when no entities match query', () => {
+                const entity = new Entity(DEFAULT_POSITION);
+                world.addEntity(entity, DEFAULT_POSITION);
+
+                expect(world.getEntitiesByTag('nonexistent')).toHaveLength(0);
+                expect(world.getEntitiesWithComponent('facing')).toHaveLength(0);
+                expect(world.getEntitiesWithTags(['nonexistent'])).toHaveLength(0);
+                expect(world.getEntitiesWithComponents(['facing'])).toHaveLength(0);
+            });
         });
     });
 }); 

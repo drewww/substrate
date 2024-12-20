@@ -1,3 +1,4 @@
+import { ComponentUnion } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 
@@ -97,5 +98,37 @@ export class World {
 
     public getAllEntities(): Entity[] {
         return Array.from(this.entities.values());
+    }
+
+    /**
+     * Get all entities that have the specified tag
+     */
+    public getEntitiesByTag(tag: string): Entity[] {
+        return Array.from(this.entities.values())
+            .filter(entity => entity.hasTag(tag));
+    }
+
+    /**
+     * Get all entities that have the specified component type
+     */
+    public getEntitiesWithComponent<T extends ComponentUnion>(componentType: T['type']): Entity[] {
+        return Array.from(this.entities.values())
+            .filter(entity => entity.hasComponent(componentType));
+    }
+
+    /**
+     * Get all entities that have all of the specified tags
+     */
+    public getEntitiesWithTags(tags: string[]): Entity[] {
+        return Array.from(this.entities.values())
+            .filter(entity => tags.every(tag => entity.hasTag(tag)));
+    }
+
+    /**
+     * Get all entities that have all of the specified component types
+     */
+    public getEntitiesWithComponents<T extends ComponentUnion>(componentTypes: T['type'][]): Entity[] {
+        return Array.from(this.entities.values())
+            .filter(entity => componentTypes.every(type => entity.hasComponent(type)));
     }
 } 
