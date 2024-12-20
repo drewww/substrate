@@ -310,21 +310,22 @@ export class Display {
     }
 
     public removeTile(tileId: TileId): void {
+        logger.debug(`Display removing tile ${tileId}`);
         const tile = this.tileMap.get(tileId);
         if (tile) {
-            this.hasChanges = true;
-            if (!this.tileMap.has(tileId)) {
-                logger.warn(`Attempted to remove non-existent tile: ${tileId}`);
-                return;
-            }
-            
-            logger.verbose(`Removing tile ${tileId}`);
+            // Mark the tile's position as dirty before removing it
             this.dirtyMask.markDirty(tile);
-
-            this.symbolAnimations.delete(tileId);
-            this.colorAnimations.delete(tileId);
-            this.valueAnimations.delete(tileId);
+            
+            // Clear any animations
+            this.clearAnimations(tileId);
+            
+            // Remove the tile
             this.tileMap.delete(tileId);
+            logger.debug(`Tile ${tileId} removed from display`);
+            
+            this.hasChanges = true;
+        } else {
+            logger.warn(`Attempted to remove non-existent tile: ${tileId}`);
         }
     }
 
@@ -341,24 +342,30 @@ export class Display {
     private updateWorldCanvas(): void {
         if (!this.dirtyMask.hasDirtyTiles()) return;
 
-        // Group tiles by cell coordinates
-        const dirtyTilesByCell = new Map<string, Tile[]>();
-        
-        let dirtyTiles: Tile[];
-        if (this.useDirtyMask) {
-            dirtyTiles = Array.from(this.tileMap.values())
-                .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y));
-        } else {
-            dirtyTiles = Array.from(this.tileMap.values());
+        logger.debug('Updating world canvas with dirty tiles');
+
+        // First, clear all dirty cells regardless of whether they have tiles
+        for (let y = 0; y < this.worldHeight; y++) {
+            for (let x = 0; x < this.worldWidth; x++) {
+                if (this.dirtyMask.isDirty(x, y)) {
+                    logger.debug(`Clearing empty cell at ${x},${y}`);
+                    this.worldCtx.clearRect(
+                        x * this.cellWidthScaled,
+                        y * this.cellHeightScaled,
+                        this.cellWidthScaled,
+                        this.cellHeightScaled
+                    );
+                }
+            }
         }
 
-        // Update metrics for dirty tiles
-        this.metrics.lastDirtyTileCount = dirtyTiles.length;
-        this.metrics.averageDirtyTileCount = 
-            (this.metrics.averageDirtyTileCount * this.metrics.totalRenderCalls + dirtyTiles.length) /
-            (this.metrics.totalRenderCalls + 1);
+        // Then process tiles as before
+        const dirtyTilesByCell = new Map<string, Tile[]>();
+        
+        let dirtyTiles = Array.from(this.tileMap.values())
+            .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y));
+        logger.debug(`Found ${dirtyTiles.length} dirty tiles to update`);
 
-        // Continue with grouping and rendering
         dirtyTiles.forEach(tile => {
             const key = `${tile.x},${tile.y}`;
             if (!dirtyTilesByCell.has(key)) {
@@ -367,23 +374,9 @@ export class Display {
             dirtyTilesByCell.get(key)!.push(tile);
         });
 
-        // Process each cell
-        for (const [_, tiles] of dirtyTilesByCell) {
-            // Sort tiles by z-index
+        // Render tiles in dirty cells
+        for (const [key, tiles] of dirtyTilesByCell) {
             tiles.sort((a, b) => a.zIndex - b.zIndex);
-            
-            // Clear cell once
-            // BE AWARE -- this was the site of a very odd bug where the background color was not being cleared. 
-            // Before, it was a clearRect. But for some reason 
-            this.worldCtx.fillStyle = '#00000000';
-            this.worldCtx.fillRect(
-                tiles[0].x * this.cellWidthScaled,
-                tiles[0].y * this.cellHeightScaled,
-                this.cellWidthScaled,
-                this.cellHeightScaled
-            );
-
-            // Render all tiles in the cell
             tiles.forEach(tile => this.renderTile(tile));
         }
 

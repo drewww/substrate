@@ -9,6 +9,7 @@ import { DebugOverlay } from '../../display/test/debug-overlay';
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
 const CELL_SIZE = 20;
+const LOG_LEVEL_KEY = 'world-renderer-log-level';
 
 class WorldTest {
     private world: World;
@@ -19,6 +20,9 @@ class WorldTest {
     private intervalId: number | null = null;
 
     constructor() {
+        this.setupLogLevel();
+        logger.info('Initializing World Renderer Test...');
+
         this.world = new World(WORLD_WIDTH, WORLD_HEIGHT);
         this.display = new Display({
             elementId: 'display',
@@ -34,6 +38,26 @@ class WorldTest {
 
         this.setupControls();
         this.updateStats();
+        logger.info('World Renderer Test initialized');
+    }
+
+    private setupLogLevel() {
+        const logLevelSelect = document.getElementById('logLevel') as HTMLSelectElement;
+        
+        // Restore saved log level
+        const savedLogLevel = localStorage.getItem(LOG_LEVEL_KEY);
+        if (savedLogLevel !== null) {
+            const level = parseInt(savedLogLevel);
+            logLevelSelect.value = level.toString();
+            logger.setLogLevel(level);
+        }
+
+        logLevelSelect.addEventListener('change', (e) => {
+            const level = parseInt((e.target as HTMLSelectElement).value);
+            logger.setLogLevel(level);
+            localStorage.setItem(LOG_LEVEL_KEY, level.toString());
+            logger.info(`Log level set to ${level}`);
+        });
     }
 
     private setupControls() {

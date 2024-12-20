@@ -3,6 +3,7 @@ import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
 import { Color } from '../display/types';
+import { logger } from '../display/util/logger';
 
 export class Renderer {
     private entityTiles: Map<string, string> = new Map(); // entityId -> tileId
@@ -31,10 +32,15 @@ export class Renderer {
     }
 
     private onEntityRemoved(entity: Entity): void {
+        logger.debug(`Renderer received entityRemoved event for entity ${entity.getId()}`);
         const tileId = this.entityTiles.get(entity.getId());
+        
         if (tileId) {
+            logger.debug(`Found tile ${tileId} for entity ${entity.getId()}, removing...`);
             this.display.removeTile(tileId);
             this.entityTiles.delete(entity.getId());
+        } else {
+            logger.warn(`No tile found for removed entity ${entity.getId()}`);
         }
     }
 

@@ -69,8 +69,6 @@ export class DebugOverlay {
         // Get dirty cells from display
         const mask = display.getDirtyMask();
 
-        logger.debug(`Updating dirty mask visualization: ${width}x${height}`, mask);
-
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
                 if (mask[y][x]) {

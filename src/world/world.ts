@@ -2,6 +2,7 @@ import { SerializedEntity } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Component } from '../entity/component';
+import { logger } from '../display/util/logger';
 
 interface SerializedWorld {
     width: number;
@@ -133,7 +134,10 @@ export class World {
 
     public removeEntity(entityId: string): void {
         const entity = this.entities.get(entityId);
-        if (!entity) return;
+        if (!entity) {
+            logger.warn(`Attempted to remove non-existent entity: ${entityId}`);
+            return;
+        }
 
         const position = entity.getPosition();
         const key = this.pointToKey(position);
@@ -144,8 +148,9 @@ export class World {
         }
 
         this.entities.delete(entityId);
-
+        
         this.emit('entityRemoved', { entity, position });
+        logger.debug(`Entity ${entityId} removed from world`);
     }
 
     public getEntitiesAt(position: Point): Entity[] {
