@@ -1,6 +1,5 @@
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
-import { PositionComponent } from '../entity/component';
 
 export class World {
     private entities: Map<string, Entity> = new Map();
@@ -13,7 +12,7 @@ export class World {
     }
 
     /**
-     * Add an entity to the world. All entities must have a position.
+     * Add an entity to the world at the specified position
      */
     public addEntity(entity: Entity, position: Point): void {
         if (position.x < 0 || position.x >= this.width || 
@@ -22,12 +21,6 @@ export class World {
         }
 
         const entityId = entity.getId();
-        
-        // Enforce position requirement
-        if (!entity.hasComponent('position')) {
-            throw new Error('All entities in the world must have a position component');
-        }
-
         this.entities.set(entityId, entity);
 
         const key = this.pointToKey(position);
@@ -42,18 +35,19 @@ export class World {
     }
 
     public moveEntity(entityId: string, newPosition: Point): void {
+        if (newPosition.x < 0 || newPosition.x >= this.width || 
+            newPosition.y < 0 || newPosition.y >= this.height) {
+            throw new Error(`Position ${newPosition.x},${newPosition.y} is out of bounds`);
+        }
+
         const entity = this.entities.get(entityId);
         if (!entity) {
             throw new Error(`Entity ${entityId} not found`);
         }
 
-        const posComponent = entity.getComponent<PositionComponent>('position');
-        if (!posComponent) {
-            throw new Error(`Entity ${entityId} has no position component`);
-        }
-
         // Remove from old position
-        const oldKey = this.pointToKey({ x: posComponent.x, y: posComponent.y });
+        const oldPosition = entity.getPosition();
+        const oldKey = this.pointToKey(oldPosition);
         const oldSet = this.spatialMap.get(oldKey);
         oldSet?.delete(entityId);
         if (oldSet?.size === 0) {
@@ -76,14 +70,12 @@ export class World {
         const entity = this.entities.get(entityId);
         if (!entity) return;
 
-        const posComponent = entity.getComponent<PositionComponent>('position');
-        if (posComponent) {
-            const key = this.pointToKey({ x: posComponent.x, y: posComponent.y });
-            const entitiesAtPosition = this.spatialMap.get(key);
-            entitiesAtPosition?.delete(entityId);
-            if (entitiesAtPosition?.size === 0) {
-                this.spatialMap.delete(key);
-            }
+        const position = entity.getPosition();
+        const key = this.pointToKey(position);
+        const entitiesAtPosition = this.spatialMap.get(key);
+        entitiesAtPosition?.delete(entityId);
+        if (entitiesAtPosition?.size === 0) {
+            this.spatialMap.delete(key);
         }
 
         this.entities.delete(entityId);
