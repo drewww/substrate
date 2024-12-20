@@ -14,10 +14,13 @@ interface UpdatableComponent {
     value?: number;
 }
 
+type WorldEventHandler = (data: any) => void;
+
 export class World {
     private entities: Map<string, Entity> = new Map();
     private spatialMap: Map<string, Set<string>> = new Map();
     private changedEntities: Set<string> = new Set();
+    private eventHandlers = new Map<string, Set<WorldEventHandler>>();
     
     constructor(private readonly width: number, private readonly height: number) {}
 
@@ -414,5 +417,47 @@ export class World {
             this.moveEntity(id, position);
             this.changedEntities.add(id);
         }
+    }
+
+    /**
+     * Register an event handler
+     */
+    public on(event: string, handler: WorldEventHandler): void {
+        if (!this.eventHandlers.has(event)) {
+            this.eventHandlers.set(event, new Set());
+        }
+        this.eventHandlers.get(event)!.add(handler);
+    }
+
+    /**
+     * Remove an event handler
+     */
+    public off(event: string, handler: WorldEventHandler): void {
+        const handlers = this.eventHandlers.get(event);
+        if (handlers) {
+            handlers.delete(handler);
+            if (handlers.size === 0) {
+                this.eventHandlers.delete(event);
+            }
+        }
+    }
+
+    /**
+     * Emit an event with optional data
+     */
+    public emit(event: string, data?: any): void {
+        const handlers = this.eventHandlers.get(event);
+        if (handlers) {
+            for (const handler of handlers) {
+                handler(data);
+            }
+        }
+    }
+
+    /**
+     * Remove all event handlers
+     */
+    public clearEventHandlers(): void {
+        this.eventHandlers.clear();
     }
 } 

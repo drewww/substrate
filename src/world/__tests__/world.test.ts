@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
@@ -609,6 +609,78 @@ describe('World', () => {
             expect(() => world.updatePositions([
                 { id: 'non-existent', position: DEFAULT_POSITION }
             ])).toThrow('Entity non-existent not found');
+        });
+    });
+
+    describe('Event System', () => {
+        it('handles event subscription and emission', () => {
+            const data = { value: 42 };
+            const handler = vi.fn();
+            
+            world.on('test-event', handler);
+            world.emit('test-event', data);
+            
+            expect(handler).toHaveBeenCalledWith(data);
+        });
+
+        it('allows multiple handlers for same event', () => {
+            const handler1 = vi.fn();
+            const handler2 = vi.fn();
+            
+            world.on('test-event', handler1);
+            world.on('test-event', handler2);
+            world.emit('test-event');
+            
+            expect(handler1).toHaveBeenCalled();
+            expect(handler2).toHaveBeenCalled();
+        });
+
+        it('allows handler removal', () => {
+            const handler = vi.fn();
+            
+            world.on('test-event', handler);
+            world.off('test-event', handler);
+            world.emit('test-event');
+            
+            expect(handler).not.toHaveBeenCalled();
+        });
+
+        it('handles events with no handlers', () => {
+            expect(() => world.emit('non-existent-event')).not.toThrow();
+        });
+
+        it('handles removing non-existent handlers', () => {
+            const handler = vi.fn();
+            expect(() => world.off('test-event', handler)).not.toThrow();
+        });
+
+        it('clears all event handlers', () => {
+            const handler1 = vi.fn();
+            const handler2 = vi.fn();
+            
+            world.on('event1', handler1);
+            world.on('event2', handler2);
+            
+            world.clearEventHandlers();
+            
+            world.emit('event1');
+            world.emit('event2');
+            
+            expect(handler1).not.toHaveBeenCalled();
+            expect(handler2).not.toHaveBeenCalled();
+        });
+
+        it('maintains separate handler lists for different events', () => {
+            const handler1 = vi.fn();
+            const handler2 = vi.fn();
+            
+            world.on('event1', handler1);
+            world.on('event2', handler2);
+            
+            world.emit('event1');
+            
+            expect(handler1).toHaveBeenCalled();
+            expect(handler2).not.toHaveBeenCalled();
         });
     });
 }); 
