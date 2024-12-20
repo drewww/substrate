@@ -89,6 +89,81 @@ export class FacingComponent extends Component {
 }
 
 /**
+ * Timer component for countdown/timer behavior
+ */
+export class TimerComponent extends Component {
+  type: 'timer' = 'timer';
+  
+  constructor(
+    public remaining: number,  // seconds remaining
+    public total: number,      // total duration
+    public onComplete?: string // event to emit when done
+  ) {
+    super();
+  }
+
+  static fromJSON(data: any): TimerComponent {
+    return new TimerComponent(data.remaining, data.total, data.onComplete);
+  }
+}
+
+/**
+ * Spawner component for entities that create other entities
+ */
+export class SpawnerComponent extends Component {
+  type: 'spawner' = 'spawner';
+  
+  constructor(
+    public entityType: string,
+    public pattern: Point[],  // relative positions to spawn at
+    public config: any = {}   // additional spawn configuration
+  ) {
+    super();
+  }
+
+  static fromJSON(data: any): SpawnerComponent {
+    return new SpawnerComponent(data.entityType, data.pattern, data.config);
+  }
+}
+
+/**
+ * Fade component for visual effects that fade
+ */
+export class FadeComponent extends Component {
+  type: 'fade' = 'fade';
+  
+  constructor(
+    public startOpacity: number = 1.0,
+    public endOpacity: number = 0.0,
+    public duration: number    // seconds
+  ) {
+    super();
+  }
+
+  static fromJSON(data: any): FadeComponent {
+    return new FadeComponent(data.startOpacity, data.endOpacity, data.duration);
+  }
+}
+
+/**
+ * Smoke bomb component for the smoke bomb behavior
+ */
+export class SmokeBombComponent extends Component {
+  type: 'smokeBomb' = 'smokeBomb';
+  
+  constructor(
+    public radius: number = 1,
+    public color: string = '#FFFFFF'
+  ) {
+    super();
+  }
+
+  static fromJSON(data: any): SmokeBombComponent {
+    return new SmokeBombComponent(data.radius, data.color);
+  }
+}
+
+/**
  * Registry of all component types
  * Update this when adding new components
  */
@@ -98,6 +173,10 @@ export const COMPONENT_TYPES: Record<string, {
   'position': PositionComponent,
   'health': HealthComponent,
   'facing': FacingComponent,
+  'timer': TimerComponent,
+  'spawner': SpawnerComponent,
+  'fade': FadeComponent,
+  'smokeBomb': SmokeBombComponent
 };
 
 /**

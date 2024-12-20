@@ -4,6 +4,8 @@ import { World } from '../world/world';
 import { Point } from '../types';
 import { Color } from '../display/types';
 import { logger } from '../display/util/logger';
+import { FadeComponent } from '../entity/component';
+import { SmokeBombComponent } from '../entity/component';
 
 export class Renderer {
     private entityTiles: Map<string, string> = new Map(); // entityId -> tileId
@@ -15,20 +17,57 @@ export class Renderer {
         this.world.on('entityAdded', ({ entity }) => this.onEntityAdded(entity));
         this.world.on('entityRemoved', ({ entity }) => this.onEntityRemoved(entity));
         this.world.on('entityMoved', ({ entity, to }) => this.onEntityMoved(entity, to));
+        this.world.on('entityModified', ({ entity, componentType }) => this.onEntityModified(entity, componentType));
     }
 
     private onEntityAdded(entity: Entity): void {
         const position = entity.getPosition();
+        let char = '@';  // Default
+        let color = '#ffffff' as Color;  // Default white
+
+        // Handle smoke bomb
+        if (entity.hasComponent('smokeBomb')) {
+            char = '*';
+            const smokeBomb = entity.getComponent('smokeBomb') as SmokeBombComponent;
+            color = smokeBomb.color as Color;
+        }
+
+        // Handle smoke cloud
+        if (entity.hasComponent('fade')) {
+            char = '░';  // or '▒' or '█'
+            color = '#ffffff' as Color;
+        }
+
         const tileId = this.display.createTile(
             position.x,
             position.y,
-            '@',  // Default representation for now
-            '#ffffff' as Color,  // White
+            char,
+            color,
             '#000000' as Color,  // Black background
             1  // Default z-index
         );
         
         this.entityTiles.set(entity.getId(), tileId);
+    }
+
+    private onEntityModified(entity: Entity, componentType: string): void {
+        // Handle fade updates
+        if (componentType === 'fade') {
+            const tileId = this.entityTiles.get(entity.getId());
+            if (tileId) {
+                const fade = entity.getComponent('fade') as FadeComponent;
+                if (fade) {
+                    this.display.addColorAnimation(tileId, {
+                        bg: {
+                            start: '#000000FF' as Color,  // Fully opaque black
+                            end: '#00000000' as Color,    // Fully transparent black
+                            duration: fade.duration,
+                            easing: Easing.linear
+                        }
+                    });
+                }
+            }
+        }
     }
 
     private onEntityRemoved(entity: Entity): void {

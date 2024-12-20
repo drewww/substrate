@@ -6,6 +6,7 @@ import { Point } from '../../types';
 import { logger } from '../../display/util/logger';
 import { DebugOverlay } from '../../display/test/debug-overlay';
 import { WorldDebugOverlay } from '../../world/debug-overlay';
+import { SmokeBombEntity } from '../../entity/smoke-bomb';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
@@ -20,6 +21,7 @@ class WorldTest {
     private isRunning = false;
     private intervalId: number | null = null;
     private worldDebug: WorldDebugOverlay;
+    private lastFrameTime: number = 0;
 
     constructor() {
         this.setupLogLevel();
@@ -54,6 +56,10 @@ class WorldTest {
 
         this.setupControls();
         logger.info('World Renderer Test initialized');
+
+        // Start the update loop
+        this.lastFrameTime = performance.now();
+        requestAnimationFrame(this.update.bind(this));
     }
 
     private setupLogLevel() {
@@ -81,6 +87,12 @@ class WorldTest {
         document.getElementById('toggleRandom')?.addEventListener('click', () => this.toggleRandom());
         document.getElementById('toggleDisplayDebug')?.addEventListener('click', () => this.debugOverlay.toggle());
         document.getElementById('toggleWorldDebug')?.addEventListener('click', () => this.worldDebug.toggle());
+        document.getElementById('addSmokeBomb')?.addEventListener('click', () => {
+            const x = Math.floor(Math.random() * WORLD_WIDTH);
+            const y = Math.floor(Math.random() * WORLD_HEIGHT);
+            const smokeBomb = new SmokeBombEntity({ x, y });
+            this.world.addEntity(smokeBomb);
+        });
     }
 
     private getRandomPosition(): Point {
@@ -145,6 +157,21 @@ class WorldTest {
             window.clearInterval(this.intervalId);
             this.intervalId = null;
         }
+    }
+
+    private update(timestamp: number) {
+        const deltaTime = (timestamp - this.lastFrameTime) / 1000; // Convert to seconds
+        this.lastFrameTime = timestamp;
+
+        // Update all entities
+        for (const entity of this.world.getEntities()) {
+            if ('update' in entity) {
+                (entity as any).update(deltaTime);
+            }
+        }
+
+        // Continue the loop
+        requestAnimationFrame(this.update.bind(this));
     }
 }
 

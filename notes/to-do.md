@@ -53,6 +53,13 @@ Display
 
  - Add mouse input support. Not sure where it goes. Eventually you want to get entities back for a location. Display knows about the viewport and the tiles, but how to trace backwards? I guess it's just a mapping of screen space to game space and that's all the Display knows. Then the World query systems can get you entities for that location. 
 
+ - Think about hierarchical Tiles in Display. If you wanted to move an entity that was composed of multiple tiles, they'd all need animations. That's bad. We want to have a transform that is inherited by its children during drawing. 
+  - One simple test of this is that a multi-part animation (as seen in the animation test case) should be able to be moved WHILE animating. 
+  - I'm not acutally positive I need it though? The one multi-part thing I know I need is vision. Let's think about that. one way to model it is abunch of tiles that are children of the entity. Entity moves, tile moves. OK. But ACTUALLY they are proprties of the entities being SEEN. Consider an entity moving towards a wall. If you shift its vision into the wall, it will look weird and need to be dropped. So actually this should be components on a tile -- seen by entity. 
+   - If we want to get clever, we can animate that vision in from the direction of the entity moving. Like, "if become seen, figure out where it's from." 
+   - soooo don't build this quite yet.
+   - RELATED idea. I'm struggling with some of these design considerations because I don't know what I'm trying to support. So maybe at this point I go broad and build the most basic versions of everything and see what we need.
+
 
 MODULE LIST
 -----------
@@ -62,7 +69,7 @@ MODULE LIST
   * Takes inputs. Updates the world based on them, while enforcing game rules.
   * Owns the core "clock" of the game. Understands time. 
   * Triggers map generation, loading, saving, puts UI on the screen, etc.
- * World (v0.0)
+ * World (v1.0)
   * The world tracks the state of the game. It tracks all the locations in the world and their state. Players and enemies and items and doors and such. 
   * Changes to the world are made by the game.
   * In a "model view controller" architecture, the world is the model, the game is the controller. 

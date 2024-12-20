@@ -18,7 +18,7 @@ export class Entity {
   private tags: Set<string> = new Set();
   private position: Point;
   private positionChanged: boolean = false;
-  private world?: World;
+  protected world: World | undefined;
 
   constructor(position: Point, id?: string) {
     this.id = id ?? Entity.generateId();
@@ -58,13 +58,6 @@ export class Entity {
     copy.modified = true;
     this.store.set(copy);
     this.changedComponents.add(component.type);
-    
-    if (this.world) {
-      this.world.emit('entityModified', {
-        entity: this,
-        componentType: component.type
-      });
-    }
     return this;
   }
 
@@ -317,6 +310,7 @@ export class Entity {
 
   /**
    * Set the world reference
+   * @internal Used by World when adding entities
    */
   public setWorld(world: World): void {
     this.world = world;
