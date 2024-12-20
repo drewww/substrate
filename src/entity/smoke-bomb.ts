@@ -38,7 +38,12 @@ export class SmokeBombEntity extends Entity {
             };
             
             const cloud = new SmokeCloudEntity(cloudPos);
-            this.world?.addEntity(cloud);
+            try {
+                this.world?.addEntity(cloud);
+            } catch (e) {
+                // Ignore out-of-bounds positions
+                continue;
+            }
         }
         
         // Remove self
@@ -54,6 +59,7 @@ export class SmokeCloudEntity extends Entity {
         super(position);
         this.lifetime = new TimerComponent(4.0, 4.0);
         this.setComponent(this.lifetime);
+        this.setComponent(new FadeComponent(1.0, 0.0, 4.0));
     }
 
     update(deltaTime: number) {

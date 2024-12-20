@@ -24,6 +24,7 @@ export class Renderer {
         const position = entity.getPosition();
         let char = '@';  // Default
         let color = '#ffffff' as Color;  // Default white
+        let zIndex = 1;  // Default z-index
 
         // Handle smoke bomb
         if (entity.hasComponent('smokeBomb')) {
@@ -36,6 +37,7 @@ export class Renderer {
         if (entity.hasComponent('fade')) {
             char = '░';  // or '▒' or '█'
             color = '#ffffff' as Color;
+            zIndex = 2;  // Put clouds above other entities
         }
 
         const tileId = this.display.createTile(
@@ -44,7 +46,7 @@ export class Renderer {
             char,
             color,
             '#000000' as Color,  // Black background
-            1  // Default z-index
+            zIndex
         );
         
         this.entityTiles.set(entity.getId(), tileId);
