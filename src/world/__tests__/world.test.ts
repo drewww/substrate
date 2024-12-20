@@ -444,4 +444,74 @@ describe('World', () => {
                 .toThrow('Reference position is outside world boundaries');
         });
     });
+
+    describe('World State', () => {
+        it('provides accurate world statistics', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity({ x: 1, y: 1 });
+
+            entity1.addTag('enemy');
+            entity1.setComponent(new HealthComponent(100, 100));
+            entity2.addTag('friendly');
+            entity2.setComponent(new FacingComponent(Direction.North));
+
+            world.addEntities([entity1, entity2]);
+
+            const stats = world.getStats();
+            expect(stats.entityCount).toBe(2);
+            expect(stats.uniqueComponentTypes).toBe(2); // health and facing
+            expect(stats.uniqueTags).toBe(2); // enemy and friendly
+            expect(stats.occupiedPositions).toBe(2); // two different positions
+        });
+
+        it('clears all entities', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            world.addEntity(entity);
+            expect(world.getAllEntities()).toHaveLength(1);
+
+            world.clear();
+            expect(world.getAllEntities()).toHaveLength(0);
+            expect(world.getEntitiesAt(DEFAULT_POSITION)).toHaveLength(0);
+        });
+
+        it('creates a deep clone of the world', () => {
+            const entity = new Entity(DEFAULT_POSITION);
+            entity.addTag('test');
+            entity.setComponent(new HealthComponent(100, 100));
+            world.addEntity(entity);
+
+            const cloned = world.clone();
+            
+            // Verify same structure
+            expect(cloned.getSize()).toEqual(world.getSize());
+            expect(cloned.getAllEntities()).toHaveLength(1);
+            
+            // Verify deep copy
+            const [clonedEntity] = cloned.getAllEntities();
+            expect(clonedEntity.getId()).toBe(entity.getId());
+            expect(clonedEntity.getPosition()).toEqual(entity.getPosition());
+            expect(clonedEntity.hasTag('test')).toBe(true);
+            expect(clonedEntity.getComponent('health')).toMatchObject({
+                type: 'health',
+                current: 100,
+                max: 100
+            });
+
+            // Verify independence
+            world.clear();
+            expect(world.isEmpty()).toBe(true);
+            expect(cloned.isEmpty()).toBe(false);
+        });
+
+        it('checks if world is empty', () => {
+            expect(world.isEmpty()).toBe(true);
+            
+            const entity = new Entity(DEFAULT_POSITION);
+            world.addEntity(entity);
+            expect(world.isEmpty()).toBe(false);
+            
+            world.removeEntity(entity.getId());
+            expect(world.isEmpty()).toBe(true);
+        });
+    });
 }); 

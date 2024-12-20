@@ -301,4 +301,52 @@ export class World {
     private getManhattanDistance(a: Point, b: Point): number {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     }
+
+    /**
+     * Get statistics about the current world state
+     */
+    public getStats(): {
+        entityCount: number,
+        uniqueComponentTypes: number,
+        uniqueTags: number,
+        occupiedPositions: number
+    } {
+        const allComponents = new Set<string>();
+        const allTags = new Set<string>();
+
+        for (const entity of this.entities.values()) {
+            entity.getComponents().forEach(comp => allComponents.add(comp.type));
+            entity.getTags().forEach(tag => allTags.add(tag));
+        }
+
+        return {
+            entityCount: this.entities.size,
+            uniqueComponentTypes: allComponents.size,
+            uniqueTags: allTags.size,
+            occupiedPositions: this.spatialMap.size
+        };
+    }
+
+    /**
+     * Remove all entities from the world
+     */
+    public clear(): void {
+        this.entities.clear();
+        this.spatialMap.clear();
+    }
+
+    /**
+     * Create a deep copy of the world
+     */
+    public clone(): World {
+        const serialized = this.serialize();
+        return World.deserialize(serialized);
+    }
+
+    /**
+     * Check if the world is empty
+     */
+    public isEmpty(): boolean {
+        return this.entities.size === 0;
+    }
 } 
