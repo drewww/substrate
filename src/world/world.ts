@@ -20,9 +20,11 @@ export class World {
     }
 
     /**
-     * Add an entity to the world at the specified position
+     * Add an entity to the world
+     * @throws Error if entity's position is out of bounds
      */
-    public addEntity(entity: Entity, position: Point): void {
+    public addEntity(entity: Entity): void {
+        const position = entity.getPosition();
         if (position.x < 0 || position.x >= this.width || 
             position.y < 0 || position.y >= this.height) {
             throw new Error(`Position ${position.x},${position.y} is out of bounds`);
@@ -38,8 +40,36 @@ export class World {
             this.spatialMap.set(key, entitiesAtPosition);
         }
         entitiesAtPosition.add(entityId);
+    }
 
-        entity.setPosition(position.x, position.y);
+    /**
+     * Add multiple entities to the world at once
+     * @throws Error if any entity's position is out of bounds
+     */
+    public addEntities(entities: Entity[]): void {
+        // Validate all positions first to ensure atomicity
+        for (const entity of entities) {
+            const position = entity.getPosition();
+            if (position.x < 0 || position.x >= this.width || 
+                position.y < 0 || position.y >= this.height) {
+                throw new Error(`Position ${position.x},${position.y} is out of bounds`);
+            }
+        }
+
+        // Add all entities
+        for (const entity of entities) {
+            const position = entity.getPosition();
+            const entityId = entity.getId();
+            this.entities.set(entityId, entity);
+
+            const key = this.pointToKey(position);
+            let entitiesAtPosition = this.spatialMap.get(key);
+            if (!entitiesAtPosition) {
+                entitiesAtPosition = new Set();
+                this.spatialMap.set(key, entitiesAtPosition);
+            }
+            entitiesAtPosition.add(entityId);
+        }
     }
 
     public moveEntity(entityId: string, newPosition: Point): void {
@@ -140,36 +170,6 @@ export class World {
     }
 
     /**
-     * Add multiple entities to the world at once
-     * @throws Error if any position is out of bounds
-     */
-    public addEntities(entities: Array<{ entity: Entity, position: Point }>): void {
-        // Validate all positions first to ensure atomicity
-        for (const { position } of entities) {
-            if (position.x < 0 || position.x >= this.width || 
-                position.y < 0 || position.y >= this.height) {
-                throw new Error(`Position ${position.x},${position.y} is out of bounds`);
-            }
-        }
-
-        // Add all entities
-        for (const { entity, position } of entities) {
-            const entityId = entity.getId();
-            this.entities.set(entityId, entity);
-
-            const key = this.pointToKey(position);
-            let entitiesAtPosition = this.spatialMap.get(key);
-            if (!entitiesAtPosition) {
-                entitiesAtPosition = new Set();
-                this.spatialMap.set(key, entitiesAtPosition);
-            }
-            entitiesAtPosition.add(entityId);
-
-            entity.setPosition(position.x, position.y);
-        }
-    }
-
-    /**
      * Remove multiple entities from the world at once
      * Silently ignores non-existent entity IDs
      */
@@ -256,7 +256,7 @@ export class World {
                 }
 
                 // Add to world at the correct position
-                world.addEntity(entity, entityData.position);
+                world.addEntity(entity);
             }
 
             return world;

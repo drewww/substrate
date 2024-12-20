@@ -20,7 +20,7 @@ describe('World', () => {
 
         it('can add and retrieve an entity', () => {
             const entity = new Entity(DEFAULT_POSITION);
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
             
             const entitiesAtPosition = world.getEntitiesAt(DEFAULT_POSITION);
             expect(entitiesAtPosition).toHaveLength(1);
@@ -29,7 +29,7 @@ describe('World', () => {
 
         it('can remove an entity', () => {
             const entity = new Entity(DEFAULT_POSITION);
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
             world.removeEntity(entity.getId());
 
             expect(world.getEntitiesAt(DEFAULT_POSITION)).toHaveLength(0);
@@ -39,7 +39,7 @@ describe('World', () => {
             const entity = new Entity(DEFAULT_POSITION);
             const newPosition: Point = { x: 1, y: 1 };
             
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
             world.moveEntity(entity.getId(), newPosition);
 
             expect(world.getEntitiesAt(DEFAULT_POSITION)).toHaveLength(0);
@@ -50,19 +50,15 @@ describe('World', () => {
 
     describe('Boundary Checks', () => {
         it('throws when adding entity outside bounds', () => {
-            const entity = new Entity(DEFAULT_POSITION);
-            const outOfBounds: Point = { x: DEFAULT_SIZE.x + 1, y: 0 };
-            
-            expect(() => world.addEntity(entity, outOfBounds))
+            const entity = new Entity({ x: DEFAULT_SIZE.x + 1, y: 0 });
+            expect(() => world.addEntity(entity))
                 .toThrow(/Position .* is out of bounds/);
         });
 
         it('throws when moving entity outside bounds', () => {
             const entity = new Entity(DEFAULT_POSITION);
-            const outOfBounds: Point = { x: -1, y: 0 };
-            
-            world.addEntity(entity, DEFAULT_POSITION);
-            expect(() => world.moveEntity(entity.getId(), outOfBounds))
+            world.addEntity(entity);
+            expect(() => world.moveEntity(entity.getId(), { x: -1, y: 0 }))
                 .toThrow(/Position .* is out of bounds/);
         });
     });
@@ -72,8 +68,8 @@ describe('World', () => {
             const entity1 = new Entity(DEFAULT_POSITION);
             const entity2 = new Entity(DEFAULT_POSITION);
             
-            world.addEntity(entity1, DEFAULT_POSITION);
-            world.addEntity(entity2, DEFAULT_POSITION);
+            world.addEntity(entity1);
+            world.addEntity(entity2);
 
             const entitiesAtPosition = world.getEntitiesAt(DEFAULT_POSITION);
             expect(entitiesAtPosition).toHaveLength(2);
@@ -83,10 +79,9 @@ describe('World', () => {
 
         it('correctly removes entity from spatial map', () => {
             const entity = new Entity(DEFAULT_POSITION);
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
             world.removeEntity(entity.getId());
 
-            // Check both entity list and spatial map
             expect(world.getAllEntities()).toHaveLength(0);
             expect(world.getEntitiesAt(DEFAULT_POSITION)).toHaveLength(0);
         });
@@ -95,7 +90,7 @@ describe('World', () => {
             const entity = new Entity(DEFAULT_POSITION);
             const newPosition: Point = { x: 1, y: 1 };
             
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
             world.moveEntity(entity.getId(), newPosition);
 
             expect(entity.getPosition()).toEqual(newPosition);
@@ -118,11 +113,10 @@ describe('World', () => {
 
         it('returns all entities in the world', () => {
             const entity1 = new Entity(DEFAULT_POSITION);
-            const entity2 = new Entity(DEFAULT_POSITION);
-            const pos2: Point = { x: 1, y: 1 };
+            const entity2 = new Entity({ x: 1, y: 1 });
 
-            world.addEntity(entity1, DEFAULT_POSITION);
-            world.addEntity(entity2, pos2);
+            world.addEntity(entity1);
+            world.addEntity(entity2);
 
             const allEntities = world.getAllEntities();
             expect(allEntities).toHaveLength(2);
@@ -141,9 +135,9 @@ describe('World', () => {
                 entity2.addTag('flying');
                 entity3.addTag('friendly');
 
-                world.addEntity(entity1, DEFAULT_POSITION);
-                world.addEntity(entity2, DEFAULT_POSITION);
-                world.addEntity(entity3, DEFAULT_POSITION);
+                world.addEntity(entity1);
+                world.addEntity(entity2);
+                world.addEntity(entity3);
 
                 const enemies = world.getEntitiesByTag('enemy');
                 expect(enemies).toHaveLength(2);
@@ -158,8 +152,8 @@ describe('World', () => {
                 entity1.addTags(['enemy', 'flying']);
                 entity2.addTag('enemy');
 
-                world.addEntity(entity1, DEFAULT_POSITION);
-                world.addEntity(entity2, DEFAULT_POSITION);
+                world.addEntity(entity1);
+                world.addEntity(entity2);
 
                 const flyingEnemies = world.getEntitiesWithTags(['enemy', 'flying']);
                 expect(flyingEnemies).toHaveLength(1);
@@ -174,8 +168,8 @@ describe('World', () => {
 
                 entity1.setComponent({ type: 'facing', direction: Direction.North });
                 
-                world.addEntity(entity1, DEFAULT_POSITION);
-                world.addEntity(entity2, DEFAULT_POSITION);
+                world.addEntity(entity1);
+                world.addEntity(entity2);
 
                 const entitiesWithFacing = world.getEntitiesWithComponent('facing');
                 expect(entitiesWithFacing).toHaveLength(1);
@@ -190,8 +184,8 @@ describe('World', () => {
                 entity1.setComponent({ type: 'facing', direction: Direction.East });
                 entity2.setComponent({ type: 'health', current: 100, max: 100 });
 
-                world.addEntity(entity1, DEFAULT_POSITION);
-                world.addEntity(entity2, DEFAULT_POSITION);
+                world.addEntity(entity1);
+                world.addEntity(entity2);
 
                 const entitiesWithBoth = world.getEntitiesWithComponents(['health', 'facing']);
                 expect(entitiesWithBoth).toHaveLength(1);
@@ -200,7 +194,7 @@ describe('World', () => {
 
             it('returns empty array when no entities match query', () => {
                 const entity = new Entity(DEFAULT_POSITION);
-                world.addEntity(entity, DEFAULT_POSITION);
+                world.addEntity(entity);
 
                 expect(world.getEntitiesByTag('nonexistent')).toHaveLength(0);
                 expect(world.getEntitiesWithComponent('facing')).toHaveLength(0);
@@ -213,30 +207,22 @@ describe('World', () => {
     describe('Batch Operations', () => {
         it('can add multiple entities at once', () => {
             const entity1 = new Entity(DEFAULT_POSITION);
-            const entity2 = new Entity(DEFAULT_POSITION);
-            const pos2: Point = { x: 1, y: 1 };
+            const entity2 = new Entity({ x: 1, y: 1 });
 
-            world.addEntities([
-                { entity: entity1, position: DEFAULT_POSITION },
-                { entity: entity2, position: pos2 }
-            ]);
+            world.addEntities([entity1, entity2]);
 
             expect(world.getEntitiesAt(DEFAULT_POSITION)).toContain(entity1);
-            expect(world.getEntitiesAt(pos2)).toContain(entity2);
+            expect(world.getEntitiesAt({ x: 1, y: 1 })).toContain(entity2);
             expect(world.getAllEntities()).toHaveLength(2);
         });
 
         it('maintains atomicity when batch adding entities', () => {
-            const entity1 = new Entity(DEFAULT_POSITION);
-            const entity2 = new Entity(DEFAULT_POSITION);
-            const validPos: Point = { x: 1, y: 1 };
-            const invalidPos: Point = { x: -1, y: 0 };
+            const entity1 = new Entity({ x: 1, y: 1 });
+            const entity2 = new Entity({ x: -1, y: 0 }); // Invalid position
 
             // Should fail to add any entities if one position is invalid
-            expect(() => world.addEntities([
-                { entity: entity1, position: validPos },
-                { entity: entity2, position: invalidPos }
-            ])).toThrow(/Position .* is out of bounds/);
+            expect(() => world.addEntities([entity1, entity2]))
+                .toThrow(/Position .* is out of bounds/);
 
             expect(world.getAllEntities()).toHaveLength(0);
         });
@@ -246,8 +232,8 @@ describe('World', () => {
             const entity2 = new Entity(DEFAULT_POSITION);
             const pos2: Point = { x: 1, y: 1 };
 
-            world.addEntity(entity1, DEFAULT_POSITION);
-            world.addEntity(entity2, pos2);
+            world.addEntity(entity1);
+            world.addEntity(entity2);
 
             world.removeEntities([entity1.getId(), entity2.getId()]);
 
@@ -258,7 +244,7 @@ describe('World', () => {
 
         it('handles non-existent entities in batch removal', () => {
             const entity = new Entity(DEFAULT_POSITION);
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
 
             expect(() => world.removeEntities([
                 entity.getId(),
@@ -279,23 +265,22 @@ describe('World', () => {
         });
 
         it('preserves entity positions after serialization', () => {
-            const entity = new Entity(DEFAULT_POSITION);
-            const position: Point = { x: 5, y: 5 };
-            world.addEntity(entity, position);
+            const entity = new Entity({ x: 5, y: 5 });
+            world.addEntity(entity);
 
             const serialized = world.serialize();
             const deserialized = World.deserialize(serialized);
 
-            const entities = deserialized.getEntitiesAt(position);
+            const entities = deserialized.getEntitiesAt({ x: 5, y: 5 });
             expect(entities).toHaveLength(1);
-            expect(entities[0].getPosition()).toEqual(position);
+            expect(entities[0].getPosition()).toEqual({ x: 5, y: 5 });
         });
 
         it('preserves entity components after serialization', () => {
             const entity = new Entity(DEFAULT_POSITION);
             entity.setComponent({ type: 'health', current: 100, max: 100 });
             entity.setComponent({ type: 'facing', direction: Direction.North });
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
 
             const serialized = world.serialize();
             const deserialized = World.deserialize(serialized);
@@ -317,7 +302,7 @@ describe('World', () => {
         it('preserves entity tags after serialization', () => {
             const entity = new Entity(DEFAULT_POSITION);
             entity.addTags(['enemy', 'flying']);
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
 
             const serialized = world.serialize();
             const deserialized = World.deserialize(serialized);
@@ -329,7 +314,7 @@ describe('World', () => {
 
         it('preserves entity IDs after serialization', () => {
             const entity = new Entity(DEFAULT_POSITION, 'test-id');
-            world.addEntity(entity, DEFAULT_POSITION);
+            world.addEntity(entity);
 
             const serialized = world.serialize();
             const deserialized = World.deserialize(serialized);
