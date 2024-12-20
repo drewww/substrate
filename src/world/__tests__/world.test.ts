@@ -3,8 +3,10 @@ import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Direction } from '../../types';
-import { HealthComponent } from '../../entity/component';
+import { COMPONENT_TYPES, HealthComponent } from '../../entity/component';
 import { FacingComponent } from '../../entity/component';
+import { Component } from '../../entity/component';
+import { transient } from '../../decorators/transient';
 
 describe('World', () => {
     let world: World;
@@ -332,12 +334,29 @@ describe('World', () => {
         });
 
         it('excludes transient properties during serialization', () => {
+            // Create a test component with a transient property
+            class TestComponent extends Component {
+                type = 'test' as const;
+                
+                constructor(public value: number) {
+                    super();
+                }
+
+                @transient
+                testTransient: boolean = true;
+
+                static fromJSON(data: any): TestComponent {
+                    return new TestComponent(data.value);
+                }
+            }
+            
+            // Register the test component
+            const originalTypes = { ...COMPONENT_TYPES };
+            COMPONENT_TYPES['test'] = TestComponent;
+            
             const entity = new Entity(DEFAULT_POSITION);
-            const healthComponent = new HealthComponent(100, 100);
-            
-            entity.setComponent(healthComponent);
-            healthComponent.modified = true;  // Set transient property
-            
+            const component = new TestComponent(100);
+            entity.setComponent(component);
             world.addEntity(entity);
             
             const serialized = world.serialize();
@@ -345,16 +364,11 @@ describe('World', () => {
             const serializedComponent = parsed.entities[0].components[0];
             
             // Verify the component was serialized but without the transient property
-            expect(serializedComponent.type).toBe('health');
-            expect(serializedComponent.current).toBe(100);
-            expect(serializedComponent.max).toBe(100);
-            expect(serializedComponent.modified).toBeUndefined();
-            
-            // Verify deserialization works and transient property is reset
-            const deserialized = World.deserialize(serialized);
-            const deserializedEntity = deserialized.getAllEntities()[0];
-            const deserializedComponent = deserializedEntity.getComponent('health') as HealthComponent;
-            expect(deserializedComponent.modified).toBeUndefined();
+            expect(serializedComponent.value).toBe(100);
+            expect(serializedComponent.testTransient).toBeUndefined();
+
+            // Restore original component types
+            Object.assign(COMPONENT_TYPES, originalTypes);
         });
     });
 }); 

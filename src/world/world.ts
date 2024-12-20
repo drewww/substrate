@@ -1,4 +1,4 @@
-import { ComponentUnion, SerializedEntity } from '../entity/component';
+import { SerializedEntity } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Component } from '../entity/component';
@@ -148,7 +148,7 @@ export class World {
     /**
      * Get all entities that have the specified component type
      */
-    public getEntitiesWithComponent<T extends ComponentUnion>(componentType: T['type']): Entity[] {
+    public getEntitiesWithComponent(componentType: string): Entity[] {
         return Array.from(this.entities.values())
             .filter(entity => entity.hasComponent(componentType));
     }
@@ -164,7 +164,7 @@ export class World {
     /**
      * Get all entities that have all of the specified component types
      */
-    public getEntitiesWithComponents<T extends ComponentUnion>(componentTypes: T['type'][]): Entity[] {
+    public getEntitiesWithComponents(componentTypes: string[]): Entity[] {
         return Array.from(this.entities.values())
             .filter(entity => componentTypes.every(type => entity.hasComponent(type)));
     }

@@ -1,10 +1,11 @@
 import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
 import { ComponentStore } from './component-store';
-import { ComponentUnion, SerializedEntity } from './component';
+import { SerializedEntity } from './component';
 import { REQUIRED_COMPONENTS } from './decorators';
 import { Point } from '../types';
 import { isTransient } from '../decorators/transient';
+import { Component } from './component';
 
 /**
  * Base entity class that manages components
@@ -12,7 +13,7 @@ import { isTransient } from '../decorators/transient';
 export class Entity {
   private readonly id: string;
   protected store: ComponentStore;
-  private changedComponents: Set<ComponentUnion['type']> = new Set();
+  private changedComponents: Set<string> = new Set();
   private tags: Set<string> = new Set();
   private position: Point;
   private positionChanged: boolean = false;
@@ -40,18 +41,20 @@ export class Entity {
   /**
    * Get a component by type
    */
-  getComponent<T extends ComponentUnion>(type: T['type']): T | undefined {
+  getComponent(type: string): Component | undefined {
     return this.store.get(type);
   }
 
   /**
    * Set a component
    */
-  setComponent<T extends ComponentUnion>(component: T): this {
-    this.store.set({
-      ...component,
-      modified: true
-    });
+  setComponent(component: Component): this {
+    const copy = Object.create(
+      Object.getPrototypeOf(component),
+      Object.getOwnPropertyDescriptors(component)
+    );
+    copy.modified = true;
+    this.store.set(copy);
     this.changedComponents.add(component.type);
     return this;
   }
@@ -59,14 +62,14 @@ export class Entity {
   /**
    * Check if entity has a specific component
    */
-  hasComponent<T extends ComponentUnion>(type: T['type']): boolean {
+  hasComponent(type: string): boolean {
     return this.store.has(type);
   }
 
   /**
    * Remove a component from the entity
    */
-  removeComponent<T extends ComponentUnion>(type: T['type']): boolean {
+  removeComponent(type: string): boolean {
     return this.store.remove(type);
   }
 
@@ -186,42 +189,42 @@ export class Entity {
   /**
    * Check if entity has all of the specified components
    */
-  hasAllComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
+  hasAllComponents(types: string[]): boolean {
     return types.every(type => this.hasComponent(type));
   }
 
   /**
    * Check if entity has any of the specified components
    */
-  hasAnyComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
+  hasAnyComponents(types: string[]): boolean {
     return types.some(type => this.hasComponent(type));
   }
 
   /**
    * Get all component types on this entity
    */
-  getComponentTypes(): ComponentUnion['type'][] {
+  getComponentTypes(): string[] {
     return this.getComponents().map(c => c.type);
   }
 
   /**
    * Check if entity lacks all of the specified components
    */
-  doesNotHaveComponents<T extends ComponentUnion>(types: T['type'][]): boolean {
+  doesNotHaveComponents(types: string[]): boolean {
     return types.every(type => !this.hasComponent(type));
   }
 
   /**
    * Check if a specific component has been modified
    */
-  hasComponentChanged<T extends ComponentUnion>(type: T['type']): boolean {
+  hasComponentChanged(type: string): boolean {
     return this.changedComponents.has(type);
   }
 
   /**
    * Get all component types that have been modified
    */
-  getChangedComponents(): ComponentUnion['type'][] {
+  getChangedComponents(): string[] {
     return Array.from(this.changedComponents);
   }
 
@@ -279,18 +282,20 @@ export class Entity {
   /**
    * Get all components on this entity
    */
-  getComponents(): ComponentUnion[] {
+  getComponents(): Component[] {
     return this.store.values().map(component => {
-      const serialized = { ...component };
+      const copy = Object.create(
+        Object.getPrototypeOf(component),
+        Object.getOwnPropertyDescriptors(component)
+      );
       
-      // Remove transient properties
-      for (const key in serialized) {
+      for (const key in copy) {
         if (isTransient(component, key)) {
-          delete serialized[key];
+          delete (copy as any)[key];
         }
       }
       
-      return serialized;
+      return copy;
     });
   }
 

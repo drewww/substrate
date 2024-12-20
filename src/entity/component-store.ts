@@ -1,28 +1,24 @@
-import { ComponentUnion } from './component';
+import { Component } from './component';
 /**
  * Type-safe storage for entity components
  */
 export class ComponentStore {
-  private components = new Map<string, ComponentUnion>();
+  private components = new Map<string, Component>();
 
   /**
    * Get a component by type
    * @param type The literal type of the component
    * @returns The component if it exists, undefined otherwise
    */
-  get<T extends ComponentUnion>(type: T['type']): T | undefined {
-    const component = this.components.get(type);
-    if (component && component.type === type) {
-      return component as T;
-    }
-    return undefined;
+  get(type: string): Component | undefined {
+    return this.components.get(type);
   }
 
   /**
    * Set a component
    * @param component The component to store
    */
-  set<T extends ComponentUnion>(component: T): void {
+  set(component: Component): void {
     this.components.set(component.type, component);
   }
 
@@ -31,7 +27,7 @@ export class ComponentStore {
    * @param type The literal type of the component to remove
    * @returns true if the component was removed, false if it didn't exist
    */
-  remove(type: ComponentUnion['type']): boolean {
+  remove(type: string): boolean {
     return this.components.delete(type);
   }
 
@@ -39,7 +35,7 @@ export class ComponentStore {
    * Check if a component type exists
    * @param type The literal type of the component
    */
-  has(type: ComponentUnion['type']): boolean {
+  has(type: string): boolean {
     return this.components.has(type);
   }
 
@@ -53,7 +49,7 @@ export class ComponentStore {
   /**
    * Get all components currently stored
    */
-  values(): ComponentUnion[] {
+  values(): Component[] {
     return Array.from(this.components.values());
   }
 

@@ -24,7 +24,7 @@ export abstract class Component {
     return json;
   }
 
-  static fromJSON(data: any): ComponentUnion {
+  static fromJSON(data: any): Component {
     const ComponentClass = COMPONENT_TYPES[data.type];
     if (!ComponentClass) {
       throw new Error(`Unknown component type: ${data.type}`);
@@ -93,7 +93,7 @@ export class FacingComponent extends Component {
  * Update this when adding new components
  */
 export const COMPONENT_TYPES: Record<string, {
-  fromJSON(data: any): ComponentUnion;
+  fromJSON(data: any): Component;
 }> = {
   'position': PositionComponent,
   'health': HealthComponent,
@@ -106,13 +106,7 @@ export const COMPONENT_TYPES: Record<string, {
 export interface SerializedEntity {
   id: string;
   position: Point;
-  components: ComponentUnion[];
+  components: Component[];
   tags?: string[];
 }
-
-/**
- * Union of all possible component types
- * Update this when adding new components
- */
-export type ComponentUnion = PositionComponent | HealthComponent | FacingComponent;
   
