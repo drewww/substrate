@@ -5,6 +5,7 @@ import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Display } from '../display/display';
 import { Renderer } from '../render/renderer';
+import { SymbolComponent } from '../entity/component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -40,6 +41,12 @@ export class Game {
 
 
         this.player = new Entity({ x: Math.floor(width/2), y: Math.floor(height/2) });
+        this.player.setComponent(new SymbolComponent(
+            '@',            // Traditional roguelike player symbol
+            '#FFD700',      // Gold color for player
+            'transparent',  // Transparent background
+            5              // Higher z-index to stay above most entities
+        ));
         this.world.addEntity(this.player);
         
         // Initialize engine with our world
