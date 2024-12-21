@@ -6,6 +6,7 @@ import { Color } from '../display/types';
 import { logger } from '../display/util/logger';
 import { FadeComponent } from '../entity/component';
 import { SmokeBombComponent } from '../entity/component';
+import { SymbolComponent } from '../entity/component';
 
 export class Renderer {
     private entityTiles: Map<string, string> = new Map(); // entityId -> tileId
@@ -21,57 +22,52 @@ export class Renderer {
     }
 
     private onEntityAdded(entity: Entity): void {
+        const symbolComponent = entity.getComponent('symbol') as SymbolComponent;
+        if (!symbolComponent) {
+            return; // Don't render entities without symbol components
+        }
+
         const position = entity.getPosition();
-        let char = '@';  // Default
-        let color = '#ffffff' as Color;  // Default white
-        let backgroundColor = '#000000' as Color;  // Default black
-        let zIndex = 1;  // Default z-index
-
-        // Handle smoke bomb
-        if (entity.hasComponent('smokeBomb')) {
-            char = '*';
-            const smokeBomb = entity.getComponent('smokeBomb') as SmokeBombComponent;
-            color = smokeBomb.color as Color;
-        }
-
-        // Handle smoke cloud
-        if (entity.hasComponent('fade')) {
-            char = ' ';  // or '▒' or '█'
-            zIndex = 2;  // Put clouds above other entities
-        }
-
         const tileId = this.display.createTile(
             position.x,
             position.y,
-            char,
-            color,
-            backgroundColor,
-            zIndex
+            symbolComponent.char,
+            symbolComponent.foreground,
+            symbolComponent.background,
+            symbolComponent.zIndex
         );
         
         this.entityTiles.set(entity.getId(), tileId);
 
-        // Handle fade updates
+        // Handle fade component if present
         if (entity.hasComponent('fade')) {
-            const tileId = this.entityTiles.get(entity.getId());
-            if (tileId) {
-                const fade = entity.getComponent('fade') as FadeComponent;
-                if (fade) {
-                    this.display.addColorAnimation(tileId, {
-                        bg: {
-                            start: '#FFFFFFFF' as Color,  // Fully opaque black
-                            end: '#FFFFFF00' as Color,    // Fully transparent black
-                            duration: fade.duration,
-                            easing: Easing.linear
-                        }
-                    });
-                }
+            const fade = entity.getComponent('fade') as FadeComponent;
+            if (fade) {
+                this.display.addColorAnimation(tileId, {
+                    bg: {
+                        start: '#FFFFFFFF',
+                        end: '#FFFFFF00',
+                        duration: fade.duration,
+                        easing: Easing.linear
+                    }
+                });
             }
         }
     }
 
     private onEntityModified(entity: Entity, componentType: string): void {
-        
+        if (componentType === 'symbol') {
+            const tileId = this.entityTiles.get(entity.getId());
+            const symbol = entity.getComponent('symbol') as SymbolComponent;
+            if (tileId && symbol) {
+                this.display.updateTile(tileId, {
+                    char: symbol.char,
+                    fg: symbol.foreground,
+                    bg: symbol.background,
+                    zIndex: symbol.zIndex
+                });
+            }
+        }
     }
 
     private onEntityRemoved(entity: Entity): void {

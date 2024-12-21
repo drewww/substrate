@@ -4,6 +4,7 @@ import { Renderer } from '../renderer';
 import { Display } from '../../display/display';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Point } from '../../types';
+import { SymbolComponent } from '../../entity/component';
 
 // Mock Display class
 class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTile'> {
@@ -40,16 +41,26 @@ describe('Renderer', () => {
         renderer = new Renderer(world, display as unknown as Display);
     });
 
-    it('creates a tile when entity is added', () => {
+    it('creates a tile when entity with symbol is added', () => {
         const entity = new Entity({ x: 1, y: 1 });
+        entity.setComponent(new SymbolComponent('@', '#ffffff', '#000000', 1));
         world.addEntity(entity);
 
         expect(display.createTile).toHaveBeenCalledWith(1, 1, '@', '#ffffff', '#000000', 1);
         expect(display.tiles.size).toBe(1);
     });
 
+    it('ignores entities without symbol component', () => {
+        const entity = new Entity({ x: 1, y: 1 });
+        world.addEntity(entity);
+
+        expect(display.createTile).not.toHaveBeenCalled();
+        expect(display.tiles.size).toBe(0);
+    });
+
     it('removes tile when entity is removed', () => {
         const entity = new Entity({ x: 1, y: 1 });
+        entity.setComponent(new SymbolComponent('@'));
         world.addEntity(entity);
         
         const [tileId] = display.tiles.keys();
@@ -61,6 +72,7 @@ describe('Renderer', () => {
 
     it('updates tile position when entity moves', () => {
         const entity = new Entity({ x: 1, y: 1 });
+        entity.setComponent(new SymbolComponent('@'));
         world.addEntity(entity);
         
         const [tileId] = display.tiles.keys();

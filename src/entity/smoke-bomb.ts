@@ -1,6 +1,6 @@
 import { Entity } from './entity';
 import { Point } from '../types';
-import { TimerComponent, SmokeBombComponent, FadeComponent } from './component';
+import { TimerComponent, SmokeBombComponent, FadeComponent, SymbolComponent } from './component';
 
 export class SmokeBombEntity extends Entity {
     private explosionTimer: TimerComponent;
@@ -9,6 +9,12 @@ export class SmokeBombEntity extends Entity {
         super(position);
         
         this.setComponent(new SmokeBombComponent(1, '#FFFFFF'));
+        this.setComponent(new SymbolComponent(
+            '*',            // char
+            '#FFFFFFFF',      // white foreground
+            '#00000000',  // transparent background
+            1              // standard z-index
+        ));
         this.explosionTimer = new TimerComponent(0.5, 0.5);
         this.setComponent(this.explosionTimer);
     }
@@ -60,6 +66,12 @@ export class SmokeCloudEntity extends Entity {
         this.lifetime = new TimerComponent(4.0, 4.0);
         this.setComponent(this.lifetime);
         this.setComponent(new FadeComponent(1.0, 0.0, 4.0));
+        this.setComponent(new SymbolComponent(
+            ' ',           // empty char for cloud effect
+            '#FFFFFFFF', // transparent foreground
+            '#FFFFFFFF',     // white background that will fade
+            2             // higher z-index to stay above other entities
+        ));
     }
 
     update(deltaTime: number) {

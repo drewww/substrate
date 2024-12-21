@@ -164,6 +164,31 @@ export class SmokeBombComponent extends Component {
 }
 
 /**
+ * Symbol component for entities that have a symbol
+ */
+export class SymbolComponent extends Component {
+  type: 'symbol' = 'symbol';
+  
+  constructor(
+    public char: string,
+    public foreground: string = '#FFFFFFFF',
+    public background: string = '#00000000',
+    public zIndex: number = 1
+  ) {
+    super();
+  }
+
+  static fromJSON(data: any): SymbolComponent {
+    return new SymbolComponent(
+      data.char,
+      data.foreground,
+      data.background,
+      data.zIndex
+    );
+  }
+}
+
+/**
  * Registry of all component types
  * Update this when adding new components
  */
@@ -176,7 +201,8 @@ export const COMPONENT_TYPES: Record<string, {
   'timer': TimerComponent,
   'spawner': SpawnerComponent,
   'fade': FadeComponent,
-  'smokeBomb': SmokeBombComponent
+  'smokeBomb': SmokeBombComponent,
+  'symbol': SymbolComponent
 };
 
 /**

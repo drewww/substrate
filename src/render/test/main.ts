@@ -7,6 +7,7 @@ import { logger } from '../../display/util/logger';
 import { DebugOverlay } from '../../display/test/debug-overlay';
 import { WorldDebugOverlay } from '../../world/debug-overlay';
 import { SmokeBombEntity } from '../../entity/smoke-bomb';
+import { SymbolComponent } from '../../entity/component';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
@@ -78,13 +79,20 @@ class WorldTest {
 
             // Create new cursor tile at new position
             if (worldPos) {
+                const cursorEntity = new Entity(worldPos);
+                cursorEntity.setComponent(new SymbolComponent(
+                    ' ',           // Empty character
+                    'transparent', // transparent foreground
+                    '#0088FF22',  // Light blue with 13% opacity
+                    1000          // Very high z-index to stay on top
+                ));
                 this.cursorTileId = this.display.createTile(
                     worldPos.x,
                     worldPos.y,
-                    ' ',  // Empty character
-                    '#FFFFFF',  // White (unused since char is empty)
-                    '#0088FF22',  // Light blue with 13% opacity
-                    1000  // Very high z-index to stay on top
+                    ' ',
+                    'transparent',
+                    '#0088FF22',
+                    1000
                 );
             }
         });
@@ -132,6 +140,7 @@ class WorldTest {
 
     private addRandomEntity() {
         const entity = new Entity(this.getRandomPosition());
+        entity.setComponent(new SymbolComponent('@')); // Add default symbol
         this.world.addEntity(entity);
     }
 
