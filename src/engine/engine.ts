@@ -34,6 +34,7 @@ export class Engine {
         this.player = config.player;
         
         this.world.addEntity(this.player);
+        this.start();
     }
 
     public start(): void {
