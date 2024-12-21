@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Integration Test</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .controls {
+            margin-top: 1rem;
+        }
+        .debug-overlays {
+            position: fixed;
+            right: 10px;
+            top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 100vh;
+            overflow-y: auto;
+            width: 25%;
+        }
+        .debug-overlays > div {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            white-space: pre;
+            overflow-x: auto;
+            word-wrap: normal;
+        }
+        #display-debug, #world-debug {
+            position: relative;
+        }
+        #world-debug {
+            position: relative;
+            padding: 8px;
+        }
+        #world-debug > div {
+            margin-bottom: 0px;
+        }
+        #world-debug > div:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="display-container">
+        <canvas id="display"></canvas>
+    </div>
+    <div class="controls">
+        <button id="toggleDisplayDebug">Display Debug</button>
+        <button id="toggleWorldDebug">World Debug</button>
+        <select id="logLevel">
+            <option value="0">VERBOSE</option>
+            <option value="1">DEBUG</option>
+            <option value="2" selected>INFO</option>
+            <option value="3">WARN</option>
+            <option value="4">ERROR</option>
+            <option value="5">NONE</option>
+        </select>
+    </div>
+    <div class="debug-overlays">
+        <div id="display-debug"></div>
+        <div id="world-debug"></div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+</body>
+</html> 
