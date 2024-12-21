@@ -19,6 +19,8 @@ export type GameAction = {
     position: Point;
 }
 
+export type SystemUpdateFn = (deltaTime: number) => void;
+
 export class Engine {
     private world: World;
     private mode: EngineMode;
@@ -27,6 +29,7 @@ export class Engine {
     private queuedActions: GameAction[] = [];
     private isRunning: boolean = false;
     private player: Entity;
+    private systems: SystemUpdateFn[] = [];
 
     constructor(config: EngineConfig) {
         this.mode = config.mode;
@@ -49,10 +52,14 @@ export class Engine {
     public update(timestamp: number): void {
         if (!this.isRunning) return;
 
-        const deltaTime = (timestamp - this.lastUpdateTime) / 1000;
+        const deltaTime = timestamp - this.lastUpdateTime;
         this.lastUpdateTime = timestamp;
 
         this.processActions();
+
+        for (const system of this.systems) {
+            system(deltaTime);
+        }
 
         for (const entity of this.world.getEntities()) {
             if ('update' in entity) {
@@ -85,5 +92,9 @@ export class Engine {
 
     public getPlayer(): Entity {
         return this.player;
+    }
+
+    public addSystem(system: SystemUpdateFn): void {
+        this.systems.push(system);
     }
 } 

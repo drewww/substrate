@@ -4,6 +4,9 @@ import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Engine } from '../../engine/engine';
 import { SymbolComponent } from '../../entity/component';
+import { MoveCooldownComponent } from './components/move-cooldown.component';
+import { EnemyMovementSystem } from './systems/enemy-movement.system';
+import { EnemyEntity } from '../../entity/enemy';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -17,12 +20,22 @@ d move right
 `;
 
 export class BasicTestGame extends Game {
+    private enemyMovementSystem: EnemyMovementSystem;
+    
     constructor(display: Display) {
         super(display);
         
         // Only set up input configuration here
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
         this.input.setMode('game');
+        
+        // Initialize our systems
+        this.enemyMovementSystem = new EnemyMovementSystem(this.world);
+        
+        // Add system to engine update loop
+        this.engine.addSystem(deltaTime => {
+            this.enemyMovementSystem.update(deltaTime); // Remove the /1000 here
+        });
     }
 
     protected initializeWorld(): void {
@@ -47,6 +60,14 @@ export class BasicTestGame extends Game {
             player: this.player,
             world: this.world
         });
+
+        // Add enemies
+        for (let i = 0; i < 10; i++) {
+            const x = Math.floor(Math.random() * width);
+            const y = Math.floor(Math.random() * height);
+            const enemy = new EnemyEntity({ x, y });
+            this.world.addEntity(enemy);
+        }
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
