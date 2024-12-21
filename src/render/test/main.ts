@@ -22,6 +22,7 @@ class WorldTest {
     private intervalId: number | null = null;
     private worldDebug: WorldDebugOverlay;
     private lastFrameTime: number = 0;
+    private cursorTileId: string | null = null;
 
     constructor() {
         this.setupLogLevel();
@@ -65,6 +66,27 @@ class WorldTest {
         this.display.onCellClick((worldPos) => {
             const smokeBomb = new SmokeBombEntity(worldPos);
             this.world.addEntity(smokeBomb);
+        });
+
+        // Add hover handler for cursor highlight
+        this.display.onCellHover((worldPos) => {
+            // Remove existing cursor tile
+            if (this.cursorTileId) {
+                this.display.removeTile(this.cursorTileId);
+                this.cursorTileId = null;
+            }
+
+            // Create new cursor tile at new position
+            if (worldPos) {
+                this.cursorTileId = this.display.createTile(
+                    worldPos.x,
+                    worldPos.y,
+                    ' ',  // Empty character
+                    '#FFFFFF',  // White (unused since char is empty)
+                    '#0088FF22',  // Light blue with 13% opacity
+                    1000  // Very high z-index to stay on top
+                );
+            }
         });
     }
 

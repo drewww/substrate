@@ -1194,4 +1194,14 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
             }
         });
     }
+
+    public onCellHover(callback: (worldPos: Point | null) => void): void {
+        this.displayCanvas.addEventListener('mousemove', (event) => {
+            const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+            callback(worldPos);
+        });
+        this.displayCanvas.addEventListener('mouseleave', () => {
+            callback(null);
+        });
+    }
 } 
