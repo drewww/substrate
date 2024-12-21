@@ -23,6 +23,13 @@ function init() {
         viewportHeight: height
     });
 
+    // Set black background
+    display.setBackground(
+        ' ',           // Empty character
+        'transparent', // Transparent foreground
+        '#000000FF'     // Black background
+    );
+
     // Initialize game
     game = new Game(display);
     
