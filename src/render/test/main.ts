@@ -60,6 +60,12 @@ class WorldTest {
         // Start the update loop
         this.lastFrameTime = performance.now();
         requestAnimationFrame(this.update.bind(this));
+
+        // Add click handler
+        this.display.onCellClick((worldPos) => {
+            const smokeBomb = new SmokeBombEntity(worldPos);
+            this.world.addEntity(smokeBomb);
+        });
     }
 
     private setupLogLevel() {

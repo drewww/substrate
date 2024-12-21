@@ -3,6 +3,7 @@ import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAn
 import { interpolateColor } from './util/color';
 import { logger } from './util/logger';
 import { DirtyMask } from './dirty-mask';
+import { Point } from '../types';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -1169,5 +1170,28 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
 
     public getDirtyMask(): readonly boolean[][] {
         return this.dirtyMask.getMask();
+    }
+
+    public viewportToWorld(screenX: number, screenY: number): Point | null {
+        // Convert screen coordinates to world coordinates
+        const rect = this.displayCanvas.getBoundingClientRect();
+        const x = Math.floor((screenX - rect.left) / this.cellWidthCSS) + this.viewport.x;
+        const y = Math.floor((screenY - rect.top) / this.cellHeightCSS) + this.viewport.y;
+        
+        // Check if the point is within world bounds
+        if (x >= 0 && x < this.worldWidth && y >= 0 && y < this.worldHeight) {
+            return { x, y };
+        }
+        return null;
+    }
+
+    // Optional: Add method to register click handlers
+    public onCellClick(callback: (worldPos: Point) => void): void {
+        this.displayCanvas.addEventListener('click', (event) => {
+            const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+            if (worldPos) {
+                callback(worldPos);
+            }
+        });
     }
 } 
