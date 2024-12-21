@@ -1,10 +1,10 @@
-import { Game } from '../game';
+import { BasicTestGame } from './basic-test-game';
 import { Display } from '../../display/display';
 import { logger, LogLevel } from '../../display/util/logger';
 import { EnemyEntity } from '../../entity/enemy';
 import { Point } from '../../types';
 
-let game: Game;
+let game: BasicTestGame;
 let display: Display;
 
 function init() {
@@ -31,7 +31,7 @@ function init() {
     );
 
     // Initialize game
-    game = new Game(display);
+    game = new BasicTestGame(display);
     
     // Add enemies
     spawnEnemies(10);
