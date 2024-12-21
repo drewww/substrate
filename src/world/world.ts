@@ -493,4 +493,8 @@ export class World {
         }
         return count;
     }
+
+    public getEntity(entityId: string): Entity | undefined {
+        return this.entities.get(entityId);
+    }
 } 
