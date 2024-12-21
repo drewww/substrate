@@ -92,28 +92,7 @@ export class Renderer {
         const tileId = this.entityTiles.get(entity.getId());
         
         if (tileId) {
-            const tile = this.display.getTile(tileId);
-            if (tile) {
-                const from = { x: tile.x, y: tile.y };
-                
-                // Add movement animation
-                this.display.addValueAnimation(tileId, {
-                    x: {
-                        start: from.x,
-                        end: to.x,
-                        duration: 0.2, // 200ms
-                        loop: false,
-                        easing: Easing.quadOut
-                    },
-                    y: {
-                        start: from.y,
-                        end: to.y,
-                        duration: 0.2,
-                        loop: false,
-                        easing: Easing.quadOut
-                    }
-                });
-            }
+            this.display.moveTile(tileId, to.x, to.y);
         } else {
             logger.warn(`No tile found for moved entity ${entity.getId()}`);
         }

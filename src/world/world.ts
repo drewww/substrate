@@ -494,6 +494,13 @@ export class World {
         return count;
     }
 
+    public onEntityComponentModified(entity: Entity, componentType: string): void {
+        this.emit('entityModified', {
+            entity,
+            componentType
+        });
+    }
+
     public getEntity(entityId: string): Entity | undefined {
         return this.entities.get(entityId);
     }
