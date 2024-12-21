@@ -35,6 +35,10 @@ export class Game {
 
         // Create world and player first
         this.world = new World(width, height);
+
+        this.renderer = new Renderer(this.world, this.display);
+
+
         this.player = new Entity({ x: Math.floor(width/2), y: Math.floor(height/2) });
         this.world.addEntity(this.player);
         
@@ -49,7 +53,6 @@ export class Game {
         this.engine = new Engine(engineConfig);
 
         // Initialize renderer with our world
-        this.renderer = new Renderer(this.world, this.display);
 
         // Set up input handling
         this.input = new InputManager();
@@ -58,9 +61,6 @@ export class Game {
         
         // Register input callback
         this.input.registerCallback(this.handleInput.bind(this), 0);
-
-        // Start display's render loop
-        this.display.start();
     }
 
     public start(): void {
