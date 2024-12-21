@@ -178,3 +178,14 @@ export enum BlendMode {
     Difference = 'difference',
     Exclusion = 'exclusion'
 }
+
+export interface TileUpdateConfig {
+    char?: string;
+    fg?: Color;
+    bg?: Color;
+    zIndex?: number;
+    bgPercent?: number;
+    fillDirection?: FillDirection;
+    noClip?: boolean;
+    blendMode?: BlendMode;
+}

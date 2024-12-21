@@ -1,5 +1,5 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode } from './types';
+import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode, TileUpdateConfig } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from './util/logger';
 import { DirtyMask } from './dirty-mask';
@@ -1203,5 +1203,26 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         this.displayCanvas.addEventListener('mouseleave', () => {
             callback(null);
         });
+    }
+
+    public updateTile(tileId: TileId, config: TileUpdateConfig): void {
+        const tile = this.tileMap.get(tileId);
+        if (!tile) {
+            logger.warn(`Attempted to update non-existent tile: ${tileId}`);
+            return;
+        }
+
+        // Update tile properties
+        if (config.char !== undefined) tile.char = config.char;
+        if (config.fg !== undefined) tile.color = config.fg;
+        if (config.bg !== undefined) tile.backgroundColor = config.bg;
+        if (config.zIndex !== undefined) tile.zIndex = config.zIndex;
+        if (config.bgPercent !== undefined) tile.bgPercent = config.bgPercent;
+        if (config.fillDirection !== undefined) tile.fillDirection = config.fillDirection;
+        if (config.noClip !== undefined) tile.noClip = config.noClip;
+        if (config.blendMode !== undefined) tile.blendMode = config.blendMode;
+
+        this.dirtyMask.markDirty(tile);
+        this.hasChanges = true;
     }
 } 
