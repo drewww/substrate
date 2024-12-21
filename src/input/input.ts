@@ -50,8 +50,8 @@ export class InputManager {
         alt: false,
         meta: false
     };
-    private setIntervalFn: typeof window.setInterval;
-    private clearIntervalFn: typeof window.clearInterval;
+    private setIntervalFn: (fn: () => void, ms: number) => number;
+    private clearIntervalFn: (id: number) => void;
 
     constructor(options: {
         addEventListener?: typeof window.addEventListener,
@@ -59,8 +59,10 @@ export class InputManager {
         clearInterval?: typeof window.clearInterval
     } = {}) {
         const addListener = options.addEventListener || window.addEventListener;
-        this.setIntervalFn = options.setInterval || window.setInterval;
-        this.clearIntervalFn = options.clearInterval || window.clearInterval;
+        this.setIntervalFn = (fn: () => void, ms: number) => 
+            (options.setInterval || window.setInterval)(fn, ms);
+        this.clearIntervalFn = (id: number) => 
+            (options.clearInterval || window.clearInterval)(id);
 
         addListener('keydown', this.handleKeyDown.bind(this));
         addListener('keyup', this.handleKeyUp.bind(this));
