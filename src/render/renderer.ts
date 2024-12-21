@@ -24,6 +24,7 @@ export class Renderer {
         const position = entity.getPosition();
         let char = '@';  // Default
         let color = '#ffffff' as Color;  // Default white
+        let backgroundColor = '#000000' as Color;  // Default black
         let zIndex = 1;  // Default z-index
 
         // Handle smoke bomb
@@ -35,8 +36,7 @@ export class Renderer {
 
         // Handle smoke cloud
         if (entity.hasComponent('fade')) {
-            char = '░';  // or '▒' or '█'
-            color = '#ffffff' as Color;
+            char = ' ';  // or '▒' or '█'
             zIndex = 2;  // Put clouds above other entities
         }
 
@@ -45,24 +45,22 @@ export class Renderer {
             position.y,
             char,
             color,
-            '#000000' as Color,  // Black background
+            backgroundColor,
             zIndex
         );
         
         this.entityTiles.set(entity.getId(), tileId);
-    }
 
-    private onEntityModified(entity: Entity, componentType: string): void {
         // Handle fade updates
-        if (componentType === 'fade') {
+        if (entity.hasComponent('fade')) {
             const tileId = this.entityTiles.get(entity.getId());
             if (tileId) {
                 const fade = entity.getComponent('fade') as FadeComponent;
                 if (fade) {
                     this.display.addColorAnimation(tileId, {
                         bg: {
-                            start: '#000000FF' as Color,  // Fully opaque black
-                            end: '#00000000' as Color,    // Fully transparent black
+                            start: '#FFFFFFFF' as Color,  // Fully opaque black
+                            end: '#FFFFFF00' as Color,    // Fully transparent black
                             duration: fade.duration,
                             easing: Easing.linear
                         }
@@ -70,6 +68,10 @@ export class Renderer {
                 }
             }
         }
+    }
+
+    private onEntityModified(entity: Entity, componentType: string): void {
+        
     }
 
     private onEntityRemoved(entity: Entity): void {
