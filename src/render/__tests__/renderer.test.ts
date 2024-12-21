@@ -65,6 +65,7 @@ describe('Renderer', () => {
         
         const [tileId] = display.tiles.keys();
         const newPos: Point = { x: 2, y: 2 };
+        
         world.moveEntity(entity.getId(), newPos);
         
         expect(display.moveTile).toHaveBeenCalledWith(tileId, 2, 2);

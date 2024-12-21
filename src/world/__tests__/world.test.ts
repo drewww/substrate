@@ -611,7 +611,7 @@ describe('World', () => {
                 expect(handler).toHaveBeenCalledWith({ entity });
             });
 
-            it('sets world reference when adding entity', () => {
+            it('emits entityModified when adding component', () => {
                 const handler = vi.fn();
                 world.on('entityModified', handler);
                 
