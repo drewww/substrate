@@ -78,6 +78,10 @@ export class Game {
     }
 
     private handleInput(type: string, action: string, params: string[]): void {
+        if (type === 'up') {
+            return;
+        }
+
         if (action === 'move') {
             const pos = this.player.getPosition();
             let newPos: Point = { ...pos };

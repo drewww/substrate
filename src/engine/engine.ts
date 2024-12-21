@@ -73,7 +73,7 @@ export class Engine {
                 try {
                     this.world.moveEntity(this.player.getId(), action.position);
                 } catch (e) {
-                    logger.warn(`Failed to move player:`, e);
+                    // logger.warn(`Failed to move player:`, e);
                 }
             }
         }
