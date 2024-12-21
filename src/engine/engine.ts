@@ -11,6 +11,7 @@ export interface EngineConfig {
     worldWidth: number;
     worldHeight: number;
     player: Entity;
+    world: World;
 }
 
 export type GameAction = {
@@ -30,10 +31,9 @@ export class Engine {
     constructor(config: EngineConfig) {
         this.mode = config.mode;
         this.updateInterval = config.updateInterval || (1000/60);
-        this.world = new World(config.worldWidth, config.worldHeight);
+        this.world = config.world;
         this.player = config.player;
         
-        this.world.addEntity(this.player);
         this.start();
     }
 

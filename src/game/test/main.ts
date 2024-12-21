@@ -1,13 +1,9 @@
 import { Game } from '../game';
 import { Display } from '../../display/display';
-import { Renderer } from '../../render/renderer';
 import { logger, LogLevel } from '../../display/util/logger';
 
 let game: Game;
 let display: Display;
-let renderer: Renderer;
-let animationFrame: number;
-let lastTimestamp = 0;
 
 function init() {
     const width = 40;
@@ -26,29 +22,17 @@ function init() {
     });
 
     // Initialize game
-    game = new Game(width, height);
+    game = new Game(display);
     
-    // Initialize renderer
-    renderer = new Renderer(game.getWorld(), display);
-
     // Set up debug displays
     setupDebugDisplays();
     
     // Set up controls
     setupControls();
     
-    // Start game loop
-    requestAnimationFrame(gameLoop);
-}
-
-function gameLoop(timestamp: number) {
-    const deltaTime = timestamp - lastTimestamp;
-    lastTimestamp = timestamp;
-
-    game.update(timestamp);
-    updateDebugDisplays();
-
-    animationFrame = requestAnimationFrame(gameLoop);
+    // Start game and debug updates
+    game.start();
+    setInterval(updateDebugDisplays, 1000/15); // Match game update frequency
 }
 
 function setupDebugDisplays() {

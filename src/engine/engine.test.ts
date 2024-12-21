@@ -1,20 +1,26 @@
 import { Engine, EngineConfig } from './engine';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
+import { World } from '../world/world';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 describe('Engine', () => {
     let engine: Engine;
     let player: Entity;
+    let world: World;
     let config: EngineConfig;
 
     beforeEach(() => {
+        world = new World(20, 20);
         player = new Entity({ x: 5, y: 5 });
+        world.addEntity(player);
+        
         config = {
             mode: 'realtime',
             worldWidth: 20,
             worldHeight: 20,
-            player
+            player,
+            world
         };
         engine = new Engine(config);
     });
