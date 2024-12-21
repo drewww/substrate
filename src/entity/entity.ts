@@ -6,7 +6,6 @@ import { REQUIRED_COMPONENTS } from './decorators';
 import { Point } from '../types';
 import { isTransient } from '../decorators/transient';
 import { Component } from './component';
-import { World } from '../world/world';
 
 /**
  * Base entity class that manages components
@@ -18,7 +17,6 @@ export class Entity {
   private tags: Set<string> = new Set();
   private position: Point;
   private positionChanged: boolean = false;
-  protected world: World | undefined;
 
   constructor(position: Point, id?: string) {
     this.id = id ?? Entity.generateId();
@@ -306,13 +304,5 @@ export class Entity {
    */
   getComponentCount(): number {
     return this.store.size();
-  }
-
-  /**
-   * Set the world reference
-   * @internal Used by World when adding entities
-   */
-  public setWorld(world: World): void {
-    this.world = world;
   }
 } 
