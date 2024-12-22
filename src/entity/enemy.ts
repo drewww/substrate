@@ -8,8 +8,8 @@ export class EnemyEntity extends Entity {
         super(position);
         this.setComponent(new SymbolComponent(
             'E',             
-            '#FF0000',      
-            'transparent',   
+            '#FFFFFFFF',      
+            '#FF000055',   
             1               
         ));
         this.setComponent(new MoveCooldownComponent(4, 4));

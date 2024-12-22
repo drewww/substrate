@@ -32,6 +32,7 @@ class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTi
 
 // Concrete test implementation of Renderer
 class TestRenderer extends Renderer {
+    protected handleComponentModified(entity: Entity, componentType: string): void {}
     protected handleEntityAdded(entity: Entity, tileId: string): void {}
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}

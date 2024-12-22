@@ -23,6 +23,7 @@ export class GameRenderer extends Renderer {
     }
 
     protected handleEntityModified(entity: Entity, componentType: string): void {}
+    protected handleComponentModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}
     protected handleEntityMoved(entity: Entity, to: Point): void {}
 } 

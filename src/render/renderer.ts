@@ -5,6 +5,14 @@ import { Point } from '../types';
 import { SymbolComponent } from '../entity/component';
 import { logger } from '../util/logger';
 
+/**
+ * Base renderer class that handles entity visualization
+ * 
+ * Events handled:
+ * - entityModified: When components are added/removed from an entity
+ * - entityMoved: When an entity's position changes
+ * - componentModified: When values within a component are updated
+ */
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
 
@@ -16,8 +24,12 @@ export abstract class Renderer {
         this.world.on('entityRemoved', ({ entity }) => this.onEntityRemoved(entity));
         this.world.on('entityMoved', ({ entity, to }) => this.onEntityMoved(entity, to));
         this.world.on('entityModified', ({ entity, componentType }) => this.onEntityModified(entity, componentType));
+        this.world.on('componentModified', ({ entity, componentType }) => this.onComponentModified(entity, componentType));
     }
 
+    /**
+     * Handle entity addition
+     */
     protected onEntityAdded(entity: Entity): void {
         const symbolComponent = entity.getComponent('symbol') as SymbolComponent;
         if (!symbolComponent) {
@@ -39,6 +51,9 @@ export abstract class Renderer {
         this.handleEntityAdded(entity, tileId);
     }
 
+    /**
+     * Handle component addition/removal
+     */
     protected onEntityModified(entity: Entity, componentType: string): void {
         if (componentType === 'symbol') {
             const tileId = this.entityTiles.get(entity.getId());
@@ -52,10 +67,19 @@ export abstract class Renderer {
                 });
             }
         }
-        
         this.handleEntityModified(entity, componentType);
     }
 
+    /**
+     * Handle component value changes
+     */
+    protected onComponentModified(entity: Entity, componentType: string): void {
+        this.handleComponentModified(entity, componentType);
+    }
+
+    /**
+     * Handle entity removal
+     */
     protected onEntityRemoved(entity: Entity): void {
         logger.debug(`Renderer received entityRemoved event for entity ${entity.getId()}`);
         const tileId = this.entityTiles.get(entity.getId());
@@ -71,6 +95,9 @@ export abstract class Renderer {
         this.handleEntityRemoved(entity);
     }
 
+    /**
+     * Handle entity move
+     */
     protected onEntityMoved(entity: Entity, to: Point): void {
         logger.debug(`Renderer handling entity move for ${entity.getId()} to (${to.x},${to.y})`);
         const tileId = this.entityTiles.get(entity.getId());
@@ -84,9 +111,10 @@ export abstract class Renderer {
         this.handleEntityMoved(entity, to);
     }
 
-    // Hook methods for derived classes
+    // Update abstract methods
     protected abstract handleEntityAdded(entity: Entity, tileId: string): void;
     protected abstract handleEntityModified(entity: Entity, componentType: string): void;
+    protected abstract handleComponentModified(entity: Entity, componentType: string): void;
     protected abstract handleEntityRemoved(entity: Entity): void;
     protected abstract handleEntityMoved(entity: Entity, to: Point): void;
-} 
+}  

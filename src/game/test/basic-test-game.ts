@@ -6,7 +6,7 @@ import { Engine } from '../../engine/engine';
 import { SymbolComponent } from '../../entity/component';
 import { EnemyMovementSystem } from './systems/enemy-movement.system';
 import { EnemyEntity } from '../../entity/enemy';
-import { GameRenderer } from '../../render/test/game-renderer';
+import { TestGameRenderer } from './renderers/test-game-renderer';
 import { Renderer } from '../../render/renderer';
 
 const DEFAULT_INPUT_CONFIG = `
@@ -40,7 +40,7 @@ export class BasicTestGame extends Game {
     }
 
     protected createRenderer(): Renderer {
-        return new GameRenderer(this.world, this.display);
+        return new TestGameRenderer(this.world, this.display);
     }
 
     protected initializeWorld(): void {

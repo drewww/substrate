@@ -20,6 +20,7 @@ export type WorldEventMap = {
     'entityRemoved': { entity: Entity, position: Point };
     'entityMoved': { entity: Entity, from: Point, to: Point };
     'entityModified': { entity: Entity, componentType: string };
+    'componentModified': { entity: Entity, componentType: string };
 }
 
 type WorldEventHandler<T extends keyof WorldEventMap> = (data: WorldEventMap[T]) => void;
@@ -398,7 +399,9 @@ export class World {
 
                 if (isUpdatable(component)) {
                     component.update(deltaTime);
-                    this.emit('entityModified', {
+                    component.modified = true;
+                    entity.markComponentModified(type);
+                    this.emit('componentModified', {
                         entity,
                         componentType: type
                     });
@@ -494,14 +497,27 @@ export class World {
         return count;
     }
 
-    public onEntityComponentModified(entity: Entity, componentType: string): void {
+    public getEntity(entityId: string): Entity | undefined {
+        return this.entities.get(entityId);
+    }
+
+    /**
+     * Called when a component is added or removed from an entity
+     */
+    public onEntityModified(entity: Entity, componentType: string): void {
         this.emit('entityModified', {
             entity,
             componentType
         });
     }
 
-    public getEntity(entityId: string): Entity | undefined {
-        return this.entities.get(entityId);
+    /**
+     * Called when a component's values are modified
+     */
+    public onComponentModified(entity: Entity, componentType: string): void {
+        this.emit('componentModified', {
+            entity,
+            componentType
+        });
     }
 } 

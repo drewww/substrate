@@ -11,6 +11,7 @@ import { Renderer } from '../renderer';
 
 // Basic renderer for testing
 class TestRenderer extends Renderer {
+    protected handleComponentModified(entity: Entity, componentType: string): void {}
     protected handleEntityAdded(entity: Entity, tileId: string): void {}
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}
@@ -47,7 +48,7 @@ class WorldTest {
             viewportWidth: WORLD_WIDTH,
             viewportHeight: WORLD_HEIGHT
         });
-        
+
         this.renderer = new TestRenderer(this.world, this.display);
         
         // Initialize debug overlays

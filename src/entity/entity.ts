@@ -10,6 +10,11 @@ import { World } from '../world/world';
 
 /**
  * Base entity class that manages components
+ * 
+ * Events:
+ * - entityModified: Fired when components are added/removed
+ * - entityMoved: Fired when position is updated
+ * - componentModified: Fired when component values change
  */
 export class Entity {
   private readonly id: string;
@@ -48,7 +53,7 @@ export class Entity {
   }
 
   /**
-   * Set a component
+   * Set a component (triggers entityModified event)
    */
   setComponent(component: Component): this {
     const copy = Object.create(
@@ -60,7 +65,7 @@ export class Entity {
     this.changedComponents.add(component.type);
     
     if (this.world) {
-      this.world.onEntityComponentModified(this, component.type);
+      this.world.onEntityModified(this, component.type);
     }
     
     return this;
@@ -116,7 +121,7 @@ export class Entity {
   }
 
   /**
-   * Set the entity's position
+   * Set the entity's position (triggers entityMoved event)
    */
   setPosition(x: number, y: number): this {
     this.position = { x, y };
@@ -318,5 +323,21 @@ export class Entity {
    */
   setWorld(world: World): void {
     this.world = world;
+  }
+
+  /**
+   * Mark a component as modified (triggers componentModified event)
+   * Use this when updating values within a component
+   */
+  markComponentModified(type: string): void {
+    const component = this.getComponent(type);
+    if (component) {
+      component.modified = true;
+      this.changedComponents.add(type);
+      
+      if (this.world) {
+        this.world.onComponentModified(this, type);
+      }
+    }
   }
 } 
