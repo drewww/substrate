@@ -132,6 +132,16 @@ class WorldTest {
             const smokeBomb = new SmokeBombEntity({ x, y });
             this.world.addEntity(smokeBomb);
         });
+        
+        // Add fill world handler
+        document.getElementById('fillWorld')?.addEventListener('click', () => {
+            for (let x = 0; x < WORLD_WIDTH; x++) {
+                for (let y = 0; y < WORLD_HEIGHT; y++) {
+                    const smokeBomb = new SmokeBombEntity({ x, y });
+                    this.world.addEntity(smokeBomb);
+                }
+            }
+        });
     }
 
     private getRandomPosition(): Point {
