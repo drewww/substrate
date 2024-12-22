@@ -2,6 +2,7 @@ import { Entity } from '../../../entity/entity';
 import { World } from '../../../world/world';
 import { Point } from '../../../types';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
+import { logger } from '../../../display/util/logger';
 export class EnemyMovementSystem {
     constructor(private world: World) {}
 
@@ -13,6 +14,8 @@ export class EnemyMovementSystem {
             const cooldown = enemy.getComponent('moveCooldown') as MoveCooldownComponent;
             
             cooldown.cooldown -= deltaTime;
+
+            logger.verbose(`Enemy ${enemy.getId()} cooldown: ${cooldown.cooldown}`);
             
             if (cooldown.cooldown <= 0) {
                 this.moveEnemy(enemy);

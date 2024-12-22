@@ -4,9 +4,10 @@ import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Engine } from '../../engine/engine';
 import { SymbolComponent } from '../../entity/component';
-import { MoveCooldownComponent } from './components/move-cooldown.component';
 import { EnemyMovementSystem } from './systems/enemy-movement.system';
 import { EnemyEntity } from '../../entity/enemy';
+import { GameRenderer } from '../../render/test/game-renderer';
+import { Renderer } from '../../render/renderer';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -36,6 +37,10 @@ export class BasicTestGame extends Game {
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime); // Remove the /1000 here
         });
+    }
+
+    protected createRenderer(): Renderer {
+        return new GameRenderer(this.world, this.display);
     }
 
     protected initializeWorld(): void {

@@ -11,7 +11,7 @@ export abstract class Game {
     protected world: World;
     protected player!: Entity;
     protected display: Display;
-    protected renderer: Renderer;
+    protected renderer!: Renderer;
     private updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
 
@@ -21,16 +21,19 @@ export abstract class Game {
         
         this.display = display;
         this.world = new World(width, height);
-        this.renderer = new Renderer(this.world, this.display);
         
         // Initialize input handling
         this.input = new InputManager();
         this.input.registerCallback(this.handleInput.bind(this), 0);
 
+        // Create renderer
+        this.renderer = this.createRenderer();
+
         // Initialize the world (which will set engine and player)
         this.initializeWorld();
     }
 
+    protected abstract createRenderer(): Renderer;
     protected abstract initializeWorld(): void;
     protected abstract handleInput(type: string, action: string, params: string[]): void;
 

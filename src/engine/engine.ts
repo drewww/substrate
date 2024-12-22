@@ -52,7 +52,7 @@ export class Engine {
     public update(timestamp: number): void {
         if (!this.isRunning) return;
 
-        const deltaTime = timestamp - this.lastUpdateTime;
+        const deltaTime = (timestamp - this.lastUpdateTime) / 1000;
         this.lastUpdateTime = timestamp;
 
         this.processActions();

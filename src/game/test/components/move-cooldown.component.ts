@@ -4,8 +4,8 @@ export class MoveCooldownComponent extends Component {
     type: 'moveCooldown' = 'moveCooldown';
     
     constructor(
-        public cooldown: number = 4000,    // Current cooldown in milliseconds
-        public baseTime: number = 4000      // Reset to this value after moving
+        public cooldown: number = 4,    // Current cooldown in milliseconds
+        public baseTime: number = 4      // Reset to this value after moving
     ) {
         super();
     }

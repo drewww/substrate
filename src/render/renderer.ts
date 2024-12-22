@@ -1,19 +1,16 @@
-import { Display, Easing } from '../display/display';
+import { Display } from '../display/display';
 import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
-import { Color } from '../display/types';
-import { logger } from '../display/util/logger';
-import { FadeComponent } from '../entity/component';
-import { SmokeBombComponent } from '../entity/component';
 import { SymbolComponent } from '../entity/component';
+import { logger } from '../display/util/logger';
 
-export class Renderer {
-    private entityTiles: Map<string, string> = new Map(); // entityId -> tileId
+export abstract class Renderer {
+    protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
 
     constructor(
-        private world: World,
-        private display: Display
+        protected world: World,
+        protected display: Display
     ) {
         this.world.on('entityAdded', ({ entity }) => this.onEntityAdded(entity));
         this.world.on('entityRemoved', ({ entity }) => this.onEntityRemoved(entity));
@@ -21,7 +18,7 @@ export class Renderer {
         this.world.on('entityModified', ({ entity, componentType }) => this.onEntityModified(entity, componentType));
     }
 
-    private onEntityAdded(entity: Entity): void {
+    protected onEntityAdded(entity: Entity): void {
         const symbolComponent = entity.getComponent('symbol') as SymbolComponent;
         if (!symbolComponent) {
             return; // Don't render entities without symbol components
@@ -38,24 +35,11 @@ export class Renderer {
         );
         
         this.entityTiles.set(entity.getId(), tileId);
-
-        // Handle fade component if present
-        if (entity.hasComponent('fade')) {
-            const fade = entity.getComponent('fade') as FadeComponent;
-            if (fade) {
-                this.display.addColorAnimation(tileId, {
-                    bg: {
-                        start: '#FFFFFFFF',
-                        end: '#FFFFFF00',
-                        duration: fade.duration,
-                        easing: Easing.linear
-                    }
-                });
-            }
-        }
+        
+        this.handleEntityAdded(entity, tileId);
     }
 
-    private onEntityModified(entity: Entity, componentType: string): void {
+    protected onEntityModified(entity: Entity, componentType: string): void {
         if (componentType === 'symbol') {
             const tileId = this.entityTiles.get(entity.getId());
             const symbol = entity.getComponent('symbol') as SymbolComponent;
@@ -68,9 +52,11 @@ export class Renderer {
                 });
             }
         }
+        
+        this.handleEntityModified(entity, componentType);
     }
 
-    private onEntityRemoved(entity: Entity): void {
+    protected onEntityRemoved(entity: Entity): void {
         logger.debug(`Renderer received entityRemoved event for entity ${entity.getId()}`);
         const tileId = this.entityTiles.get(entity.getId());
         
@@ -81,9 +67,11 @@ export class Renderer {
         } else {
             logger.warn(`No tile found for removed entity ${entity.getId()}`);
         }
+        
+        this.handleEntityRemoved(entity);
     }
 
-    private onEntityMoved(entity: Entity, to: Point): void {
+    protected onEntityMoved(entity: Entity, to: Point): void {
         logger.debug(`Renderer handling entity move for ${entity.getId()} to (${to.x},${to.y})`);
         const tileId = this.entityTiles.get(entity.getId());
         
@@ -92,5 +80,13 @@ export class Renderer {
         } else {
             logger.warn(`No tile found for moved entity ${entity.getId()}`);
         }
+        
+        this.handleEntityMoved(entity, to);
     }
+
+    // Hook methods for derived classes
+    protected abstract handleEntityAdded(entity: Entity, tileId: string): void;
+    protected abstract handleEntityModified(entity: Entity, componentType: string): void;
+    protected abstract handleEntityRemoved(entity: Entity): void;
+    protected abstract handleEntityMoved(entity: Entity, to: Point): void;
 } 

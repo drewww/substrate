@@ -12,6 +12,6 @@ export class EnemyEntity extends Entity {
             'transparent',   
             1               
         ));
-        this.setComponent(new MoveCooldownComponent(4000, 4000));
+        this.setComponent(new MoveCooldownComponent(4, 4));
     }
 } 

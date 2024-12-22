@@ -30,15 +30,23 @@ class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTi
     });
 }
 
+// Concrete test implementation of Renderer
+class TestRenderer extends Renderer {
+    protected handleEntityAdded(entity: Entity, tileId: string): void {}
+    protected handleEntityModified(entity: Entity, componentType: string): void {}
+    protected handleEntityRemoved(entity: Entity): void {}
+    protected handleEntityMoved(entity: Entity, to: Point): void {}
+}
+
 describe('Renderer', () => {
     let world: World;
     let display: MockDisplay;
-    let renderer: Renderer;
+    let renderer: TestRenderer;
     
     beforeEach(() => {
         world = new World(10, 10);
         display = new MockDisplay();
-        renderer = new Renderer(world, display as unknown as Display);
+        renderer = new TestRenderer(world, display as unknown as Display);
     });
 
     it('creates a tile when entity with symbol is added', () => {
