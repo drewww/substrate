@@ -107,4 +107,52 @@ describe('Engine', () => {
 
         expect(player.getPosition()).toEqual(moves[moves.length - 1]);
     });
+
+    describe('event batching', () => {
+        test('batches events during update cycle', () => {
+            const events: string[] = [];
+            world.on('entityMoved', () => events.push('moved'));
+            
+            // Queue up multiple moves
+            engine.handleAction({ type: 'move', position: { x: 6, y: 5 } });
+            engine.handleAction({ type: 'move', position: { x: 7, y: 5 } });
+            engine.handleAction({ type: 'move', position: { x: 8, y: 5 } });
+            
+            // Should process all moves but only emit events once at the end
+            engine.update(performance.now());
+            
+            expect(events.length).toBe(3); // All events processed in one batch
+            expect(player.getPosition()).toEqual({ x: 8, y: 5 });
+        });
+
+        test('events outside update cycle are not batched', () => {
+            const events: string[] = [];
+            world.on('entityMoved', () => events.push('moved'));
+            
+            // Direct world manipulation outside engine update
+            world.moveEntity(player.getId(), { x: 6, y: 5 });
+            expect(events.length).toBe(1); // Immediate event
+            
+            world.moveEntity(player.getId(), { x: 7, y: 5 });
+            expect(events.length).toBe(2); // Another immediate event
+        });
+
+        test('systems receive consistent world state during update', () => {
+            const systemStates: Point[] = [];
+            const testSystem = (deltaTime: number) => {
+                systemStates.push({...player.getPosition()});
+            };
+            
+            engine.addSystem(testSystem);
+            
+            // Queue multiple moves
+            engine.handleAction({ type: 'move', position: { x: 6, y: 5 } });
+            engine.handleAction({ type: 'move', position: { x: 7, y: 5 } });
+            
+            engine.update(performance.now());
+            
+            // System should see the final state, not intermediate states
+            expect(systemStates).toEqual([{ x: 7, y: 5 }]);
+        });
+    });
 }); 

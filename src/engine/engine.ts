@@ -50,6 +50,8 @@ export class Engine {
         const deltaTime = (timestamp - this.lastUpdateTime) / 1000;
         this.lastUpdateTime = timestamp;
 
+        this.world.startBatch();
+
         this.processActions();
 
         for (const system of this.systems) {
@@ -61,6 +63,8 @@ export class Engine {
                 (entity as any).update(deltaTime);
             }
         }
+
+        this.world.endBatch();
     }
 
     public handleAction(action: GameAction): void {

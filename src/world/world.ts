@@ -30,6 +30,8 @@ export class World {
     private entities: Map<string, Entity> = new Map();
     private spatialMap: Map<string, Set<string>> = new Map();
     private eventHandlers = new Map<string, Set<WorldEventHandler<any>>>();
+    private queuedEvents: Array<{ event: string, data: any }> = [];
+    private batchingEvents = false;
     
     constructor(private readonly width: number, private readonly height: number) {}
 
@@ -430,10 +432,14 @@ export class World {
      * Emit an event with optional data
      */
     public emit(event: string, data?: any): void {
-        const handlers = this.eventHandlers.get(event);
-        if (handlers) {
-            for (const handler of handlers) {
-                handler(data);
+        if (this.batchingEvents) {
+            this.queuedEvents.push({ event, data });
+        } else {
+            const handlers = this.eventHandlers.get(event);
+            if (handlers) {
+                for (const handler of handlers) {
+                    handler(data);
+                }
             }
         }
     }
@@ -518,5 +524,26 @@ export class World {
             from,
             to
         });
+    }
+
+    public startBatch(): void {
+        this.batchingEvents = true;
+    }
+
+    public endBatch(): void {
+        this.batchingEvents = false;
+        this.flushEvents();
+    }
+
+    private flushEvents(): void {
+        for (const { event, data } of this.queuedEvents) {
+            const handlers = this.eventHandlers.get(event);
+            if (handlers) {
+                for (const handler of handlers) {
+                    handler(data);
+                }
+            }
+        }
+        this.queuedEvents = [];
     }
 } 
