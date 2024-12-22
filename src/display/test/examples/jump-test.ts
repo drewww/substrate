@@ -1,7 +1,7 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../../types';
 import { Easing, FillDirection } from '../../display';
-import { logger } from '../../util/logger';
+import { logger } from '../../../util/logger';
 
 export class JumpTest extends BaseTest {
     private readonly TILE_COUNT = 3;

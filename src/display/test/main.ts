@@ -1,4 +1,4 @@
-import { logger } from '../util/logger';
+import { logger } from '../../util/logger';
 import { TestManager } from './test-manager';
 
 const SELECTED_TEST_KEY = 'matrix-display-selected-test';

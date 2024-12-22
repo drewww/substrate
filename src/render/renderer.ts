@@ -3,7 +3,7 @@ import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
 import { SymbolComponent } from '../entity/component';
-import { logger } from '../display/util/logger';
+import { logger } from '../util/logger';
 
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId

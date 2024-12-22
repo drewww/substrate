@@ -1,5 +1,5 @@
 import { Display, DisplayOptions } from '../../display';
-import { logger } from '../../util/logger';
+import { logger } from '../../../util/logger';
 
 export abstract class BaseTest {
     protected display!: Display;

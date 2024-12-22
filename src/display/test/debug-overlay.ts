@@ -1,5 +1,5 @@
 import { Display } from "../display";
-import { logger } from "../util/logger";
+import { logger } from "../../util/logger";
 
 export class DebugOverlay {
     private isVisible = false;

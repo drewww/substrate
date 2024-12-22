@@ -2,7 +2,7 @@ import { Display } from '../../display/display';
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
-import { logger } from '../../display/util/logger';
+import { logger } from '../../util/logger';
 import { DebugOverlay } from '../../display/test/debug-overlay';
 import { WorldDebugOverlay } from '../../world/debug-overlay';
 import { SmokeBombEntity } from '../../entity/smoke-bomb';
@@ -47,6 +47,7 @@ class WorldTest {
             viewportWidth: WORLD_WIDTH,
             viewportHeight: WORLD_HEIGHT
         });
+        
         this.renderer = new TestRenderer(this.world, this.display);
         
         // Initialize debug overlays

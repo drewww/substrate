@@ -2,7 +2,7 @@ import { SerializedEntity } from '../entity/component';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Component } from '../entity/component';
-import { logger } from '../display/util/logger';
+import { logger } from '../util/logger';
 
 interface SerializedWorld {
     width: number;

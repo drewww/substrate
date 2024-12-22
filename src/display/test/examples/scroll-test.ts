@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { Color, TileId } from '../../types';
-import { logger } from '../../util/logger';
+import { logger } from '../../../util/logger';
 
 interface Point {
     x: number;

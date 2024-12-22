@@ -10,7 +10,7 @@ import { JumpTest } from './examples/jump-test';
 import { StringTest } from './examples/string-test';
 import { PatternAnimationTest } from './examples/pattern-animation-test';
 import { AnimationLoadTest } from './examples/animation-load-test';
-import { logger } from '../util/logger';
+import { logger } from '../../util/logger';
 import { SmallPixelTest } from './examples/small-pixel-test';
 
 export class TestManager {

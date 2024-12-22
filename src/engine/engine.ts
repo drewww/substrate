@@ -1,7 +1,6 @@
 import { World } from '../world/world';
 import { Point } from '../types';
 import { Entity } from '../entity/entity';
-import { logger } from '../display/util/logger';
 
 export type EngineMode = 'realtime' | 'turnbased';
 
@@ -23,8 +22,6 @@ export type SystemUpdateFn = (deltaTime: number) => void;
 
 export class Engine {
     private world: World;
-    private mode: EngineMode;
-    private updateInterval: number;
     private lastUpdateTime: number = 0;
     private queuedActions: GameAction[] = [];
     private isRunning: boolean = false;
@@ -32,8 +29,6 @@ export class Engine {
     private systems: SystemUpdateFn[] = [];
 
     constructor(config: EngineConfig) {
-        this.mode = config.mode;
-        this.updateInterval = config.updateInterval || (1000/60);
         this.world = config.world;
         this.player = config.player;
         

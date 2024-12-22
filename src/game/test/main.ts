@@ -1,8 +1,6 @@
 import { BasicTestGame } from './basic-test-game';
 import { Display } from '../../display/display';
-import { logger, LogLevel } from '../../display/util/logger';
-import { EnemyEntity } from '../../entity/enemy';
-import { Point } from '../../types';
+import { logger, LogLevel } from '../../util/logger';
 
 let game: BasicTestGame;
 let display: Display;

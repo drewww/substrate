@@ -1,7 +1,7 @@
 import { TextParser } from './util/text-parser';
 import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode, TileUpdateConfig } from './types';
 import { interpolateColor } from './util/color';
-import { logger } from './util/logger';
+import { logger } from '../util/logger';
 import { DirtyMask } from './dirty-mask';
 import { Point } from '../types';
 

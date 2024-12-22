@@ -2,7 +2,7 @@ import { Entity } from '../../../entity/entity';
 import { World } from '../../../world/world';
 import { Point } from '../../../types';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
-import { logger } from '../../../display/util/logger';
+import { logger } from '../../../util/logger';
 export class EnemyMovementSystem {
     constructor(private world: World) {}
 
