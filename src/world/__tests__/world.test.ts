@@ -535,7 +535,7 @@ describe('World', () => {
 
         it('updates components that support updating', () => {
             const handler = vi.fn();
-            world.on('entityModified', handler);
+            world.on('componentModified', handler);
 
             const entity = new Entity(DEFAULT_POSITION);
             const component = new UpdatableComponent();
