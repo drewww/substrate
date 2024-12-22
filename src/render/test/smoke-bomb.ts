@@ -1,7 +1,7 @@
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
-import { SymbolComponent } from '../../entity/component';
 import { TimerComponent, SmokeBombComponent, FadeComponent } from './test-components';
+import { SymbolComponent } from '../../entity/components/symbol-component';
 
 export class SmokeBombEntity extends Entity {
     private explosionTimer: TimerComponent;

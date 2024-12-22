@@ -6,9 +6,8 @@ import { logger } from '../../util/logger';
 import { DebugOverlay } from '../../display/test/debug-overlay';
 import { WorldDebugOverlay } from '../../world/debug-overlay';
 import { SmokeBombEntity } from './smoke-bomb';
-import { SymbolComponent } from '../../entity/component';
-import { Renderer } from '../renderer';
 import { GameRenderer } from './game-renderer';
+import { SymbolComponent } from '../../entity/components/symbol-component';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;

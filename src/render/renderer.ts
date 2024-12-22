@@ -2,8 +2,8 @@ import { Display } from '../display/display';
 import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
-import { SymbolComponent } from '../entity/component';
 import { logger } from '../util/logger';
+import { SymbolComponent } from '../entity/components/symbol-component';
 
 /**
  * Base renderer class that handles entity visualization

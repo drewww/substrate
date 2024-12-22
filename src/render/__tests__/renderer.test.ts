@@ -4,8 +4,7 @@ import { Renderer } from '../renderer';
 import { Display } from '../../display/display';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Point } from '../../types';
-import { SymbolComponent } from '../../entity/component';
-
+import { SymbolComponent } from '../../entity/components/symbol-component';
 // Mock Display class
 class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTile'> {
     public tiles: Map<string, { x: number, y: number }> = new Map();

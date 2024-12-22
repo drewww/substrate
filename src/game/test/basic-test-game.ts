@@ -3,12 +3,11 @@ import { Display } from '../../display/display';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Engine } from '../../engine/engine';
-import { SymbolComponent } from '../../entity/component';
 import { EnemyMovementSystem } from './systems/enemy-movement.system';
 import { EnemyEntity } from '../../entity/enemy';
 import { TestGameRenderer } from './renderers/test-game-renderer';
 import { Renderer } from '../../render/renderer';
-
+import { SymbolComponent } from '../../entity/components/symbol-component';
 const DEFAULT_INPUT_CONFIG = `
 mode: game
 ==========
