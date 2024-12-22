@@ -3,6 +3,7 @@ import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Component } from '../entity/component';
 import { logger } from '../util/logger';
+import { ComponentRegistry } from '../entity/component-registry';
 
 interface SerializedWorld {
     width: number;
@@ -229,45 +230,38 @@ export class World {
      * Serialize the world and all its entities to a JSON string
      */
     public serialize(): string {
-        const serialized: SerializedWorld = {
-            width: this.width,
-            height: this.height,
-            entities: Array.from(this.entities.values()).map(entity => ({
-                id: entity.getId(),
-                position: entity.getPosition(),
-                components: entity.getComponents(),
-                tags: Array.from(entity.getTags())
+        return JSON.stringify({
+            size: { x: this.width, y: this.height },
+            entities: Array.from(this.entities.values()).map(e => ({
+                id: e.getId(),
+                position: e.getPosition(),
+                components: e.getComponents(),
+                tags: Array.from(e.getTags())
             }))
-        };
-
-        return JSON.stringify(serialized);
+        });
     }
 
     /**
      * Create a new world from a serialized string
      * @throws Error if the serialized data is invalid
      */
-    public static deserialize(serializedWorld: string): World {
+    public static deserialize(data: string): World {
         try {
-            const data: SerializedWorld = JSON.parse(serializedWorld);
-            const world = new World(data.width, data.height);
-
-            for (const entityData of data.entities) {
+            const parsed = JSON.parse(data);
+            const world = new World(parsed.size.x, parsed.size.y);
+            
+            for (const entityData of parsed.entities) {
                 const entity = new Entity(entityData.position, entityData.id);
-                
-                // Restore components using Component.fromJSON
-                for (const componentData of entityData.components) {
-                    entity.setComponent(Component.fromJSON(componentData));
+                for (const component of entityData.components) {
+                    entity.setComponent(ComponentRegistry.fromJSON(component));
                 }
-
-                // Restore tags
                 if (entityData.tags) {
-                    entity.addTags(entityData.tags);
+                    for (const tag of entityData.tags) {
+                        entity.addTag(tag);
+                    }
                 }
-
                 world.addEntity(entity);
             }
-
             return world;
         } catch (error) {
             throw new Error(`Failed to deserialize world: ${error}`);

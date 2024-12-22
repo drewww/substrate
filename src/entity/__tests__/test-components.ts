@@ -1,40 +1,33 @@
 import { Component } from '../component';
+import { transient } from '../../decorators/transient';
+import { RegisterComponent } from '../component-registry';
 
+@RegisterComponent('test')
 export class TestComponent extends Component {
-    public readonly type = 'test';
+    readonly type = 'test';
+    value: number = 100;
     
-    constructor(public value: any = null) {
-        super();
-    }
-
-    toJSON() {
-        return {
-            type: this.type,
-            value: this.value
-        };
-    }
+    @transient
+    transientValue?: boolean;
 
     static fromJSON(data: any): TestComponent {
-        return new TestComponent(data.value);
+        const component = new TestComponent();
+        component.value = data.value;
+        return component;
     }
 }
 
-export class HealthComponent extends Component {
-    public readonly type = 'health';
-    
-    constructor(public current: number = 100, public max: number = 100) {
-        super();
+@RegisterComponent('updatable')
+export class UpdatableComponent extends Component {
+    readonly type = 'updatable';
+    value: number = 0;
+
+    update(deltaTime: number) {
+        this.value = deltaTime;
+        return true;
     }
 
-    toJSON() {
-        return {
-            type: this.type,
-            current: this.current,
-            max: this.max
-        };
-    }
-
-    static fromJSON(data: any): HealthComponent {
-        return new HealthComponent(data.current, data.max);
+    static fromJSON(data: any): UpdatableComponent {
+        return new UpdatableComponent();
     }
 } 

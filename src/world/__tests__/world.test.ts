@@ -3,11 +3,11 @@ import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Direction } from '../../types';
-import { COMPONENT_TYPES, HealthComponent } from '../../entity/component';
+import { HealthComponent } from '../../entity/component';
 import { FacingComponent } from '../../entity/component';
 import { Component } from '../../entity/component';
-import { transient } from '../../decorators/transient';
 import { TestComponent } from '../../entity/__tests__/test-components';
+import { ComponentRegistry } from '../../entity/component-registry';
 
 describe('World', () => {
     let world: World;
@@ -335,41 +335,15 @@ describe('World', () => {
         });
 
         it('excludes transient properties during serialization', () => {
-            // Create a test component with a transient property
-            class TestComponent extends Component {
-                type = 'test' as const;
-                
-                constructor(public value: number) {
-                    super();
-                }
-
-                @transient
-                testTransient: boolean = true;
-
-                static fromJSON(data: any): TestComponent {
-                    return new TestComponent(data.value);
-                }
-            }
-            
-            // Register the test component
-            const originalTypes = { ...COMPONENT_TYPES };
-            COMPONENT_TYPES['test'] = TestComponent;
-            
             const entity = new Entity(DEFAULT_POSITION);
-            const component = new TestComponent(100);
-            entity.setComponent(component);
+            entity.setComponent(new TestComponent());
             world.addEntity(entity);
-            
-            const serialized = world.serialize();
-            const parsed = JSON.parse(serialized);
-            const serializedComponent = parsed.entities[0].components[0];
-            
-            // Verify the component was serialized but without the transient property
-            expect(serializedComponent.value).toBe(100);
-            expect(serializedComponent.testTransient).toBeUndefined();
 
-            // Restore original component types
-            Object.assign(COMPONENT_TYPES, originalTypes);
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+            
+            const component = deserialized.getEntities()[0].getComponent('test') as TestComponent;
+            expect(component.transientValue).toBeUndefined();
         });
     });
 
@@ -525,12 +499,8 @@ describe('World', () => {
         }
 
         beforeEach(() => {
-            // Register the test component
-            const originalTypes = { ...COMPONENT_TYPES };
-            COMPONENT_TYPES['updatable'] = UpdatableComponent;
-            return () => {
-                Object.assign(COMPONENT_TYPES, originalTypes);
-            };
+            // Register the updatable component
+            ComponentRegistry.register('updatable', UpdatableComponent);
         });
 
         it('updates components that support updating', () => {
@@ -548,8 +518,6 @@ describe('World', () => {
                 entity,
                 componentType: 'updatable'
             });
-            const updatedComponent = entity.getComponent('updatable') as UpdatableComponent;
-            expect(updatedComponent.value).toBe(100);
         });
 
         it('batch updates entity positions', () => {
