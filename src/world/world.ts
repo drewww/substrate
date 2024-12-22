@@ -496,7 +496,6 @@ export class World {
      * Called when an entity's position changes
      */
     public onEntityMoved(entity: Entity, from: Point, to: Point): void {
-        logger.info(`World handling move for entity ${entity.getId()} from (${from.x},${from.y}) to (${to.x},${to.y})`);
         // Update spatial map
         const oldKey = this.pointToKey(from);
         const oldSet = this.spatialMap.get(oldKey);

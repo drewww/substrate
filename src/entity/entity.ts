@@ -126,7 +126,6 @@ export class Entity {
    */
   setPosition(x: number, y: number): this {
     const oldPos = { ...this._position };
-    logger.info(`Entity ${this.id} moving from (${oldPos.x},${oldPos.y}) to (${x},${y})`);
     this._position = { x, y };
     this.positionChanged = true;
     

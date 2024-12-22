@@ -2,7 +2,6 @@ import { GameRenderer } from '../../../render/test/game-renderer';
 import { Entity } from '../../../entity/entity';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
-import { logger } from '../../../util/logger';
 import { Easing } from '../../../display/display';
 
 export class TestGameRenderer extends GameRenderer {
@@ -11,7 +10,6 @@ export class TestGameRenderer extends GameRenderer {
     protected handleEntityRemoved(entity: Entity): void {}
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
-        logger.info(`TestGameRenderer.handleEntityMoved: ${entity.getId()} to ${to.x}, ${to.y}`);
         const tileId = this.entityTiles.get(entity.getId());
         if (tileId) {
             const isPlayer = entity.hasComponent('player');
