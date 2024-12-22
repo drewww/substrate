@@ -51,7 +51,16 @@ Display
  - DONE delete buffer canvas, not sure why we're triple buffered right now. seems not to be used for anything.
  - DONE Refactor overlays to use the same logic as any other cell. 
 
- - Add mouse input support. Not sure where it goes. Eventually you want to get entities back for a location. Display knows about the viewport and the tiles, but how to trace backwards? I guess it's just a mapping of screen space to game space and that's all the Display knows. Then the World query systems can get you entities for that location. 
+ - DONE Add mouse input support. Not sure where it goes. Eventually you want to get entities back for a location. Display knows about the viewport and the tiles, but how to trace backwards? I guess it's just a mapping of screen space to game space and that's all the Display knows. Then the World query systems can get you entities for that location. 
+
+ - Serialize/Deserialize with an entire game object. Like, make a button that saves the game and stops the engine and a button that re-inflates based on the JSON saved. 
+ - get some basic movement game logic working -- you can't move into an enemy, can't move into a wall.
+ - experiment with increasing speed??
+ - experiment with enemies coming towards you (which I guess means implement pathfinding)
+ - get FOV built and some visualiation of it (a visible component, probably.)
+ - spend some time writing out the different gameplay concepts and think about the minimum capabilities to try it
+
+ - think about data driven inputs for things. like, exposing all the tuning parameters for the game into a CSV or someting for easier editing?
 
  - Think about hierarchical Tiles in Display. If you wanted to move an entity that was composed of multiple tiles, they'd all need animations. That's bad. We want to have a transform that is inherited by its children during drawing. 
   - One simple test of this is that a multi-part animation (as seen in the animation test case) should be able to be moved WHILE animating. 
