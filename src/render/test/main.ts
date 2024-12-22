@@ -133,14 +133,16 @@ class WorldTest {
             this.world.addEntity(smokeBomb);
         });
         
-        // Add fill world handler
+        // Add fill world handler with batching
         document.getElementById('fillWorld')?.addEventListener('click', () => {
+            this.world.startBatch();
             for (let x = 0; x < WORLD_WIDTH; x++) {
                 for (let y = 0; y < WORLD_HEIGHT; y++) {
                     const smokeBomb = new SmokeBombEntity({ x, y });
                     this.world.addEntity(smokeBomb);
                 }
             }
+            this.world.endBatch();
         });
     }
 
@@ -213,12 +215,18 @@ class WorldTest {
         const deltaTime = (timestamp - this.lastFrameTime) / 1000; // Convert to seconds
         this.lastFrameTime = timestamp;
 
+        // Start batching events
+        this.world.startBatch();
+
         // Update all entities
         for (const entity of this.world.getEntities()) {
             if ('update' in entity) {
                 (entity as any).update(deltaTime);
             }
         }
+
+        // End batching and flush events
+        this.world.endBatch();
 
         // Continue the loop
         requestAnimationFrame(this.update.bind(this));

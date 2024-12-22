@@ -18,6 +18,7 @@ import { logger } from '../util/logger';
  * - componentModified: Fired when component values change
  */
 export class Entity {
+  private static nextId = 0;
   private readonly id: string;
   protected store: ComponentStore;
   private changedComponents: Set<string> = new Set();
@@ -33,10 +34,10 @@ export class Entity {
   }
 
   /**
-   * Generate a unique entity ID using UUID v4
+   * Generate a sequential entity ID
    */
   private static generateId(): string {
-    return uuidv4();
+    return `e${this.nextId++}`;
   }
 
   /**

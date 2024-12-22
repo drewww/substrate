@@ -48,6 +48,11 @@ class FacingComponent extends Component {
 
 describe('Entity', () => {
     describe('Basic Entity Operations', () => {
+        beforeEach(() => {
+            // Reset the static counter before each test
+            (Entity as any).nextId = 0;
+        });
+
         it('can be constructed with an explicit id', () => {
             const id = 'test-entity';
             const entity = new Entity(DEFAULT_POSITION, id);
@@ -57,9 +62,14 @@ describe('Entity', () => {
             expect(entity.getPosition()).toEqual(DEFAULT_POSITION);
         });
 
-        it('generates valid UUIDs when no id provided', () => {
-            const entity = new Entity(DEFAULT_POSITION);
-            expect(uuidValidate(entity.getId())).toBe(true);
+        it('generates sequential ids when no id provided', () => {
+            const entity1 = new Entity(DEFAULT_POSITION);
+            const entity2 = new Entity(DEFAULT_POSITION);
+            const entity3 = new Entity(DEFAULT_POSITION);
+            
+            expect(entity1.getId()).toBe('e0');
+            expect(entity2.getId()).toBe('e1');
+            expect(entity3.getId()).toBe('e2');
         });
 
         it('generates unique ids for different entities', () => {
@@ -67,8 +77,6 @@ describe('Entity', () => {
             const entity2 = new Entity(DEFAULT_POSITION);
             
             expect(entity1.getId()).not.toBe(entity2.getId());
-            expect(uuidValidate(entity1.getId())).toBe(true);
-            expect(uuidValidate(entity2.getId())).toBe(true);
         });
     });
 
