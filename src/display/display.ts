@@ -1226,3 +1226,5 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         this.hasChanges = true;
     }
 } 
+
+export { BlendMode };
