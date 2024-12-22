@@ -489,60 +489,44 @@ export class Display {
     }
 
     private renderFrame(timestamp: number): void {
-        const animationStart = performance.now();
-        
-        const hasActiveAnimations = 
-            this.symbolAnimations.size > 0 || 
-            this.colorAnimations.size > 0 || 
-            this.valueAnimations.size > 0;
+        try {
+            const animationStart = performance.now();
+            
+            const hasActiveAnimations = 
+                this.symbolAnimations.size > 0 || 
+                this.colorAnimations.size > 0 || 
+                this.valueAnimations.size > 0;
 
-        if (hasActiveAnimations) {
-            this.updateSymbolAnimations(timestamp);
-            this.updateColorAnimations(timestamp);
-            this.updateValueAnimations(timestamp);
-            this.hasChanges = true;
-        }
-        
-        const animationEnd = performance.now();
-        const renderStart = animationEnd;
+            if (hasActiveAnimations) {
+                this.updateSymbolAnimations(timestamp);
+                this.updateColorAnimations(timestamp);
+                this.updateValueAnimations(timestamp);
+                this.hasChanges = true;
+            }
+            
+            const animationEnd = performance.now();
+            const renderStart = animationEnd;
 
-        // Call frame callbacks with 'this'
-        this.frameCallbacks.forEach(callback => callback(this));
+            // Call frame callbacks
+            this.frameCallbacks.forEach(callback => callback(this));
 
-        if (this.hasChanges) {
-            this.updateWorldCanvas();
-            this.hasChanges = false;
-        }
-        
-        this.updateDisplayCanvas();
+            if (this.hasChanges) {
+                this.updateWorldCanvas();
+                this.hasChanges = false;
+            }
+            
+            this.updateDisplayCanvas();
 
-        const renderEnd = performance.now();
+            const renderEnd = performance.now();
 
-        this.metrics.symbolAnimationCount = this.symbolAnimations.size;
-        this.metrics.colorAnimationCount = this.colorAnimations.size;
-        this.metrics.valueAnimationCount = this.valueAnimations.size;
-        
-        this.metrics.lastAnimationUpdateTime = animationEnd - animationStart;
-        this.metrics.lastWorldUpdateTime = renderEnd - renderStart;
-        
-        if (this.metrics.totalRenderCalls === 0) {
-            this.metrics.averageAnimationTime = this.metrics.lastAnimationUpdateTime;
-            this.metrics.averageWorldUpdateTime = this.metrics.lastWorldUpdateTime;
-        } else {
-            this.metrics.averageAnimationTime = (
-                (this.metrics.averageAnimationTime * this.metrics.totalRenderCalls + this.metrics.lastAnimationUpdateTime) /
-                (this.metrics.totalRenderCalls + 1)
-            );
-            this.metrics.averageWorldUpdateTime = (
-                (this.metrics.averageWorldUpdateTime * this.metrics.totalRenderCalls + this.metrics.lastWorldUpdateTime) /
-                (this.metrics.totalRenderCalls + 1)
-            );
+            this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
+
+        } catch (error) {
+            console.error('Render error:', error);
+            // Log but don't rethrow - keep the loop going
         }
 
-        this.updateMetrics(renderStart);
-
-       
-
+        // Always request next frame, even if this one errored
         if (this.isRunning) {
             requestAnimationFrame(this.boundRenderFrame);
         }
@@ -569,8 +553,8 @@ export class Display {
         );
     }
 
-    private updateMetrics(renderStart: number) {
-        const renderTime = performance.now() - renderStart;
+    private updateMetrics(renderStart: number, animationStart: number, animationEnd: number, renderEnd: number) {
+        const renderTime = renderEnd - renderStart;
         this.metrics.lastRenderTime = renderTime;
         
         if (this.metrics.totalRenderCalls === 0) {
@@ -592,6 +576,28 @@ export class Display {
             this.metrics.frameCount = 0;
             this.metrics.lastFpsUpdate = now;
         }
+
+        const animationTime = animationEnd - animationStart;
+        this.metrics.lastAnimationUpdateTime = animationTime;
+        this.metrics.lastWorldUpdateTime = renderTime - animationTime;
+
+        if (this.metrics.totalRenderCalls === 0) {
+            this.metrics.averageAnimationTime = animationTime;
+            this.metrics.averageWorldUpdateTime = this.metrics.lastWorldUpdateTime;
+        } else {
+            this.metrics.averageAnimationTime = (
+                (this.metrics.averageAnimationTime * this.metrics.totalRenderCalls + animationTime) /
+                (this.metrics.totalRenderCalls + 1)
+            );
+            this.metrics.averageWorldUpdateTime = (
+                (this.metrics.averageWorldUpdateTime * this.metrics.totalRenderCalls + this.metrics.lastWorldUpdateTime) /
+                (this.metrics.totalRenderCalls + 1)
+            );
+        }
+
+        const lastDirtyTileCount = this.dirtyMask.getMask().reduce((count, row) => count + row.filter(Boolean).length, 0);
+        this.metrics.lastDirtyTileCount = lastDirtyTileCount;
+        this.metrics.averageDirtyTileCount = lastDirtyTileCount / this.worldWidth / this.worldHeight;
     }
 
     public getPerformanceMetrics(): Readonly<PerformanceMetrics> {

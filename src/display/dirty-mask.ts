@@ -12,43 +12,26 @@ export class DirtyMask {
     }
 
     public markDirty(tile: Tile) {
-
         const tilesToMark: {x: number, y: number}[] = [];
 
         if(tile.x !== Math.floor(tile.x) || tile.y !== Math.floor(tile.y) || tile.noClip) {
-            // logger.debug(`Marking non-integer tile ${tile.x},${tile.y} as dirty`);
-
-            // compute the bounding box of the tile using the acutal width and height of the tile
-            // intersect that bounding box with the dirty mask and mark any tile x/y combos that it intersects at all.
-            let minX = Math.max(tile.x, Math.floor(tile.x));
-            let maxX = Math.min(tile.x + 1, Math.ceil(tile.x + 1));
-            let minY = Math.max(tile.y, Math.floor(tile.y)); 
-            let maxY = Math.min(tile.y + 1, Math.ceil(tile.y + 1));
-
-            if(tile.noClip) {
-                // if no clip, expand the bounding box one tile in every direction.
-                minX -= 1;
-                maxX += 1;
-                minY -= 1;
-                maxY += 1;
-            }
+            // Compute bounding box for non-integer or no-clip tiles
+            let minX = Math.floor(Math.max(0, tile.x - (tile.noClip ? 1 : 0)));
+            let maxX = Math.ceil(Math.min(this.width - 1, tile.x + (tile.noClip ? 2 : 1)));
+            let minY = Math.floor(Math.max(0, tile.y - (tile.noClip ? 1 : 0))); 
+            let maxY = Math.ceil(Math.min(this.height - 1, tile.y + (tile.noClip ? 2 : 1)));
 
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
-                    tilesToMark.push({x: Math.floor(x), y: Math.floor(y)});
+                    tilesToMark.push({x, y});
                 }
             } 
-
-            // tilesToMark.push({x: Math.floor(tile.x), y: Math.floor(tile.y)});
         } else {
-            tilesToMark.push({x: tile.x, y: tile.y});
+            tilesToMark.push({x: Math.floor(tile.x), y: Math.floor(tile.y)});
         }
-        
-        // logger.debug(`Marking dirty tiles: `, tilesToMark);
 
         for (const {x, y} of tilesToMark) {
-            if (x >= 0 && x < this.width && 
-                y >= 0 && y < this.height) {
+            if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
                 this.mask[y][x] = true;
             }
         }
@@ -59,14 +42,18 @@ export class DirtyMask {
     }
 
     public isDirty(x: number, y: number): boolean {
-        return this.mask[Math.floor(y)][Math.floor(x)];
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+            return false;
+        }
+        return this.mask[y][x];
     }
 
     public hasDirtyTiles(): boolean {
         return this.mask.some(row => row.some(cell => cell));
     }
 
-    // For debug visualization
     public getMask(): readonly boolean[][] {
         return this.mask;
     }
