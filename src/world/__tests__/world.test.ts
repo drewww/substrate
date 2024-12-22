@@ -3,16 +3,48 @@ import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Direction } from '../../types';
-import { HealthComponent } from '../../entity/component';
-import { FacingComponent } from '../../entity/component';
 import { Component } from '../../entity/component';
-import { TestComponent } from '../../entity/__tests__/test-components';
-import { ComponentRegistry } from '../../entity/component-registry';
+import { ComponentRegistry, RegisterComponent } from '../../entity/component-registry';
+import { transient } from '../../decorators/transient';
+
+const DEFAULT_POSITION: Point = { x: 0, y: 0 };
+
+// Test-specific components
+@RegisterComponent('test')
+class TestComponent extends Component {
+    readonly type = 'test';
+    value: number = 100;
+    
+    @transient
+    transientValue?: boolean;
+
+    static fromJSON(data: any): TestComponent {
+        const component = new TestComponent();
+        component.value = data.value;
+        return component;
+    }
+}
+
+@RegisterComponent('updatable')
+class UpdatableComponent extends Component {
+    readonly type = 'updatable';
+    value: number = 0;
+
+    update(deltaTime: number): void {
+        this.value += deltaTime;
+        this.markModified();
+    }
+
+    static fromJSON(data: any): UpdatableComponent {
+        const comp = new UpdatableComponent();
+        comp.value = data.value;
+        return comp;
+    }
+}
 
 describe('World', () => {
     let world: World;
     const DEFAULT_SIZE = { x: 10, y: 10 };
-    const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
     beforeEach(() => {
         world = new World(DEFAULT_SIZE.x, DEFAULT_SIZE.y);
@@ -171,28 +203,28 @@ describe('World', () => {
                 const entity1 = new Entity(DEFAULT_POSITION);
                 const entity2 = new Entity(DEFAULT_POSITION);
 
-                entity1.setComponent(new FacingComponent(Direction.North));
+                entity1.setComponent(new UpdatableComponent());
                 
                 world.addEntity(entity1);
                 world.addEntity(entity2);
 
-                const entitiesWithFacing = world.getEntitiesWithComponent('facing');
-                expect(entitiesWithFacing).toHaveLength(1);
-                expect(entitiesWithFacing[0]).toBe(entity1);
+                const entitiesWithComponent = world.getEntitiesWithComponent('updatable');
+                expect(entitiesWithComponent).toHaveLength(1);
+                expect(entitiesWithComponent[0]).toBe(entity1);
             });
 
             it('finds entities with multiple components', () => {
                 const entity1 = new Entity(DEFAULT_POSITION);
                 const entity2 = new Entity(DEFAULT_POSITION);
 
-                entity1.setComponent(new HealthComponent(100, 100));
-                entity1.setComponent(new FacingComponent(Direction.East));
-                entity2.setComponent(new HealthComponent(100, 100));
+                entity1.setComponent(new TestComponent());
+                entity1.setComponent(new UpdatableComponent());
+                entity2.setComponent(new TestComponent());
 
                 world.addEntity(entity1);
                 world.addEntity(entity2);
 
-                const entitiesWithBoth = world.getEntitiesWithComponents(['health', 'facing']);
+                const entitiesWithBoth = world.getEntitiesWithComponents(['test', 'updatable']);
                 expect(entitiesWithBoth).toHaveLength(1);
                 expect(entitiesWithBoth[0]).toBe(entity1);
             });
@@ -202,9 +234,9 @@ describe('World', () => {
                 world.addEntity(entity);
 
                 expect(world.getEntitiesByTag('nonexistent')).toHaveLength(0);
-                expect(world.getEntitiesWithComponent('facing')).toHaveLength(0);
+                expect(world.getEntitiesWithComponent('updatable')).toHaveLength(0);
                 expect(world.getEntitiesWithTags(['nonexistent'])).toHaveLength(0);
-                expect(world.getEntitiesWithComponents(['facing'])).toHaveLength(0);
+                expect(world.getEntitiesWithComponents(['updatable'])).toHaveLength(0);
             });
         });
     });
@@ -283,22 +315,21 @@ describe('World', () => {
 
         it('preserves entity components after serialization', () => {
             const entity = new Entity({ x: 5, y: 5 });
-            entity.setComponent(new HealthComponent(100, 100));
-            entity.setComponent(new FacingComponent(Direction.North));
+            entity.setComponent(new TestComponent());
+            entity.setComponent(new UpdatableComponent());
             world.addEntity(entity);
 
             const serialized = world.serialize();
             const deserialized = World.deserialize(serialized);
 
             const [restoredEntity] = deserialized.getEntitiesAt({ x: 5, y: 5 });
-            expect(restoredEntity.getComponent('health')).toMatchObject({
-                type: 'health',
-                current: 100,
-                max: 100
+            expect(restoredEntity.getComponent('test')).toMatchObject({
+                type: 'test',
+                value: 100
             });
-            expect(restoredEntity.getComponent('facing')).toMatchObject({
-                type: 'facing',
-                direction: Direction.North
+            expect(restoredEntity.getComponent('updatable')).toMatchObject({
+                type: 'updatable',
+                value: 0
             });
         });
 
@@ -418,15 +449,15 @@ describe('World', () => {
             const entity2 = new Entity({ x: 1, y: 1 });
 
             entity1.addTag('enemy');
-            entity1.setComponent(new HealthComponent(100, 100));
+            entity1.setComponent(new TestComponent());
             entity2.addTag('friendly');
-            entity2.setComponent(new FacingComponent(Direction.North));
+            entity2.setComponent(new UpdatableComponent());
 
             world.addEntities([entity1, entity2]);
 
             const stats = world.getStats();
             expect(stats.entityCount).toBe(2);
-            expect(stats.uniqueComponentTypes).toBe(2); // health and facing
+            expect(stats.uniqueComponentTypes).toBe(2); // test and updatable
             expect(stats.uniqueTags).toBe(2); // enemy and friendly
             expect(stats.occupiedPositions).toBe(2); // two different positions
         });
@@ -444,7 +475,7 @@ describe('World', () => {
         it('creates a deep clone of the world', () => {
             const entity = new Entity(DEFAULT_POSITION);
             entity.addTag('test');
-            entity.setComponent(new HealthComponent(100, 100));
+            entity.setComponent(new TestComponent());
             world.addEntity(entity);
 
             const cloned = world.clone();
@@ -458,10 +489,9 @@ describe('World', () => {
             expect(clonedEntity.getId()).toBe(entity.getId());
             expect(clonedEntity.getPosition()).toEqual(entity.getPosition());
             expect(clonedEntity.hasTag('test')).toBe(true);
-            expect(clonedEntity.getComponent('health')).toMatchObject({
-                type: 'health',
-                current: 100,
-                max: 100
+            expect(clonedEntity.getComponent('test')).toMatchObject({
+                type: 'test',
+                value: 100
             });
 
             // Verify independence
@@ -612,11 +642,11 @@ describe('World', () => {
                 world.addEntity(entity);
                 world.on('entityModified', handler);
                 
-                entity.setComponent(new HealthComponent(100, 100));
+                entity.setComponent(new UpdatableComponent());
                 entity.setComponent(new TestComponent());
                 
                 expect(handler).toHaveBeenCalledTimes(2);
-                expect(handler.mock.calls[0][0].componentType).toBe('health');
+                expect(handler.mock.calls[0][0].componentType).toBe('updatable');
                 expect(handler.mock.calls[1][0].componentType).toBe('test');
             });
         });

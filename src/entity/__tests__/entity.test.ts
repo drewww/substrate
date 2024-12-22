@@ -3,11 +3,48 @@ import { validate as uuidValidate } from 'uuid';
 import { Entity } from '../entity';
 import { Point } from '../../types';
 import { RequiredComponents } from '../decorators';
-import { HealthComponent, FacingComponent } from '../component';
+import { Component } from '../component';
+import { RegisterComponent } from '../component-registry';
 import { Direction } from '../../types';
 
 // Default test position to use throughout tests
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
+
+// Test-specific components
+@RegisterComponent('health')
+class HealthComponent extends Component {
+    readonly type = 'health';
+    private _current: number;
+    private _max: number;
+
+    constructor(current: number, max: number) {
+        super();
+        this._current = current;
+        this._max = max;
+
+        Object.defineProperty(this, 'current', this.createModifiedProperty<number>('_current'));
+        Object.defineProperty(this, 'max', this.createModifiedProperty<number>('_max'));
+    }
+
+    static fromJSON(data: any): HealthComponent {
+        return new HealthComponent(data.current, data.max);
+    }
+}
+
+@RegisterComponent('facing')
+class FacingComponent extends Component {
+    readonly type = 'facing';
+    direction: Direction;
+
+    constructor(direction: Direction) {
+        super();
+        this.direction = direction;
+    }
+
+    static fromJSON(data: any): FacingComponent {
+        return new FacingComponent(data.direction);
+    }
+}
 
 describe('Entity', () => {
     describe('Basic Entity Operations', () => {
