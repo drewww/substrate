@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { World } from '../world';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
-import { Direction } from '../../types';
 import { Component } from '../../entity/component';
 import { ComponentRegistry, RegisterComponent } from '../../entity/component-registry';
 import { transient } from '../../decorators/transient';

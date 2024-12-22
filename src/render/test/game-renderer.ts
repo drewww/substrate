@@ -3,7 +3,6 @@ import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Easing, BlendMode } from '../../display/display';
 import { FadeComponent } from './test-components';
-import { logger } from '../../util/logger';
 
 export class GameRenderer extends Renderer {
     protected onEntityAdded(entity: Entity): void {

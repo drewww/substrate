@@ -1,6 +1,6 @@
 import { isTransient, transient } from "../decorators/transient";
-import { Direction, Point } from "../types";
-import { ComponentRegistry, RegisterComponent } from './component-registry';
+import { Point } from "../types";
+import { ComponentRegistry } from './component-registry';
 
 /**
  * Base type for all components

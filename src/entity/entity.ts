@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import { v4 as uuidv4 } from 'uuid';
 import { ComponentStore } from './component-store';
 import { SerializedEntity } from './component';
 import { REQUIRED_COMPONENTS } from './decorators';
@@ -7,7 +6,6 @@ import { Point } from '../types';
 import { isTransient } from '../decorators/transient';
 import { Component } from './component';
 import { World } from '../world/world';
-import { logger } from '../util/logger';
 
 /**
  * Base entity class that manages components
