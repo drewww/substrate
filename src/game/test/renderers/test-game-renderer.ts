@@ -3,12 +3,40 @@ import { Entity } from '../../../entity/entity';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
 import { logger } from '../../../util/logger';
+import { Easing } from '../../../display/display';
 
 export class TestGameRenderer extends GameRenderer {
     protected handleEntityAdded(entity: Entity, tileId: string): void {}
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}
-    protected handleEntityMoved(entity: Entity, to: Point): void {}
+
+    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
+        logger.info(`TestGameRenderer.handleEntityMoved: ${entity.getId()} to ${to.x}, ${to.y}`);
+        const tileId = this.entityTiles.get(entity.getId());
+        if (tileId) {
+            const isPlayer = entity.hasComponent('player');
+            const duration = isPlayer ? 0.1 : 0.5;
+
+            this.display.addValueAnimation(tileId, {
+                x: {
+                    start: from.x,
+                    end: to.x,
+                    duration: duration,
+                    easing: Easing.quadOut,
+                    loop: false
+                },
+                y: {
+                    start: from.y,
+                    end: to.y,
+                    duration: duration,
+                    easing: Easing.quadOut,
+                    loop: false
+                }
+            });
+            return true;
+        }
+        return false;
+    }
 
     protected handleComponentModified(entity: Entity, componentType: string): void {
         if (componentType === 'moveCooldown') {

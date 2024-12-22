@@ -8,6 +8,8 @@ import { EnemyEntity } from '../../entity/enemy';
 import { TestGameRenderer } from './renderers/test-game-renderer';
 import { Renderer } from '../../render/renderer';
 import { SymbolComponent } from '../../entity/components/symbol-component';
+import { PlayerComponent } from '../../entity/components/player-component';
+
 const DEFAULT_INPUT_CONFIG = `
 mode: game
 ==========
@@ -54,6 +56,7 @@ export class BasicTestGame extends Game {
             'transparent',  // Transparent background
             5              // Higher z-index to stay above most entities
         ));
+        this.player.setComponent(new PlayerComponent());
         this.world.addEntity(this.player);
 
         // Initialize engine with our world

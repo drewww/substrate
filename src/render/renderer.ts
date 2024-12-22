@@ -22,7 +22,7 @@ export abstract class Renderer {
     ) {
         this.world.on('entityAdded', ({ entity }) => this.onEntityAdded(entity));
         this.world.on('entityRemoved', ({ entity }) => this.onEntityRemoved(entity));
-        this.world.on('entityMoved', ({ entity, to }) => this.onEntityMoved(entity, to));
+        this.world.on('entityMoved', ({ entity, from, to }) => this.onEntityMoved(entity, from, to));
         this.world.on('entityModified', ({ entity, componentType }) => this.onEntityModified(entity, componentType));
         this.world.on('componentModified', ({ entity, componentType }) => this.onComponentModified(entity, componentType));
     }
@@ -98,17 +98,18 @@ export abstract class Renderer {
     /**
      * Handle entity move
      */
-    protected onEntityMoved(entity: Entity, to: Point): void {
+    protected onEntityMoved(entity: Entity, from: Point, to: Point): void {
         logger.debug(`Renderer handling entity move for ${entity.getId()} to (${to.x},${to.y})`);
         const tileId = this.entityTiles.get(entity.getId());
         
         if (tileId) {
-            this.display.moveTile(tileId, to.x, to.y);
+            // Only do direct move if subclass doesn't handle it
+            if (!this.handleEntityMoved(entity, from, to)) {
+                this.display.moveTile(tileId, to.x, to.y);
+            }
         } else {
             logger.warn(`No tile found for moved entity ${entity.getId()}`);
         }
-        
-        this.handleEntityMoved(entity, to);
     }
 
     // Update abstract methods
@@ -116,5 +117,5 @@ export abstract class Renderer {
     protected abstract handleEntityModified(entity: Entity, componentType: string): void;
     protected abstract handleComponentModified(entity: Entity, componentType: string): void;
     protected abstract handleEntityRemoved(entity: Entity): void;
-    protected abstract handleEntityMoved(entity: Entity, to: Point): void;
+    protected abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
 }  

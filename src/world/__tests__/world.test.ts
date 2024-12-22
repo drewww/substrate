@@ -677,5 +677,37 @@ describe('World', () => {
                 expect(handler2).not.toHaveBeenCalled();
             });
         });
+
+        describe('Entity Movement Events', () => {
+            it('emits entityMoved when position changes directly', () => {
+                const handler = vi.fn();
+                world.addEntity(entity);
+                world.on('entityMoved', handler);
+                
+                const newPos = { x: 2, y: 2 };
+                entity.setPosition(newPos.x, newPos.y);
+                
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    from: position,
+                    to: newPos
+                });
+            });
+
+            it('emits entityMoved when using moveEntity', () => {
+                const handler = vi.fn();
+                world.addEntity(entity);
+                world.on('entityMoved', handler);
+                
+                const newPos = { x: 2, y: 2 };
+                world.moveEntity(entity.getId(), newPos);
+                
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    from: position,
+                    to: newPos
+                });
+            });
+        });
     });
 }); 

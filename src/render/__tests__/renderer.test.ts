@@ -35,7 +35,7 @@ class TestRenderer extends Renderer {
     protected handleEntityAdded(entity: Entity, tileId: string): void {}
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}
-    protected handleEntityMoved(entity: Entity, to: Point): void {}
+    protected handleEntityMoved(entity: Entity, to: Point): boolean { return false; }
 }
 
 describe('Renderer', () => {

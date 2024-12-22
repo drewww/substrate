@@ -7,6 +7,7 @@ import { Point } from '../types';
 import { isTransient } from '../decorators/transient';
 import { Component } from './component';
 import { World } from '../world/world';
+import { logger } from '../util/logger';
 
 /**
  * Base entity class that manages components
@@ -21,13 +22,13 @@ export class Entity {
   protected store: ComponentStore;
   private changedComponents: Set<string> = new Set();
   private tags: Set<string> = new Set();
-  private position: Point;
+  private _position: Point;
   private positionChanged: boolean = false;
   protected world?: World;
 
   constructor(position: Point, id?: string) {
     this.id = id ?? Entity.generateId();
-    this.position = { ...position }; // Copy to prevent mutation
+    this._position = { ...position }; // Copy to prevent mutation
     this.store = new ComponentStore();
   }
 
@@ -117,15 +118,22 @@ export class Entity {
    * Get the entity's position
    */
   getPosition(): Point {
-    return { ...this.position }; // Return copy to prevent direct mutation
+    return { ...this._position }; // Return copy to prevent direct mutation
   }
 
   /**
    * Set the entity's position (triggers entityMoved event)
    */
   setPosition(x: number, y: number): this {
-    this.position = { x, y };
+    const oldPos = { ...this._position };
+    logger.info(`Entity ${this.id} moving from (${oldPos.x},${oldPos.y}) to (${x},${y})`);
+    this._position = { x, y };
     this.positionChanged = true;
+    
+    if (this.world) {
+      this.world.onEntityMoved(this, oldPos, this._position);
+    }
+    
     return this;
   }
 
@@ -160,7 +168,7 @@ export class Entity {
   serialize(): SerializedEntity {
     return {
       id: this.id,
-      position: { ...this.position },
+      position: { ...this._position },
       components: this.getComponents(),
       tags: Array.from(this.tags)
     };

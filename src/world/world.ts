@@ -107,31 +107,8 @@ export class World {
             throw new Error(`Entity ${entityId} not found`);
         }
 
-        // Remove from old position
-        const oldPosition = entity.getPosition();
-        const oldKey = this.pointToKey(oldPosition);
-        const oldSet = this.spatialMap.get(oldKey);
-        oldSet?.delete(entityId);
-        if (oldSet?.size === 0) {
-            this.spatialMap.delete(oldKey);
-        }
-
-        // Add to new position
-        const newKey = this.pointToKey(newPosition);
-        let newSet = this.spatialMap.get(newKey);
-        if (!newSet) {
-            newSet = new Set();
-            this.spatialMap.set(newKey, newSet);
-        }
-        newSet.add(entityId);
-
+        // Let the entity update its position - it will call back to onEntityMoved
         entity.setPosition(newPosition.x, newPosition.y);
-
-        this.emit('entityMoved', {
-            entity,
-            from: oldPosition,
-            to: newPosition
-        });
     }
 
     public removeEntity(entityId: string): void {
@@ -512,6 +489,35 @@ export class World {
         this.emit('componentModified', {
             entity,
             componentType
+        });
+    }
+
+    /**
+     * Called when an entity's position changes
+     */
+    public onEntityMoved(entity: Entity, from: Point, to: Point): void {
+        logger.info(`World handling move for entity ${entity.getId()} from (${from.x},${from.y}) to (${to.x},${to.y})`);
+        // Update spatial map
+        const oldKey = this.pointToKey(from);
+        const oldSet = this.spatialMap.get(oldKey);
+        oldSet?.delete(entity.getId());
+        if (oldSet?.size === 0) {
+            this.spatialMap.delete(oldKey);
+        }
+
+        const newKey = this.pointToKey(to);
+        let newSet = this.spatialMap.get(newKey);
+        if (!newSet) {
+            newSet = new Set();
+            this.spatialMap.set(newKey, newSet);
+        }
+        newSet.add(entity.getId());
+
+        // Emit the event
+        this.emit('entityMoved', {
+            entity,
+            from,
+            to
         });
     }
 } 
