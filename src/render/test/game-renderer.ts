@@ -1,8 +1,9 @@
 import { Renderer } from '../renderer';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
-import { FadeComponent } from '../../entity/component';
 import { Easing } from '../../display/display';
+import { FadeComponent } from './test-components';
+import { logger } from '../../util/logger';
 
 export class GameRenderer extends Renderer {
     protected handleEntityAdded(entity: Entity, tileId: string): void {

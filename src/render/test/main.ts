@@ -5,18 +5,10 @@ import { Point } from '../../types';
 import { logger } from '../../util/logger';
 import { DebugOverlay } from '../../display/test/debug-overlay';
 import { WorldDebugOverlay } from '../../world/debug-overlay';
-import { SmokeBombEntity } from '../../entity/smoke-bomb';
+import { SmokeBombEntity } from './smoke-bomb';
 import { SymbolComponent } from '../../entity/component';
 import { Renderer } from '../renderer';
-
-// Basic renderer for testing
-class TestRenderer extends Renderer {
-    protected handleComponentModified(entity: Entity, componentType: string): void {}
-    protected handleEntityAdded(entity: Entity, tileId: string): void {}
-    protected handleEntityModified(entity: Entity, componentType: string): void {}
-    protected handleEntityRemoved(entity: Entity): void {}
-    protected handleEntityMoved(entity: Entity, to: Point): void {}
-}
+import { GameRenderer } from './game-renderer';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
@@ -26,7 +18,7 @@ const LOG_LEVEL_KEY = 'world-renderer-log-level';
 class WorldTest {
     private world: World;
     private display: Display;
-    private renderer: TestRenderer;
+    private renderer: GameRenderer;
     private debugOverlay: DebugOverlay;
     private isRunning = false;
     private intervalId: number | null = null;
@@ -49,7 +41,7 @@ class WorldTest {
             viewportHeight: WORLD_HEIGHT
         });
 
-        this.renderer = new TestRenderer(this.world, this.display);
+        this.renderer = new GameRenderer(this.world, this.display);
         
         // Initialize debug overlays
         const displayDebugElement = document.getElementById('display-debug');

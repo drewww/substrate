@@ -1,6 +1,7 @@
-import { Entity } from './entity';
-import { Point } from '../types';
-import { TimerComponent, SmokeBombComponent, FadeComponent, SymbolComponent } from './component';
+import { Entity } from '../../entity/entity';
+import { Point } from '../../types';
+import { SymbolComponent } from '../../entity/component';
+import { TimerComponent, SmokeBombComponent, FadeComponent } from './test-components';
 
 export class SmokeBombEntity extends Entity {
     private explosionTimer: TimerComponent;
@@ -11,8 +12,8 @@ export class SmokeBombEntity extends Entity {
         this.setComponent(new SmokeBombComponent(1, '#FFFFFF'));
         this.setComponent(new SymbolComponent(
             '*',            // char
-            '#FFFFFFFF',      // white foreground
-            '#00000000',  // transparent background
+            '#FFFFFFFF',    // white foreground
+            '#00000000',    // transparent background
             1              // standard z-index
         ));
         this.explosionTimer = new TimerComponent(0.5, 0.5);
@@ -36,7 +37,6 @@ export class SmokeBombEntity extends Entity {
             {x: 1, y: -1}, {x: -1, y: -1}
         ];
 
-        // Create smoke clouds
         for (const offset of pattern) {
             const cloudPos = {
                 x: pos.x + offset.x,
@@ -52,7 +52,6 @@ export class SmokeBombEntity extends Entity {
             }
         }
         
-        // Remove self
         this.world?.removeEntity(this.getId());
     }
 }
@@ -68,9 +67,9 @@ export class SmokeCloudEntity extends Entity {
         this.setComponent(new FadeComponent(1.0, 0.0, 4.0));
         this.setComponent(new SymbolComponent(
             ' ',           // empty char for cloud effect
-            '#FFFFFFFF', // transparent foreground
-            '#FFFFFFFF',     // white background that will fade
-            2             // higher z-index to stay above other entities
+            '#FFFFFFFF',  // transparent foreground
+            '#FFFFFFFF',  // white background that will fade
+            2            // higher z-index to stay above other entities
         ));
     }
 
