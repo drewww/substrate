@@ -115,6 +115,27 @@ export class BasicTestGame extends Game {
                 enemyPositions.add(posKey); // Prevent enemies from spawning here
             }
         }
+
+        // Center viewport on player after world is initialized
+        this.updateViewport();
+    }
+
+    private updateViewport(): void {
+        const pos = this.player.getPosition();
+        const viewportWidth = this.display.getViewportWidth();
+        const viewportHeight = this.display.getViewportHeight();
+        
+        // Center the viewport on the player
+        const viewportX = Math.max(0, Math.min(
+            pos.x - Math.floor(viewportWidth / 2),
+            this.world.getWorldWidth() - viewportWidth
+        ));
+        const viewportY = Math.max(0, Math.min(
+            pos.y - Math.floor(viewportHeight / 2),
+            this.world.getWorldHeight() - viewportHeight
+        ));
+
+        this.display.setViewport(viewportX, viewportY);
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
@@ -138,6 +159,9 @@ export class BasicTestGame extends Game {
                 entityId: this.player.getId(),
                 to: newPos
             });
+
+            // Update viewport to follow player
+            this.updateViewport();
         }
     }
 } 
