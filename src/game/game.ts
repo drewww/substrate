@@ -15,11 +15,27 @@ export abstract class Game {
     private updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
 
-    constructor(display: Display) {
-        const width = display.getWorldWidth();
-        const height = display.getWorldHeight();
-        
-        this.display = display;
+    constructor(canvasId: string) {
+        const width = 40;
+        const height = 30;
+
+        this.display = new Display({
+            elementId: canvasId,
+            cellWidth: 20,
+            cellHeight: 20,
+            worldWidth: width,
+            worldHeight: height,
+            viewportWidth: width,
+            viewportHeight: height
+        });
+    
+        // Set black background
+        this.display.setBackground(
+            ' ',           // Empty character
+            'transparent', // Transparent foreground
+            '#000000FF'     // Black background
+        );
+
         this.world = new World(width, height);
         
         // Initialize input handling

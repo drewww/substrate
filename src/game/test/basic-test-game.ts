@@ -27,8 +27,8 @@ export class BasicTestGame extends Game {
     private enemyMovementSystem: EnemyMovementSystem;
     private actionHandler: ActionHandler;
     
-    constructor(display: Display) {
-        super(display);
+    constructor(canvasId: string) {
+        super(canvasId);
         
         // Set up action handler
         this.actionHandler = new ActionHandler(this.world);

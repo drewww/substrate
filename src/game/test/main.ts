@@ -6,30 +6,14 @@ let game: BasicTestGame;
 let display: Display;
 
 function init() {
-    const width = 40;
-    const height = 30;
+    
     
     // Initialize display
     const canvas = document.getElementById('display') as HTMLCanvasElement;
-    display = new Display({
-        elementId: canvas.id,
-        cellWidth: 20,
-        cellHeight: 20,
-        worldWidth: width,
-        worldHeight: height,
-        viewportWidth: width,
-        viewportHeight: height
-    });
-
-    // Set black background
-    display.setBackground(
-        ' ',           // Empty character
-        'transparent', // Transparent foreground
-        '#000000FF'     // Black background
-    );
+   
 
     // Initialize game
-    game = new BasicTestGame(display);
+    game = new BasicTestGame(canvas.id);
         
     // Set up debug displays
     setupDebugDisplays();
