@@ -65,23 +65,27 @@ export class MoveAction {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 
+        // Check world bounds using getSize()
         const worldSize = world.getSize();
-        if (action.to.x < 0 || action.to.x >= worldSize.x || 
-            action.to.y < 0 || action.to.y >= worldSize.y) {
+        if (action.to.x < 0 || action.to.y < 0 || 
+            action.to.x >= worldSize.x || 
+            action.to.y >= worldSize.y) {
             return false;
         }
 
+        // Check for impassable entities at the destination
         const entitiesAtDest = world.getEntitiesAt(action.to);
-        return !entitiesAtDest.some(e => e.hasTag('blocks-movement'));
+        const hasImpassable = entitiesAtDest.some(e => e.hasComponent('impassable'));
+        
+        return !hasImpassable;
     }
 
     static execute(world: World, action: MoveAction): boolean {
-        try {
-            world.moveEntity(action.entityId, action.to);
-            return true;
-        } catch (e) {
-            return false;
-        }
+        const entity = world.getEntity(action.entityId);
+        if (!entity) return false;
+
+        world.moveEntity(action.entityId, action.to);
+        return true;
     }
 }
 

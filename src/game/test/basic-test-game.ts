@@ -10,6 +10,7 @@ import { Renderer } from '../../render/renderer';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
 import { ActionHandler, MoveAction } from '../../action/action-handler';
+import { ImpassableComponent } from '../../entity/components/impassable-component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -75,11 +76,42 @@ export class BasicTestGame extends Game {
         });
 
         // Add enemies
+        const enemyPositions = new Set<string>();
         for (let i = 0; i < 10; i++) {
             const x = Math.floor(Math.random() * width);
             const y = Math.floor(Math.random() * height);
-            const enemy = new EnemyEntity({ x, y });
-            this.world.addEntity(enemy);
+            const posKey = `${x},${y}`;
+            
+            // Don't place enemy if there's already one there or if it's the player position
+            if (!enemyPositions.has(posKey) && 
+                (x !== this.player.getPosition().x || y !== this.player.getPosition().y)) {
+                enemyPositions.add(posKey);
+                const enemy = new EnemyEntity({ x, y });
+                this.world.addEntity(enemy);
+            }
+        }
+
+        // Add walls (impassable entities)
+        const numWalls = Math.floor(width * height * 0.08); // 8% of the map
+        for (let i = 0; i < numWalls; i++) {
+            const x = Math.floor(Math.random() * width);
+            const y = Math.floor(Math.random() * height);
+            const posKey = `${x},${y}`;
+
+            // Don't place wall if there's already an entity there
+            if (!enemyPositions.has(posKey) && 
+                (x !== this.player.getPosition().x || y !== this.player.getPosition().y)) {
+                const wall = new Entity({ x, y });
+                wall.setComponent(new ImpassableComponent());
+                wall.setComponent(new SymbolComponent(
+                    '#',           // Wall symbol
+                    '#aaaaaaff',   // Light gray foreground
+                    '#ddddddff',   // Lighter gray background
+                    1              // Low z-index to stay below other entities
+                ));
+                this.world.addEntity(wall);
+                enemyPositions.add(posKey); // Prevent enemies from spawning here
+            }
         }
     }
 
