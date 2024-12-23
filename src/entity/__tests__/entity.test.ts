@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { validate as uuidValidate } from 'uuid';
 import { Entity } from '../entity';
 import { Point } from '../../types';
 import { RequiredComponents } from '../decorators';
