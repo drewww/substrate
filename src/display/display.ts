@@ -138,6 +138,16 @@ export class Display {
 
     private frameCallbacks: Set<(display: Display) => void> = new Set();
 
+    private viewportAnimation?: {
+        startX: number;
+        startY: number;
+        endX: number;
+        endY: number;
+        startTime: number;
+        duration: number;
+        easing: (t: number) => number;
+    };
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -492,10 +502,16 @@ export class Display {
         try {
             const animationStart = performance.now();
             
+            // Add viewport animation update
+            if (this.viewportAnimation) {
+                this.updateViewportAnimation(timestamp);
+            }
+
             const hasActiveAnimations = 
                 this.symbolAnimations.size > 0 || 
                 this.colorAnimations.size > 0 || 
-                this.valueAnimations.size > 0;
+                this.valueAnimations.size > 0 ||
+                this.viewportAnimation !== undefined;
 
             if (hasActiveAnimations) {
                 this.updateSymbolAnimations(timestamp);
@@ -1086,13 +1102,58 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         }
     }
 
-    public setViewport(x: number, y: number) {
-        if (this.viewport.x !== x || this.viewport.y !== y) {
-            logger.debug(`Setting viewport to (${x},${y})`);
-            
-            this.viewport.x = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
-            this.viewport.y = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
+    public setViewport(x: number, y: number, options?: { 
+        smooth?: boolean;
+        duration?: number;
+        easing?: (t: number) => number;
+    }) {
+        const targetX = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
+        const targetY = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
+
+        if (options?.smooth) {
+            // Start a new viewport animation
+            this.viewportAnimation = {
+                startX: this.viewport.x,
+                startY: this.viewport.y,
+                endX: targetX,
+                endY: targetY,
+                startTime: performance.now(),
+                duration: options.duration || 0.1, // Default to 100ms
+                easing: options.easing || Easing.quadOut // Default to quadratic easing
+            };
+            this.hasChanges = true;
+        } else {
+            // Immediate update
+            if (this.viewport.x !== targetX || this.viewport.y !== targetY) {
+                logger.debug(`Setting viewport to (${targetX},${targetY})`);
+                this.viewport.x = targetX;
+                this.viewport.y = targetY;
+                this.hasChanges = true;
+            }
         }
+    }
+
+    private updateViewportAnimation(timestamp: number): void {
+        if (!this.viewportAnimation) return;
+
+        const elapsed = (timestamp - this.viewportAnimation.startTime) / 1000;
+        const progress = Math.min(elapsed / this.viewportAnimation.duration, 1);
+        
+        if (progress >= 1) {
+            // Animation complete
+            this.viewport.x = this.viewportAnimation.endX;
+            this.viewport.y = this.viewportAnimation.endY;
+            this.viewportAnimation = undefined;
+        } else {
+            // Update viewport position
+            const easedProgress = this.viewportAnimation.easing(progress);
+            this.viewport.x = this.viewportAnimation.startX + 
+                (this.viewportAnimation.endX - this.viewportAnimation.startX) * easedProgress;
+            this.viewport.y = this.viewportAnimation.startY + 
+                (this.viewportAnimation.endY - this.viewportAnimation.startY) * easedProgress;
+        }
+        
+        this.hasChanges = true;
     }
 
     public clearAnimations(tileId: TileId): void {

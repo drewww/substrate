@@ -1,5 +1,4 @@
 import { Game } from '../game';
-import { Display } from '../../display/display';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { Engine } from '../../engine/engine';
@@ -11,6 +10,7 @@ import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
 import { ActionHandler, MoveAction } from '../../action/action-handler';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
+import { Easing } from '../../display/display';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -135,7 +135,11 @@ export class BasicTestGame extends Game {
             this.world.getWorldHeight() - viewportHeight
         ));
 
-        this.display.setViewport(viewportX, viewportY);
+        this.display.setViewport(viewportX, viewportY, {
+            smooth: true,
+            duration: 0.1,  // 100ms transition
+            easing: Easing.quadOut
+        });
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
