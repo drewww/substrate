@@ -546,4 +546,12 @@ export class World {
         }
         this.queuedEvents = [];
     }
+
+    public getWorldWidth(): number {
+        return this.width;
+    }
+
+    public getWorldHeight(): number {
+        return this.height;
+    }
 } 
