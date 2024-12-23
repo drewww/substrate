@@ -1,69 +1,39 @@
 import { BasicTestGame } from './basic-test-game';
-import { Display } from '../../display/display';
 import { logger, LogLevel } from '../../util/logger';
+import { DebugOverlay } from '../../display/test/debug-overlay';
+import { WorldDebugOverlay } from '../../world/debug-overlay';
 
 let game: BasicTestGame;
-let display: Display;
+let displayDebug: DebugOverlay;
+let worldDebug: WorldDebugOverlay;
 
 function init() {
-    
-    
-    // Initialize display
-    const canvas = document.getElementById('display') as HTMLCanvasElement;
-   
-
     // Initialize game
+    const canvas = document.getElementById('display') as HTMLCanvasElement;
     game = new BasicTestGame(canvas.id);
-        
-    // Set up debug displays
-    setupDebugDisplays();
+    
+    // Set up debug overlays
+    const displayDebugElement = document.getElementById('display-debug')!;
+    const worldDebugElement = document.getElementById('world-debug')!;
+    
+    displayDebug = new DebugOverlay(game.getDisplay(), displayDebugElement);
+    worldDebug = new WorldDebugOverlay(game.getWorld(), worldDebugElement);
     
     // Set up controls
     setupControls();
     
-    // Start game and debug updates
+    // Start game
     game.start();
-    setInterval(updateDebugDisplays, 1000/15); // Match game update frequency
-}
-
-function setupDebugDisplays() {
-    const displayDebug = document.getElementById('display-debug')!;
-    const worldDebug = document.getElementById('world-debug')!;
-
-    // Initial visibility
-    displayDebug.style.display = 'none';
-    worldDebug.style.display = 'none';
-}
-
-function updateDebugDisplays() {
-    const displayDebug = document.getElementById('display-debug')!;
-    const worldDebug = document.getElementById('world-debug')!;
-
-    if (displayDebug.style.display !== 'none') {
-        displayDebug.textContent = display.getDebugString();
-    }
-
-    if (worldDebug.style.display !== 'none') {
-        const world = game.getWorld();
-        const stats = {
-            entities: world.getEntities().length,
-            spatialMap: Object.fromEntries(world.getSpatialMapStats()),
-            eventHandlers: world.getEventHandlerCount()
-        };
-        worldDebug.textContent = JSON.stringify(stats, null, 2);
-    }
 }
 
 function setupControls() {
     // Debug toggles
     document.getElementById('toggleDisplayDebug')?.addEventListener('click', () => {
-        const debug = document.getElementById('display-debug')!;
-        debug.style.display = debug.style.display === 'none' ? 'block' : 'none';
+        displayDebug.toggle();
     });
 
     document.getElementById('toggleWorldDebug')?.addEventListener('click', () => {
-        const debug = document.getElementById('world-debug')!;
-        debug.style.display = debug.style.display === 'none' ? 'block' : 'none';
+        worldDebug.toggle();
     });
 
     // Log level control

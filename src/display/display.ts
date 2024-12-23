@@ -614,6 +614,13 @@ export class Display {
         const lastDirtyTileCount = this.dirtyMask.getMask().reduce((count, row) => count + row.filter(Boolean).length, 0);
         this.metrics.lastDirtyTileCount = lastDirtyTileCount;
         this.metrics.averageDirtyTileCount = lastDirtyTileCount / this.worldWidth / this.worldHeight;
+
+        // Update animation counts
+        this.metrics.symbolAnimationCount = this.symbolAnimations.size;
+        this.metrics.colorAnimationCount = Array.from(this.colorAnimations.values())
+            .reduce((count, anims) => count + (anims.fg ? 1 : 0) + (anims.bg ? 1 : 0), 0);
+        this.metrics.valueAnimationCount = Array.from(this.valueAnimations.values())
+            .reduce((count, anims) => count + Object.values(anims).filter(a => a?.running).length, 0);
     }
 
     public getPerformanceMetrics(): Readonly<PerformanceMetrics> {

@@ -10,7 +10,7 @@ import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
 import { ActionHandler, MoveAction } from '../../action/action-handler';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
-import { Easing } from '../../display/display';
+import { Display, Easing } from '../../display/display';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -167,5 +167,9 @@ export class BasicTestGame extends Game {
             // Update viewport to follow player
             this.updateViewport();
         }
+    }
+    
+    public getDisplay(): Display {
+        return this.display;
     }
 } 

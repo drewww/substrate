@@ -61,7 +61,12 @@ export class TestManager {
         if (this.currentTest) {
             this.currentTest.start();
             // Create new debug overlay after display is created
-            this.debugOverlay = new DebugOverlay(this.currentTest.getDisplay());
+            const debugElement = document.getElementById('debug-container');
+            if (debugElement) {
+                this.debugOverlay = new DebugOverlay(this.currentTest.getDisplay(), debugElement);
+            } else {
+                logger.warn('Debug container element not found');
+            }
         }
     }
 

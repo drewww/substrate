@@ -33,7 +33,26 @@ export class World {
     private queuedEvents: Array<{ event: string, data: any }> = [];
     private batchingEvents = false;
     
-    constructor(private readonly width: number, private readonly height: number) {}
+    // Add event counters
+    private eventCounts = new Map<keyof WorldEventMap, number>();
+    
+    constructor(private readonly width: number, private readonly height: number) {
+        // Initialize event counters
+        this.resetEventCounts();
+    }
+
+    private resetEventCounts(): void {
+        this.eventCounts.clear();
+        this.eventCounts.set('entityAdded', 0);
+        this.eventCounts.set('entityRemoved', 0);
+        this.eventCounts.set('entityMoved', 0);
+        this.eventCounts.set('entityModified', 0);
+        this.eventCounts.set('componentModified', 0);
+    }
+
+    public getEventCounts(): Map<keyof WorldEventMap, number> {
+        return new Map(this.eventCounts);
+    }
 
     private pointToKey({ x, y }: Point): string {
         return `${x},${y}`;
@@ -432,6 +451,14 @@ export class World {
      * Emit an event with optional data
      */
     public emit(event: string, data?: any): void {
+        // Update event counter
+        if (this.eventCounts.has(event as keyof WorldEventMap)) {
+            this.eventCounts.set(
+                event as keyof WorldEventMap, 
+                (this.eventCounts.get(event as keyof WorldEventMap) || 0) + 1
+            );
+        }
+
         if (this.batchingEvents) {
             this.queuedEvents.push({ event, data });
         } else {
@@ -553,5 +580,10 @@ export class World {
 
     public getWorldHeight(): number {
         return this.height;
+    }
+
+    // Add method to clear event counts
+    public clearEventCounts(): void {
+        this.resetEventCounts();
     }
 } 

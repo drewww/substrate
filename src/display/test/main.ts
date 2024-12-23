@@ -10,6 +10,22 @@ document.addEventListener('DOMContentLoaded', () => {
     logger.verbose('DOM Content Loaded');
     
     try {
+        // Create debug container if it doesn't exist
+        let debugContainer = document.getElementById('debug-container');
+        if (!debugContainer) {
+            debugContainer = document.createElement('div');
+            debugContainer.id = 'debug-container';
+            debugContainer.style.position = 'fixed';
+            debugContainer.style.top = '10px';
+            debugContainer.style.right = '10px';
+            debugContainer.style.fontFamily = 'monospace';
+            debugContainer.style.whiteSpace = 'pre';
+            debugContainer.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            debugContainer.style.color = '#fff';
+            debugContainer.style.padding = '10px';
+            document.body.appendChild(debugContainer);
+        }
+
         const manager = new TestManager();
         logger.verbose('TestManager created');
 
