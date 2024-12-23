@@ -15,17 +15,18 @@ export class DirtyMask {
         const tilesToMark: {x: number, y: number}[] = [];
 
         if(tile.x !== Math.floor(tile.x) || tile.y !== Math.floor(tile.y) || tile.noClip) {
-            // Compute bounding box for non-integer or no-clip tiles
-            let minX = Math.floor(Math.max(0, tile.x - (tile.noClip ? 1 : 0)));
-            let maxX = Math.ceil(Math.min(this.width - 1, tile.x + (tile.noClip ? 2 : 1)));
-            let minY = Math.floor(Math.max(0, tile.y - (tile.noClip ? 1 : 0))); 
-            let maxY = Math.ceil(Math.min(this.height - 1, tile.y + (tile.noClip ? 2 : 1)));
+            // Use Chebyshev distance of 2 for non-integer or no-clip tiles
+            const distance = 2;
+            let minX = Math.floor(Math.max(0, tile.x - distance));
+            let maxX = Math.ceil(Math.min(this.width - 1, tile.x + distance));
+            let minY = Math.floor(Math.max(0, tile.y - distance));
+            let maxY = Math.ceil(Math.min(this.height - 1, tile.y + distance));
 
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
                     tilesToMark.push({x, y});
                 }
-            } 
+            }
         } else {
             tilesToMark.push({x: Math.floor(tile.x), y: Math.floor(tile.y)});
         }
