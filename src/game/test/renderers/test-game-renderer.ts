@@ -17,37 +17,57 @@ export class TestGameRenderer extends GameRenderer {
             
             if (bump && tileId) {
                 const pos = entity.getPosition();
-                const bumpDistance = 0.3; // How far to bump
+                const bumpDistance = 0.3;
                 
-                // Calculate bump target position
                 const targetPos = {
                     x: pos.x + (bump.direction.x * bumpDistance),
                     y: pos.y + (bump.direction.y * bumpDistance)
                 };
 
-                // Add bump animation
+                // Forward animation
+                const forward = {
+                    start: pos.x,
+                    end: targetPos.x,
+                    duration: bump.duration / 2,
+                    easing: Easing.quadOut,
+                    loop: false
+                };
+
+                // Return animation
+                const back = {
+                    start: targetPos.x,
+                    end: pos.x,
+                    duration: bump.duration / 2,
+                    easing: Easing.quadOut,
+                    loop: false
+                };
+
                 this.display.addValueAnimation(tileId, {
                     x: {
-                        start: pos.x,
-                        end: targetPos.x,
-                        duration: bump.duration / 2,
-                        easing: Easing.quadOut,
-                        loop: true,
-                        reverse: true  // This creates the bounce effect
+                        ...forward,
+                        next: back
                     },
                     y: {
                         start: pos.y,
                         end: targetPos.y,
                         duration: bump.duration / 2,
                         easing: Easing.quadOut,
-                        loop: true,
-                        reverse: true  // This creates the bounce effect
+                        loop: false,
+                        next: {
+                            start: targetPos.y,
+                            end: pos.y,
+                            duration: bump.duration / 2,
+                            easing: Easing.quadOut,
+                            loop: false
+                        }
                     }
                 });
 
                 // Remove the bumping component after animation completes
-                entity.removeComponent('bumping');
-        }
+                setTimeout(() => {
+                    entity.removeComponent('bumping');
+                }, bump.duration * 1000);
+            }
         }
     }
 

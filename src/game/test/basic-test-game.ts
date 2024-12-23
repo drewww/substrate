@@ -87,6 +87,7 @@ export class BasicTestGame extends Game {
                 (x !== this.player.getPosition().x || y !== this.player.getPosition().y)) {
                 enemyPositions.add(posKey);
                 const enemy = new EnemyEntity({ x, y });
+                enemy.setComponent(new ImpassableComponent());
                 this.world.addEntity(enemy);
             }
         }
