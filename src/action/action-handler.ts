@@ -98,12 +98,6 @@ export class MoveAction {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 
-        // Check for impassable entities at the destination
-        const entitiesAtDest = world.getEntitiesAt(action.to);
-        const hasImpassable = entitiesAtDest.some(e => e.hasComponent('impassable'));
-        
-        
-
         world.moveEntity(action.entityId, action.to);
         return true;
     }
