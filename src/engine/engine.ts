@@ -1,37 +1,25 @@
 import { World } from '../world/world';
-import { Point } from '../types';
 import { Entity } from '../entity/entity';
+import { Point } from '../types';
+import { ActionHandler, MoveAction } from '../action/action-handler';
 
-export type EngineMode = 'realtime' | 'turnbased';
-
-export interface EngineConfig {
-    mode: EngineMode;
-    updateInterval?: number;
+export interface EngineOptions {
+    mode: 'turn-based' | 'realtime';
     worldWidth: number;
     worldHeight: number;
     player: Entity;
     world: World;
 }
 
-export type GameAction = {
-    type: 'move';
-    position: Point;
-}
-
-export type SystemUpdateFn = (deltaTime: number) => void;
-
 export class Engine {
-    private world: World;
-    private lastUpdateTime: number = 0;
-    private queuedActions: GameAction[] = [];
+    private systems: ((deltaTime: number) => void)[] = [];
+    private actionHandler: ActionHandler;
     private isRunning: boolean = false;
-    private player: Entity;
-    private systems: SystemUpdateFn[] = [];
+    private lastUpdateTime: number = 0;
 
-    constructor(config: EngineConfig) {
-        this.world = config.world;
-        this.player = config.player;
-        
+    constructor(private options: EngineOptions) {
+        this.actionHandler = new ActionHandler(options.world);
+        this.actionHandler.registerAction('move', MoveAction);
         this.start();
     }
 
@@ -44,56 +32,46 @@ export class Engine {
         this.isRunning = false;
     }
 
-    public update(timestamp: number): void {
+    addSystem(system: (deltaTime: number) => void): void {
+        this.systems.push(system);
+    }
+
+    update(timestamp: number): void {
         if (!this.isRunning) return;
 
-        const deltaTime = (timestamp - this.lastUpdateTime) / 1000;
+        const deltaTime = (timestamp - this.lastUpdateTime) / 1000; // Convert to seconds
         this.lastUpdateTime = timestamp;
 
-        this.world.startBatch();
-
-        this.processActions();
-
+        // Run systems first
         for (const system of this.systems) {
             system(deltaTime);
         }
 
-        for (const entity of this.world.getEntities()) {
+        // Update entities that have an update method
+        for (const entity of this.options.world.getEntities()) {
             if ('update' in entity) {
                 (entity as any).update(deltaTime);
             }
         }
-
-        this.world.endBatch();
     }
 
-    public handleAction(action: GameAction): void {
-        this.queuedActions.push(action);
-    }
+    handleAction(action: { type: string, position: Point }): void {
+        if (!this.isRunning) return;
 
-    private processActions(): void {
-        while (this.queuedActions.length > 0) {
-            const action = this.queuedActions.shift()!;
-            
-            if (action.type === 'move') {
-                try {
-                    this.world.moveEntity(this.player.getId(), action.position);
-                } catch (e) {
-                    // logger.warn(`Failed to move player:`, e);
-                }
-            }
+        if (action.type === 'move') {
+            this.actionHandler.execute({
+                type: 'move',
+                entityId: this.options.player.getId(),
+                to: action.position
+            });
         }
     }
 
-    public getWorld(): World {
-        return this.world;
+    getWorld(): World {
+        return this.options.world;
     }
 
-    public getPlayer(): Entity {
-        return this.player;
-    }
-
-    public addSystem(system: SystemUpdateFn): void {
-        this.systems.push(system);
+    getPlayer(): Entity {
+        return this.options.player;
     }
 } 

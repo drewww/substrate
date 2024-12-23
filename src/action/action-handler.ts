@@ -26,7 +26,7 @@ export class ActionHandler {
         this.executors.set(type, executor);
     }
 
-    execute(action: BaseAction): boolean {
+    execute(action: GameAction): boolean {
         const executor = this.executors.get(action.type);
         if (!executor) {
             return false;
@@ -50,6 +50,8 @@ export interface AttackAction extends BaseAction {
     type: 'attack';
     targetId: string;
 }
+
+export type GameAction = MoveAction | AttackAction | BaseAction;
 
 // Health component interface for type safety
 interface HealthComponent extends Component {

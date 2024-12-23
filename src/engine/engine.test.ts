@@ -1,4 +1,4 @@
-import { Engine, EngineConfig } from './engine';
+import { Engine, EngineOptions } from './engine';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { World } from '../world/world';
@@ -8,7 +8,7 @@ describe('Engine', () => {
     let engine: Engine;
     let player: Entity;
     let world: World;
-    let config: EngineConfig;
+    let config: EngineOptions;
 
     beforeEach(() => {
         world = new World(20, 20);

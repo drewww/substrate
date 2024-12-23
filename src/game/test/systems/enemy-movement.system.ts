@@ -1,10 +1,15 @@
-import { Entity } from '../../../entity/entity';
 import { World } from '../../../world/world';
 import { Point } from '../../../types';
+import { ActionHandler } from '../../../action/action-handler';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../../util/logger';
+import { Entity } from '../../../entity/entity';
+
 export class EnemyMovementSystem {
-    constructor(private world: World) {}
+    constructor(
+        private world: World,
+        private actionHandler: ActionHandler
+    ) {}
 
     update(deltaTime: number): void {
         const enemies = this.world.getEntities()
@@ -41,11 +46,12 @@ export class EnemyMovementSystem {
             x: pos.x + dir.x,
             y: pos.y + dir.y
         };
-        
-        try {
-            this.world.moveEntity(enemy.getId(), newPos);
-        } catch (e) {
-            // Handle collision/invalid move
-        }
+
+        // Use action handler instead of direct world manipulation
+        this.actionHandler.execute({
+            type: 'move',
+            entityId: enemy.getId(),
+            to: newPos
+        });
     }
 } 

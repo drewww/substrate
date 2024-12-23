@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
 import { ActionHandler, MoveAction, AttackAction } from '../action-handler';
-import { Point } from '../../types';
 import { Component } from '../../entity/component';
 
 // Mock health component for testing
@@ -118,7 +117,7 @@ describe('ActionHandler', () => {
     describe('Action Handler', () => {
         it('handles unregistered action types', () => {
             const action = {
-                type: 'unregistered' as const,
+                type: 'unregistered',
                 entityId: 'player'
             };
 
@@ -127,7 +126,7 @@ describe('ActionHandler', () => {
 
         it('handles actions from non-existent entities', () => {
             const action = {
-                type: 'move' as const,
+                type: 'move',
                 entityId: 'nonexistent',
                 to: { x: 1, y: 1 }
             };

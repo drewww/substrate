@@ -9,6 +9,7 @@ import { TestGameRenderer } from './renderers/test-game-renderer';
 import { Renderer } from '../../render/renderer';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
+import { ActionHandler, MoveAction } from '../../action/action-handler';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -23,20 +24,25 @@ d move right
 
 export class BasicTestGame extends Game {
     private enemyMovementSystem: EnemyMovementSystem;
+    private actionHandler: ActionHandler;
     
     constructor(display: Display) {
         super(display);
         
-        // Only set up input configuration here
+        // Set up action handler
+        this.actionHandler = new ActionHandler(this.world);
+        this.actionHandler.registerAction('move', MoveAction);
+        
+        // Set up input configuration
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
         this.input.setMode('game');
         
         // Initialize our systems
-        this.enemyMovementSystem = new EnemyMovementSystem(this.world);
+        this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
         
         // Add system to engine update loop
         this.engine.addSystem(deltaTime => {
-            this.enemyMovementSystem.update(deltaTime); // Remove the /1000 here
+            this.enemyMovementSystem.update(deltaTime);
         });
     }
 
@@ -93,9 +99,10 @@ export class BasicTestGame extends Game {
                 case 'right': newPos.x++; break;
             }
 
-            this.engine.handleAction({
+            this.actionHandler.execute({
                 type: 'move',
-                position: newPos
+                entityId: this.player.getId(),
+                to: newPos
             });
         }
     }
