@@ -47,11 +47,11 @@ export class EnemyMovementSystem {
             y: pos.y + dir.y
         };
 
-        // Use action handler instead of direct world manipulation
+        // Use action handler with proper data structure
         this.actionHandler.execute({
             type: 'move',
             entityId: enemy.getId(),
-            to: newPos
+            data: { to: newPos }
         });
     }
 } 

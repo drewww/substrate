@@ -117,19 +117,21 @@ export class World {
         }
     }
 
-    public moveEntity(entityId: string, newPosition: Point): void {
+    public moveEntity(entityId: string, newPosition: Point): boolean {
+        // Bounds checking
         if (newPosition.x < 0 || newPosition.x >= this.width || 
             newPosition.y < 0 || newPosition.y >= this.height) {
-            throw new Error(`Position ${newPosition.x},${newPosition.y} is out of bounds`);
+            return false;
         }
 
         const entity = this.entities.get(entityId);
         if (!entity) {
-            throw new Error(`Entity ${entityId} not found`);
+            return false;
         }
 
         // Let the entity update its position - it will call back to onEntityMoved
         entity.setPosition(newPosition.x, newPosition.y);
+        return true;
     }
 
     public removeEntity(entityId: string): void {

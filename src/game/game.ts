@@ -70,4 +70,8 @@ export abstract class Game {
     public getWorld(): World {
         return this.world;
     }
+
+    public getEngine(): Engine {
+        return this.engine;
+    }
 } 

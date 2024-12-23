@@ -8,9 +8,11 @@ import { TestGameRenderer } from './renderers/test-game-renderer';
 import { Renderer } from '../../render/renderer';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
-import { ActionHandler, MoveAction } from '../../action/action-handler';
+import { ActionHandler, BaseAction, ActionClass } from '../../action/action-handler';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
 import { Display, Easing } from '../../display/display';
+import { World } from '../../world/world';
+import { BumpingComponent } from '../../entity/components/bumping-component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -78,7 +80,7 @@ export class BasicTestGame extends Game {
 
         // Add enemies
         const enemyPositions = new Set<string>();
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 100; i++) {
             const x = Math.floor(Math.random() * width);
             const y = Math.floor(Math.random() * height);
             const posKey = `${x},${y}`;
@@ -161,7 +163,7 @@ export class BasicTestGame extends Game {
             this.actionHandler.execute({
                 type: 'move',
                 entityId: this.player.getId(),
-                to: newPos
+                data: { to: newPos }
             });
 
             // Update viewport to follow player
@@ -173,3 +175,44 @@ export class BasicTestGame extends Game {
         return this.display;
     }
 } 
+
+
+// Example action implementations
+
+// Example action types
+interface MoveActionData {
+    to: Point;
+}
+
+export const MoveAction: ActionClass<MoveActionData> = {
+    canExecute(world: World, action: BaseAction<MoveActionData>): boolean {
+        const entity = world.getEntity(action.entityId);
+        if (!entity) return false;
+
+        const { x, y } = action.data.to;
+        const size = world.getSize();
+        if (x < 0 || x >= size.x || y < 0 || y >= size.y) {
+            return false;
+        }
+
+        // Check for impassable entities at the destination
+        const entitiesAtDest = world.getEntitiesAt(action.data.to);
+        const hasImpassable = entitiesAtDest.some(e => e.hasComponent('impassable'));
+        
+        if (hasImpassable) {
+            const from = entity.getPosition();
+            const direction = {
+                x: action.data.to.x - from.x,
+                y: action.data.to.y - from.y
+            };
+            entity.setComponent(new BumpingComponent(direction));
+            return false;
+        }
+
+        return !hasImpassable;
+    },
+
+    execute(world: World, action: BaseAction<MoveActionData>): boolean {
+        return world.moveEntity(action.entityId, action.data.to);
+    }
+};

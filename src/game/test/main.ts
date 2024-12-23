@@ -6,6 +6,7 @@ import { WorldDebugOverlay } from '../../world/debug-overlay';
 let game: BasicTestGame;
 let displayDebug: DebugOverlay;
 let worldDebug: WorldDebugOverlay;
+let engineDebugElement: HTMLDivElement;
 
 function init() {
     // Initialize game
@@ -15,15 +16,25 @@ function init() {
     // Set up debug overlays
     const displayDebugElement = document.getElementById('display-debug')!;
     const worldDebugElement = document.getElementById('world-debug')!;
+    engineDebugElement = document.getElementById('engine-debug') as HTMLDivElement;
     
     displayDebug = new DebugOverlay(game.getDisplay(), displayDebugElement);
     worldDebug = new WorldDebugOverlay(game.getWorld(), worldDebugElement);
+    
+    // Set up engine debug updates
+    setInterval(updateEngineDebug, 1000/15); // 15fps updates
     
     // Set up controls
     setupControls();
     
     // Start game
     game.start();
+}
+
+function updateEngineDebug() {
+    if (engineDebugElement.style.display !== 'none') {
+        engineDebugElement.textContent = game.getEngine().getDebugString();
+    }
 }
 
 function setupControls() {
@@ -34,6 +45,11 @@ function setupControls() {
 
     document.getElementById('toggleWorldDebug')?.addEventListener('click', () => {
         worldDebug.toggle();
+    });
+
+    document.getElementById('toggleEngineDebug')?.addEventListener('click', () => {
+        engineDebugElement.style.display = 
+            engineDebugElement.style.display === 'none' ? 'block' : 'none';
     });
 
     // Log level control

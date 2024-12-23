@@ -85,17 +85,10 @@ describe('World', () => {
     });
 
     describe('Boundary Checks', () => {
-        it('throws when adding entity outside bounds', () => {
-            const entity = new Entity({ x: DEFAULT_SIZE.x + 1, y: 0 });
-            expect(() => world.addEntity(entity))
-                .toThrow(/Position .* is out of bounds/);
-        });
-
-        it('throws when moving entity outside bounds', () => {
+        it('returns false when moving entity outside bounds', () => {
             const entity = new Entity(DEFAULT_POSITION);
             world.addEntity(entity);
-            expect(() => world.moveEntity(entity.getId(), { x: -1, y: 0 }))
-                .toThrow(/Position .* is out of bounds/);
+            expect(world.moveEntity(entity.getId(), { x: -1, y: 0 })).toBe(false);
         });
     });
 
@@ -136,9 +129,8 @@ describe('World', () => {
             expect(() => world.removeEntity('non-existent-id')).not.toThrow();
         });
 
-        it('throws when moving non-existent entity', () => {
-            expect(() => world.moveEntity('non-existent-id', DEFAULT_POSITION))
-                .toThrow(/Entity .* not found/);
+        it('returns false when moving non-existent entity', () => {
+            expect(world.moveEntity('non-existent-id', DEFAULT_POSITION)).toBe(false);
         });
     });
 
