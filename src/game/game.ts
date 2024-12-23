@@ -16,8 +16,8 @@ export abstract class Game {
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
 
     constructor(canvasId: string) {
-        const width = 40;
-        const height = 30;
+        const width = 120;
+        const height = 120;
 
         this.display = new Display({
             elementId: canvasId,
@@ -25,8 +25,8 @@ export abstract class Game {
             cellHeight: 20,
             worldWidth: width,
             worldHeight: height,
-            viewportWidth: width,
-            viewportHeight: height
+            viewportWidth: width/4,
+            viewportHeight: height/4
         });
     
         // Set black background
