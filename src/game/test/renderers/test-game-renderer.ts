@@ -3,10 +3,54 @@ import { Entity } from '../../../entity/entity';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
 import { Easing } from '../../../display/display';
+import { BumpingComponent } from '../../../entity/components/bumping-component';
+import { logger } from '../../../util/logger';
 
 export class TestGameRenderer extends GameRenderer {
     protected handleEntityAdded(entity: Entity, tileId: string): void {}
-    protected handleEntityModified(entity: Entity, componentType: string): void {}
+    protected handleEntityModified(entity: Entity, componentType: string): void {
+
+        if (componentType === 'bumping') {
+            logger.info('Bumping component detected');
+            const bump = entity.getComponent('bumping') as BumpingComponent;
+            const tileId = this.entityTiles.get(entity.getId());
+            
+            if (bump && tileId) {
+                const pos = entity.getPosition();
+                const bumpDistance = 0.3; // How far to bump
+                
+                // Calculate bump target position
+                const targetPos = {
+                    x: pos.x + (bump.direction.x * bumpDistance),
+                    y: pos.y + (bump.direction.y * bumpDistance)
+                };
+
+                // Add bump animation
+                this.display.addValueAnimation(tileId, {
+                    x: {
+                        start: pos.x,
+                        end: targetPos.x,
+                        duration: bump.duration / 2,
+                        easing: Easing.quadOut,
+                        loop: true,
+                        reverse: true  // This creates the bounce effect
+                    },
+                    y: {
+                        start: pos.y,
+                        end: targetPos.y,
+                        duration: bump.duration / 2,
+                        easing: Easing.quadOut,
+                        loop: true,
+                        reverse: true  // This creates the bounce effect
+                    }
+                });
+
+                // Remove the bumping component after animation completes
+                entity.removeComponent('bumping');
+        }
+        }
+    }
+
     protected handleEntityRemoved(entity: Entity): void {}
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
@@ -51,6 +95,6 @@ export class TestGameRenderer extends GameRenderer {
                     bgPercent: percent
                 });
             }
-        }
+        } 
     }
 } 

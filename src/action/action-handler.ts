@@ -1,6 +1,8 @@
 import { World } from '../world/world';
 import { Point } from '../types';
 import { Component } from '../entity/component';
+import { BumpingComponent } from '../entity/components/bumping-component';
+import { logger } from '../util/logger';
 
 // Base action type
 export interface BaseAction {
@@ -77,12 +79,30 @@ export class MoveAction {
         const entitiesAtDest = world.getEntitiesAt(action.to);
         const hasImpassable = entitiesAtDest.some(e => e.hasComponent('impassable'));
         
+        if (hasImpassable) {
+            // Add bumping component with direction
+            const from = entity.getPosition();
+            const direction = {
+                x: action.to.x - from.x,
+                y: action.to.y - from.y
+            };
+            logger.info('Bumping component added');
+            entity.setComponent(new BumpingComponent(direction));
+            return false;
+        }
+
         return !hasImpassable;
     }
 
     static execute(world: World, action: MoveAction): boolean {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
+
+        // Check for impassable entities at the destination
+        const entitiesAtDest = world.getEntitiesAt(action.to);
+        const hasImpassable = entitiesAtDest.some(e => e.hasComponent('impassable'));
+        
+        
 
         world.moveEntity(action.entityId, action.to);
         return true;
