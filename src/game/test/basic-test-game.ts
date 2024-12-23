@@ -64,6 +64,7 @@ export class BasicTestGame extends Game {
             5              // Higher z-index to stay above most entities
         ));
         this.player.setComponent(new PlayerComponent());
+        this.player.setComponent(new ImpassableComponent());
         this.world.addEntity(this.player);
 
         // Initialize engine with our world
