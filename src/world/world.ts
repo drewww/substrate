@@ -229,39 +229,43 @@ export class World {
     /**
      * Serialize the world and all its entities to a JSON string
      */
-    public serialize(): string {
-        return JSON.stringify({
-            size: { x: this.width, y: this.height },
-            entities: Array.from(this.entities.values()).map(e => ({
-                id: e.getId(),
-                position: e.getPosition(),
-                components: e.getComponents(),
-                tags: Array.from(e.getTags())
-            }))
-        });
+    public serialize(): SerializedWorld {
+        return {
+            width: this.width,
+            height: this.height,
+            entities: Array.from(this.entities.values()).map(e => e.serialize())
+        };
     }
 
     /**
      * Create a new world from a serialized string
      * @throws Error if the serialized data is invalid
      */
-    public static deserialize(data: string): World {
+    public static deserialize(data: SerializedWorld): World {
         try {
-            const parsed = JSON.parse(data);
-            const world = new World(parsed.size.x, parsed.size.y);
-            
-            for (const entityData of parsed.entities) {
-                const entity = new Entity(entityData.position, entityData.id);
-                for (const component of entityData.components) {
-                    entity.setComponent(ComponentRegistry.fromJSON(component));
-                }
-                if (entityData.tags) {
-                    for (const tag of entityData.tags) {
-                        entity.addTag(tag);
-                    }
-                }
-                world.addEntity(entity);
+            // Validate dimensions
+            if (!data || data.width <= 0 || data.height <= 0) {
+                throw new Error('Invalid world dimensions');
             }
+
+            // Validate entities array exists
+            if (!Array.isArray(data.entities)) {
+                throw new Error('Invalid entities data');
+            }
+
+            const world = new World(data.width, data.height);
+            world.clear();
+            
+            // Restore entities
+            for (const entityData of data.entities) {
+                try {
+                    const entity = Entity.deserialize(entityData);
+                    world.addEntity(entity);
+                } catch (error) {
+                    throw new Error(`Failed to deserialize entity: ${error}`);
+                }
+            }
+            
             return world;
         } catch (error) {
             throw new Error(`Failed to deserialize world: ${error}`);

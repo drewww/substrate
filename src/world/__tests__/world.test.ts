@@ -349,11 +349,17 @@ describe('World', () => {
         });
 
         it('throws on invalid serialized data', () => {
-            expect(() => World.deserialize('invalid json'))
-                .toThrow(/Failed to deserialize world/);
+            expect(() => World.deserialize({
+                width: -1,  // Invalid width
+                height: 10,
+                entities: []
+            })).toThrow(/Failed to deserialize world/);
             
-            expect(() => World.deserialize('{}'))
-                .toThrow(/Failed to deserialize world/);
+            expect(() => World.deserialize({
+                width: 10,
+                height: 10,
+                entities: [{ invalid: 'data' }] as any[]
+            })).toThrow(/Failed to deserialize world/);
         });
 
         it('excludes transient properties during serialization', () => {
@@ -366,6 +372,78 @@ describe('World', () => {
             
             const component = deserialized.getEntities()[0].getComponent('test') as TestComponent;
             expect(component.transientValue).toBeUndefined();
+        });
+
+        it('handles complex world state with multiple entities and components', () => {
+            // Create entities with different components and positions
+            const player = new Entity({ x: 5, y: 5 }, 'player-1');
+            player.addTags(['player', 'friendly']);
+            player.setComponent(new TestComponent());
+            
+            const enemy1 = new Entity({ x: 1, y: 1 }, 'enemy-1');
+            enemy1.addTags(['enemy', 'hostile']);
+            enemy1.setComponent(new TestComponent());
+            enemy1.setComponent(new UpdatableComponent());
+            (enemy1.getComponent('test') as TestComponent).value = 50; // Modified value
+            
+            const enemy2 = new Entity({ x: 8, y: 8 }, 'enemy-2');
+            enemy2.addTags(['enemy', 'hostile', 'flying']);
+            enemy2.setComponent(new UpdatableComponent());
+            (enemy2.getComponent('updatable') as UpdatableComponent).value = 100;
+
+            // Add all entities to world
+            world.addEntities([player, enemy1, enemy2]);
+
+            // Serialize and deserialize
+            const serialized = world.serialize();
+            const deserialized = World.deserialize(serialized);
+
+            // Verify world structure
+            expect(deserialized.getAllEntities()).toHaveLength(3);
+            expect(deserialized.getStats()).toEqual({
+                entityCount: 3,
+                uniqueComponentTypes: 2,
+                uniqueTags: 5, // player, friendly, enemy, hostile, flying
+                occupiedPositions: 3
+            });
+
+            // Verify player entity
+            const deserializedPlayer = deserialized.getEntity('player-1');
+            expect(deserializedPlayer).toBeDefined();
+            expect(deserializedPlayer?.getPosition()).toEqual({ x: 5, y: 5 });
+            expect(deserializedPlayer?.getTags()).toContain('player');
+            expect(deserializedPlayer?.getTags()).toContain('friendly');
+            expect(deserializedPlayer?.getComponent('test')).toMatchObject({
+                type: 'test',
+                value: 100 // Default value
+            });
+
+            // Verify first enemy
+            const deserializedEnemy1 = deserialized.getEntity('enemy-1');
+            expect(deserializedEnemy1).toBeDefined();
+            expect(deserializedEnemy1?.getPosition()).toEqual({ x: 1, y: 1 });
+            expect(deserializedEnemy1?.getTags()).toContain('enemy');
+            expect(deserializedEnemy1?.getTags()).toContain('hostile');
+            expect(deserializedEnemy1?.getComponent('test')).toMatchObject({
+                type: 'test',
+                value: 50 // Modified value
+            });
+            expect(deserializedEnemy1?.getComponent('updatable')).toMatchObject({
+                type: 'updatable',
+                value: 0
+            });
+
+            // Verify second enemy
+            const deserializedEnemy2 = deserialized.getEntity('enemy-2');
+            expect(deserializedEnemy2).toBeDefined();
+            expect(deserializedEnemy2?.getPosition()).toEqual({ x: 8, y: 8 });
+            expect(deserializedEnemy2?.getTags()).toContain('enemy');
+            expect(deserializedEnemy2?.getTags()).toContain('hostile');
+            expect(deserializedEnemy2?.getTags()).toContain('flying');
+            expect(deserializedEnemy2?.getComponent('updatable')).toMatchObject({
+                type: 'updatable',
+                value: 100 // Modified value
+            });
         });
     });
 

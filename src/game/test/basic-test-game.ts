@@ -204,15 +204,10 @@ export class BasicTestGame extends Game {
     }
 
     public saveGame(): void {
-        // Serialize just the world state
         const saveData = {
-            world: {
-                size: this.world.getSize(),
-                entities: Array.from(this.world.getEntities()).map(e => e.serialize())
-            }
+            world: this.world.serialize()
         };
 
-        // Save to localStorage
         localStorage.setItem('gameState', JSON.stringify(saveData));
         console.log('Game saved');
     }
@@ -225,27 +220,17 @@ export class BasicTestGame extends Game {
         }
 
         try {
-            // Parse saved data
             const saveData = JSON.parse(savedState);
-
-            // Clear current world
-            for (const entity of this.world.getEntities()) {
-                this.world.removeEntity(entity.getId());
-            }
-
-            // Restore entities
-            for (const entityData of saveData.world.entities) {
-                const entity = Entity.deserialize(entityData);
-                this.world.addEntity(entity);
-
-                // Re-establish player reference if this is the player entity
-                if (entity.hasComponent('player')) {
-                    this.player = entity;
-                }
-            }
-
+            const newWorld = World.deserialize(saveData.world);
+            
+            // Replace current world
+            this.world = newWorld;
+            
+            // Re-establish player reference
+            this.player = this.world.getEntitiesWithComponent('player')[0];
+            
             // Update viewport to center on player
-            this.updateViewport();
+            this.updateViewport(false);
             
             console.log('Game loaded');
         } catch (error) {
