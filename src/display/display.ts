@@ -374,21 +374,21 @@ export class Display {
     }
 
     private renderTile(tile: Tile, renderX?: number, renderY?: number): void {
-        const x = renderX ?? (tile.x * this.cellWidthScaled);
-        const y = renderY ?? (tile.y * this.cellHeightScaled);
+        const x = Math.round(renderX ?? (tile.x * this.cellWidthScaled));  // Round to nearest pixel
+        const y = Math.round(renderY ?? (tile.y * this.cellHeightScaled));  // Round to nearest pixel
         
         this.renderCtx.save();
-        
         this.renderCtx.translate(x, y);
 
-        // Set blend mode if not default
-        if (tile.blendMode !== BlendMode.SourceOver) {
-            this.renderCtx.globalCompositeOperation = tile.blendMode;
-        }
-        
         if (!tile.noClip) {
             this.renderCtx.beginPath();
-            this.renderCtx.rect(0, 0, this.cellWidthScaled, this.cellHeightScaled);
+            // Use integer coordinates for the clip rectangle
+            this.renderCtx.rect(
+                0,
+                0,
+                Math.ceil(this.cellWidthScaled),
+                Math.ceil(this.cellHeightScaled)
+            );
             this.renderCtx.clip();
         }
         
@@ -1253,14 +1253,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.viewport.y + this.viewport.height > this.renderBounds.y + this.renderBounds.height - padding;
 
         if (needsReposition) {
-            // Calculate render bounds size in cells (40% larger than viewport)
+            // Calculate render bounds size in cells (20% larger than viewport)
             const renderWidthInCells = Math.min(
                 this.worldWidth,
-                Math.ceil(this.viewport.width * 1.4)
+                Math.ceil(this.viewport.width * 1.2)
             );
             const renderHeightInCells = Math.min(
                 this.worldHeight,
-                Math.ceil(this.viewport.height * 1.4)
+                Math.ceil(this.viewport.height * 1.2)
             );
             
             // Update render bounds dimensions in cells
@@ -1342,6 +1342,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public getRenderCanvas(): HTMLCanvasElement | null {
         return this.renderCanvas;
+    }
+
+    public getTilesAt(x: number, y: number): Tile[] {
+        return Array.from(this.tileMap.values())
+            .filter(tile => tile.x === x && tile.y === y)
+            .sort((a, b) => a.zIndex - b.zIndex);
     }
 } 
 

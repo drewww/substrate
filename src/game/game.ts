@@ -32,7 +32,7 @@ export abstract class Game {
         // Set black background
         this.display.setBackground(
             ' ',           // Empty character
-            'transparent', // Transparent foreground
+            '#00000000', // Transparent foreground
             '#000000FF'     // Black background
         );
 
