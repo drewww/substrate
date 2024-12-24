@@ -5,6 +5,8 @@ import { RequiredComponents } from '../decorators';
 import { Component } from '../component';
 import { RegisterComponent } from '../component-registry';
 import { Direction } from '../../types';
+import { SerializedEntity } from '../component';
+import { SymbolComponent } from '../components/symbol-component';
 
 // Default test position to use throughout tests
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
@@ -13,16 +15,12 @@ const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 @RegisterComponent('health')
 class HealthComponent extends Component {
     readonly type = 'health';
-    private _current: number;
-    private _max: number;
 
-    constructor(current: number, max: number) {
+    constructor(
+        public current: number,
+        public max: number
+    ) {
         super();
-        this._current = current;
-        this._max = max;
-
-        Object.defineProperty(this, 'current', this.createModifiedProperty<number>('_current'));
-        Object.defineProperty(this, 'max', this.createModifiedProperty<number>('_max'));
     }
 
     static fromJSON(data: any): HealthComponent {
@@ -412,6 +410,91 @@ describe('Entity', () => {
             const expectedHealth = new HealthComponent(80, 100);
             expectedHealth.modified = true;  // The component should be marked as modified
             expect(entity.getComponent('health')).toEqual(expectedHealth);
+        });
+    });
+
+    describe('Component Serialization', () => {
+        let entity: Entity;
+
+        beforeEach(() => {
+            entity = new Entity(DEFAULT_POSITION);
+        });
+
+        it('correctly serializes basic component data', () => {
+            const health = new HealthComponent(100, 100);
+            entity.setComponent(health);
+            
+            const serialized = entity.serialize();
+            expect(serialized.components[0]).toEqual({
+                type: 'health',
+                current: 100,
+                max: 100
+            });
+        });
+
+        it('correctly deserializes basic component data', () => {
+            const serializedData: SerializedEntity = {
+                id: 'test',
+                position: DEFAULT_POSITION,
+                components: [{
+                    type: 'health',
+                    current: 100,
+                    max: 100
+                }] as any[] // Type assertion needed due to serialization format
+            };
+
+            const deserialized = Entity.deserialize(serializedData);
+            const health = deserialized.getComponent('health') as HealthComponent;
+            expect(health.current).toBe(100);
+            expect(health.max).toBe(100);
+        });
+
+        it('skips transient properties during serialization', () => {
+            const component = new HealthComponent(100, 100);
+            component.modified = true; // This should be skipped
+            entity.setComponent(component);
+            
+            const serialized = entity.serialize();
+            expect(serialized.components[0]).not.toHaveProperty('modified');
+        });
+
+        it('maintains component state through serialize/deserialize cycle', () => {
+            const symbol = new SymbolComponent('@', '#FF0000', '#000000', 1);
+            entity.setComponent(symbol);
+            
+            const serialized = entity.serialize();
+            const deserialized = Entity.deserialize(serialized);
+            
+            const deserializedSymbol = deserialized.getComponent('symbol') as SymbolComponent;
+            expect(deserializedSymbol).toMatchObject({
+                char: '@',
+                foreground: '#FF0000',
+                background: '#000000',
+                zIndex: 1
+            });
+        });
+
+        it('handles multiple components during serialization', () => {
+            entity.setComponent(new HealthComponent(100, 100));
+            entity.setComponent(new SymbolComponent('@'));
+            
+            const serialized = entity.serialize();
+            expect(serialized.components).toHaveLength(2);
+            expect(serialized.components.map(c => c.type)).toContain('health');
+            expect(serialized.components.map(c => c.type)).toContain('symbol');
+        });
+
+        it('throws on invalid component type during deserialization', () => {
+            const invalidData: SerializedEntity = {
+                id: 'test',
+                position: DEFAULT_POSITION,
+                components: [{
+                    type: 'nonexistent',
+                    someData: 123
+                }] as any[] // Type assertion needed for test
+            };
+
+            expect(() => Entity.deserialize(invalidData)).toThrow(/Unknown component type/);
         });
     });
 }); 

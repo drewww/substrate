@@ -193,7 +193,7 @@ export class Entity {
         if (!component || typeof component !== 'object' || !('type' in component)) {
           throw new Error('Invalid serialized data: invalid component format');
         }
-        entity.setComponent(component);
+        entity.setComponent(Component.fromJSON(component));
       }
     }
 

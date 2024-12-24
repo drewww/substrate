@@ -6,7 +6,7 @@ import { RegisterComponent } from "../component-registry";
  */
 @RegisterComponent('symbol')
 export class SymbolComponent extends Component {
-  type: 'symbol' = 'symbol';
+  readonly type = 'symbol';
   
   constructor(
     public char: string,

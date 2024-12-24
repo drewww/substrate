@@ -33,24 +33,32 @@ export abstract class Component {
     };
   }
 
-  toJSON(): object {
-    const json: any = {};
+  serialize(): Record<string, any> {
+    const json: Record<string, any> = {
+        type: this.type
+    };
+    
     for (const key of Object.keys(this)) {
-      // Skip the type property as it's handled separately
-      if (key === 'type') continue;
-      
-      // Use the isTransient helper to check if property should be excluded
-      if (isTransient(this, key)) continue;
-      
-      const value = (this as any)[key];
-      if (value !== undefined) {
-        json[key] = value;
+        // Skip type and modified as they're handled separately
+        if (key === 'type' || key === 'modified') continue;
+        
+        // Skip transient properties
+        if (isTransient(this, key)) continue;
+        
+        const value = (this as any)[key];
+        if (value !== undefined) {
+            json[key] = value;
+        }
+    }
+    return json;
+  }
+
+  deserialize(data: Record<string, any>): void {
+    for (const [key, value] of Object.entries(data)) {
+      if (key !== 'type' && !isTransient(this, key)) {
+        (this as any)[key] = value;
       }
     }
-    return {
-      type: this.type,
-      ...json
-    };
   }
 
   static fromJSON(data: any): Component {
