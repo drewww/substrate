@@ -58,4 +58,21 @@ export class DirtyMask {
     public getMask(): readonly boolean[][] {
         return this.mask;
     }
+
+    public markDirtyXY(x: number, y: number) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+            this.mask[y][x] = true;
+        }
+    }
+
+    public markClean(x: number, y: number) {
+        x = Math.floor(x);
+        y = Math.floor(y);
+        
+        if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+            this.mask[y][x] = false;
+        }
+    }
 } 
