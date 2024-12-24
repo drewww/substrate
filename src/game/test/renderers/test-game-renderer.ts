@@ -7,9 +7,30 @@ import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { logger } from '../../../util/logger';
 
 export class TestGameRenderer extends GameRenderer {
-    protected handleEntityAdded(entity: Entity, tileId: string): void {}
-    protected handleEntityModified(entity: Entity, componentType: string): void {
+    protected handleEntityAdded(entity: Entity, tileId: string): void {
+        // Add FOV overlay tiles for undiscovered/non-visible areas
+        if (!entity.hasComponent('discoveredByPlayer')) {
+            this.display.createTile(
+                entity.getPosition().x,
+                entity.getPosition().y,
+                ' ',  // char
+                '#000000',  // color
+                '#000000',  // backgroundColor
+                100  // zIndex - Very high to be on top
+            );
+        } else if (!entity.hasComponent('visibleToPlayer')) {
+            this.display.createTile(
+                entity.getPosition().x,
+                entity.getPosition().y,
+                ' ',  // char
+                '#000000',  // color
+                '#000000CC',  // backgroundColor - 80% opacity black
+                100  // zIndex
+            );
+        }
+    }
 
+    protected handleEntityModified(entity: Entity, componentType: string): void {
         if (componentType === 'bumping') {
             logger.info('Bumping component detected');
             const bump = entity.getComponent('bumping') as BumpingComponent;
@@ -67,6 +88,27 @@ export class TestGameRenderer extends GameRenderer {
                 setTimeout(() => {
                     entity.removeComponent('bumping');
                 }, bump.duration * 1000);
+            }
+        }
+
+        if (componentType === 'visibleToPlayer' || componentType === 'discoveredByPlayer') {
+            const tileId = this.entityTiles.get(entity.getId());
+            if (tileId) {
+                // Update visibility overlay
+                if (!entity.hasComponent('discoveredByPlayer')) {
+                    this.display.updateTile(tileId, {
+                        bg: '#000000',
+                    });
+                } else if (!entity.hasComponent('visibleToPlayer')) {
+                    this.display.updateTile(tileId, {
+                        bg: '#000000CC',
+                    });
+                } else {
+                    // Fully visible - remove overlay
+                    this.display.updateTile(tileId, {
+                        bg: '#00000000',
+                    });
+                }
             }
         }
     }

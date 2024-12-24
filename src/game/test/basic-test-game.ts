@@ -14,6 +14,7 @@ import { Display, Easing } from '../../display/display';
 import { World } from '../../world/world';
 import { BumpingComponent } from '../../entity/components/bumping-component';
 import { logger } from '../../util/logger';
+import { OpacityComponent } from '../../entity/components/opacity-component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -146,6 +147,10 @@ export class BasicTestGame extends Game {
             }
         }
 
+        // Add opacity to walls
+        const wall = this.world.getEntitiesWithComponent('impassable')[0];
+        wall.setComponent(new OpacityComponent(true));
+
         // Center viewport on player after world is initialized
         this.updateViewport(false);
     }
@@ -194,6 +199,9 @@ export class BasicTestGame extends Game {
                 data: { to: newPos }
             });
 
+            // Update FOV after movement
+            this.world.updatePlayerVision(this.player.getPosition());
+            
             // Update viewport to follow player
             this.updateViewport();
         }
