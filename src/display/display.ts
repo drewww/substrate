@@ -2,8 +2,8 @@ import { TextParser } from './util/text-parser';
 import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode, TileUpdateConfig } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from '../util/logger';
-import { DirtyMask } from './dirty-mask';
 import { Point } from '../types';
+import { DirtyMask } from './dirty-mask';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -134,7 +134,7 @@ export class Display {
     private textParser: TextParser;
 
     private dirtyMask: DirtyMask;
-    private useDirtyMask: boolean = true;
+    private useDirtyMask: boolean = false;
 
     private frameCallbacks: Set<(display: Display) => void> = new Set();
 
