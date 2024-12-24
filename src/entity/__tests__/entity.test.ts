@@ -6,7 +6,6 @@ import { Component } from '../component';
 import { RegisterComponent } from '../component-registry';
 import { Direction } from '../../types';
 import { SerializedEntity } from '../component';
-import { SymbolComponent } from '../components/symbol-component';
 
 // Default test position to use throughout tests
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
@@ -15,12 +14,22 @@ const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 @RegisterComponent('health')
 class HealthComponent extends Component {
     readonly type = 'health';
+    private _current: number;
+    private _max: number;
 
-    constructor(
-        public current: number,
-        public max: number
-    ) {
+    // Declare the properties that will be created by createModifiedProperty
+    declare current: number;
+    declare max: number;
+
+    constructor(current: number, max: number) {
         super();
+        this._current = current;
+        this._max = max;
+        
+        Object.defineProperties(this, {
+            current: this.createModifiedProperty<number>('_current'),
+            max: this.createModifiedProperty<number>('_max')
+        });
     }
 
     static fromJSON(data: any): HealthComponent {
@@ -31,15 +40,65 @@ class HealthComponent extends Component {
 @RegisterComponent('facing')
 class FacingComponent extends Component {
     readonly type = 'facing';
-    direction: Direction;
+    private _direction: Direction;
+    declare direction: Direction;  // Declare the property
 
     constructor(direction: Direction) {
         super();
-        this.direction = direction;
+        this._direction = direction;
+        
+        Object.defineProperty(this, 'direction', 
+            this.createModifiedProperty<Direction>('_direction')
+        );
     }
 
     static fromJSON(data: any): FacingComponent {
         return new FacingComponent(data.direction);
+    }
+}
+
+// Rename to TestSymbolComponent to avoid conflict
+@RegisterComponent('symbol')
+class TestSymbolComponent extends Component {
+    readonly type = 'symbol';
+    private _char: string;
+    private _foreground: string;
+    private _background: string;
+    private _zIndex: number;
+
+    // Declare the properties
+    declare char: string;
+    declare foreground: string;
+    declare background: string;
+    declare zIndex: number;
+
+    constructor(
+        char: string,
+        foreground: string = '#FFFFFF',
+        background: string = '#000000',
+        zIndex: number = 1
+    ) {
+        super();
+        this._char = char;
+        this._foreground = foreground;
+        this._background = background;
+        this._zIndex = zIndex;
+
+        Object.defineProperties(this, {
+            char: this.createModifiedProperty<string>('_char'),
+            foreground: this.createModifiedProperty<string>('_foreground'),
+            background: this.createModifiedProperty<string>('_background'),
+            zIndex: this.createModifiedProperty<number>('_zIndex')
+        });
+    }
+
+    static fromJSON(data: any): TestSymbolComponent {
+        return new TestSymbolComponent(
+            data.char,
+            data.foreground,
+            data.background,
+            data.zIndex
+        );
     }
 }
 
@@ -459,13 +518,13 @@ describe('Entity', () => {
         });
 
         it('maintains component state through serialize/deserialize cycle', () => {
-            const symbol = new SymbolComponent('@', '#FF0000', '#000000', 1);
+            const symbol = new TestSymbolComponent('@', '#FF0000', '#000000', 1);
             entity.setComponent(symbol);
             
             const serialized = entity.serialize();
             const deserialized = Entity.deserialize(serialized);
             
-            const deserializedSymbol = deserialized.getComponent('symbol') as SymbolComponent;
+            const deserializedSymbol = deserialized.getComponent('symbol') as TestSymbolComponent;
             expect(deserializedSymbol).toMatchObject({
                 char: '@',
                 foreground: '#FF0000',
@@ -476,7 +535,7 @@ describe('Entity', () => {
 
         it('handles multiple components during serialization', () => {
             entity.setComponent(new HealthComponent(100, 100));
-            entity.setComponent(new SymbolComponent('@'));
+            entity.setComponent(new TestSymbolComponent('@'));
             
             const serialized = entity.serialize();
             expect(serialized.components).toHaveLength(2);

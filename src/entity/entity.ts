@@ -166,8 +166,10 @@ export class Entity {
   serialize(): SerializedEntity {
     return {
       id: this.id,
-      position: { ...this._position },
-      components: this.getComponents(),
+      position: this._position,
+      components: Array.from(this.store.values()).map(component => 
+        component.serialize()
+      ),
       tags: Array.from(this.tags)
     };
   }

@@ -33,21 +33,24 @@ export abstract class Component {
     };
   }
 
-  serialize(): Record<string, any> {
-    const json: Record<string, any> = {
+  serialize(): SerializedComponent {
+    const json: SerializedComponent = {
         type: this.type
     };
     
     for (const key of Object.keys(this)) {
-        // Skip type and modified as they're handled separately
+        // Skip type and modified
         if (key === 'type' || key === 'modified') continue;
         
         // Skip transient properties
         if (isTransient(this, key)) continue;
         
+        // For private fields, strip the underscore and use that as the key
+        const publicKey = key.startsWith('_') ? key.slice(1) : key;
         const value = (this as any)[key];
+        
         if (value !== undefined) {
-            json[key] = value;
+            json[publicKey] = value;
         }
     }
     return json;
@@ -69,10 +72,15 @@ export abstract class Component {
 /**
  * Serialized entity data structure
  */
+export interface SerializedComponent {
+    type: string;
+    [key: string]: any;
+}
+
 export interface SerializedEntity {
-  id: string;
-  position: Point;
-  components: Component[];
-  tags?: string[];
+    id: string;
+    position: Point;
+    components: SerializedComponent[];
+    tags?: string[];
 }
   
