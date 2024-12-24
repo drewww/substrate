@@ -13,6 +13,7 @@ import { ImpassableComponent } from '../../entity/components/impassable-componen
 import { Display, Easing } from '../../display/display';
 import { World } from '../../world/world';
 import { BumpingComponent } from '../../entity/components/bumping-component';
+import { logger } from '../../util/logger';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -55,6 +56,19 @@ export class BasicTestGame extends Game {
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime);
         });
+
+        // Add cell inspection
+        this.display.onCellClick((pos) => {
+            const tiles = this.display.getTilesAt(pos.x, pos.y);
+            if (tiles.length > 0) {
+                logger.info(`Tiles at (${pos.x}, ${pos.y}):`);
+                tiles.forEach(tile => {
+                    logger.info(`- Symbol: "${tile.char}" | Color: ${tile.color} | Z-Index: ${tile.zIndex}`);
+                });
+            } else {
+                logger.info(`No tiles at (${pos.x}, ${pos.y})`);
+            }
+        });
     }
 
     protected createRenderer(): Renderer {
@@ -68,10 +82,10 @@ export class BasicTestGame extends Game {
         // Create and configure player
         this.player = new Entity({ x: Math.floor(width/2), y: Math.floor(height/2) });
         this.player.setComponent(new SymbolComponent(
-            '@',            // Traditional roguelike player symbol
-            '#FFD700',      // Gold color for player
-            'transparent',  // Transparent background
-            5              // Higher z-index to stay above most entities
+            '@',            
+            '#FFD700FF',     
+            '#00000000',   // Explicitly use 8-digit hex for full transparency
+            5              
         ));
         this.player.setComponent(new PlayerComponent());
         this.player.setComponent(new ImpassableComponent());
@@ -99,6 +113,12 @@ export class BasicTestGame extends Game {
                 enemyPositions.add(posKey);
                 const enemy = new EnemyEntity({ x, y });
                 enemy.setComponent(new ImpassableComponent());
+                enemy.setComponent(new SymbolComponent(
+                    'E',
+                    '#FFFFFFFF',
+                    '#00000000',  // Explicitly use 8-digit hex for full transparency
+                    2
+                ));
                 this.world.addEntity(enemy);
             }
         }
@@ -130,7 +150,7 @@ export class BasicTestGame extends Game {
         this.updateViewport(false);
     }
 
-    private updateViewport(smooth: boolean = true): void {
+    private updateViewport(animate: boolean = true): void {
         const pos = this.player.getPosition();
         const viewportWidth = this.display.getViewportWidth();
         const viewportHeight = this.display.getViewportHeight();
@@ -146,7 +166,7 @@ export class BasicTestGame extends Game {
         ));
 
         this.display.setViewport(viewportX, viewportY, {
-            smooth: smooth,
+            smooth: animate,
             duration: 0.1,  // 100ms transition
             easing: Easing.quadOut
         });

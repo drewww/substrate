@@ -104,6 +104,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize button state
         toggleDirtyMaskButton.textContent = 'Dirty Mask: ON';
 
+        // Update debug info
+        function updateDebugInfo() {
+            if (manager.currentTest && manager.debugOverlay && debugContainer) {
+                debugContainer.textContent = manager.currentTest.getDisplay().getDebugString();
+            }
+            requestAnimationFrame(updateDebugInfo);
+        }
+        updateDebugInfo();
+
         logger.verbose('Event listeners set up');
     } catch (error) {
         logger.error('Error in main initialization:', error);

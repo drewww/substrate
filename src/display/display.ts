@@ -2,8 +2,8 @@ import { TextParser } from './util/text-parser';
 import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode, TileUpdateConfig } from './types';
 import { interpolateColor } from './util/color';
 import { logger } from '../util/logger';
-import { DirtyMask } from './dirty-mask';
 import { Point } from '../types';
+import { DirtyMask } from './dirty-mask';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -98,9 +98,9 @@ export const Easing = {
 
 export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
+    private renderCanvas: HTMLCanvasElement;
     private displayCtx: CanvasRenderingContext2D;
-    private worldCanvas: HTMLCanvasElement;      // Full world buffer
-    private worldCtx: CanvasRenderingContext2D;
+    private renderCtx: CanvasRenderingContext2D;
     private viewport: Viewport;
     private metrics: PerformanceMetrics;
 
@@ -134,7 +134,7 @@ export class Display {
     private textParser: TextParser;
 
     private dirtyMask: DirtyMask;
-    private useDirtyMask: boolean = true;
+    private useDirtyMask: boolean = false;
 
     private frameCallbacks: Set<(display: Display) => void> = new Set();
 
@@ -146,6 +146,14 @@ export class Display {
         startTime: number;
         duration: number;
         easing: (t: number) => number;
+    };
+
+    // Track render canvas position in world
+    private renderBounds: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
     };
 
     constructor(options: DisplayOptions) {
@@ -170,22 +178,31 @@ export class Display {
         }
 
         this.displayCtx = this.displayCanvas.getContext('2d')!;
-        
-        this.worldCanvas = document.createElement('canvas');
-        this.worldCtx = this.worldCanvas.getContext('2d')!;
+        const padding = Math.ceil(options.viewportWidth * 0.2); // 20% padding
+        this.renderCanvas = document.createElement('canvas');
+        this.renderCanvas.width = (options.viewportWidth + padding * 2) * this.scale;
+        this.renderCanvas.height = (options.viewportHeight + padding * 2) * this.scale;
+
+        this.renderCtx = this.renderCanvas.getContext('2d', { alpha: true })!;
+        this.renderCtx.textBaseline = 'top';
+        this.renderCtx.textAlign = 'left';
+        this.renderCtx.imageSmoothingEnabled = false;
+
+        this.renderBounds = {
+            x: 0,
+            y: 0,
+            width: options.viewportWidth + padding * 2,
+            height: options.viewportHeight + padding * 2
+        };
 
         const displayWidth = options.viewportWidth * this.cellWidthCSS;
         const displayHeight = options.viewportHeight * this.cellHeightCSS;
 
-        [this.displayCanvas, this.worldCanvas].forEach(canvas => {
+        [this.displayCanvas, this.renderCanvas].forEach(canvas => {
             canvas.style.width = `${displayWidth}px`;
             canvas.style.height = `${displayHeight}px`;
             canvas.width = displayWidth * this.scale;
             canvas.height = displayHeight * this.scale;
-        });
-
-        [this.displayCtx, this.worldCtx].forEach(ctx => {
-            ctx.scale(this.scale, this.scale);
         });
 
         this.cellWidthScaled = options.cellWidth * this.scale;
@@ -194,13 +211,10 @@ export class Display {
         this.displayCanvas.width = options.viewportWidth * this.cellWidthScaled;
         this.displayCanvas.height = options.viewportHeight * this.cellHeightScaled;
         
-        this.worldCanvas.width = options.worldWidth * this.cellWidthScaled;
-        this.worldCanvas.height = options.worldHeight * this.cellHeightScaled;
-        
         this.displayCanvas.style.width = `${options.viewportWidth * this.cellWidthCSS}px`;
         this.displayCanvas.style.height = `${options.viewportHeight * this.cellHeightCSS}px`;
 
-        [this.displayCtx, this.worldCtx].forEach(ctx => {
+        [this.displayCtx, this.renderCtx].forEach(ctx => {
             ctx.imageSmoothingEnabled = false;
             ctx.textRendering = 'geometricPrecision';
         });
@@ -241,7 +255,16 @@ export class Display {
             'w': '#FFFFFFFF',  // white
         });
 
+        // Initialize renderCanvas with padding around viewport
+       
+        
+        
+
+        // Initialize dirtyMask for entire world
         this.dirtyMask = new DirtyMask(options.worldWidth, options.worldHeight);
+        
+        // Mark initial viewport area as dirty
+        this.markEntireViewport(this.viewport.x, this.viewport.y);
 
         logger.info('Display initialization complete');
 
@@ -253,7 +276,7 @@ export class Display {
         const fontFamily = customFont || defaultFont || 'monospace';
         const fontSize = Math.floor(this.cellHeightScaled * 0.8);
         
-        [this.displayCtx, this.worldCtx].forEach(ctx => {
+        [this.displayCtx, this.renderCtx].forEach(ctx => {
             ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -350,67 +373,23 @@ export class Display {
         }
     }
 
-    private updateWorldCanvas(): void {
-        if (!this.dirtyMask.hasDirtyTiles()) return;
-
-        logger.debug('Updating world canvas with dirty tiles');
-
-        // First, clear all dirty cells regardless of whether they have tiles
-        for (let y = 0; y < this.worldHeight; y++) {
-            for (let x = 0; x < this.worldWidth; x++) {
-                if (this.dirtyMask.isDirty(x, y)) {
-                    logger.debug(`Clearing empty cell at ${x},${y}`);
-                    this.worldCtx.clearRect(
-                        x * this.cellWidthScaled,
-                        y * this.cellHeightScaled,
-                        this.cellWidthScaled,
-                        this.cellHeightScaled
-                    );
-                }
-            }
-        }
-
-        // Then process tiles as before
-        const dirtyTilesByCell = new Map<string, Tile[]>();
+    private renderTile(tile: Tile, renderX?: number, renderY?: number): void {
+        const x = Math.round(renderX ?? (tile.x * this.cellWidthScaled));  // Round to nearest pixel
+        const y = Math.round(renderY ?? (tile.y * this.cellHeightScaled));  // Round to nearest pixel
         
-        let dirtyTiles = Array.from(this.tileMap.values())
-            .filter(tile => this.dirtyMask.isDirty(tile.x, tile.y));
-        logger.debug(`Found ${dirtyTiles.length} dirty tiles to update`);
+        this.renderCtx.save();
+        this.renderCtx.translate(x, y);
 
-        dirtyTiles.forEach(tile => {
-            const key = `${tile.x},${tile.y}`;
-            if (!dirtyTilesByCell.has(key)) {
-                dirtyTilesByCell.set(key, []);
-            }
-            dirtyTilesByCell.get(key)!.push(tile);
-        });
-
-        // Render tiles in dirty cells
-        for (const [key, tiles] of dirtyTilesByCell) {
-            tiles.sort((a, b) => a.zIndex - b.zIndex);
-            tiles.forEach(tile => this.renderTile(tile));
-        }
-
-        this.dirtyMask.clear();
-    }
-
-    private renderTile(tile: Tile): void {
-        const pixelX = tile.x * this.cellWidthScaled;
-        const pixelY = tile.y * this.cellHeightScaled;
-        
-        this.worldCtx.save();
-        
-        this.worldCtx.translate(pixelX, pixelY);
-
-        // Set blend mode if not default
-        if (tile.blendMode !== BlendMode.SourceOver) {
-            this.worldCtx.globalCompositeOperation = tile.blendMode;
-        }
-        
         if (!tile.noClip) {
-            this.worldCtx.beginPath();
-            this.worldCtx.rect(0, 0, this.cellWidthScaled, this.cellHeightScaled);
-            this.worldCtx.clip();
+            this.renderCtx.beginPath();
+            // Use integer coordinates for the clip rectangle
+            this.renderCtx.rect(
+                0,
+                0,
+                Math.ceil(this.cellWidthScaled),
+                Math.ceil(this.cellHeightScaled)
+            );
+            this.renderCtx.clip();
         }
         
         const cellWidth = this.cellWidthScaled;
@@ -418,23 +397,22 @@ export class Display {
 
         // Rotate from center if needed
         if (tile.rotation) {
-            this.worldCtx.save();
-            this.worldCtx.translate(cellWidth/2, cellHeight/2);
-            this.worldCtx.rotate(tile.rotation);
-            this.worldCtx.translate(-cellWidth/2, -cellHeight/2);
-            this.worldCtx.restore();
+            this.renderCtx.save();
+            this.renderCtx.translate(cellWidth/2, cellHeight/2);
+            this.renderCtx.rotate(tile.rotation);
+            this.renderCtx.translate(-cellWidth/2, -cellHeight/2);
+            this.renderCtx.restore();
         }
-
-        // logger.debug(`Rendering tile ${tile.id} with background color ${tile.backgroundColor}`);
+       
         
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
             const bgPercent = tile.bgPercent ?? 1;
             if (bgPercent > 0) {
-                this.worldCtx.fillStyle = tile.backgroundColor;
+                this.renderCtx.fillStyle = tile.backgroundColor;
 
                 switch (tile.fillDirection) {
                     case FillDirection.TOP:
-                        this.worldCtx.fillRect(
+                        this.renderCtx.fillRect(
                             0,
                             0,
                             cellWidth,
@@ -442,7 +420,7 @@ export class Display {
                         );
                         break;
                     case FillDirection.RIGHT:
-                        this.worldCtx.fillRect(
+                        this.renderCtx.fillRect(
                             0 + cellWidth * (1 - bgPercent),
                             0,
                             cellWidth * bgPercent,
@@ -450,7 +428,7 @@ export class Display {
                         );
                         break;
                     case FillDirection.BOTTOM:
-                        this.worldCtx.fillRect(
+                        this.renderCtx.fillRect(
                             0,
                             0 + cellHeight * (1 - bgPercent),
                             cellWidth,
@@ -458,7 +436,7 @@ export class Display {
                         );
                         break;
                     case FillDirection.LEFT:
-                        this.worldCtx.fillRect(
+                        this.renderCtx.fillRect(
                             0,
                             0,
                             cellWidth * bgPercent,
@@ -473,36 +451,35 @@ export class Display {
             const offsetX = (tile.offsetSymbolX || 0) * this.cellWidthScaled;
             const offsetY = (tile.offsetSymbolY || 0) * this.cellHeightScaled;
             
-            this.worldCtx.save();
+            this.renderCtx.save();
             
             // Move to center of cell
-            this.worldCtx.translate(this.cellWidthScaled/2, this.cellHeightScaled * 0.55);
+            this.renderCtx.translate(this.cellWidthScaled/2, this.cellHeightScaled * 0.55);
             
             // Apply rotation if any
             if (tile.rotation) {
-                this.worldCtx.rotate(tile.rotation);
+                this.renderCtx.rotate(tile.rotation);
             }
             
             // Apply scale
-            this.worldCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
+            this.renderCtx.scale(tile.scaleSymbolX, tile.scaleSymbolY);
             
             // Apply offset
-            this.worldCtx.translate(offsetX, offsetY);
+            this.renderCtx.translate(offsetX, offsetY);
             
-            this.worldCtx.fillStyle = tile.color;
-            this.worldCtx.fillText(tile.char, 0, 0);
+            this.renderCtx.fillStyle = tile.color;
+            this.renderCtx.fillText(tile.char, 0, 0);
             
-            this.worldCtx.restore();
+            this.renderCtx.restore();
         }
 
-        this.worldCtx.restore();
+        this.renderCtx.restore();
     }
 
     private renderFrame(timestamp: number): void {
         try {
             const animationStart = performance.now();
             
-            // Add viewport animation update
             if (this.viewportAnimation) {
                 this.updateViewportAnimation(timestamp);
             }
@@ -513,36 +490,47 @@ export class Display {
                 this.valueAnimations.size > 0 ||
                 this.viewportAnimation !== undefined;
 
-            if (hasActiveAnimations) {
+            if (hasActiveAnimations || this.hasChanges) {
+                // Update render canvas if we have changes
+
                 this.updateSymbolAnimations(timestamp);
                 this.updateColorAnimations(timestamp);
                 this.updateValueAnimations(timestamp);
-                this.hasChanges = true;
+                
+                this.updateRenderCanvas();
+                this.hasChanges = false;
             }
+
+            // Copy from renderCanvas to displayCanvas
+            const sourceX = (this.viewport.x - this.renderBounds.x) * this.cellWidthScaled;
+            const sourceY = (this.viewport.y - this.renderBounds.y) * this.cellHeightScaled;
             
+            this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
+            this.displayCtx.drawImage(
+                this.renderCanvas,
+                sourceX, sourceY,
+                this.viewport.width * this.cellWidthScaled,
+                this.viewport.height * this.cellHeightScaled,
+                0, 0,
+                this.displayCanvas.width,
+                this.displayCanvas.height
+            );
+
             const animationEnd = performance.now();
             const renderStart = animationEnd;
 
             // Call frame callbacks
             this.frameCallbacks.forEach(callback => callback(this));
 
-            if (this.hasChanges) {
-                this.updateWorldCanvas();
-                this.hasChanges = false;
-            }
-            
-            this.updateDisplayCanvas();
-
             const renderEnd = performance.now();
 
-            this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
+            // this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
+            this.updateMetrics(renderStart);
 
         } catch (error) {
             console.error('Render error:', error);
-            // Log but don't rethrow - keep the loop going
         }
 
-        // Always request next frame, even if this one errored
         if (this.isRunning) {
             requestAnimationFrame(this.boundRenderFrame);
         }
@@ -555,37 +543,11 @@ export class Display {
         }
     }
 
-    private updateDisplayCanvas() {
-        const srcX = this.viewport.x * this.cellWidthScaled;
-        const srcY = this.viewport.y * this.cellHeightScaled;
-        const srcWidth = this.viewport.width * this.cellWidthScaled;
-        const srcHeight = this.viewport.height * this.cellHeightScaled;
-
-        this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
-        this.displayCtx.drawImage(
-            this.worldCanvas,
-            srcX, srcY, srcWidth, srcHeight,
-            0, 0, srcWidth, srcHeight
-        );
-    }
-
-    private updateMetrics(renderStart: number, animationStart: number, animationEnd: number, renderEnd: number) {
-        const renderTime = renderEnd - renderStart;
-        this.metrics.lastRenderTime = renderTime;
-        
-        if (this.metrics.totalRenderCalls === 0) {
-            this.metrics.averageRenderTime = renderTime;
-        } else {
-            this.metrics.averageRenderTime = (
-                (this.metrics.averageRenderTime * this.metrics.totalRenderCalls + renderTime) / 
-                (this.metrics.totalRenderCalls + 1)
-            );
-        }
-        
-        this.metrics.totalRenderCalls++;
-        this.metrics.frameCount++;
-
+    private updateMetrics(timestamp: number): void {
         const now = performance.now();
+        
+        // Update FPS
+        this.metrics.frameCount++;
         const timeSinceLastUpdate = now - this.metrics.lastFpsUpdate;
         if (timeSinceLastUpdate >= 1000) {
             this.metrics.fps = (this.metrics.frameCount / timeSinceLastUpdate) * 1000;
@@ -593,34 +555,17 @@ export class Display {
             this.metrics.lastFpsUpdate = now;
         }
 
-        const animationTime = animationEnd - animationStart;
-        this.metrics.lastAnimationUpdateTime = animationTime;
-        this.metrics.lastWorldUpdateTime = renderTime - animationTime;
-
-        if (this.metrics.totalRenderCalls === 0) {
-            this.metrics.averageAnimationTime = animationTime;
-            this.metrics.averageWorldUpdateTime = this.metrics.lastWorldUpdateTime;
-        } else {
-            this.metrics.averageAnimationTime = (
-                (this.metrics.averageAnimationTime * this.metrics.totalRenderCalls + animationTime) /
-                (this.metrics.totalRenderCalls + 1)
-            );
-            this.metrics.averageWorldUpdateTime = (
-                (this.metrics.averageWorldUpdateTime * this.metrics.totalRenderCalls + this.metrics.lastWorldUpdateTime) /
-                (this.metrics.totalRenderCalls + 1)
-            );
-        }
-
-        const lastDirtyTileCount = this.dirtyMask.getMask().reduce((count, row) => count + row.filter(Boolean).length, 0);
-        this.metrics.lastDirtyTileCount = lastDirtyTileCount;
-        this.metrics.averageDirtyTileCount = lastDirtyTileCount / this.worldWidth / this.worldHeight;
-
         // Update animation counts
         this.metrics.symbolAnimationCount = this.symbolAnimations.size;
         this.metrics.colorAnimationCount = Array.from(this.colorAnimations.values())
             .reduce((count, anims) => count + (anims.fg ? 1 : 0) + (anims.bg ? 1 : 0), 0);
         this.metrics.valueAnimationCount = Array.from(this.valueAnimations.values())
             .reduce((count, anims) => count + Object.values(anims).filter(a => a?.running).length, 0);
+
+        // Update render times
+        const renderTime = performance.now() - now;
+        this.metrics.lastRenderTime = renderTime;
+        this.metrics.averageRenderTime = (this.metrics.averageRenderTime * 0.95) + (renderTime * 0.05);
     }
 
     public getPerformanceMetrics(): Readonly<PerformanceMetrics> {
@@ -630,13 +575,10 @@ export class Display {
     public getDebugString(): string {
         return `FPS: ${this.metrics.fps.toFixed(1)}
 Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.averageRenderTime.toFixed(2)}ms)
-├─ Animation: ${this.metrics.lastAnimationUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageAnimationTime.toFixed(2)}ms)
-└─ World Update: ${this.metrics.lastWorldUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageWorldUpdateTime.toFixed(2)}ms)
 Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnimationCount + this.metrics.valueAnimationCount}
 ├─ Symbol: ${this.metrics.symbolAnimationCount}
 ├─ Color: ${this.metrics.colorAnimationCount}
-└─ Value: ${this.metrics.valueAnimationCount}
-Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirtyTileCount.toFixed(1)})`;
+└─ Value: ${this.metrics.valueAnimationCount}`;
     }
 
     public clear() {
@@ -649,7 +591,7 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         this.valueAnimations.clear();
 
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
-        this.worldCtx.clearRect(0, 0, this.worldCanvas.width, this.worldCanvas.height);
+        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
     }
 
     public setBackground(symbol: string, fgColor: Color, bgColor: Color): void {
@@ -1114,6 +1056,7 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
         duration?: number;
         easing?: (t: number) => number;
     }) {
+        // Clamp target position to ensure viewport stays within world bounds
         const targetX = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
         const targetY = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
 
@@ -1122,15 +1065,15 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
             this.viewportAnimation = {
                 startX: this.viewport.x,
                 startY: this.viewport.y,
-                endX: targetX,
-                endY: targetY,
+                endX: targetX,    // Using clamped values
+                endY: targetY,    // Using clamped values
                 startTime: performance.now(),
-                duration: options.duration || 0.1, // Default to 100ms
-                easing: options.easing || Easing.quadOut // Default to quadratic easing
+                duration: options.duration || 0.1,
+                easing: options.easing || Easing.quadOut
             };
             this.hasChanges = true;
         } else {
-            // Immediate update
+            // Immediate update with clamped values
             if (this.viewport.x !== targetX || this.viewport.y !== targetY) {
                 logger.debug(`Setting viewport to (${targetX},${targetY})`);
                 this.viewport.x = targetX;
@@ -1298,6 +1241,107 @@ Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirt
 
         this.dirtyMask.markDirty(tile);
         this.hasChanges = true;
+    }
+
+    private updateRenderCanvas(): void {
+        const padding = Math.ceil(this.viewport.width * 0.1);
+        const needsReposition = 
+            this.viewport.x < this.renderBounds.x + padding ||
+            this.viewport.x + this.viewport.width > this.renderBounds.x + this.renderBounds.width - padding ||
+            this.viewport.y < this.renderBounds.y + padding ||
+            this.viewport.y + this.viewport.height > this.renderBounds.y + this.renderBounds.height - padding;
+
+        if (needsReposition) {
+            // Calculate render bounds size in cells (20% larger than viewport)
+            const renderWidthInCells = Math.min(
+                this.worldWidth,
+                Math.ceil(this.viewport.width * 1.2)
+            );
+            const renderHeightInCells = Math.min(
+                this.worldHeight,
+                Math.ceil(this.viewport.height * 1.2)
+            );
+            
+            // Update render bounds dimensions in cells
+            this.renderBounds.width = renderWidthInCells;
+            this.renderBounds.height = renderHeightInCells;
+            
+            // Update canvas size in pixels
+            this.renderCanvas.width = renderWidthInCells * this.cellWidthScaled;
+            this.renderCanvas.height = renderHeightInCells * this.cellHeightScaled;
+            
+            // Reconfigure context after canvas resize
+            this.setupFont();
+            
+            // Try to center, but clamp to world bounds (in cells)
+            this.renderBounds.x = Math.max(0, Math.min(
+                this.viewport.x - Math.floor(renderWidthInCells * 0.2),
+                this.worldWidth - renderWidthInCells
+            ));
+            
+            this.renderBounds.y = Math.max(0, Math.min(
+                this.viewport.y - Math.floor(renderHeightInCells * 0.2),
+                this.worldHeight - renderHeightInCells
+            ));
+
+            // Clear entire render canvas when repositioning
+            this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+        }
+
+        // Clear the entire render canvas once
+        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+
+        // Process all tiles within render bounds, not just dirty ones
+        const visibleTiles = Array.from(this.tileMap.values())
+            .filter(tile => 
+                tile.x >= this.renderBounds.x && 
+                tile.x < this.renderBounds.x + this.renderBounds.width &&
+                tile.y >= this.renderBounds.y && 
+                tile.y < this.renderBounds.y + this.renderBounds.height
+            )
+            .sort((a, b) => a.zIndex - b.zIndex);
+
+        // Group tiles by position for efficient rendering
+        const tilesByCell = new Map<string, Tile[]>();
+        visibleTiles.forEach(tile => {
+            const key = `${tile.x},${tile.y}`;
+            if (!tilesByCell.has(key)) {
+                tilesByCell.set(key, []);
+            }
+            tilesByCell.get(key)!.push(tile);
+        });
+
+        // Render all visible cells
+        for (const [key, tiles] of tilesByCell) {
+            const [x, y] = key.split(',').map(Number);
+            const renderX = (x - this.renderBounds.x) * this.cellWidthScaled;
+            const renderY = (y - this.renderBounds.y) * this.cellHeightScaled;
+            
+            tiles.forEach(tile => this.renderTile(tile, renderX, renderY));
+        }
+    }
+
+    private markEntireViewport(x: number, y: number): void {
+        const vpLeft = Math.max(0, x);
+        const vpRight = Math.min(this.worldWidth, x + this.viewport.width);
+        const vpTop = Math.max(0, y);
+        const vpBottom = Math.min(this.worldHeight, y + this.viewport.height);
+
+        for (let cy = vpTop; cy < vpBottom; cy++) {
+            for (let cx = vpLeft; cx < vpRight; cx++) {
+                this.dirtyMask.markDirtyXY(cx, cy);
+            }
+        }
+    }
+
+    public getRenderCanvas(): HTMLCanvasElement | null {
+        return this.renderCanvas;
+    }
+
+    public getTilesAt(x: number, y: number): Tile[] {
+        return Array.from(this.tileMap.values())
+            .filter(tile => tile.x === x && tile.y === y)
+            .sort((a, b) => a.zIndex - b.zIndex);
     }
 } 
 

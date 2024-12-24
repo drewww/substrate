@@ -7,19 +7,22 @@ interface Point {
     y: number;
 }
 
+const WORLD_WIDTH = 400;
+const WORLD_HEIGHT = 200;
+
+
 export class ScrollTest extends BaseTest {
     private currentPos: Point = { x: 0, y: 0 };
     private targetPos: Point = { x: 0, y: 0 };
-    private readonly WORLD_SIZE = 100;
     private readonly MOVE_SPEED = 1;
     private tileIds: TileId[] = [];
     
     constructor() {
         super({
-            worldWidth: 100,
-            worldHeight: 50,
-            viewportWidth: 70,
-            viewportHeight: 25,
+            worldWidth: WORLD_WIDTH,
+            worldHeight: WORLD_HEIGHT,
+            viewportWidth: 20,
+            viewportHeight: 10,
             cellWidth: 12,
             cellHeight: 24
         });
@@ -38,8 +41,8 @@ export class ScrollTest extends BaseTest {
     }
 
     private getPositionBasedColor(x: number, y: number): Color {
-        const hue = (x / this.WORLD_SIZE) * 360;
-        const saturation = Math.floor(40 + (y / this.WORLD_SIZE) * 60);
+        const hue = (x / WORLD_WIDTH) * 360;
+        const saturation = Math.floor(10 + (y / WORLD_HEIGHT) * 90);
         logger.debug(`Position (${x},${y}) -> HSL(${hue}, ${saturation}%, 50%)`);
         return this.hslToHex(hue, saturation, 50);
     }
@@ -117,6 +120,25 @@ export class ScrollTest extends BaseTest {
 
     protected run(): void {
         logger.info('Starting scroll test');
+        
+        // Add render canvas to DOM for debugging
+        const renderCanvas = this.display.getRenderCanvas();
+        if (renderCanvas) {
+            // Calculate actual pixel dimensions based on viewport size + 20%
+            const renderWidthPx = this.options.cellWidth * Math.ceil(this.options.viewportWidth * 1.2);
+            const renderHeightPx = this.options.cellHeight * Math.ceil(this.options.viewportHeight * 1.2);
+            
+            renderCanvas.style.position = 'fixed';
+            renderCanvas.style.top = '10px';
+            renderCanvas.style.right = '10px';
+            renderCanvas.style.border = '1px solid #666';
+            renderCanvas.style.opacity = '0.8';
+            // Set dimensions to match viewport aspect ratio
+            renderCanvas.style.width = `${renderWidthPx}px`;
+            renderCanvas.style.height = `${renderHeightPx}px`;
+            document.body.appendChild(renderCanvas);
+        }
+
         this.currentPos = { x: 0, y: 0 };
         this.targetPos = this.getNewTarget();
         logger.info(`Initial target: (${this.targetPos.x},${this.targetPos.y})`);
@@ -125,11 +147,15 @@ export class ScrollTest extends BaseTest {
     }
 
     protected cleanup(): void {
-        // Remove all tiles
+        // Remove render canvas from DOM
+        const renderCanvas = this.display.getRenderCanvas();
+        if (renderCanvas && renderCanvas.parentElement) {
+            renderCanvas.parentElement.removeChild(renderCanvas);
+        }
+
+        // Original cleanup
         this.tileIds.forEach(id => this.display.removeTile(id));
         this.tileIds = [];
-        
-        // Reset viewport position
         this.currentPos = { x: 0, y: 0 };
         this.targetPos = { x: 0, y: 0 };
         this.display.setViewport(0, 0);
