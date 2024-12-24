@@ -403,8 +403,7 @@ export class Display {
             this.renderCtx.translate(-cellWidth/2, -cellHeight/2);
             this.renderCtx.restore();
         }
-
-        // logger.debug(`Rendering tile ${tile.id} with background color ${tile.backgroundColor}`);
+       
         
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
             const bgPercent = tile.bgPercent ?? 1;
@@ -1289,6 +1288,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
         }
 
+        // Clear the entire render canvas once
+        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+
         // Process all tiles within render bounds, not just dirty ones
         const visibleTiles = Array.from(this.tileMap.values())
             .filter(tile => 
@@ -1315,15 +1317,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             const renderX = (x - this.renderBounds.x) * this.cellWidthScaled;
             const renderY = (y - this.renderBounds.y) * this.cellHeightScaled;
             
-            this.renderCtx.clearRect(
-                renderX, renderY,
-                this.cellWidthScaled,
-                this.cellHeightScaled
-            );
-            
             tiles.forEach(tile => this.renderTile(tile, renderX, renderY));
-            // Temporarily disable marking clean
-            // this.dirtyMask.markClean(x, y);
         }
     }
 
