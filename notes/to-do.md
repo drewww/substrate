@@ -74,7 +74,7 @@ MODULE LIST
 -----------
  * Display (v1.0 done)
  * Input (v1.0 done)
- * Game (v0.0)
+ * Game (v1.0)
   * Takes inputs. Updates the world based on them, while enforcing game rules.
   * Owns the core "clock" of the game. Understands time. 
   * Triggers map generation, loading, saving, puts UI on the screen, etc.

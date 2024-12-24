@@ -57,6 +57,14 @@ function setupControls() {
         const select = e.target as HTMLSelectElement;
         logger.setLogLevel(parseInt(select.value) as LogLevel);
     });
+
+    document.getElementById('saveGame')?.addEventListener('click', () => {
+        game.saveGame();
+    });
+
+    document.getElementById('loadGame')?.addEventListener('click', () => {
+        game.loadGame();
+    });
 }
 
 // Initialize when DOM is ready
