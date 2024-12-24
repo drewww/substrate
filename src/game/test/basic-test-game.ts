@@ -139,10 +139,10 @@ export class BasicTestGame extends Game {
         }
 
         // Center viewport on player after world is initialized
-        this.updateViewport();
+        this.updateViewport(false);
     }
 
-    private updateViewport(): void {
+    private updateViewport(animate: boolean = true): void {
         const pos = this.player.getPosition();
         const viewportWidth = this.display.getViewportWidth();
         const viewportHeight = this.display.getViewportHeight();
@@ -157,11 +157,15 @@ export class BasicTestGame extends Game {
             this.world.getWorldHeight() - viewportHeight
         ));
 
-        this.display.setViewport(viewportX, viewportY, {
-            smooth: true,
-            duration: 0.1,  // 100ms transition
-            easing: Easing.quadOut
-        });
+        if(animate) {
+            this.display.setViewport(viewportX, viewportY, {
+                smooth: true,
+                duration: 0.1,  // 100ms transition
+                easing: Easing.quadOut
+            });
+        } else {
+            this.display.setViewport(viewportX, viewportY);
+        }
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
