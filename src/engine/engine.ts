@@ -23,6 +23,9 @@ export class Engine {
         lastUpdateDuration: 0,
         averageUpdateDuration: 0,
         totalUpdates: 0,
+        updatesPerSecond: 0,
+        lastUpsUpdate: performance.now(),
+        updatesSinceLastUps: 0,
         systemMetrics: new Map<number, { 
             lastDuration: number, 
             averageDuration: number 
@@ -52,6 +55,15 @@ export class Engine {
 
     update(timestamp: number): void {
         if (!this.isRunning) return;
+
+        // Update UPS counter
+        this.metrics.updatesSinceLastUps++;
+        const timeSinceLastUps = performance.now() - this.metrics.lastUpsUpdate;
+        if (timeSinceLastUps >= 1000) {  // Update every second
+            this.metrics.updatesPerSecond = (this.metrics.updatesSinceLastUps / timeSinceLastUps) * 1000;
+            this.metrics.updatesSinceLastUps = 0;
+            this.metrics.lastUpsUpdate = performance.now();
+        }
 
         const updateStart = performance.now();
         const deltaTime = (timestamp - this.lastUpdateTime) / 1000;
@@ -114,6 +126,7 @@ export class Engine {
     // Add method to get debug info
     public getDebugString(): string {
         return `Engine Stats:
+├─ Updates/sec: ${this.metrics.updatesPerSecond.toFixed(1)}
 ├─ Update Time: ${this.metrics.lastUpdateDuration.toFixed(2)}ms (avg: ${this.metrics.averageUpdateDuration.toFixed(2)}ms)
 ├─ Entity Updates: ${this.metrics.entityUpdateDuration.toFixed(2)}ms (avg: ${this.metrics.averageEntityUpdateDuration.toFixed(2)}ms)
 ├─ Systems: ${this.systems.length}
