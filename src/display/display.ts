@@ -1057,6 +1057,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         duration?: number;
         easing?: (t: number) => number;
     }) {
+        // Clamp target position to ensure viewport stays within world bounds
         const targetX = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
         const targetY = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
 
@@ -1065,15 +1066,15 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.viewportAnimation = {
                 startX: this.viewport.x,
                 startY: this.viewport.y,
-                endX: targetX,
-                endY: targetY,
+                endX: targetX,    // Using clamped values
+                endY: targetY,    // Using clamped values
                 startTime: performance.now(),
-                duration: options.duration || 0.1, // Default to 100ms
-                easing: options.easing || Easing.quadOut // Default to quadratic easing
+                duration: options.duration || 0.1,
+                easing: options.easing || Easing.quadOut
             };
             this.hasChanges = true;
         } else {
-            // Immediate update
+            // Immediate update with clamped values
             if (this.viewport.x !== targetX || this.viewport.y !== targetY) {
                 logger.debug(`Setting viewport to (${targetX},${targetY})`);
                 this.viewport.x = targetX;
@@ -1244,9 +1245,6 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private updateRenderCanvas(): void {
-        // Temporarily ignore dirty mask checks
-        // if (!this.dirtyMask.hasDirtyTiles()) return;
-
         const padding = Math.ceil(this.viewport.width * 0.1);
         const needsReposition = 
             this.viewport.x < this.renderBounds.x + padding ||
@@ -1255,18 +1253,37 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.viewport.y + this.viewport.height > this.renderBounds.y + this.renderBounds.height - padding;
 
         if (needsReposition) {
-            // Store old bounds for cleanup
-            const oldBounds = { ...this.renderBounds };
+            // Calculate render bounds size in cells (40% larger than viewport)
+            const renderWidthInCells = Math.min(
+                this.worldWidth,
+                Math.ceil(this.viewport.width * 1.4)
+            );
+            const renderHeightInCells = Math.min(
+                this.worldHeight,
+                Math.ceil(this.viewport.height * 1.4)
+            );
             
-            // Center renderCanvas on viewport
-            this.renderBounds.x = this.viewport.x - Math.floor(this.renderBounds.width * 0.3);
-            this.renderBounds.y = this.viewport.y - Math.floor(this.renderBounds.height * 0.3);
+            // Update render bounds dimensions in cells
+            this.renderBounds.width = renderWidthInCells;
+            this.renderBounds.height = renderHeightInCells;
             
-            // Constrain to world bounds
-            this.renderBounds.x = Math.max(0, Math.min(this.renderBounds.x, 
-                this.worldWidth - this.renderBounds.width));
-            this.renderBounds.y = Math.max(0, Math.min(this.renderBounds.y, 
-                this.worldHeight - this.renderBounds.height));
+            // Update canvas size in pixels
+            this.renderCanvas.width = renderWidthInCells * this.cellWidthScaled;
+            this.renderCanvas.height = renderHeightInCells * this.cellHeightScaled;
+            
+            // Reconfigure context after canvas resize
+            this.setupFont();
+            
+            // Try to center, but clamp to world bounds (in cells)
+            this.renderBounds.x = Math.max(0, Math.min(
+                this.viewport.x - Math.floor(renderWidthInCells * 0.2),
+                this.worldWidth - renderWidthInCells
+            ));
+            
+            this.renderBounds.y = Math.max(0, Math.min(
+                this.viewport.y - Math.floor(renderHeightInCells * 0.2),
+                this.worldHeight - renderHeightInCells
+            ));
 
             // Clear entire render canvas when repositioning
             this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
@@ -1321,6 +1338,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 this.dirtyMask.markDirtyXY(cx, cy);
             }
         }
+    }
+
+    public getRenderCanvas(): HTMLCanvasElement | null {
+        return this.renderCanvas;
     }
 } 
 
