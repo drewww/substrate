@@ -525,7 +525,8 @@ export class Display {
 
             const renderEnd = performance.now();
 
-            this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
+            // this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
+            this.updateMetrics(renderStart);
 
         } catch (error) {
             console.error('Render error:', error);
@@ -543,23 +544,11 @@ export class Display {
         }
     }
 
-    private updateMetrics(renderStart: number, animationStart: number, animationEnd: number, renderEnd: number) {
-        const renderTime = renderEnd - renderStart;
-        this.metrics.lastRenderTime = renderTime;
-        
-        if (this.metrics.totalRenderCalls === 0) {
-            this.metrics.averageRenderTime = renderTime;
-        } else {
-            this.metrics.averageRenderTime = (
-                (this.metrics.averageRenderTime * this.metrics.totalRenderCalls + renderTime) / 
-                (this.metrics.totalRenderCalls + 1)
-            );
-        }
-        
-        this.metrics.totalRenderCalls++;
-        this.metrics.frameCount++;
-
+    private updateMetrics(timestamp: number): void {
         const now = performance.now();
+        
+        // Update FPS
+        this.metrics.frameCount++;
         const timeSinceLastUpdate = now - this.metrics.lastFpsUpdate;
         if (timeSinceLastUpdate >= 1000) {
             this.metrics.fps = (this.metrics.frameCount / timeSinceLastUpdate) * 1000;
@@ -567,34 +556,17 @@ export class Display {
             this.metrics.lastFpsUpdate = now;
         }
 
-        const animationTime = animationEnd - animationStart;
-        this.metrics.lastAnimationUpdateTime = animationTime;
-        this.metrics.lastWorldUpdateTime = renderTime - animationTime;
-
-        if (this.metrics.totalRenderCalls === 0) {
-            this.metrics.averageAnimationTime = animationTime;
-            this.metrics.averageWorldUpdateTime = this.metrics.lastWorldUpdateTime;
-        } else {
-            this.metrics.averageAnimationTime = (
-                (this.metrics.averageAnimationTime * this.metrics.totalRenderCalls + animationTime) /
-                (this.metrics.totalRenderCalls + 1)
-            );
-            this.metrics.averageWorldUpdateTime = (
-                (this.metrics.averageWorldUpdateTime * this.metrics.totalRenderCalls + this.metrics.lastWorldUpdateTime) /
-                (this.metrics.totalRenderCalls + 1)
-            );
-        }
-
-        const lastDirtyTileCount = this.dirtyMask.getMask().reduce((count, row) => count + row.filter(Boolean).length, 0);
-        this.metrics.lastDirtyTileCount = lastDirtyTileCount;
-        this.metrics.averageDirtyTileCount = lastDirtyTileCount / this.worldWidth / this.worldHeight;
-
         // Update animation counts
         this.metrics.symbolAnimationCount = this.symbolAnimations.size;
         this.metrics.colorAnimationCount = Array.from(this.colorAnimations.values())
             .reduce((count, anims) => count + (anims.fg ? 1 : 0) + (anims.bg ? 1 : 0), 0);
         this.metrics.valueAnimationCount = Array.from(this.valueAnimations.values())
             .reduce((count, anims) => count + Object.values(anims).filter(a => a?.running).length, 0);
+
+        // Update render times
+        const renderTime = performance.now() - now;
+        this.metrics.lastRenderTime = renderTime;
+        this.metrics.averageRenderTime = (this.metrics.averageRenderTime * 0.95) + (renderTime * 0.05);
     }
 
     public getPerformanceMetrics(): Readonly<PerformanceMetrics> {
@@ -604,13 +576,10 @@ export class Display {
     public getDebugString(): string {
         return `FPS: ${this.metrics.fps.toFixed(1)}
 Render Time: ${this.metrics.lastRenderTime.toFixed(2)}ms (avg: ${this.metrics.averageRenderTime.toFixed(2)}ms)
-├─ Animation: ${this.metrics.lastAnimationUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageAnimationTime.toFixed(2)}ms)
-└─ World Update: ${this.metrics.lastWorldUpdateTime.toFixed(2)}ms (avg: ${this.metrics.averageWorldUpdateTime.toFixed(2)}ms)
 Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnimationCount + this.metrics.valueAnimationCount}
 ├─ Symbol: ${this.metrics.symbolAnimationCount}
 ├─ Color: ${this.metrics.colorAnimationCount}
-└─ Value: ${this.metrics.valueAnimationCount}
-Dirty Tiles: ${this.metrics.lastDirtyTileCount} (avg: ${this.metrics.averageDirtyTileCount.toFixed(1)})`;
+└─ Value: ${this.metrics.valueAnimationCount}`;
     }
 
     public clear() {

@@ -2,7 +2,7 @@ import { Display } from "../display";
 import { logger } from "../../util/logger";
 
 export class DebugOverlay {
-    private isVisible = false;
+    private visible = false;
     private dirtyMaskCanvas: HTMLCanvasElement;
     private dirtyMaskCtx: CanvasRenderingContext2D;
     private metricsDiv: HTMLDivElement;
@@ -66,8 +66,22 @@ export class DebugOverlay {
     }
 
     public toggle(): void {
-        this.isVisible = !this.isVisible;
-        this.element.style.display = this.isVisible ? 'block' : 'none';
+        this.visible = !this.visible;
+        this.element.style.display = this.visible ? 'block' : 'none';
+    }
+
+    public show(): void {
+        this.visible = true;
+        this.element.style.display = 'block';
+    }
+
+    public hide(): void {
+        this.visible = false;
+        this.element.style.display = 'none';
+    }
+
+    public get isVisible(): boolean {
+        return this.visible;
     }
 
     public remove(): void {

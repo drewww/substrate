@@ -47,25 +47,17 @@ export class TestManager {
             this.currentTest.stop();
         }
 
-        // Clean up old debug overlay
-        if (this.debugOverlay) {
-            console.log('Removing old debug overlay');
-            this.debugOverlay.remove();
-            this.debugOverlay = null;
-        }
-
         // Find and set new test
         this.currentTest = this.availableTests.find(test => test.getName() === testName) || null;
         
         // Start the test (which will create its display)
         if (this.currentTest) {
             this.currentTest.start();
-            // Create new debug overlay after display is created
+            
+            // Update debug overlay to use new display
             const debugElement = document.getElementById('debug-container');
             if (debugElement) {
                 this.debugOverlay = new DebugOverlay(this.currentTest.getDisplay(), debugElement);
-            } else {
-                logger.warn('Debug container element not found');
             }
         }
     }
