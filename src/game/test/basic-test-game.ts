@@ -202,6 +202,56 @@ export class BasicTestGame extends Game {
     public getDisplay(): Display {
         return this.display;
     }
+
+    public saveGame(): void {
+        // Serialize just the world state
+        const saveData = {
+            world: {
+                size: this.world.getSize(),
+                entities: Array.from(this.world.getEntities()).map(e => e.serialize())
+            }
+        };
+
+        // Save to localStorage
+        localStorage.setItem('gameState', JSON.stringify(saveData));
+        console.log('Game saved');
+    }
+
+    public loadGame(): void {
+        const savedState = localStorage.getItem('gameState');
+        if (!savedState) {
+            console.log('No saved game found');
+            return;
+        }
+
+        try {
+            // Parse saved data
+            const saveData = JSON.parse(savedState);
+
+            // Clear current world
+            for (const entity of this.world.getEntities()) {
+                this.world.removeEntity(entity.getId());
+            }
+
+            // Restore entities
+            for (const entityData of saveData.world.entities) {
+                const entity = Entity.deserialize(entityData);
+                this.world.addEntity(entity);
+
+                // Re-establish player reference if this is the player entity
+                if (entity.hasComponent('player')) {
+                    this.player = entity;
+                }
+            }
+
+            // Update viewport to center on player
+            this.updateViewport();
+            
+            console.log('Game loaded');
+        } catch (error) {
+            console.error('Error loading game:', error);
+        }
+    }
 } 
 
 

@@ -1,5 +1,7 @@
 import { Component } from '../../../entity/component';
+import { RegisterComponent } from '../../../entity/component-registry';
 
+@RegisterComponent('moveCooldown')
 export class MoveCooldownComponent extends Component {
     type: 'moveCooldown' = 'moveCooldown';
     
