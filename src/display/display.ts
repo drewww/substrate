@@ -493,6 +493,11 @@ export class Display {
 
             if (hasActiveAnimations || this.hasChanges) {
                 // Update render canvas if we have changes
+
+                this.updateSymbolAnimations(timestamp);
+                this.updateColorAnimations(timestamp);
+                this.updateValueAnimations(timestamp);
+                
                 this.updateRenderCanvas();
                 this.hasChanges = false;
             }
