@@ -30,7 +30,15 @@ export class BasicTestGame extends Game {
     private actionHandler: ActionHandler;
     
     constructor(canvasId: string) {
-        super(canvasId);
+        super({
+            elementId: canvasId,
+            cellWidth: 20,
+            cellHeight: 20,
+            worldWidth: 120,
+            worldHeight: 120,
+            viewportWidth: 40,
+            viewportHeight: 20
+        });
         
         // Set up action handler
         this.actionHandler = new ActionHandler(this.world);
@@ -119,10 +127,10 @@ export class BasicTestGame extends Game {
         }
 
         // Center viewport on player after world is initialized
-        this.updateViewport();
+        this.updateViewport(false);
     }
 
-    private updateViewport(): void {
+    private updateViewport(smooth: boolean = true): void {
         const pos = this.player.getPosition();
         const viewportWidth = this.display.getViewportWidth();
         const viewportHeight = this.display.getViewportHeight();
@@ -138,7 +146,7 @@ export class BasicTestGame extends Game {
         ));
 
         this.display.setViewport(viewportX, viewportY, {
-            smooth: true,
+            smooth: smooth,
             duration: 0.1,  // 100ms transition
             easing: Easing.quadOut
         });

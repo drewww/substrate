@@ -2,7 +2,7 @@ import { Engine } from '../engine/engine';
 import { InputManager } from '../input/input';
 import { World } from '../world/world';
 import { Entity } from '../entity/entity';
-import { Display } from '../display/display';
+import { Display, DisplayOptions } from '../display/display';
 import { Renderer } from '../render/renderer';
 
 export abstract class Game {
@@ -15,19 +15,11 @@ export abstract class Game {
     private updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
 
-    constructor(canvasId: string) {
+    constructor(displayConfig: DisplayOptions) {
         const width = 120;
         const height = 120;
 
-        this.display = new Display({
-            elementId: canvasId,
-            cellWidth: 20,
-            cellHeight: 20,
-            worldWidth: width,
-            worldHeight: height,
-            viewportWidth: width/4,
-            viewportHeight: height/4
-        });
+        this.display = new Display(displayConfig);
     
         // Set black background
         this.display.setBackground(
