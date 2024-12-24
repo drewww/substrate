@@ -124,12 +124,18 @@ export class ScrollTest extends BaseTest {
         // Add render canvas to DOM for debugging
         const renderCanvas = this.display.getRenderCanvas();
         if (renderCanvas) {
+            // Calculate actual pixel dimensions based on viewport size + 20%
+            const renderWidthPx = this.options.cellWidth * Math.ceil(this.options.viewportWidth * 1.2);
+            const renderHeightPx = this.options.cellHeight * Math.ceil(this.options.viewportHeight * 1.2);
+            
             renderCanvas.style.position = 'fixed';
             renderCanvas.style.top = '10px';
             renderCanvas.style.right = '10px';
             renderCanvas.style.border = '1px solid #666';
             renderCanvas.style.opacity = '0.8';
-            renderCanvas.style.width = '400px';
+            // Set dimensions to match viewport aspect ratio
+            renderCanvas.style.width = `${renderWidthPx}px`;
+            renderCanvas.style.height = `${renderHeightPx}px`;
             document.body.appendChild(renderCanvas);
         }
 
