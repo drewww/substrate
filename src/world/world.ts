@@ -4,6 +4,10 @@ import { Point } from '../types';
 import { Component } from '../entity/component';
 import { logger } from '../util/logger';
 import { ComponentRegistry } from '../entity/component-registry';
+import { DiscoveredByPlayerComponent } from '../entity/components/discovered-by-player-component';
+import { VisibleToPlayerComponent } from '../entity/components/visible-to-player-component';
+import { OpacityComponent } from '../entity/components/opacity-component';
+import { FieldOfViewMap, computeFieldOfView } from 'wally-fov';
 
 interface SerializedWorld {
     width: number;
@@ -35,9 +39,14 @@ export class World {
     
     // Add event counters
     private eventCounts = new Map<keyof WorldEventMap, number>();
+    private fovMap: FieldOfViewMap;
+    
+    // Add a map to track visible locations
+    private playerVisibleLocations: Map<string, boolean> = new Map();
     
     constructor(private readonly width: number, private readonly height: number) {
-        // Initialize event counters
+        // Initialize FOV map
+        this.fovMap = new FieldOfViewMap(width, height);
         this.resetEventCounts();
     }
 
@@ -80,6 +89,9 @@ export class World {
             this.spatialMap.set(key, entitiesAtPosition);
         }
         entitiesAtPosition.add(entityId);
+
+        // Update FOV map
+        this.updateFOVForEntity(entity, position, true);
 
         this.emit('entityAdded', { entity });
     }
@@ -129,7 +141,15 @@ export class World {
             return false;
         }
 
-        // Let the entity update its position - it will call back to onEntityMoved
+        const oldPosition = entity.getPosition();
+
+        // Update FOV map if needed
+        if (entity.hasComponent('opacity')) {
+            this.fovMap.removeBody(oldPosition.x, oldPosition.y);
+            this.fovMap.addBody(newPosition.x, newPosition.y);
+        }
+
+        // Let the entity update its position
         entity.setPosition(newPosition.x, newPosition.y);
         return true;
     }
@@ -142,6 +162,10 @@ export class World {
         }
 
         const position = entity.getPosition();
+        
+        // Update FOV map before removing
+        this.updateFOVForEntity(entity, position, false);
+
         const key = this.pointToKey(position);
         const entitiesAtPosition = this.spatialMap.get(key);
         entitiesAtPosition?.delete(entityId);
@@ -551,6 +575,12 @@ export class World {
         }
         newSet.add(entity.getId());
 
+        // Update FOV map if entity affects visibility
+        if (entity.hasComponent('opacity')) {
+            this.fovMap.removeBody(from.x, from.y);
+            this.fovMap.addBody(to.x, to.y);
+        }
+
         // Emit the event
         this.emit('entityMoved', {
             entity,
@@ -591,5 +621,88 @@ export class World {
     // Add method to clear event counts
     public clearEventCounts(): void {
         this.resetEventCounts();
+    }
+
+    public updatePlayerVision(playerPos: Point, visionRadius: number = 8): void {
+        // Clear previous visible locations
+        this.playerVisibleLocations.clear();
+
+        // Calculate visible points using FOV map
+        const fov = computeFieldOfView(this.fovMap, playerPos.x, playerPos.y, visionRadius);
+
+        // Iterate through cells within chebyshev radius
+        for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+            for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+                const x = playerPos.x + dx;
+                const y = playerPos.y + dy;
+
+                // Skip if out of bounds
+                if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+                    continue;
+                }
+
+                const key = this.pointToKey({ x, y });
+                const isVisible = fov.getVisible(x, y);
+                
+                // Store visibility state for this location
+                this.playerVisibleLocations.set(key, isVisible);
+
+                // Update entity components as before
+                if (isVisible) {
+                    const entitiesAtPosition = this.spatialMap.get(key);
+                    if (entitiesAtPosition) {
+                        for (const entityId of entitiesAtPosition) {
+                            const entity = this.entities.get(entityId);
+                            if (entity) {
+                                entity.setComponent(new VisibleToPlayerComponent());
+                                entity.setComponent(new DiscoveredByPlayerComponent());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Emit an event to notify renderers
+        this.emit('playerVisionUpdated', { playerPos, visibleLocations: this.playerVisibleLocations });
+    }
+
+    // Add method to check if a location is visible
+    public isLocationVisible(pos: Point): boolean {
+        return this.playerVisibleLocations.get(this.pointToKey(pos)) ?? false;
+    }
+
+    // Add method to check if a location has been discovered
+    public isLocationDiscovered(pos: Point): boolean {
+        const entities = this.getEntitiesAt(pos);
+        return entities.some(e => e.hasComponent('discoveredByPlayer'));
+    }
+
+    // Rebuild FOV map from scratch
+    private rebuildFOVMap(): void {
+        this.fovMap = new FieldOfViewMap(this.width, this.height);
+        
+        // Add all opaque entities to the FOV map
+        const opaqueEntities = this.getEntitiesWithComponent('opacity');
+        for (const entity of opaqueEntities) {
+            const pos = entity.getPosition();
+            this.fovMap.addBody(pos.x, pos.y);
+        }
+    }
+
+    // Update FOV for entity changes
+    private updateFOVForEntity(entity: Entity, position: Point, isAdding: boolean): void {
+        if (entity.hasComponent('opacity')) {
+            if (isAdding) {
+                this.fovMap.addBody(position.x, position.y);
+            } else {
+                this.fovMap.removeBody(position.x, position.y);
+            }
+        }
+    }
+
+    // Add method to force FOV map rebuild if needed
+    public rebuildFOV(): void {
+        this.rebuildFOVMap();
     }
 } 

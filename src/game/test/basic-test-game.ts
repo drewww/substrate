@@ -60,6 +60,7 @@ export class BasicTestGame extends Game {
 
         // Add cell inspection
         this.display.onCellClick((pos) => {
+            // First show tile information
             const tiles = this.display.getTilesAt(pos.x, pos.y);
             if (tiles.length > 0) {
                 logger.info(`Tiles at (${pos.x}, ${pos.y}):`);
@@ -69,11 +70,21 @@ export class BasicTestGame extends Game {
             } else {
                 logger.info(`No tiles at (${pos.x}, ${pos.y})`);
             }
+
+            // Then show entity and component information
+            const entities = this.world.getEntitiesAt(pos);
+            if (entities.length > 0) {
+                logger.info(`Entities at (${pos.x}, ${pos.y}):`);
+                entities.forEach(entity => {
+                    const components = entity.getComponents().map(c => c.type);
+                    logger.info(`- Entity ${entity.getId()}: Components = [${components.join(', ')}]`);
+                });
+            }
         });
     }
 
     protected createRenderer(): Renderer {
-        return new TestGameRenderer(this.world, this.display);
+        return new TestGameRenderer(this.display, this.world);
     }
 
     protected initializeWorld(): void {

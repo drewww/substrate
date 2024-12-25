@@ -22,7 +22,8 @@
   },
   "dependencies": {
     "reflect-metadata": "^0.1.13",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "wally-fov": "^2.0.2"
   },
   "vitest": {
     "environment": "jsdom",

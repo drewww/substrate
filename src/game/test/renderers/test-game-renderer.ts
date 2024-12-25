@@ -5,32 +5,94 @@ import { Point } from '../../../types';
 import { Easing } from '../../../display/display';
 import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { logger } from '../../../util/logger';
+import { World } from '../../../world/world';
+import { Display } from '../../../display/display';
 
 export class TestGameRenderer extends GameRenderer {
-    protected handleEntityAdded(entity: Entity, tileId: string): void {
-        // Add FOV overlay tiles for undiscovered/non-visible areas
-        if (!entity.hasComponent('discoveredByPlayer')) {
-            this.display.createTile(
-                entity.getPosition().x,
-                entity.getPosition().y,
-                ' ',  // char
-                '#000000',  // color
-                '#000000',  // backgroundColor
-                100  // zIndex - Very high to be on top
-            );
-        } else if (!entity.hasComponent('visibleToPlayer')) {
-            this.display.createTile(
-                entity.getPosition().x,
-                entity.getPosition().y,
-                ' ',  // char
-                '#000000',  // color
-                '#000000CC',  // backgroundColor - 80% opacity black
-                100  // zIndex
-            );
+    // Map to store FOV overlay tiles
+    private fovTiles: Map<string, string> = new Map();
+
+    constructor(display: Display, world: World) {
+        super(world, display);
+        
+        // Subscribe to vision updates
+        this.world.on('playerVisionUpdated', () => this.updateFOVTiles());
+    }
+
+    private updateFOVTiles(): void {
+        // Get world size
+        const size = this.world.getSize();
+
+        // Update all positions in the world
+        for (let x = 0; x < size.x; x++) {
+            for (let y = 0; y < size.y; y++) {
+                const pos = { x, y };
+                const key = `${x},${y}`;
+
+                // Create FOV tile if needed
+                if (!this.fovTiles.has(key)) {
+                    const fovTileId = this.display.createTile(
+                        x,
+                        y,
+                        ' ',
+                        '#000000FF',
+                        '#000000FF',
+                        1000
+                    );
+                    this.fovTiles.set(key, fovTileId);
+                }
+
+                // Update tile visibility
+                const fovTileId = this.fovTiles.get(key)!;
+                const isVisible = this.world.isLocationVisible(pos);
+                const isDiscovered = this.world.isLocationDiscovered(pos);
+
+                if (!isDiscovered) {
+                    this.display.updateTile(fovTileId, {
+                        bg: '#000000FF'
+                    });
+                } else if (!isVisible) {
+                    this.display.updateTile(fovTileId, {
+                        bg: '#000000CC'
+                    });
+                } else {
+                    this.display.updateTile(fovTileId, {
+                        bg: '#00000000'
+                    });
+                }
+            }
         }
     }
 
-    protected handleEntityModified(entity: Entity, componentType: string): void {
+    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
+        const tileId = this.entityTiles.get(entity.getId());
+        if (tileId) {
+            const isPlayer = entity.hasComponent('player');
+            const duration = isPlayer ? 0.1 : 0.5;
+
+            this.display.addValueAnimation(tileId, {
+                x: {
+                    start: from.x,
+                    end: to.x,
+                    duration: duration,
+                    easing: Easing.quadOut,
+                    loop: false
+                },
+                y: {
+                    start: from.y,
+                    end: to.y,
+                    duration: duration,
+                    easing: Easing.quadOut,
+                    loop: false
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+
+    protected handleComponentModified(entity: Entity, componentType: string): void {
+        // Handle bumping animation
         if (componentType === 'bumping') {
             logger.info('Bumping component detected');
             const bump = entity.getComponent('bumping') as BumpingComponent;
@@ -91,72 +153,18 @@ export class TestGameRenderer extends GameRenderer {
             }
         }
 
-        if (componentType === 'visibleToPlayer' || componentType === 'discoveredByPlayer') {
-            const tileId = this.entityTiles.get(entity.getId());
-            if (tileId) {
-                // Update visibility overlay
-                if (!entity.hasComponent('discoveredByPlayer')) {
-                    this.display.updateTile(tileId, {
-                        bg: '#000000',
-                    });
-                } else if (!entity.hasComponent('visibleToPlayer')) {
-                    this.display.updateTile(tileId, {
-                        bg: '#000000CC',
-                    });
-                } else {
-                    // Fully visible - remove overlay
-                    this.display.updateTile(tileId, {
-                        bg: '#00000000',
-                    });
-                }
-            }
-        }
-    }
-
-    protected handleEntityRemoved(entity: Entity): void {}
-
-    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
-        const tileId = this.entityTiles.get(entity.getId());
-        if (tileId) {
-            const isPlayer = entity.hasComponent('player');
-            const duration = isPlayer ? 0.1 : 0.5;
-
-            this.display.addValueAnimation(tileId, {
-                x: {
-                    start: from.x,
-                    end: to.x,
-                    duration: duration,
-                    easing: Easing.quadOut,
-                    loop: false
-                },
-                y: {
-                    start: from.y,
-                    end: to.y,
-                    duration: duration,
-                    easing: Easing.quadOut,
-                    loop: false
-                }
-            });
-            return true;
-        }
-        return false;
-    }
-
-    protected handleComponentModified(entity: Entity, componentType: string): void {
+        // Handle movement cooldown
         if (componentType === 'moveCooldown') {
             const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
             
             if (cooldown && tileId) {
-                // Calculate percentage (0-1), inverted so it fills up as cooldown increases
                 const percent = 1 - (cooldown.cooldown / cooldown.baseTime);
-                
-                // Update the tile's background fill percentage
                 this.display.updateTile(tileId, {
                     bg: '#FF0000',
                     bgPercent: percent
                 });
             }
-        } 
+        }
     }
 } 
