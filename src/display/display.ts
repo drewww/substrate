@@ -1398,12 +1398,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         
         // Initialize visibility mask if it doesn't exist
         if (!this.visibilityMask) {
-            this.visibilityMask = Array(this.worldHeight).fill(0)
-                .map(() => Array(this.worldWidth).fill(1));
+            this.visibilityMask = Array(this.worldHeight).fill(1)
+                .map(() => Array(this.worldWidth).fill(1));  // Default to fully visible (1)
         }
 
         // Set blend mode for darkness overlay
         this.maskCtx.globalCompositeOperation = 'source-over';
+
+        // logger.info(`Visibility mask: ${this.visibilityMask}`);
 
         // Render visibility mask for visible area, accounting for render bounds offset
         for (let y = 0; y < this.renderBounds.height; y++) {
@@ -1412,7 +1414,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 const worldY = Math.floor(y + this.renderBounds.y);
                 
                 if (worldY >= 0 && worldY < this.worldHeight && worldX >= 0 && worldX < this.worldWidth) {
-                    const darkness = 1 - (this.visibilityMask[worldY][worldX] || 1);
+                    const darkness = 1 - (this.visibilityMask[worldY][worldX]);
+
                     if (darkness > 0) {
                         this.maskCtx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
                         this.maskCtx.fillRect(

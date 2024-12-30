@@ -1,11 +1,12 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../../types';
 import { Easing } from '../../display';
+import { logger } from '../../../util/logger';
 
 export class VisibilityTest extends BaseTest {
     private entityTiles: TileId[] = [];
     private readonly ENTITY_COUNT = 50;
-    private readonly VISIBLE_RADIUS = 5;
+    private readonly VISIBLE_RADIUS = 8;
     private lightSource = { x: 0, y: 0 };
     private movingRight = true;
     private debugContainer?: HTMLElement;
@@ -16,8 +17,8 @@ export class VisibilityTest extends BaseTest {
         super({
             worldWidth: 40,
             worldHeight: 20,
-            viewportWidth: 40,
-            viewportHeight: 20,
+            viewportWidth: 15,
+            viewportHeight: 10,
             cellWidth: 16,
             cellHeight: 16
         });
@@ -79,26 +80,35 @@ export class VisibilityTest extends BaseTest {
             document.body.appendChild(this.debugContainer);
         }
 
-        // Start the light source movement
+        // Start the light source movement and viewport updates
         this.updateLightSource();
+        this.updateViewport();
     }
 
     private updateVisibility(): void {
         // Create a new visibility mask
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
-        const mask = Array(height).fill(0).map(() => Array(width).fill(0));
+        const mask = Array(height).fill(0).map(() => Array(width).fill(0));  // Default to invisible (0)
 
-        // Calculate visibility based on distance from light source
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
+        // Calculate bounds for the visible area
+        const minX = Math.max(0, Math.floor(this.lightSource.x - this.VISIBLE_RADIUS));
+        const maxX = Math.min(width - 1, Math.ceil(this.lightSource.x + this.VISIBLE_RADIUS));
+        const minY = Math.max(0, Math.floor(this.lightSource.y - this.VISIBLE_RADIUS));
+        const maxY = Math.min(height - 1, Math.ceil(this.lightSource.y + this.VISIBLE_RADIUS));
+
+        // Only calculate visibility for tiles within radius
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
                 const dx = x - this.lightSource.x;
                 const dy = y - this.lightSource.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                // Create a smooth falloff
-                const visibility = Math.max(0, 1 - (distance / this.VISIBLE_RADIUS));
-                mask[y][x] = visibility;
+                if (distance <= this.VISIBLE_RADIUS) {
+                    // Create a smooth falloff
+                    const visibility = Math.max(0, 1 - (distance / this.VISIBLE_RADIUS));
+                    mask[y][x] = visibility;
+                }
             }
         }
 
@@ -142,6 +152,30 @@ export class VisibilityTest extends BaseTest {
         this.updateVisibility();
 
         requestAnimationFrame(() => this.updateLightSource());
+    }
+
+    private updateViewport(): void {
+        if (!this.isRunning) return;
+
+        // Calculate viewport center to follow light source
+        const targetX = Math.max(this.display.getViewportWidth() / 2,
+            Math.min(this.lightSource.x, 
+                this.display.getWorldWidth() - this.display.getViewportWidth() / 2));
+        const targetY = Math.max(this.display.getViewportHeight() / 2,
+            Math.min(this.lightSource.y, 
+                this.display.getWorldHeight() - this.display.getViewportHeight() / 2));
+
+        // Smoothly move viewport to target
+        this.display.setViewport(
+            targetX - this.display.getViewportWidth() / 2,
+            targetY - this.display.getViewportHeight() / 2,
+            {
+                duration: this.FRAMES_PER_MOVE / 60,  // Match light movement speed
+                easing: Easing.quadInOut
+            }
+        );
+
+        requestAnimationFrame(() => this.updateViewport());
     }
 
     protected cleanup(): void {
