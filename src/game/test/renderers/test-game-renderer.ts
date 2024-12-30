@@ -10,6 +10,7 @@ import { Display } from '../../../display/display';
 
 export class TestGameRenderer extends GameRenderer {
     private readonly VISION_RADIUS = 5;  // Chebyshev distance for visibility
+    private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -43,12 +44,21 @@ export class TestGameRenderer extends GameRenderer {
         const worldSize = this.world.getSize();
         const mask = Array(worldSize.y).fill(0).map(() => Array(worldSize.x).fill(0));
 
-        // Set visibility within VISION_RADIUS (using Chebyshev distance)
+        // Calculate currently visible tiles
         for (let y = Math.max(0, pos.y - this.VISION_RADIUS); y <= Math.min(worldSize.y - 1, pos.y + this.VISION_RADIUS); y++) {
             for (let x = Math.max(0, pos.x - this.VISION_RADIUS); x <= Math.min(worldSize.x - 1, pos.x + this.VISION_RADIUS); x++) {
                 mask[y][x] = 1;  // Fully visible
+                this.discoveredTiles.add(`${x},${y}`);  // Mark as discovered
             }
         }
+
+        // Add partially visible discovered tiles
+        this.discoveredTiles.forEach(coord => {
+            const [x, y] = coord.split(',').map(Number);
+            if (mask[y][x] === 0) {  // If not currently visible
+                mask[y][x] = 0.3;     // Partially visible
+            }
+        });
 
         this.display.setVisibilityMask(mask);
     }
@@ -159,4 +169,4 @@ export class TestGameRenderer extends GameRenderer {
             }
         }
     }
-} 
+}
