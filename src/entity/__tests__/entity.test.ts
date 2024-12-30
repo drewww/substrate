@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
+import { World } from '../../world/world';
 import { Entity } from '../entity';
 import { Point } from '../../types';
 import { RequiredComponents } from '../decorators';
@@ -554,6 +555,77 @@ describe('Entity', () => {
             };
 
             expect(() => Entity.deserialize(invalidData)).toThrow(/Unknown component type/);
+        });
+    });
+
+    describe('Component Events', () => {
+        let entity: Entity;
+        let mockWorld: { 
+            onComponentAdded: Mock;
+            onComponentModified: Mock;
+            onComponentRemoved: Mock;
+        };
+
+        beforeEach(() => {
+            entity = new Entity(DEFAULT_POSITION);
+            mockWorld = {
+                onComponentAdded: vi.fn(),
+                onComponentModified: vi.fn(),
+                onComponentRemoved: vi.fn()
+            };
+            entity.setWorld(mockWorld as unknown as World);
+        });
+
+        it('notifies world when component is added', () => {
+            const health = new HealthComponent(100, 100);
+            entity.addComponent(health);
+            
+            expect(mockWorld.onComponentAdded).toHaveBeenCalledWith(entity, 'health');
+            expect(mockWorld.onComponentModified).not.toHaveBeenCalled();
+        });
+
+        it('notifies world when component is updated', () => {
+            const health = new HealthComponent(100, 100);
+            entity.addComponent(health);
+            mockWorld.onComponentAdded.mockClear();
+
+            const updatedHealth = new HealthComponent(90, 100);
+            entity.updateComponent(updatedHealth);
+            
+            expect(mockWorld.onComponentModified).toHaveBeenCalledWith(entity, 'health');
+            expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
+        });
+
+        it('notifies world when component is removed', () => {
+            const health = new HealthComponent(100, 100);
+            entity.addComponent(health);
+            entity.removeComponent('health');
+            
+            expect(mockWorld.onComponentRemoved).toHaveBeenCalledWith(entity, 'health');
+        });
+
+        it('notifies world when component is modified internally', () => {
+            const health = new HealthComponent(100, 100);
+            entity.addComponent(health);
+            mockWorld.onComponentAdded.mockClear();
+
+            entity.markComponentModified('health');
+            
+            expect(mockWorld.onComponentModified).toHaveBeenCalledWith(entity, 'health');
+            expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
+        });
+
+        it('does not notify world if no world is set', () => {
+            entity.setWorld(undefined as unknown as World);
+            const health = new HealthComponent(100, 100);
+            
+            entity.addComponent(health);
+            entity.updateComponent(health);
+            entity.removeComponent('health');
+            
+            expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
+            expect(mockWorld.onComponentModified).not.toHaveBeenCalled();
+            expect(mockWorld.onComponentRemoved).not.toHaveBeenCalled();
         });
     });
 }); 
