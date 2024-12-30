@@ -16,6 +16,10 @@ export class TestGameRenderer extends GameRenderer {
         this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
             this.handleComponentModified(data.entity, data.componentType);
         });
+
+        this.world.on('componentAdded', (data: { entity: Entity, componentType: string }) => {
+            this.handleComponentAdded(data.entity, data.componentType);
+        });
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
@@ -47,7 +51,7 @@ export class TestGameRenderer extends GameRenderer {
 
     protected handleComponentModified(entity: Entity, componentType: string): void {
         // Handle movement cooldown
-        logger.info(`Component modified: ${entity.getId()} - ${componentType}`);
+        // logger.info(`Component modified: ${entity.getId()} - ${componentType}`);
         if (componentType === 'moveCooldown') {
             const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
@@ -64,7 +68,7 @@ export class TestGameRenderer extends GameRenderer {
 
     protected handleComponentAdded(entity: Entity, componentType: string): void {
         // Handle bumping animation
-        logger.info(`Component added: ${entity.getId()} - ${componentType}`);
+        // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
             const bump = entity.getComponent('bumping') as BumpingComponent;
             const tileId = this.entityTiles.get(entity.getId());
