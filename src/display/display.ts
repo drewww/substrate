@@ -156,6 +156,8 @@ export class Display {
         height: number;
     };
 
+    private visibilityMask: number[][] = [];
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -265,6 +267,10 @@ export class Display {
         
         // Mark initial viewport area as dirty
         this.markEntireViewport(this.viewport.x, this.viewport.y);
+
+        // Initialize visibility mask
+        this.visibilityMask = Array(this.worldHeight).fill(0)
+            .map(() => Array(this.worldWidth).fill(1));
 
         logger.info('Display initialization complete');
 
@@ -1319,6 +1325,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             
             tiles.forEach(tile => this.renderTile(tile, renderX, renderY));
         }
+
+        // After rendering all tiles, apply the visibility mask
+        this.renderVisibilityMask();
     }
 
     private markEntireViewport(x: number, y: number): void {
@@ -1342,6 +1351,55 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         return Array.from(this.tileMap.values())
             .filter(tile => tile.x === x && tile.y === y)
             .sort((a, b) => a.zIndex - b.zIndex);
+    }
+
+    public setVisibilityMask(mask: number[][]): void {
+        if (mask.length !== this.worldHeight || mask[0].length !== this.worldWidth) {
+            throw new Error('Visibility mask dimensions must match world dimensions');
+        }
+        this.visibilityMask = mask;
+        this.hasChanges = true;
+    }
+
+    public setVisibility(x: number, y: number, value: number): void {
+        if (x >= 0 && x < this.worldWidth && y >= 0 && y < this.worldHeight) {
+            this.visibilityMask[y][x] = Math.max(0, Math.min(1, value));
+            this.hasChanges = true;
+        }
+    }
+
+    public clearVisibilityMask(): void {
+        this.visibilityMask = Array(this.worldHeight).fill(0)
+            .map(() => Array(this.worldWidth).fill(0));
+        this.hasChanges = true;
+    }
+
+    private renderVisibilityMask(): void {
+        // Save the current state
+        this.renderCtx.save();
+        
+        // Set blend mode for darkness overlay
+        this.renderCtx.globalCompositeOperation = 'source-over';
+
+        // Render visibility mask for visible area
+        for (let y = this.renderBounds.y; y < this.renderBounds.y + this.renderBounds.height; y++) {
+            for (let x = this.renderBounds.x; x < this.renderBounds.x + this.renderBounds.width; x++) {
+                if (y >= 0 && y < this.worldHeight && x >= 0 && x < this.worldWidth) {
+                    const darkness = 1 - this.visibilityMask[y][x];
+                    if (darkness > 0) {
+                        this.renderCtx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
+                        this.renderCtx.fillRect(
+                            (x - this.renderBounds.x) * this.cellWidthScaled,
+                            (y - this.renderBounds.y) * this.cellHeightScaled,
+                            this.cellWidthScaled,
+                            this.cellHeightScaled
+                        );
+                    }
+                }
+            }
+        }
+
+        this.renderCtx.restore();
     }
 } 
 
