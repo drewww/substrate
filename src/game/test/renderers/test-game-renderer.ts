@@ -9,9 +9,14 @@ import { World } from '../../../world/world';
 import { Display } from '../../../display/display';
 
 export class TestGameRenderer extends GameRenderer {
+    private readonly VISION_RADIUS = 5;  // Chebyshev distance for visibility
+
     constructor(display: Display, world: World) {
         super(world, display);
         
+        // Initial visibility setup
+        this.updateVisibility();
+
         // Subscribe to component modifications
         this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
             this.handleComponentModified(data.entity, data.componentType);
@@ -20,6 +25,32 @@ export class TestGameRenderer extends GameRenderer {
         this.world.on('componentAdded', (data: { entity: Entity, componentType: string }) => {
             this.handleComponentAdded(data.entity, data.componentType);
         });
+
+        // Subscribe to entity movement to update visibility
+        this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
+            if (data.entity.hasComponent('player')) {
+                this.updateVisibility();
+            }
+            return this.handleEntityMoved(data.entity, data.from, data.to);
+        });
+    }
+
+    public updateVisibility(): void {
+        const player = this.world.getEntitiesWithComponent('player')[0];
+        if (!player) return;
+
+        const pos = player.getPosition();
+        const worldSize = this.world.getSize();
+        const mask = Array(worldSize.y).fill(0).map(() => Array(worldSize.x).fill(0));
+
+        // Set visibility within VISION_RADIUS (using Chebyshev distance)
+        for (let y = Math.max(0, pos.y - this.VISION_RADIUS); y <= Math.min(worldSize.y - 1, pos.y + this.VISION_RADIUS); y++) {
+            for (let x = Math.max(0, pos.x - this.VISION_RADIUS); x <= Math.min(worldSize.x - 1, pos.x + this.VISION_RADIUS); x++) {
+                mask[y][x] = 1;  // Fully visible
+            }
+        }
+
+        this.display.setVisibilityMask(mask);
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {

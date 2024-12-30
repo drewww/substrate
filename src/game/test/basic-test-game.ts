@@ -162,6 +162,9 @@ export class BasicTestGame extends Game {
         const wall = this.world.getEntitiesWithComponent('impassable')[0];
         wall.setComponent(new OpacityComponent(true));
 
+        // After adding all entities, update initial visibility
+        (this.renderer as TestGameRenderer).updateVisibility();
+
         // Center viewport on player after world is initialized
         this.updateViewport(false);
     }
