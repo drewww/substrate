@@ -502,7 +502,11 @@ export class Display {
                 this.updateSymbolAnimations(timestamp);
                 this.updateColorAnimations(timestamp);
                 this.updateValueAnimations(timestamp);
-                
+            }
+
+            const animationEnd = performance.now();
+            const renderStart = animationEnd;
+            if(hasActiveAnimations || this.hasChanges) {
                 this.updateRenderCanvas();
                 this.hasChanges = false;
             }
@@ -522,17 +526,13 @@ export class Display {
                 this.displayCanvas.height
             );
 
-            const animationEnd = performance.now();
-            const renderStart = animationEnd;
-
             // Call frame callbacks
             this.frameCallbacks.forEach(callback => callback(this));
 
             const renderEnd = performance.now();
 
-            // this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
-            this.updateMetrics(renderStart);
-
+            this.updateMetrics(renderStart, animationStart, animationEnd, renderEnd);
+            
         } catch (error) {
             console.error('Render error:', error);
         }
@@ -549,7 +549,7 @@ export class Display {
         }
     }
 
-    private updateMetrics(timestamp: number): void {
+    private updateMetrics(renderStart: number, animationStart: number, animationEnd: number, renderEnd: number): void {
         const now = performance.now();
         
         // Update FPS
@@ -569,9 +569,13 @@ export class Display {
             .reduce((count, anims) => count + Object.values(anims).filter(a => a?.running).length, 0);
 
         // Update render times
-        const renderTime = performance.now() - now;
+        const renderTime = now - renderStart;
         this.metrics.lastRenderTime = renderTime;
         this.metrics.averageRenderTime = (this.metrics.averageRenderTime * 0.95) + (renderTime * 0.05);
+
+        const animationTime = now - animationStart;
+        this.metrics.lastAnimationUpdateTime = animationTime;
+        this.metrics.averageAnimationTime = (this.metrics.averageAnimationTime * 0.95) + (animationTime * 0.05);
     }
 
     public getPerformanceMetrics(): Readonly<PerformanceMetrics> {
@@ -1382,6 +1386,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.renderCtx.globalCompositeOperation = 'source-over';
 
         // Render visibility mask for visible area
+        // CONSIDER for future optimizations. Much of the screen is not visibile and you could collapse some fillRect commands into
+        // single bigger ones. Also, do we need to redraw this every time? Is there any benefit to 
         for (let y = this.renderBounds.y; y < this.renderBounds.y + this.renderBounds.height; y++) {
             for (let x = this.renderBounds.x; x < this.renderBounds.x + this.renderBounds.width; x++) {
                 if (y >= 0 && y < this.worldHeight && x >= 0 && x < this.worldWidth) {
