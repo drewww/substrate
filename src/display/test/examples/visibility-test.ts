@@ -83,17 +83,31 @@ export class VisibilityTest extends BaseTest {
         if (!this.isRunning) return;
 
         const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        const speed = 0.1;
         
         // Move light source
         if (this.movingRight) {
-            this.lightSource.x += 0.2;
+            this.lightSource.x += speed;
             if (this.lightSource.x >= width) {
                 this.movingRight = false;
+                this.lightSource.y += height / 5; // Move down by 1/5th of height
+                
+                // If we've reached the bottom, reset to top
+                if (this.lightSource.y >= height) {
+                    this.lightSource.y = 0;
+                }
             }
         } else {
-            this.lightSource.x -= 0.2;
+            this.lightSource.x -= speed;
             if (this.lightSource.x <= 0) {
                 this.movingRight = true;
+                this.lightSource.y += height / 5; // Move down by 1/5th of height
+                
+                // If we've reached the bottom, reset to top
+                if (this.lightSource.y >= height) {
+                    this.lightSource.y = 0;
+                }
             }
         }
 
