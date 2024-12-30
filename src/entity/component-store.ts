@@ -16,6 +16,7 @@ export class ComponentStore {
 
   /**
    * Set a component
+   * @param type The type key for the component
    * @param component The component to store
    */
   set(component: Component): void {

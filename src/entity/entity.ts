@@ -56,19 +56,11 @@ export class Entity {
    * Set a component (triggers entityModified event)
    */
   setComponent(component: Component): this {
-    const copy = Object.create(
-      Object.getPrototypeOf(component),
-      Object.getOwnPropertyDescriptors(component)
-    );
-    copy.modified = true;
-    this.store.set(copy);
-    this.changedComponents.add(component.type);
-    
-    if (this.world) {
-      this.world.onEntityModified(this, component.type);
+    if (this.store.has(component.type)) {
+      return this.updateComponent(component);
+    } else {
+      return this.addComponent(component);
     }
-    
-    return this;
   }
 
   /**
@@ -82,7 +74,11 @@ export class Entity {
    * Remove a component from the entity
    */
   removeComponent(type: string): boolean {
-    return this.store.remove(type);
+    const removed = this.store.remove(type);
+    if (removed && this.world) {
+      this.world.onComponentRemoved(this, type);
+    }
+    return removed;
   }
 
   /**
@@ -347,5 +343,49 @@ export class Entity {
         this.world.onComponentModified(this, type);
       }
     }
+  }
+
+  /**
+   * Add a new component to the entity
+   * @throws Error if component type already exists
+   */
+  addComponent(component: Component): this {
+    if (this.store.has(component.type)) {
+      throw new Error(`Entity ${this.id} already has component of type: ${component.type}`);
+    }
+
+    const copy = Object.create(
+      Object.getPrototypeOf(component),
+      Object.getOwnPropertyDescriptors(component)
+    );
+    this.store.set(copy);
+    
+    if (this.world) {
+      this.world.onComponentAdded(this, component.type);
+    }
+    
+    return this;
+  }
+
+  /**
+   * Update an existing component
+   * @throws Error if component type doesn't exist
+   */
+  updateComponent(component: Component): this {
+    if (!this.store.has(component.type)) {
+      throw new Error(`Entity ${this.id} does not have component of type: ${component.type}`);
+    }
+
+    const copy = Object.create(
+      Object.getPrototypeOf(component),
+      Object.getOwnPropertyDescriptors(component)
+    );
+    this.store.set(copy);
+    
+    if (this.world) {
+      this.world.onComponentModified(this, component.type);
+    }
+    
+    return this;
   }
 } 

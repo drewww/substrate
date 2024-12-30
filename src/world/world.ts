@@ -546,16 +546,6 @@ export class World {
     }
 
     /**
-     * Called when a component's values are modified
-     */
-    public onComponentModified(entity: Entity, componentType: string): void {
-        this.emit('componentModified', {
-            entity,
-            componentType
-        });
-    }
-
-    /**
      * Called when an entity's position changes
      */
     public onEntityMoved(entity: Entity, from: Point, to: Point): void {
@@ -704,5 +694,26 @@ export class World {
     // Add method to force FOV map rebuild if needed
     public rebuildFOV(): void {
         this.rebuildFOVMap();
+    }
+
+    /**
+     * Called when a component is added to an entity
+     */
+    onComponentAdded(entity: Entity, componentType: string): void {
+        // TODO: Implement
+    }
+
+    /**
+     * Called when a component is removed from an entity
+     */
+    onComponentRemoved(entity: Entity, componentType: string): void {
+        // TODO: Implement
+    }
+
+    /**
+     * Called when a component is modified on an entity
+     */
+    onComponentModified(entity: Entity, componentType: string): void {
+        // TODO: Implement
     }
 } 
