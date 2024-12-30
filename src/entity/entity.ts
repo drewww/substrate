@@ -75,8 +75,11 @@ export class Entity {
    */
   removeComponent(type: string): boolean {
     const removed = this.store.remove(type);
-    if (removed && this.world) {
-      this.world.onComponentRemoved(this, type);
+    if (removed) {
+      this.changedComponents.delete(type);
+      if (this.world) {
+        this.world.onComponentRemoved(this, type);
+      }
     }
     return removed;
   }
@@ -150,10 +153,10 @@ export class Entity {
    */
   clearChanges(): void {
     this.positionChanged = false;
+    this.changedComponents.clear();
     for (const component of this.getComponents()) {
       component.modified = false;
     }
-    this.changedComponents.clear();
   }
 
   /**
@@ -358,7 +361,9 @@ export class Entity {
       Object.getPrototypeOf(component),
       Object.getOwnPropertyDescriptors(component)
     );
+    copy.modified = true;
     this.store.set(copy);
+    this.changedComponents.add(component.type);
     
     if (this.world) {
       this.world.onComponentAdded(this, component.type);
@@ -380,7 +385,9 @@ export class Entity {
       Object.getPrototypeOf(component),
       Object.getOwnPropertyDescriptors(component)
     );
+    copy.modified = true;
     this.store.set(copy);
+    this.changedComponents.add(component.type);
     
     if (this.world) {
       this.world.onComponentModified(this, component.type);
