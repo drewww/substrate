@@ -8,6 +8,9 @@ export class VisibilityTest extends BaseTest {
     private readonly VISIBLE_RADIUS = 5;
     private lightSource = { x: 0, y: 0 };
     private movingRight = true;
+    private debugContainer?: HTMLElement;
+    private frameCounter = 0;
+    private readonly FRAMES_PER_MOVE = 32;
     
     constructor() {
         super({
@@ -53,6 +56,29 @@ export class VisibilityTest extends BaseTest {
             this.entityTiles.push(tileId);
         }
 
+        // Add mask canvas to page for debugging
+        const maskCanvas = this.display.getMaskCanvas();
+        if (maskCanvas) {
+            this.debugContainer = document.createElement('div');
+            this.debugContainer.style.position = 'fixed';
+            this.debugContainer.style.top = '10px';
+            this.debugContainer.style.left = '10px';
+            this.debugContainer.style.border = '2px solid white';
+            this.debugContainer.style.padding = '5px';
+            
+            const label = document.createElement('div');
+            label.textContent = 'Mask Canvas Debug';
+            label.style.color = 'white';
+            label.style.marginBottom = '5px';
+            
+            maskCanvas.style.width = '200px';
+            maskCanvas.style.height = '100px';
+            
+            this.debugContainer.appendChild(label);
+            this.debugContainer.appendChild(maskCanvas);
+            document.body.appendChild(this.debugContainer);
+        }
+
         // Start the light source movement
         this.updateLightSource();
     }
@@ -82,36 +108,37 @@ export class VisibilityTest extends BaseTest {
     private updateLightSource(): void {
         if (!this.isRunning) return;
 
-        const width = this.display.getWorldWidth();
-        const height = this.display.getWorldHeight();
-        const speed = 0.1;
-        
-        // Move light source
-        if (this.movingRight) {
-            this.lightSource.x += speed;
-            if (this.lightSource.x >= width) {
-                this.movingRight = false;
-                this.lightSource.y += height / 5; // Move down by 1/5th of height
-                
-                // If we've reached the bottom, reset to top
-                if (this.lightSource.y >= height) {
-                    this.lightSource.y = 0;
+        this.frameCounter = (this.frameCounter + 1) % this.FRAMES_PER_MOVE;
+        if (this.frameCounter === 0) {
+            const width = this.display.getWorldWidth();
+            const height = this.display.getWorldHeight();
+            const speed = 0.5;
+            
+            // Move light source
+            if (this.movingRight) {
+                this.lightSource.x += speed;
+                if (this.lightSource.x >= width) {
+                    this.movingRight = false;
+                    this.lightSource.y += height / 5;
+                    
+                    if (this.lightSource.y >= height) {
+                        this.lightSource.y = 0;
+                    }
                 }
-            }
-        } else {
-            this.lightSource.x -= speed;
-            if (this.lightSource.x <= 0) {
-                this.movingRight = true;
-                this.lightSource.y += height / 5; // Move down by 1/5th of height
-                
-                // If we've reached the bottom, reset to top
-                if (this.lightSource.y >= height) {
-                    this.lightSource.y = 0;
+            } else {
+                this.lightSource.x -= speed;
+                if (this.lightSource.x <= 0) {
+                    this.movingRight = true;
+                    this.lightSource.y += height / 5;
+                    
+                    if (this.lightSource.y >= height) {
+                        this.lightSource.y = 0;
+                    }
                 }
             }
         }
 
-        // Update visibility based on new light source position
+        // Update visibility every frame (but mask will only redraw if dirty)
         this.updateVisibility();
 
         requestAnimationFrame(() => this.updateLightSource());
@@ -121,5 +148,11 @@ export class VisibilityTest extends BaseTest {
         this.entityTiles.forEach(id => this.display.removeTile(id));
         this.entityTiles = [];
         this.display.clearVisibilityMask();
+        
+        // Remove debug container
+        if (this.debugContainer) {
+            document.body.removeChild(this.debugContainer);
+            this.debugContainer = undefined;
+        }
     }
 } 

@@ -158,6 +158,10 @@ export class Display {
 
     private visibilityMask: number[][] = [];
 
+    private maskCanvas: HTMLCanvasElement;
+    private maskCtx: CanvasRenderingContext2D;
+    private maskDirty: boolean = true;
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -271,6 +275,10 @@ export class Display {
         // Initialize visibility mask
         this.visibilityMask = Array(this.worldHeight).fill(0)
             .map(() => Array(this.worldWidth).fill(1));
+
+        // Initialize mask canvas
+        this.maskCanvas = document.createElement('canvas');
+        this.maskCtx = this.maskCanvas.getContext('2d', { alpha: true })!;
 
         logger.info('Display initialization complete');
 
@@ -1294,8 +1302,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 this.worldHeight - renderHeightInCells
             ));
 
-            // Clear entire render canvas when repositioning
-            this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+            // Update mask canvas size to match render canvas
+            this.maskCanvas.width = this.renderCanvas.width;
+            this.maskCanvas.height = this.renderCanvas.height;
+            this.maskDirty = true;
         }
 
         // Clear the entire render canvas once
@@ -1331,7 +1341,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         }
 
         // After rendering all tiles, apply the visibility mask
-        this.renderVisibilityMask();
+        this.applyVisibilityMask();
     }
 
     private markEntireViewport(x: number, y: number): void {
@@ -1362,12 +1372,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             throw new Error('Visibility mask dimensions must match world dimensions');
         }
         this.visibilityMask = mask;
+        this.maskDirty = true;
         this.hasChanges = true;
     }
 
     public setVisibility(x: number, y: number, value: number): void {
         if (x >= 0 && x < this.worldWidth && y >= 0 && y < this.worldHeight) {
             this.visibilityMask[y][x] = Math.max(0, Math.min(1, value));
+            this.maskDirty = true;
             this.hasChanges = true;
         }
     }
@@ -1379,22 +1391,20 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private renderVisibilityMask(): void {
-        // Save the current state
-        this.renderCtx.save();
+        // Clear the mask canvas
+        this.maskCtx.clearRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
         
         // Set blend mode for darkness overlay
-        this.renderCtx.globalCompositeOperation = 'source-over';
+        this.maskCtx.globalCompositeOperation = 'source-over';
 
         // Render visibility mask for visible area
-        // CONSIDER for future optimizations. Much of the screen is not visibile and you could collapse some fillRect commands into
-        // single bigger ones. Also, do we need to redraw this every time? Is there any benefit to 
         for (let y = this.renderBounds.y; y < this.renderBounds.y + this.renderBounds.height; y++) {
             for (let x = this.renderBounds.x; x < this.renderBounds.x + this.renderBounds.width; x++) {
                 if (y >= 0 && y < this.worldHeight && x >= 0 && x < this.worldWidth) {
                     const darkness = 1 - this.visibilityMask[y][x];
                     if (darkness > 0) {
-                        this.renderCtx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
-                        this.renderCtx.fillRect(
+                        this.maskCtx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
+                        this.maskCtx.fillRect(
                             (x - this.renderBounds.x) * this.cellWidthScaled,
                             (y - this.renderBounds.y) * this.cellHeightScaled,
                             this.cellWidthScaled,
@@ -1405,7 +1415,24 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             }
         }
 
+        this.maskDirty = false;
+    }
+
+    private applyVisibilityMask(): void {
+        // Only update the mask canvas if the visibility mask has changed
+        if (this.maskDirty) {
+            this.renderVisibilityMask();
+        }
+
+        // Apply the cached mask to the render canvas
+        this.renderCtx.save();
+        this.renderCtx.globalCompositeOperation = 'source-over';
+        this.renderCtx.drawImage(this.maskCanvas, 0, 0);
         this.renderCtx.restore();
+    }
+
+    public getMaskCanvas(): HTMLCanvasElement | null {
+        return this.maskCanvas;
     }
 } 
 
