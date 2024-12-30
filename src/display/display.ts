@@ -1305,6 +1305,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             // Update mask canvas size to match render canvas
             this.maskCanvas.width = this.renderCanvas.width;
             this.maskCanvas.height = this.renderCanvas.height;
+            
+            // Mark mask as dirty when viewport changes
             this.maskDirty = true;
         }
 
@@ -1394,19 +1396,28 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         // Clear the mask canvas
         this.maskCtx.clearRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
         
+        // Initialize visibility mask if it doesn't exist
+        if (!this.visibilityMask) {
+            this.visibilityMask = Array(this.worldHeight).fill(0)
+                .map(() => Array(this.worldWidth).fill(1));
+        }
+
         // Set blend mode for darkness overlay
         this.maskCtx.globalCompositeOperation = 'source-over';
 
-        // Render visibility mask for visible area
-        for (let y = this.renderBounds.y; y < this.renderBounds.y + this.renderBounds.height; y++) {
-            for (let x = this.renderBounds.x; x < this.renderBounds.x + this.renderBounds.width; x++) {
-                if (y >= 0 && y < this.worldHeight && x >= 0 && x < this.worldWidth) {
-                    const darkness = 1 - this.visibilityMask[y][x];
+        // Render visibility mask for visible area, accounting for render bounds offset
+        for (let y = 0; y < this.renderBounds.height; y++) {
+            for (let x = 0; x < this.renderBounds.width; x++) {
+                const worldX = Math.floor(x + this.renderBounds.x);
+                const worldY = Math.floor(y + this.renderBounds.y);
+                
+                if (worldY >= 0 && worldY < this.worldHeight && worldX >= 0 && worldX < this.worldWidth) {
+                    const darkness = 1 - (this.visibilityMask[worldY][worldX] || 1);
                     if (darkness > 0) {
                         this.maskCtx.fillStyle = `rgba(0, 0, 0, ${darkness})`;
                         this.maskCtx.fillRect(
-                            (x - this.renderBounds.x) * this.cellWidthScaled,
-                            (y - this.renderBounds.y) * this.cellHeightScaled,
+                            x * this.cellWidthScaled,
+                            y * this.cellHeightScaled,
                             this.cellWidthScaled,
                             this.cellHeightScaled
                         );

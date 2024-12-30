@@ -9,59 +9,13 @@ import { World } from '../../../world/world';
 import { Display } from '../../../display/display';
 
 export class TestGameRenderer extends GameRenderer {
-    // Map to store FOV overlay tiles
-    private fovTiles: Map<string, string> = new Map();
-
     constructor(display: Display, world: World) {
         super(world, display);
         
-        // Subscribe to vision updates
-        this.world.on('playerVisionUpdated', () => this.updateFOVTiles());
-    }
-
-    private updateFOVTiles(): void {
-        // Get world size
-        const size = this.world.getSize();
-
-        // Update all positions in the world
-        for (let x = 0; x < size.x; x++) {
-            for (let y = 0; y < size.y; y++) {
-                const pos = { x, y };
-                const key = `${x},${y}`;
-
-                // Create FOV tile if needed
-                if (!this.fovTiles.has(key)) {
-                    const fovTileId = this.display.createTile(
-                        x,
-                        y,
-                        ' ',
-                        '#000000FF',
-                        '#000000FF',
-                        1000
-                    );
-                    this.fovTiles.set(key, fovTileId);
-                }
-
-                // Update tile visibility
-                const fovTileId = this.fovTiles.get(key)!;
-                const isVisible = this.world.isLocationVisible(pos);
-                const isDiscovered = this.world.isLocationDiscovered(pos);
-
-                if (!isDiscovered) {
-                    this.display.updateTile(fovTileId, {
-                        bg: '#000000FF'
-                    });
-                } else if (!isVisible) {
-                    this.display.updateTile(fovTileId, {
-                        bg: '#000000CC'
-                    });
-                } else {
-                    this.display.updateTile(fovTileId, {
-                        bg: '#00000000'
-                    });
-                }
-            }
-        }
+        // Subscribe to component modifications
+        this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
+            this.handleComponentModified(data.entity, data.componentType);
+        });
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
@@ -94,7 +48,6 @@ export class TestGameRenderer extends GameRenderer {
     protected handleComponentModified(entity: Entity, componentType: string): void {
         // Handle bumping animation
         if (componentType === 'bumping') {
-            logger.info('Bumping component detected');
             const bump = entity.getComponent('bumping') as BumpingComponent;
             const tileId = this.entityTiles.get(entity.getId());
             

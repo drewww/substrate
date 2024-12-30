@@ -210,9 +210,6 @@ export class BasicTestGame extends Game {
                 data: { to: newPos }
             });
 
-            // Update FOV after movement
-            this.world.updatePlayerVision(this.player.getPosition());
-            
             // Update viewport to follow player
             this.updateViewport();
         }

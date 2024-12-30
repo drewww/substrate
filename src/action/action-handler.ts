@@ -31,7 +31,12 @@ export class ActionHandler {
             return false;
         }
 
-        if (!executor.canExecute(this.world, action)) {
+        // Check if action can be executed
+        const canExecute = executor.canExecute(this.world, action);
+        
+        // Even if we can't execute, we still want any side effects from canExecute
+        // (like adding the BumpingComponent) to be processed
+        if (!canExecute) {
             return false;
         }
 
