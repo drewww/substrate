@@ -700,20 +700,29 @@ export class World {
      * Called when a component is added to an entity
      */
     onComponentAdded(entity: Entity, componentType: string): void {
-        // TODO: Implement
+        this.emit('entityModified', {
+            entity,
+            componentType
+        });
     }
 
     /**
      * Called when a component is removed from an entity
      */
     onComponentRemoved(entity: Entity, componentType: string): void {
-        // TODO: Implement
+        this.emit('entityModified', {
+            entity,
+            componentType
+        });
     }
 
     /**
      * Called when a component is modified on an entity
      */
     onComponentModified(entity: Entity, componentType: string): void {
-        // TODO: Implement
+        this.emit('entityModified', {
+            entity,
+            componentType
+        });
     }
 } 
