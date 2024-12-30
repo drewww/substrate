@@ -30,17 +30,19 @@ export class TestGameRenderer extends GameRenderer {
         // Subscribe to entity movement to update visibility
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
-                this.updateVisibility();
+                // Update visibility immediately using the destination position
+                this.updateVisibility(data.to);
             }
             return this.handleEntityMoved(data.entity, data.from, data.to);
         });
     }
 
-    public updateVisibility(): void {
+    public updateVisibility(overridePosition?: Point): void {
         const player = this.world.getEntitiesWithComponent('player')[0];
         if (!player) return;
 
-        const pos = player.getPosition();
+        // Use override position if provided, otherwise use player's current position
+        const pos = overridePosition || player.getPosition();
         const worldSize = this.world.getSize();
         const mask = Array(worldSize.y).fill(0).map(() => Array(worldSize.x).fill(0));
 
@@ -56,7 +58,7 @@ export class TestGameRenderer extends GameRenderer {
         this.discoveredTiles.forEach(coord => {
             const [x, y] = coord.split(',').map(Number);
             if (mask[y][x] === 0) {  // If not currently visible
-                mask[y][x] = 0.3;     // Partially visible
+                mask[y][x] = 0.1;     // Partially visible
             }
         });
 
@@ -168,5 +170,9 @@ export class TestGameRenderer extends GameRenderer {
                 }, bump.duration * 1000);
             }
         }
+    }
+    
+    public getVisibilityMask(): number[][] {
+        return this.display.getVisibilityMask();
     }
 }

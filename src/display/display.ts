@@ -1391,6 +1391,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             .map(() => Array(this.worldWidth).fill(0));
         this.hasChanges = true;
     }
+    public getVisibilityMask(): number[][] {
+        return this.visibilityMask;
+    }
 
     private renderVisibilityMask(): void {
         // Clear the mask canvas

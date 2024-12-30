@@ -80,6 +80,13 @@ export class BasicTestGame extends Game {
                     logger.info(`- Entity ${entity.getId()}: Components = [${components.join(', ')}]`);
                 });
             }
+
+            // Log the visibility mask
+            const renderer = this.renderer as TestGameRenderer;
+            const visibilityMask = renderer.getVisibilityMask?.();
+            if (visibilityMask) {
+                logger.info('Visibility:', visibilityMask[pos.y][pos.x]);
+            }
         });
     }
 
@@ -184,11 +191,12 @@ export class BasicTestGame extends Game {
             this.world.getWorldHeight() - viewportHeight
         ));
 
-        this.display.setViewport(viewportX, viewportY, {
-            smooth: animate,
-            duration: 0.1,  // 100ms transition
-            easing: Easing.quadOut
-        });
+        // this.display.setViewport(viewportX, viewportY, {
+        //     smooth: animate,
+        //     duration: 0.1,  // 100ms transition
+        //     easing: Easing.quadOut
+        // });
+        this.display.setViewport(viewportX, viewportY);
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
