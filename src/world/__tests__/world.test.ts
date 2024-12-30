@@ -779,4 +779,69 @@ describe('World', () => {
             });
         });
     });
+
+    describe('Component Events', () => {
+        let world: World;
+        let entity: Entity;
+        let handler: ReturnType<typeof vi.fn>;
+
+        beforeEach(() => {
+            world = new World(10, 10);
+            entity = new Entity(DEFAULT_POSITION);
+            world.addEntity(entity);
+            handler = vi.fn();
+        });
+
+        it('emits entityModified when component is first added', () => {
+            world.on('entityModified', handler);
+            entity.setComponent(new TestComponent());
+            
+            expect(handler).toHaveBeenCalledWith({
+                entity,
+                componentType: 'test'
+            });
+            expect(handler).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits entityModified when component is updated', () => {
+            const component = new TestComponent();
+            entity.setComponent(component);
+            
+            world.on('entityModified', handler);
+            component.value = 200;
+            entity.updateComponent(component);
+            
+            expect(handler).toHaveBeenCalledWith({
+                entity,
+                componentType: 'test'
+            });
+            expect(handler).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits entityModified when component is removed', () => {
+            entity.setComponent(new TestComponent());
+            world.on('entityModified', handler);
+            
+            entity.removeComponent('test');
+            
+            expect(handler).toHaveBeenCalledWith({
+                entity,
+                componentType: 'test'
+            });
+            expect(handler).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits entityModified when component is modified internally', () => {
+            const component = new UpdatableComponent();
+            entity.setComponent(component);
+            world.on('entityModified', handler);
+            
+            world.update(1.0); // This will trigger the component's update method
+            
+            expect(handler).toHaveBeenCalledWith({
+                entity,
+                componentType: 'updatable'
+            });
+        });
+    });
 }); 
