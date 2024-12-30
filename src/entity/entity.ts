@@ -75,11 +75,8 @@ export class Entity {
    */
   removeComponent(type: string): boolean {
     const removed = this.store.remove(type);
-    if (removed) {
-      this.changedComponents.delete(type);
-      if (this.world) {
-        this.world.onComponentRemoved(this, type);
-      }
+    if (removed && this.world) {
+      this.world.onComponentRemoved(this, type);
     }
     return removed;
   }
@@ -153,10 +150,10 @@ export class Entity {
    */
   clearChanges(): void {
     this.positionChanged = false;
-    this.changedComponents.clear();
     for (const component of this.getComponents()) {
       component.modified = false;
     }
+    this.changedComponents.clear();
   }
 
   /**

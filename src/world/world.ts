@@ -25,6 +25,8 @@ export type WorldEventMap = {
     'entityRemoved': { entity: Entity, position: Point };
     'entityMoved': { entity: Entity, from: Point, to: Point };
     'entityModified': { entity: Entity, componentType: string };
+    'componentAdded': { entity: Entity, componentType: string };
+    'componentRemoved': { entity: Entity, componentType: string };
     'componentModified': { entity: Entity, componentType: string };
 }
 
@@ -56,6 +58,8 @@ export class World {
         this.eventCounts.set('entityRemoved', 0);
         this.eventCounts.set('entityMoved', 0);
         this.eventCounts.set('entityModified', 0);
+        this.eventCounts.set('componentAdded', 0);
+        this.eventCounts.set('componentRemoved', 0);
         this.eventCounts.set('componentModified', 0);
     }
 
@@ -700,7 +704,7 @@ export class World {
      * Called when a component is added to an entity
      */
     onComponentAdded(entity: Entity, componentType: string): void {
-        this.emit('entityModified', {
+        this.emit('componentAdded', {
             entity,
             componentType
         });
@@ -710,7 +714,7 @@ export class World {
      * Called when a component is removed from an entity
      */
     onComponentRemoved(entity: Entity, componentType: string): void {
-        this.emit('entityModified', {
+        this.emit('componentRemoved', {
             entity,
             componentType
         });
@@ -720,7 +724,7 @@ export class World {
      * Called when a component is modified on an entity
      */
     onComponentModified(entity: Entity, componentType: string): void {
-        this.emit('entityModified', {
+        this.emit('componentModified', {
             entity,
             componentType
         });

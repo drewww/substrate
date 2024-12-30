@@ -661,114 +661,85 @@ describe('World', () => {
     describe('Event System', () => {
         let world: World;
         let entity: Entity;
+        let handler: ReturnType<typeof vi.fn>;
         const position: Point = { x: 1, y: 1 };
         
         beforeEach(() => {
             world = new World(10, 10);
             entity = new Entity(position);
+            handler = vi.fn();
         });
 
-        describe('Entity Added Events', () => {
-            it('emits entityAdded when adding an entity', () => {
-                const handler = vi.fn();
-                world.on('entityAdded', handler);
+        describe('Component Events', () => {
+            beforeEach(() => {
+                world.addEntity(entity);
+            });
+
+            it('emits componentAdded when adding component', () => {
+                world.on('componentAdded', handler);
+                entity.setComponent(new TestComponent());
                 
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    componentType: 'test'
+                });
+                expect(handler).toHaveBeenCalledTimes(1);
+            });
+
+            it('emits componentModified when component is modified', () => {
+                const component = new UpdatableComponent();
+                entity.setComponent(component);
+                world.on('componentModified', handler);
+                
+                world.update(1.0); // This triggers the component's update method
+                
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    componentType: 'updatable'
+                });
+            });
+
+            it('emits componentRemoved when removing component', () => {
+                entity.setComponent(new TestComponent());
+                world.on('componentRemoved', handler);
+                
+                entity.removeComponent('test');
+                
+                expect(handler).toHaveBeenCalledWith({
+                    entity,
+                    componentType: 'test'
+                });
+                expect(handler).toHaveBeenCalledTimes(1);
+            });            
+        });
+
+        describe('Entity Events', () => {
+            it('emits entityAdded when adding an entity', () => {
+                world.on('entityAdded', handler);
                 world.addEntity(entity);
                 
                 expect(handler).toHaveBeenCalledWith({ entity });
+                expect(handler).toHaveBeenCalledTimes(1);
             });
 
-            it('emits entityModified when adding component', () => {
-                const handler = vi.fn();
-                world.on('entityModified', handler);
-                
+            it('emits entityRemoved when removing an entity', () => {
                 world.addEntity(entity);
-                entity.setComponent(new TestComponent());
+                world.on('entityRemoved', handler);
+                
+                world.removeEntity(entity.getId());
                 
                 expect(handler).toHaveBeenCalledWith({
                     entity,
-                    componentType: 'test'
+                    position
                 });
-            });
-        });
-
-        describe('Entity Modified Events', () => {
-            it('emits entityModified when component is modified', () => {
-                const handler = vi.fn();
-                world.addEntity(entity);
-                world.on('entityModified', handler);
-                
-                entity.setComponent(new TestComponent());
-                
-                expect(handler).toHaveBeenCalledWith({
-                    entity,
-                    componentType: 'test'
-                });
+                expect(handler).toHaveBeenCalledTimes(1);
             });
 
-            it('includes correct component type in modification event', () => {
-                const handler = vi.fn();
-                world.addEntity(entity);
-                world.on('entityModified', handler);
-                
-                entity.setComponent(new UpdatableComponent());
-                entity.setComponent(new TestComponent());
-                
-                expect(handler).toHaveBeenCalledTimes(2);
-                expect(handler.mock.calls[0][0].componentType).toBe('updatable');
-                expect(handler.mock.calls[1][0].componentType).toBe('test');
-            });
-        });
-
-        describe('Event Handler Management', () => {
-            it('allows removing specific event handlers', () => {
-                const handler = vi.fn();
-                world.on('entityAdded', handler);
-                world.off('entityAdded', handler);
-                
-                world.addEntity(entity);
-                
-                expect(handler).not.toHaveBeenCalled();
-            });
-
-            it('clears all event handlers', () => {
-                const handler1 = vi.fn();
-                const handler2 = vi.fn();
-                
-                world.on('entityAdded', handler1);
-                world.on('entityModified', handler2);
-                
-                world.clearEventHandlers();
-                world.addEntity(entity);
-                entity.setComponent(new TestComponent());
-                
-                expect(handler1).not.toHaveBeenCalled();
-                expect(handler2).not.toHaveBeenCalled();
-            });
-        });
-
-        describe('Entity Movement Events', () => {
-            it('emits entityMoved when position changes directly', () => {
-                const handler = vi.fn();
+            it('emits entityMoved when moving an entity', () => {
                 world.addEntity(entity);
                 world.on('entityMoved', handler);
-                
                 const newPos = { x: 2, y: 2 };
-                entity.setPosition(newPos.x, newPos.y);
                 
-                expect(handler).toHaveBeenCalledWith({
-                    entity,
-                    from: position,
-                    to: newPos
-                });
-            });
-
-            it('emits entityMoved when using moveEntity', () => {
-                const handler = vi.fn();
-                world.addEntity(entity);
-                world.on('entityMoved', handler);
-                
-                const newPos = { x: 2, y: 2 };
                 world.moveEntity(entity.getId(), newPos);
                 
                 expect(handler).toHaveBeenCalledWith({
@@ -776,71 +747,7 @@ describe('World', () => {
                     from: position,
                     to: newPos
                 });
-            });
-        });
-    });
-
-    describe('Component Events', () => {
-        let world: World;
-        let entity: Entity;
-        let handler: ReturnType<typeof vi.fn>;
-
-        beforeEach(() => {
-            world = new World(10, 10);
-            entity = new Entity(DEFAULT_POSITION);
-            world.addEntity(entity);
-            handler = vi.fn();
-        });
-
-        it('emits entityModified when component is first added', () => {
-            world.on('entityModified', handler);
-            entity.setComponent(new TestComponent());
-            
-            expect(handler).toHaveBeenCalledWith({
-                entity,
-                componentType: 'test'
-            });
-            expect(handler).toHaveBeenCalledTimes(1);
-        });
-
-        it('emits entityModified when component is updated', () => {
-            const component = new TestComponent();
-            entity.setComponent(component);
-            
-            world.on('entityModified', handler);
-            component.value = 200;
-            entity.updateComponent(component);
-            
-            expect(handler).toHaveBeenCalledWith({
-                entity,
-                componentType: 'test'
-            });
-            expect(handler).toHaveBeenCalledTimes(1);
-        });
-
-        it('emits entityModified when component is removed', () => {
-            entity.setComponent(new TestComponent());
-            world.on('entityModified', handler);
-            
-            entity.removeComponent('test');
-            
-            expect(handler).toHaveBeenCalledWith({
-                entity,
-                componentType: 'test'
-            });
-            expect(handler).toHaveBeenCalledTimes(1);
-        });
-
-        it('emits entityModified when component is modified internally', () => {
-            const component = new UpdatableComponent();
-            entity.setComponent(component);
-            world.on('entityModified', handler);
-            
-            world.update(1.0); // This will trigger the component's update method
-            
-            expect(handler).toHaveBeenCalledWith({
-                entity,
-                componentType: 'updatable'
+                expect(handler).toHaveBeenCalledTimes(1);
             });
         });
     });

@@ -46,7 +46,25 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentModified(entity: Entity, componentType: string): void {
+        // Handle movement cooldown
+        logger.info(`Component modified: ${entity.getId()} - ${componentType}`);
+        if (componentType === 'moveCooldown') {
+            const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
+            const tileId = this.entityTiles.get(entity.getId());
+            
+            if (cooldown && tileId) {
+                const percent = 1 - (cooldown.cooldown / cooldown.baseTime);
+                this.display.updateTile(tileId, {
+                    bg: '#FF0000',
+                    bgPercent: percent
+                });
+            }
+        }
+    }
+
+    protected handleComponentAdded(entity: Entity, componentType: string): void {
         // Handle bumping animation
+        logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
             const bump = entity.getComponent('bumping') as BumpingComponent;
             const tileId = this.entityTiles.get(entity.getId());
@@ -103,20 +121,6 @@ export class TestGameRenderer extends GameRenderer {
                 setTimeout(() => {
                     entity.removeComponent('bumping');
                 }, bump.duration * 1000);
-            }
-        }
-
-        // Handle movement cooldown
-        if (componentType === 'moveCooldown') {
-            const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
-            const tileId = this.entityTiles.get(entity.getId());
-            
-            if (cooldown && tileId) {
-                const percent = 1 - (cooldown.cooldown / cooldown.baseTime);
-                this.display.updateTile(tileId, {
-                    bg: '#FF0000',
-                    bgPercent: percent
-                });
             }
         }
     }
