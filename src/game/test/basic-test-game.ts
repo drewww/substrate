@@ -191,12 +191,12 @@ export class BasicTestGame extends Game {
             this.world.getWorldHeight() - viewportHeight
         ));
 
-        // this.display.setViewport(viewportX, viewportY, {
-        //     smooth: animate,
-        //     duration: 0.1,  // 100ms transition
-        //     easing: Easing.quadOut
-        // });
-        this.display.setViewport(viewportX, viewportY);
+        this.display.setViewport(Math.floor(viewportX), Math.floor(viewportY), {
+            smooth: animate,
+            duration: 5.0,  // 100ms transition
+            easing: Easing.quadOut
+        });
+        // this.display.setViewport(viewportX, viewportY);
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {

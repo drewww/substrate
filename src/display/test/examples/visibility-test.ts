@@ -11,7 +11,7 @@ export class VisibilityTest extends BaseTest {
     private movingRight = true;
     private debugContainer?: HTMLElement;
     private frameCounter = 0;
-    private readonly FRAMES_PER_MOVE = 32;
+    private readonly FRAMES_PER_MOVE = 144;
     
     constructor() {
         super({
@@ -100,14 +100,20 @@ export class VisibilityTest extends BaseTest {
         // Only calculate visibility for tiles within radius
         for (let y = minY; y <= maxY; y++) {
             for (let x = minX; x <= maxX; x++) {
-                const dx = x - this.lightSource.x;
-                const dy = y - this.lightSource.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // const dx = x - this.lightSource.x;
+                // const dy = y - this.lightSource.y;
+                // const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance <= this.VISIBLE_RADIUS) {
-                    // Create a smooth falloff
-                    const visibility = Math.max(0, 1 - (distance / this.VISIBLE_RADIUS));
-                    mask[y][x] = visibility;
+                // if (distance <= this.VISIBLE_RADIUS) {
+                //     // Create a smooth falloff
+                //     const visibility = Math.max(0, 1 - (distance / this.VISIBLE_RADIUS));
+                //     mask[y][x] = visibility;
+                // }
+
+                if(Math.abs(x-this.lightSource.x) <= 1 ) {
+                    mask[y][x] = 1;
+                } else {
+                    mask[y][x] = 0.2;
                 }
             }
         }
@@ -122,7 +128,7 @@ export class VisibilityTest extends BaseTest {
         if (this.frameCounter === 0) {
             const width = this.display.getWorldWidth();
             const height = this.display.getWorldHeight();
-            const speed = 0.5;
+            const speed = 1.0;
             
             // Move light source
             if (this.movingRight) {
@@ -146,6 +152,9 @@ export class VisibilityTest extends BaseTest {
                     }
                 }
             }
+
+            this.lightSource.x = Math.floor(this.lightSource.x);
+            this.lightSource.y = Math.floor(this.lightSource.y);
         }
 
         // Update visibility every frame (but mask will only redraw if dirty)
@@ -167,10 +176,11 @@ export class VisibilityTest extends BaseTest {
 
         // Smoothly move viewport to target
         this.display.setViewport(
-            targetX - this.display.getViewportWidth() / 2,
-            targetY - this.display.getViewportHeight() / 2,
+            Math.floor(targetX - this.display.getViewportWidth() / 2),
+            Math.floor(targetY - this.display.getViewportHeight() / 2),
             {
-                duration: this.FRAMES_PER_MOVE / 60,  // Match light movement speed
+                smooth: true,
+                duration: 0.05,
                 easing: Easing.quadInOut
             }
         );

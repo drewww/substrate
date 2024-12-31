@@ -514,6 +514,8 @@ export class Display {
 
             const animationEnd = performance.now();
             const renderStart = animationEnd;
+
+
             if(hasActiveAnimations || this.hasChanges) {
                 this.updateRenderCanvas();
                 this.hasChanges = false;
@@ -1306,8 +1308,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.maskCanvas.width = this.renderCanvas.width;
             this.maskCanvas.height = this.renderCanvas.height;
             
-            // Mark mask as dirty when viewport changes
-            this.maskDirty = true;
+            this.renderVisibilityMask();
+
         }
 
         // Clear the entire render canvas once
@@ -1394,6 +1396,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     public getVisibilityMask(): number[][] {
         return this.visibilityMask;
     }
+
+    // Cases to re-render the mask:
+    // 1. If the viewport has moved, we need to re-apply, but if we have not exceeded the threshold to shift the render bounds, 
+    //    we can just re-apply the mask.
+    // 2. If the visibility mask has changed, we have to re-render. We will re-apply on the next application.
 
     private renderVisibilityMask(): void {
         // Clear the mask canvas
