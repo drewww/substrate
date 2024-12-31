@@ -46,6 +46,8 @@ export class World {
     // Add a map to track visible locations
     private playerVisibleLocations: Map<string, boolean> = new Map();
     
+    private discoveredLocations: Set<string> = new Set();
+    
     constructor(private readonly width: number, private readonly height: number) {
         // Initialize FOV map
         this.fovMap = new FieldOfViewMap(width, height);
@@ -641,18 +643,9 @@ export class World {
                 // Store visibility state for this location
                 this.playerVisibleLocations.set(key, isVisible);
 
-                // Update entity components as before
+                // If visible, mark as discovered
                 if (isVisible) {
-                    const entitiesAtPosition = this.spatialMap.get(key);
-                    if (entitiesAtPosition) {
-                        for (const entityId of entitiesAtPosition) {
-                            const entity = this.entities.get(entityId);
-                            if (entity) {
-                                entity.setComponent(new VisibleToPlayerComponent());
-                                entity.setComponent(new DiscoveredByPlayerComponent());
-                            }
-                        }
-                    }
+                    this.discoveredLocations.add(key);
                 }
             }
         }
@@ -668,8 +661,7 @@ export class World {
 
     // Add method to check if a location has been discovered
     public isLocationDiscovered(pos: Point): boolean {
-        const entities = this.getEntitiesAt(pos);
-        return entities.some(e => e.hasComponent('discoveredByPlayer'));
+        return this.discoveredLocations.has(this.pointToKey(pos));
     }
 
     // Rebuild FOV map from scratch

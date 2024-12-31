@@ -5,6 +5,7 @@ import { Point } from '../../types';
 import { Component } from '../../entity/component';
 import { ComponentRegistry, RegisterComponent } from '../../entity/component-registry';
 import { transient } from '../../decorators/transient';
+import { OpacityComponent } from '../../entity/components/opacity-component';
 
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
@@ -749,6 +750,84 @@ describe('World', () => {
                 });
                 expect(handler).toHaveBeenCalledTimes(1);
             });
+        });
+    });
+
+    describe('Field of View', () => {
+        let world: World;
+        let player: Entity;
+        
+        beforeEach(() => {
+            world = new World(10, 10);
+            player = new Entity({ x: 5, y: 5 }); // Center of the map
+            world.addEntity(player);
+        });
+
+        it('should initialize with empty FOV map', () => {
+            const pos = { x: 3, y: 3 };
+            expect(world.isLocationVisible(pos)).toBe(false);
+        });
+
+        it('should update visibility when player vision is updated', () => {
+            world.updatePlayerVision(player.getPosition(), 3);
+            
+            // Check positions within vision radius
+            expect(world.isLocationVisible({ x: 5, y: 5 })).toBe(true); // Player position
+            expect(world.isLocationVisible({ x: 4, y: 4 })).toBe(true); // Diagonal within range
+            expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(true); // Straight line within range
+            
+            // Check positions outside vision radius
+            expect(world.isLocationVisible({ x: 0, y: 0 })).toBe(false);
+            expect(world.isLocationVisible({ x: 9, y: 9 })).toBe(false);
+        });
+
+        it('should handle opaque entities blocking vision', () => {
+            // Create a wall between player and target
+            const wall = new Entity({ x: 5, y: 4 });
+            wall.setComponent(new OpacityComponent(true));
+            world.addEntity(wall);
+
+            world.updatePlayerVision(player.getPosition(), 3);
+
+            // Position behind wall should not be visible
+            expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
+            
+            // Positions not blocked by wall should still be visible
+            expect(world.isLocationVisible({ x: 4, y: 4 })).toBe(true);
+            expect(world.isLocationVisible({ x: 6, y: 4 })).toBe(true);
+        });
+
+        it('should update FOV when opaque entities move', () => {
+            const wall = new Entity({ x: 5, y: 4 });
+            wall.setComponent(new OpacityComponent(true));
+            world.addEntity(wall);
+
+            world.updatePlayerVision(player.getPosition(), 3);
+            expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
+
+            // Move wall
+            world.moveEntity(wall.getId(), { x: 6, y: 4 });
+            world.updatePlayerVision(player.getPosition(), 3);
+            
+            // Previously blocked position should now be visible
+            expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(true);
+        });
+
+        it('should track discovered locations', () => {
+            world.updatePlayerVision(player.getPosition(), 3);
+            const pos = { x: 4, y: 4 };
+            
+            // Position should be both visible and discovered
+            expect(world.isLocationVisible(pos)).toBe(true);
+            expect(world.isLocationDiscovered(pos)).toBe(true);
+
+            // Move player away and update vision
+            world.moveEntity(player.getId(), { x: 8, y: 8 });
+            world.updatePlayerVision({ x: 8, y: 8 }, 3);
+
+            // Position should no longer be visible but should remain discovered
+            expect(world.isLocationVisible(pos)).toBe(false);
+            expect(world.isLocationDiscovered(pos)).toBe(true);
         });
     });
 }); 

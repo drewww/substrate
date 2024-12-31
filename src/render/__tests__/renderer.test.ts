@@ -10,7 +10,7 @@ class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTi
     public tiles: Map<string, { x: number, y: number }> = new Map();
     private tileCounter = 0;
 
-    createTile = vi.fn((x: number, y: number) => {
+    createTile = vi.fn((x: number, y: number, char: string, fg: string, bg: string, zIndex: number, config?: any) => {
         const tileId = `tile_${this.tileCounter++}`;
         this.tiles.set(tileId, { x, y });
         return tileId;
@@ -51,10 +51,20 @@ describe('Renderer', () => {
 
     it('creates a tile when entity with symbol is added', () => {
         const entity = new Entity({ x: 1, y: 1 });
-        entity.setComponent(new SymbolComponent('@', '#ffffff', '#000000', 1));
+        entity.setComponent(new SymbolComponent('@', '#ffffff', '#000000', 1, true));
         world.addEntity(entity);
 
-        expect(display.createTile).toHaveBeenCalledWith(1, 1, '@', '#ffffff', '#000000', 1);
+        expect(display.createTile).toHaveBeenCalledWith(
+            1,
+            1,
+            '@',
+            '#ffffff',
+            '#000000',
+            1,
+            {
+                alwaysRenderIfExplored: true
+            }
+        );
         expect(display.tiles.size).toBe(1);
     });
 
