@@ -31,7 +31,7 @@ export class TestGameRenderer extends GameRenderer {
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
                 // Update visibility immediately using the destination position
-                this.updateVisibility(data.to);
+                this.updateVisibility();
             }
             return this.handleEntityMoved(data.entity, data.from, data.to);
         });

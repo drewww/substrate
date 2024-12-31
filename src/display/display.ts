@@ -1264,45 +1264,58 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private updateRenderCanvas(): void {
-        const padding = Math.ceil(this.viewport.width * 0.1);
+        const PADDING_FACTOR = 0.1;  // 10% padding on each side
+        const paddingX = Math.ceil(this.viewport.width * PADDING_FACTOR);
+        const paddingY = Math.ceil(this.viewport.height * PADDING_FACTOR);
+        
+        // We need to reposition when the viewport gets too close to any edge
         const needsReposition = 
-            this.viewport.x < this.renderBounds.x + padding ||
-            this.viewport.x + this.viewport.width > this.renderBounds.x + this.renderBounds.width - padding ||
-            this.viewport.y < this.renderBounds.y + padding ||
-            this.viewport.y + this.viewport.height > this.renderBounds.y + this.renderBounds.height - padding;
+            // Left edge: viewport is less than padding distance from render bounds left
+            this.viewport.x - this.renderBounds.x < paddingX ||
+            
+            // Right edge: viewport right edge is less than padding from render bounds right
+            (this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX ||
+            
+            // Top edge: viewport is less than padding distance from render bounds top
+            this.viewport.y - this.renderBounds.y < paddingY ||
+            
+            // Bottom edge: viewport bottom edge is less than padding from render bounds bottom
+            (this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY;
 
         if (needsReposition) {
-            // Calculate render bounds size in cells (20% larger than viewport)
+            logger.info(`Reposition check:
+                viewport: (${this.viewport.x}, ${this.viewport.y}, ${this.viewport.width}, ${this.viewport.height})
+                renderBounds: (${this.renderBounds.x}, ${this.renderBounds.y}, ${this.renderBounds.width}, ${this.renderBounds.height})
+                padding: ${paddingX},${paddingY}
+                left: ${this.viewport.x - this.renderBounds.x < paddingX}
+                right: ${(this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX}
+                top: ${this.viewport.y - this.renderBounds.y < paddingY}
+                bottom: ${(this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY}
+            `);
+
+            // Calculate render bounds size in cells (with double padding on each side)
             const renderWidthInCells = Math.min(
                 this.worldWidth,
-                Math.ceil(this.viewport.width * 1.2)
+                Math.ceil(this.viewport.width * (1 + 4 * PADDING_FACTOR))  // Double the padding
             );
             const renderHeightInCells = Math.min(
                 this.worldHeight,
-                Math.ceil(this.viewport.height * 1.2)
+                Math.ceil(this.viewport.height * (1 + 4 * PADDING_FACTOR))  // Double the padding
             );
             
-            // Update render bounds dimensions in cells
-            this.renderBounds.width = renderWidthInCells;
-            this.renderBounds.height = renderHeightInCells;
-            
-            // Update canvas size in pixels
-            this.renderCanvas.width = renderWidthInCells * this.cellWidthScaled;
-            this.renderCanvas.height = renderHeightInCells * this.cellHeightScaled;
-            
-            // Reconfigure context after canvas resize
-            this.setupFont();
-            
-            // Try to center, but clamp to world bounds (in cells)
+            // Center the viewport within the render bounds with extra padding
             this.renderBounds.x = Math.max(0, Math.min(
-                this.viewport.x - Math.floor(renderWidthInCells * 0.2),
+                Math.floor(this.viewport.x - (renderWidthInCells - this.viewport.width) / 2),
                 this.worldWidth - renderWidthInCells
             ));
             
             this.renderBounds.y = Math.max(0, Math.min(
-                this.viewport.y - Math.floor(renderHeightInCells * 0.2),
+                Math.floor(this.viewport.y - (renderHeightInCells - this.viewport.height) / 2),
                 this.worldHeight - renderHeightInCells
             ));
+
+            this.renderBounds.width = renderWidthInCells;
+            this.renderBounds.height = renderHeightInCells;
 
             // Update mask canvas size to match render canvas
             this.maskCanvas.width = this.renderCanvas.width;

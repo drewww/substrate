@@ -29,6 +29,18 @@ function init() {
     
     // Start game
     game.start();
+
+    // Add mask canvas to debug overlay
+    const maskCanvasContainer = document.getElementById('mask-canvas-container');
+    const maskCanvas = game.getDisplay().getMaskCanvas();
+    if (maskCanvas && maskCanvasContainer) {
+        // Style the canvas to make it visible but not too large
+        maskCanvas.style.width = '200px';
+        maskCanvas.style.height = '100px';
+        maskCanvas.style.border = '1px solid white';
+        maskCanvas.style.background = '#333'; // Dark background to see the mask better
+        maskCanvasContainer.appendChild(maskCanvas);
+    }
 }
 
 function updateEngineDebug() {

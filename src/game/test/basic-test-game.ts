@@ -193,7 +193,7 @@ export class BasicTestGame extends Game {
 
         this.display.setViewport(Math.floor(viewportX), Math.floor(viewportY), {
             smooth: animate,
-            duration: 5.0,  // 100ms transition
+            duration: 0.1,  // 100ms transition
             easing: Easing.quadOut
         });
         // this.display.setViewport(viewportX, viewportY);

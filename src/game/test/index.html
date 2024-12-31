@@ -52,6 +52,18 @@
         #world-debug > div:last-child {
             margin-bottom: 0;
         }
+        #mask-debug {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        #mask-canvas-container {
+            margin-top: 8px;
+        }
+        #mask-canvas-container canvas {
+            display: block;
+            image-rendering: pixelated;  /* Makes scaled pixels crisp */
+        }
     </style>
 </head>
 <body>
@@ -74,6 +86,10 @@
         </select>
     </div>
     <div class="debug-overlays">
+        <div id="mask-debug">
+            <div>Visibility Mask:</div>
+            <div id="mask-canvas-container"></div>
+        </div>
         <div id="display-debug"></div>
         <div id="world-debug"></div>
         <div id="engine-debug"></div>
