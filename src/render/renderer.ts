@@ -43,7 +43,10 @@ export abstract class Renderer {
             symbolComponent.char,
             symbolComponent.foreground,
             symbolComponent.background,
-            symbolComponent.zIndex
+            symbolComponent.zIndex,
+            {
+                alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored
+            }
         );
         
         this.entityTiles.set(entity.getId(), tileId);

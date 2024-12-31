@@ -21,6 +21,7 @@ export interface Tile {
     rotation: number;     // New property: rotation in radians
     noClip?: boolean;     // New option to disable clipping mask
     blendMode: BlendMode;  // Now required with a default value
+    alwaysRenderIfExplored?: boolean;
 }
 
 export interface Cell {
@@ -107,6 +108,7 @@ export interface TileConfig {
     fillDirection?: FillDirection;
     noClip?: boolean;
     blendMode?: BlendMode;
+    alwaysRenderIfExplored?: boolean;
 }
 
 

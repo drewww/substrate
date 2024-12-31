@@ -165,7 +165,8 @@ export class BasicTestGame extends Game {
                     '#',           // Wall symbol
                     '#aaaaaaff',   // Light gray foreground
                     '#ddddddff',   // Lighter gray background
-                    1              // Low z-index to stay below other entities
+                    1,             // Low z-index to stay below other entities
+                    true           // Always render if explored
                 ));
                 this.world.addEntity(wall);
                 enemyPositions.add(posKey); // Prevent enemies from spawning here

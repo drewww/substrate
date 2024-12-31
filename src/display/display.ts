@@ -341,6 +341,7 @@ export class Display {
             rotation: 0,
             noClip: config?.noClip ?? false,
             blendMode: config?.blendMode ?? BlendMode.SourceOver,
+            alwaysRenderIfExplored: config?.alwaysRenderIfExplored ?? false,
          };
         
         this.tileMap.set(id, tile);
@@ -401,6 +402,11 @@ export class Display {
     }
 
     private renderTile(tile: Tile, renderX?: number, renderY?: number): void {
+        // Early exit if we shouldn't render this tile based on visibility
+        if (!this.shouldRenderTile(tile)) {
+            return;
+        }
+
         const x = Math.round(renderX ?? (tile.x * this.cellWidthScaled));  // Round to nearest pixel
         const y = Math.round(renderY ?? (tile.y * this.cellHeightScaled));  // Round to nearest pixel
         
@@ -1487,6 +1493,50 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public getMaskCanvas(): HTMLCanvasElement | null {
         return this.maskCanvas;
+    }
+
+    private shouldRenderTile(tile: Tile): boolean {
+        // Check current position visibility
+        const currentVisibility = this.visibilityMask[tile.y]?.[tile.x];
+        
+        // For animated tiles, also check target position
+        let targetVisibility = currentVisibility;
+        const valueAnims = this.valueAnimations.get(tile.id);
+        if (valueAnims) {
+            if (valueAnims.x || valueAnims.y) {
+                // Calculate the target position
+                const targetX = valueAnims.x ? 
+                    Math.round(tile.x + (valueAnims.x.endValue - valueAnims.x.startValue)) : 
+                    tile.x;
+                const targetY = valueAnims.y ? 
+                    Math.round(tile.y + (valueAnims.y.endValue - valueAnims.y.startValue)) : 
+                    tile.y;
+                
+                // Check visibility at target position
+                const targetPosVisibility = this.visibilityMask[targetY]?.[targetX];
+                // Use the higher visibility value between current and target positions
+                targetVisibility = Math.max(currentVisibility ?? 0, targetPosVisibility ?? 0);
+            }
+        }
+
+        // If no visibility data at either position, don't render
+        if (targetVisibility === undefined) {
+            return false;
+        }
+
+        // Fully visible (1.0) - always render
+        if (targetVisibility === 1) {
+            return true;
+        }
+
+        // Partially visible (0 < v < 1)
+        if (targetVisibility > 0) {
+            // Only render if alwaysRenderIfExplored is true
+            return tile.alwaysRenderIfExplored === true;
+        }
+
+        // Not visible (0) - don't render
+        return false;
     }
 } 
 
