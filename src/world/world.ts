@@ -69,7 +69,8 @@ export class World {
         return new Map(this.eventCounts);
     }
 
-    private pointToKey({ x, y }: Point): string {
+    // A little odd letting this be public; should probably be in a util file somewhere??
+    public pointToKey({ x, y }: Point): string {
         return `${x},${y}`;
     }
 
@@ -724,5 +725,24 @@ export class World {
 
     public getFOVMap(): FieldOfViewMap {
         return this.fovMap;
+    }
+
+    public getVisibleTilesInRadius(origin: Point, radius: number): Set<string> {
+        const visibleTiles = new Set<string>();
+        const fov = computeFieldOfView(this.fovMap, origin.x, origin.y, radius);
+
+        for (let y = origin.y - radius; y <= origin.y + radius; y++) {
+            for (let x = origin.x - radius; x <= origin.x + radius; x++) {
+                if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+                    continue;
+                }
+                
+                if (fov.getVisible(x, y)) {
+                    visibleTiles.add(this.pointToKey({x, y}));
+                }
+            }
+        }
+
+        return visibleTiles;
     }
 } 

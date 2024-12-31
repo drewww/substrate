@@ -1,9 +1,10 @@
-import { Display } from '../display/display';
+import { BlendMode, Display } from '../display/display';
 import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
+import { LightEmitterComponent } from '../entity/components/light-emitter-component';
 
 /**
  * Base renderer class that handles entity visualization
@@ -15,6 +16,7 @@ import { SymbolComponent } from '../entity/components/symbol-component';
  */
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
+    private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
 
     constructor(
         protected world: World,
@@ -50,6 +52,11 @@ export abstract class Renderer {
         );
         
         this.entityTiles.set(entity.getId(), tileId);
+        
+        // Handle light emitter if present
+        if (entity.hasComponent('lightEmitter')) {
+            this.updateEntityLight(entity);
+        }
         
         this.handleEntityAdded(entity, tileId);
     }
@@ -95,6 +102,13 @@ export abstract class Renderer {
             logger.warn(`No tile found for removed entity ${entity.getId()}`);
         }
         
+        // Remove light tiles if they exist
+        const lightTiles = this.lightSourceTiles.get(entity.getId());
+        if (lightTiles) {
+            lightTiles.forEach(tileId => this.display.removeTile(tileId));
+            this.lightSourceTiles.delete(entity.getId());
+        }
+        
         this.handleEntityRemoved(entity);
     }
 
@@ -112,6 +126,88 @@ export abstract class Renderer {
             }
         } else {
             logger.warn(`No tile found for moved entity ${entity.getId()}`);
+        }
+
+        // Update light if entity has a light emitter
+        if (entity.hasComponent('lightEmitter')) {
+            this.updateEntityLight(entity);
+        }
+        
+        if (!this.handleEntityMoved(entity, from, to)) {
+            const tileId = this.entityTiles.get(entity.getId());
+            if (tileId) {
+                this.display.moveTile(tileId, to.x, to.y);
+            }
+        }
+    }
+
+    protected updateEntityLight(entity: Entity): void {
+        const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+        if (!lightEmitter) return;
+
+        // Clean up existing light tiles
+        const existingTiles = this.lightSourceTiles.get(entity.getId());
+        if (existingTiles) {
+            existingTiles.forEach(tileId => this.display.removeTile(tileId));
+            existingTiles.clear();
+        }
+
+        // Create new light tiles
+        const position = entity.getPosition();
+        const visibleTiles = this.world.getVisibleTilesInRadius(position, lightEmitter.config.radius);
+        const newTiles = new Set<string>();
+
+        for (let y = position.y - lightEmitter.config.radius; y <= position.y + lightEmitter.config.radius; y++) {
+            for (let x = position.x - lightEmitter.config.radius; x <= position.x + lightEmitter.config.radius; x++) {
+                if (y < 0 || y >= this.world.getSize().y || 
+                    x < 0 || x >= this.world.getSize().x ||
+                    !visibleTiles.has(this.world.pointToKey({x, y}))) {
+                    continue;
+                }
+
+                const distance = Math.sqrt(
+                    Math.pow(x - position.x, 2) + 
+                    Math.pow(y - position.y, 2)
+                );
+                
+                if (distance <= lightEmitter.config.radius) {
+                    const intensity = this.calculateFalloff(
+                        distance, 
+                        lightEmitter.config.radius,
+                        lightEmitter.config.intensity,
+                        lightEmitter.config.falloff
+                    );
+                    
+                    const tileId = this.display.createTile(
+                        x, y,
+                        ' ',
+                        '#FFFFFF00',  // transparent foreground
+                        `${lightEmitter.config.color}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,  // color with opacity
+                        100,  // z-index
+                        {
+                            blendMode: BlendMode.Screen
+                        }
+                    );
+                    
+                    newTiles.add(tileId);
+                }
+            }
+        }
+
+        this.lightSourceTiles.set(entity.getId(), newTiles);
+    }
+
+    private calculateFalloff(distance: number, radius: number, intensity: number, type: 'linear' | 'quadratic' | 'exponential'): number {
+        const normalized = Math.max(0, 1 - (distance / radius));
+        switch (type) {
+            case 'linear':
+                return normalized * intensity;
+            case 'quadratic':
+                return (normalized * normalized) * intensity;
+            case 'exponential':
+                return Math.pow(normalized, 4) * intensity;
+            default:
+                return normalized * intensity;
         }
     }
 

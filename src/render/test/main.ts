@@ -8,11 +8,15 @@ import { WorldDebugOverlay } from '../../world/debug-overlay';
 import { SmokeBombEntity } from './smoke-bomb';
 import { GameRenderer } from './game-renderer';
 import { SymbolComponent } from '../../entity/components/symbol-component';
+import { OpacityComponent } from '../../entity/components/opacity-component';
+import { ImpassableComponent } from '../../entity/components/impassable-component';
+import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
 const CELL_SIZE = 20;
 const LOG_LEVEL_KEY = 'world-renderer-log-level';
+const WALL_DENSITY = 0.1; // 10% of tiles will be walls
 
 class WorldTest {
     private world: World;
@@ -68,8 +72,25 @@ class WorldTest {
 
         // Add click handler
         this.display.onCellClick((worldPos) => {
-            const smokeBomb = new SmokeBombEntity(worldPos);
-            this.world.addEntity(smokeBomb);
+            const entityType = (document.getElementById('entityType') as HTMLSelectElement).value;
+            
+            let entity;
+            if (entityType === 'smokeBomb') {
+                entity = new SmokeBombEntity(worldPos);
+            } else if (entityType === 'light') {
+                entity = new Entity(worldPos);
+                entity.setComponent(new SymbolComponent('*', '#ff0', '#ff0'));
+                entity.setComponent(new LightEmitterComponent({
+                    radius: 8,
+                    intensity: 1.0,
+                    color: '#ffff00',
+                    falloff: 'quadratic'
+                }));
+            }
+
+            if (entity) {
+                this.world.addEntity(entity);
+            }
         });
 
         // Add hover handler for cursor highlight
@@ -99,6 +120,13 @@ class WorldTest {
                 );
             }
         });
+
+        // Add random walls
+        this.addRandomWalls();
+
+        // Update controls setup
+        this.setupControls();
+        this.setupEntityTypeSelector();
     }
 
     private setupLogLevel() {
@@ -230,6 +258,44 @@ class WorldTest {
 
         // Continue the loop
         requestAnimationFrame(this.update.bind(this));
+    }
+
+    private addRandomWalls(): void {
+        this.world.startBatch();
+        for (let x = 0; x < WORLD_WIDTH; x++) {
+            for (let y = 0; y < WORLD_HEIGHT; y++) {
+                if (Math.random() < WALL_DENSITY) {
+                    const wall = new Entity({ x, y });
+                    wall.setComponent(new SymbolComponent('#', '#666', '#444'));
+                    wall.setComponent(new OpacityComponent());
+                    wall.setComponent(new ImpassableComponent());
+                    this.world.addEntity(wall);
+                }
+            }
+        }
+        this.world.endBatch();
+    }
+
+    private setupEntityTypeSelector(): void {
+        const select = document.createElement('select');
+        select.id = 'entityType';
+        
+        const options = [
+            { value: 'smokeBomb', label: 'Smoke Bomb' },
+            { value: 'light', label: 'Light Source' }
+        ];
+
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            select.appendChild(option);
+        });
+
+        const container = document.getElementById('controls');
+        if (container) {
+            container.insertBefore(select, container.firstChild);
+        }
     }
 }
 
