@@ -29,17 +29,24 @@ export class TestGameRenderer extends GameRenderer {
 
         // Subscribe to entity movement to update visibility
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
-            if (data.entity.hasComponent('player')) {
-                // Update visibility immediately using the destination position
-                this.updateVisibility();
-            }
+            // if (data.entity.hasComponent('player')) {
+            //     // Update visibility immediately using the destination position
+            //     this.updateVisibility();
+            // }
             return this.handleEntityMoved(data.entity, data.from, data.to);
+        });
+
+        this.world.on('playerVisionUpdated', (data: { playerPos: Point, visibleLocations: Set<string> }) => {
+            this.updateVisibility(data.playerPos);
         });
     }
 
     public updateVisibility(overridePosition?: Point): void {
         const player = this.world.getEntitiesWithComponent('player')[0];
         if (!player) return;
+
+        logger.info('Updating visibility: ', overridePosition);
+        console.trace();
 
         // Use override position if provided, otherwise use player's current position
         const pos = overridePosition || player.getPosition();
@@ -49,8 +56,14 @@ export class TestGameRenderer extends GameRenderer {
         // Calculate currently visible tiles
         for (let y = Math.max(0, pos.y - this.VISION_RADIUS); y <= Math.min(worldSize.y - 1, pos.y + this.VISION_RADIUS); y++) {
             for (let x = Math.max(0, pos.x - this.VISION_RADIUS); x <= Math.min(worldSize.x - 1, pos.x + this.VISION_RADIUS); x++) {
-                mask[y][x] = 1;  // Fully visible
-                this.discoveredTiles.add(`${x},${y}`);  // Mark as discovered
+                
+                const isVisible = this.world.isLocationVisible({ x, y });
+                if (isVisible) {
+                    mask[y][x] = 1;  // Fully visible
+                    this.discoveredTiles.add(`${x},${y}`);  // Mark as discovered
+                } else {
+                    mask[y][x] = 0;
+                }
             }
         }
 

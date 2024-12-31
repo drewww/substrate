@@ -193,6 +193,8 @@ export class BasicTestGame extends Game {
 
         // Center viewport on player after world is initialized
         this.updateViewport(false);
+
+        this.world.updatePlayerVision(this.player.getPosition());
     }
 
     private updateViewport(animate: boolean = true): void {
@@ -323,7 +325,8 @@ export const MoveAction: ActionClass<MoveActionData> = {
 
     execute(world: World, action: BaseAction<MoveActionData>): boolean {
         const result = world.moveEntity(action.entityId, action.data.to);
-        if (result) {
+        const entity = world.getEntity(action.entityId);
+        if (result && entity?.hasComponent('player')) {
             world.updatePlayerVision(action.data.to);
         }
         return result;
