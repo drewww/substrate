@@ -68,12 +68,44 @@
         #display {
             border: 1px solid #000;
         }
+
+        #display-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+
+            width: 800px;
+            height: 600px;
+        }
+
+        #display-container canvas {
+            border: 1px solid #000;
+            display: block;
+            float: left;
+        }
+        
+        #display, #render-canvas {
+            border: 1px solid #000;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        #render-canvas-container {
+            /* width: 800px; */
+            /* height: 600px; */
+
+            float: left
+        }
     </style>
 </head>
 <body>
     <div id="display-container">
         <canvas id="display"></canvas>
     </div>
+    <div id="render-canvas-container">
+        <canvas id="render-canvas"></canvas>
+    </div>
+
     <div class="controls">
         <button id="toggleDisplayDebug">Display Debug</button>
         <button id="toggleWorldDebug">World Debug</button>

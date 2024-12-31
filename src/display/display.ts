@@ -96,6 +96,10 @@ export const Easing = {
         t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2
 };
 
+// Constants for viewport padding (percentage of viewport size)
+const VIEWPORT_PADDING_X = 0.2; // 20% padding on each side
+const VIEWPORT_PADDING_Y = 0.2; // 20% padding on top/bottom
+
 export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private renderCanvas: HTMLCanvasElement;
@@ -184,10 +188,29 @@ export class Display {
         }
 
         this.displayCtx = this.displayCanvas.getContext('2d')!;
-        const padding = Math.ceil(options.viewportWidth * 0.2); // 20% padding
+        
+        // Calculate padding in tiles
+        const paddingX = Math.ceil(options.viewportWidth * VIEWPORT_PADDING_X);
+        const paddingY = Math.ceil(options.viewportHeight * VIEWPORT_PADDING_Y);
+
+        // Calculate dimensions in CSS pixels
+        const displayWidth = options.viewportWidth * this.cellWidthCSS;
+        const displayHeight = options.viewportHeight * this.cellHeightCSS;
+        const renderWidth = (options.viewportWidth + paddingX * 2) * this.cellWidthCSS;
+        const renderHeight = (options.viewportHeight + paddingY * 2) * this.cellHeightCSS;
+
+        // Set up display canvas
+        this.displayCanvas.style.width = `${displayWidth}px`;
+        this.displayCanvas.style.height = `${displayHeight}px`;
+        this.displayCanvas.width = displayWidth * this.scale;
+        this.displayCanvas.height = displayHeight * this.scale;
+
+        // Set up render canvas with padding
         this.renderCanvas = document.createElement('canvas');
-        this.renderCanvas.width = (options.viewportWidth + padding * 2) * this.scale;
-        this.renderCanvas.height = (options.viewportHeight + padding * 2) * this.scale;
+        this.renderCanvas.style.width = `${renderWidth}px`;
+        this.renderCanvas.style.height = `${renderHeight}px`;
+        this.renderCanvas.width = renderWidth * this.scale;
+        this.renderCanvas.height = renderHeight * this.scale;
 
         this.renderCtx = this.renderCanvas.getContext('2d', { alpha: true })!;
         this.renderCtx.textBaseline = 'top';
@@ -197,19 +220,9 @@ export class Display {
         this.renderBounds = {
             x: 0,
             y: 0,
-            width: options.viewportWidth + padding * 2,
-            height: options.viewportHeight + padding * 2
+            width: options.viewportWidth + paddingX * 2,
+            height: options.viewportHeight + paddingY * 2
         };
-
-        const displayWidth = options.viewportWidth * this.cellWidthCSS;
-        const displayHeight = options.viewportHeight * this.cellHeightCSS;
-
-        [this.displayCanvas, this.renderCanvas].forEach(canvas => {
-            canvas.style.width = `${displayWidth}px`;
-            canvas.style.height = `${displayHeight}px`;
-            canvas.width = displayWidth * this.scale;
-            canvas.height = displayHeight * this.scale;
-        });
 
         this.cellWidthScaled = options.cellWidth * this.scale;
         this.cellHeightScaled = options.cellHeight * this.scale;
@@ -1374,7 +1387,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         }
     }
 
-    public getRenderCanvas(): HTMLCanvasElement | null {
+    /**
+     * Get the internal render canvas for debugging/visualization purposes.
+     * This is the larger canvas that contains the full render area including padding.
+     */
+    public getRenderCanvas(): HTMLCanvasElement {
         return this.renderCanvas;
     }
 

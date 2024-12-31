@@ -42,6 +42,13 @@ export class BasicTestGame extends Game {
             viewportHeight: 20
         });
         
+        // Attach render canvas to DOM for debugging
+        const renderCanvas = this.display.getRenderCanvas();
+        const existingRenderCanvas = document.getElementById('render-canvas');
+        if (existingRenderCanvas) {
+            existingRenderCanvas.replaceWith(renderCanvas);
+        }
+        
         // Set up action handler
         this.actionHandler = new ActionHandler(this.world);
         this.actionHandler.registerAction('move', MoveAction);
