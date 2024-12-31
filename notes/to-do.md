@@ -70,6 +70,14 @@ Display
    - RELATED idea. I'm struggling with some of these design considerations because I don't know what I'm trying to support. So maybe at this point I go broad and build the most basic versions of everything and see what we need.
 
 
+ - LIGHTING
+   - DONE add light emitter component
+   - more than radial source effects
+   - color animations??
+   - ???
+ - Make smoke bomb FOV aware.
+
+ 
 MODULE LIST
 -----------
  * Display (v1.0 done)

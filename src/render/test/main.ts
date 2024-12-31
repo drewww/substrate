@@ -28,6 +28,8 @@ class WorldTest {
     private worldDebug: WorldDebugOverlay;
     private lastFrameTime: number = 0;
     private cursorTileId: string | null = null;
+    private wanderingLightId: string | null = null;
+    private wanderingLightInterval: number | null = null;
 
     constructor() {
         this.setupLogLevel();
@@ -132,6 +134,61 @@ class WorldTest {
         // Update controls setup
         this.setupControls();
         this.setupEntityTypeSelector();
+
+        // Add wandering light handler
+        document.getElementById('toggleWanderingLight')?.addEventListener('click', () => {
+            if (this.wanderingLightId) {
+                // Stop the wandering light
+                if (this.wanderingLightInterval) {
+                    window.clearInterval(this.wanderingLightInterval);
+                    this.wanderingLightInterval = null;
+                }
+                this.world.removeEntity(this.wanderingLightId);
+                this.wanderingLightId = null;
+            } else {
+                // Create and start a wandering light
+                const light = new Entity(this.getRandomPosition());
+                light.setComponent(new SymbolComponent(
+                    '*',
+                    '#ffff00',
+                    '#00000000',
+                    50
+                ));
+                light.setComponent(new LightEmitterComponent({
+                    radius: 20,
+                    intensity: 0.2,
+                    color: '#ffff00',
+                    falloff: 'quadratic'
+                }));
+                
+                this.world.addEntity(light);
+                this.wanderingLightId = light.getId();
+
+                // Move the light every 500ms
+                this.wanderingLightInterval = window.setInterval(() => {
+                    if (!this.wanderingLightId) return;
+                    
+                    const entity = this.world.getEntity(this.wanderingLightId);
+                    if (!entity) return;
+
+                    const currentPos = entity.getPosition();
+                    const directions = [
+                        { x: 0, y: -1 },  // up
+                        { x: 1, y: 0 },   // right
+                        { x: 0, y: 1 },   // down
+                        { x: -1, y: 0 }   // left
+                    ];
+                    
+                    const direction = directions[Math.floor(Math.random() * directions.length)];
+                    const newPos = {
+                        x: Math.max(0, Math.min(WORLD_WIDTH - 1, currentPos.x + direction.x)),
+                        y: Math.max(0, Math.min(WORLD_HEIGHT - 1, currentPos.y + direction.y))
+                    };
+                    
+                    this.world.moveEntity(this.wanderingLightId, newPos);
+                }, 500);
+            }
+        });
     }
 
     private setupLogLevel() {
