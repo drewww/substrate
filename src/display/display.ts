@@ -1129,12 +1129,13 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         const progress = Math.min(elapsed / this.viewportAnimation.duration, 1);
         
         if (progress >= 1) {
-            // Animation complete
+            // Animation complete - do one final reposition check
             this.viewport.x = this.viewportAnimation.endX;
             this.viewport.y = this.viewportAnimation.endY;
             this.viewportAnimation = undefined;
+            this.updateRenderCanvas();  // Final update with reposition check enabled
         } else {
-            // Update viewport position
+            // Update viewport position during animation
             const easedProgress = this.viewportAnimation.easing(progress);
             this.viewport.x = this.viewportAnimation.startX + 
                 (this.viewportAnimation.endX - this.viewportAnimation.startX) * easedProgress;
@@ -1287,19 +1288,20 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         const paddingX = Math.ceil(this.viewport.width * PADDING_FACTOR);
         const paddingY = Math.ceil(this.viewport.height * PADDING_FACTOR);
         
-        // We need to reposition when the viewport gets too close to any edge
-        const needsReposition = 
+        // Skip reposition check during viewport animations
+        const needsReposition = !this.viewportAnimation && (
             // Left edge: viewport is less than padding distance from render bounds left
             this.viewport.x - this.renderBounds.x < paddingX ||
             
             // Right edge: viewport right edge is less than padding from render bounds right
             (this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX ||
             
-            // Top edge: viewport is less than padding distance from render bounds top
+            // Top edge: viewport is l  ess than padding distance from render bounds top
             this.viewport.y - this.renderBounds.y < paddingY ||
             
             // Bottom edge: viewport bottom edge is less than padding from render bounds bottom
-            (this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY;
+            (this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY
+        );
 
         if (needsReposition) {
             logger.info(`Reposition check:
