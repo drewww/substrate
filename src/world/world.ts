@@ -721,4 +721,8 @@ export class World {
             componentType
         });
     }
+
+    public getFOVMap(): FieldOfViewMap {
+        return this.fovMap;
+    }
 } 

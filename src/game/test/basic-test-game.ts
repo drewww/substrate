@@ -94,6 +94,16 @@ export class BasicTestGame extends Game {
             if (visibilityMask) {
                 logger.info('Visibility:', visibilityMask[pos.y][pos.x]);
             }
+
+            // Log FOV information
+            const fovMap = this.world.getFOVMap();
+            logger.info('FOV Status:', {
+                visible: this.world.isLocationVisible(pos),
+                discovered: this.world.isLocationDiscovered(pos),
+                maskValue: this.display.getVisibilityMask()[pos.y][pos.x],
+                hasBody: fovMap.getBody(pos.x, pos.y),
+                hasWalls: fovMap.getWalls(pos.x, pos.y)
+            });
         });
     }
 
@@ -161,6 +171,7 @@ export class BasicTestGame extends Game {
                 (x !== this.player.getPosition().x || y !== this.player.getPosition().y)) {
                 const wall = new Entity({ x, y });
                 wall.setComponent(new ImpassableComponent());
+                wall.setComponent(new OpacityComponent(true));
                 wall.setComponent(new SymbolComponent(
                     '#',           // Wall symbol
                     '#aaaaaaff',   // Light gray foreground
@@ -311,6 +322,10 @@ export const MoveAction: ActionClass<MoveActionData> = {
     },
 
     execute(world: World, action: BaseAction<MoveActionData>): boolean {
-        return world.moveEntity(action.entityId, action.data.to);
+        const result = world.moveEntity(action.entityId, action.data.to);
+        if (result) {
+            world.updatePlayerVision(action.data.to);
+        }
+        return result;
     }
 };
