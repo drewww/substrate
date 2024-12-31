@@ -79,10 +79,15 @@ class WorldTest {
                 entity = new SmokeBombEntity(worldPos);
             } else if (entityType === 'light') {
                 entity = new Entity(worldPos);
-                entity.setComponent(new SymbolComponent('*', '#ff0', '#ff0'));
+                entity.setComponent(new SymbolComponent(
+                    '*',                // character
+                    '#ffff00',          // foreground color
+                    '#00000000',        // transparent background
+                    50                  // z-index below light effect
+                ));
                 entity.setComponent(new LightEmitterComponent({
                     radius: 8,
-                    intensity: 1.0,
+                    intensity: 0.3,
                     color: '#ffff00',
                     falloff: 'quadratic'
                 }));
