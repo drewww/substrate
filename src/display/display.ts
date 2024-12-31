@@ -1075,8 +1075,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         easing?: (t: number) => number;
     }) {
         // Clamp target position to ensure viewport stays within world bounds
-        const targetX = Math.max(0, Math.min(x, this.worldWidth - this.viewport.width));
-        const targetY = Math.max(0, Math.min(y, this.worldHeight - this.viewport.height));
+        const targetX = Math.floor(Math.max(0, Math.min(x, this.worldWidth - this.viewport.width)));
+        const targetY = Math.floor(Math.max(0, Math.min(y, this.worldHeight - this.viewport.height)));
 
         if (options?.smooth) {
             // Start a new viewport animation
