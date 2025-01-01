@@ -1,9 +1,11 @@
 import { TextParser } from './util/text-parser';
 import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode, TileUpdateConfig } from './types';
-import { interpolateColor } from './util/color';
 import { logger } from '../util/logger';
 import { Point } from '../types';
 import { DirtyMask } from './dirty-mask';
+import { SymbolAnimationConfig, SymbolAnimationModule } from '../animation/symbol-animation';
+import { ColorAnimationConfig, ColorAnimationModule } from '../animation/color-animation';
+import { ValueAnimationConfig, ValueAnimationModule } from '../animation/value-animation';
 
 interface PerformanceMetrics {
     lastRenderTime: number;
@@ -116,18 +118,9 @@ export class Display {
 
     private boundRenderFrame: (timestamp: number) => void;
     private isRunning: boolean = false;
-    private symbolAnimations: Map<TileId, SymbolAnimation> = new Map();
-    private colorAnimations: Map<TileId, {fg?: ColorAnimation, bg?: ColorAnimation}> = new Map();
-    private valueAnimations: Map<TileId, {
-        bgPercent?: ValueAnimation,
-        x?: ValueAnimation,
-        y?: ValueAnimation,
-        offsetSymbolX?: ValueAnimation,
-        offsetSymbolY?: ValueAnimation,
-        scaleSymbolX?: ValueAnimation,
-        scaleSymbolY?: ValueAnimation,
-        rotation?: ValueAnimation
-    }> = new Map();
+    private symbolAnimations: SymbolAnimationModule;
+    private colorAnimations: ColorAnimationModule;
+    private valueAnimations: ValueAnimationModule;
 
     private hasChanges: boolean = true;
     private cellWidthCSS: number;
@@ -297,6 +290,54 @@ export class Display {
 
         this.boundRenderFrame = this.renderFrame.bind(this);
         this.startRenderLoop();
+
+        this.symbolAnimations = new SymbolAnimationModule(
+            (id, values) => {
+                if (values.symbol) {
+                    this.updateTileProperty(id, 'char', values.symbol);
+                }
+            }
+        );
+
+        this.colorAnimations = new ColorAnimationModule(
+            (id, values) => {
+                if (values.fg) {
+                    this.updateTileProperty(id, 'color', values.fg);
+                }
+                if (values.bg) {
+                    this.updateTileProperty(id, 'backgroundColor', values.bg);
+                }
+            }
+        );
+
+        this.valueAnimations = new ValueAnimationModule(
+            (id, values) => {
+                if (values.x !== undefined) {
+                    this.updateTileProperty(id, 'x', values.x);
+                }
+                if (values.y !== undefined) {
+                    this.updateTileProperty(id, 'y', values.y);
+                }
+                if (values.bgPercent !== undefined) {
+                    this.updateTileProperty(id, 'bgPercent', values.bgPercent);
+                }
+                if(values.rotation !== undefined) {
+                    this.updateTileProperty(id, 'rotation', values.rotation);
+                }
+                if(values.scaleSymbolX !== undefined) {
+                    this.updateTileProperty(id, 'scaleSymbolX', values.scaleSymbolX);
+                }
+                if(values.scaleSymbolY !== undefined) {
+                    this.updateTileProperty(id, 'scaleSymbolY', values.scaleSymbolY);
+                }
+                if(values.offsetSymbolX !== undefined) {
+                    this.updateTileProperty(id, 'offsetSymbolX', values.offsetSymbolX);
+                }
+                if(values.offsetSymbolY !== undefined) {
+                    this.updateTileProperty(id, 'offsetSymbolY', values.offsetSymbolY);
+                }
+            }
+        );
     }
 
     private setupFont(defaultFont?: string, customFont?: string) {
@@ -388,16 +429,6 @@ export class Display {
             this.hasChanges = true;
         } else {
             logger.warn(`Attempted to remove non-existent tile: ${tileId}`);
-        }
-    }
-
-    public updateTileColor(tileId: TileId, newColor: Color): void {
-        const tile = this.tileMap.get(tileId);
-        if (tile && tile.color !== newColor) {
-            this.hasChanges = true;
-            tile.color = newColor;
-
-            this.dirtyMask.markDirty(tile);
         }
     }
 
@@ -590,12 +621,13 @@ export class Display {
             this.metrics.lastFpsUpdate = now;
         }
 
-        // Update animation counts
+        // Update animation counts using new metrics
+        const colorMetrics = this.colorAnimations.getMetrics();
+        const valueMetrics = this.valueAnimations.getMetrics();
+        
         this.metrics.symbolAnimationCount = this.symbolAnimations.size;
-        this.metrics.colorAnimationCount = Array.from(this.colorAnimations.values())
-            .reduce((count, anims) => count + (anims.fg ? 1 : 0) + (anims.bg ? 1 : 0), 0);
-        this.metrics.valueAnimationCount = Array.from(this.valueAnimations.values())
-            .reduce((count, anims) => count + Object.values(anims).filter(a => a?.running).length, 0);
+        this.metrics.colorAnimationCount = colorMetrics.activeCount;
+        this.metrics.valueAnimationCount = valueMetrics.activeCount;
 
         // Update render times
         const renderTime = now - renderStart;
@@ -625,9 +657,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         logger.info('Clearing display');
         
         this.tileMap.clear();
-        this.symbolAnimations.clear();
-        this.colorAnimations.clear();
-        this.valueAnimations.clear();
+        this.symbolAnimations.clearAll();
+        this.colorAnimations.clearAll();
+        this.valueAnimations.clearAll();
 
         this.displayCtx.clearRect(0, 0, this.displayCanvas.width, this.displayCanvas.height);
         this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
@@ -820,274 +852,28 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         tilesToRemove.forEach(id => this.removeTile(id));
     }
 
-    public addSymbolAnimation(
-        tileId: TileId, 
-        symbols: string[], 
-        duration: number, 
-        offset: number = 0,
-        loop: boolean = true,
-        reverse: boolean = false, 
-        startTime?: number
-    ): void {
-        if (!this.tileMap.has(tileId)) {
-            logger.warn(`Attempted to add animation to non-existent tile: ${tileId}`);
-            return;
-        }
-        
-        this.symbolAnimations.set(tileId, {
-            symbols,
-            startTime: startTime ?? performance.now(),
-            duration,
-            reverse,
-            loop,
-            offset,
-            running: true
-        });
+    public addSymbolAnimation(id: string, config: Omit<SymbolAnimationConfig, 'startTime' | 'running'>): void {
+        this.symbolAnimations.add(id, config);
     }
 
     private updateSymbolAnimations(timestamp: number): void {
-        for (const [tileId, animation] of this.symbolAnimations) {
-            const tile = this.tileMap.get(tileId);
-            if (!tile || !animation.running) {
-                if (!tile) {
-                    this.symbolAnimations.delete(tileId);
-                }
-                continue;
-            }
-
-            const elapsed = (timestamp - animation.startTime) / 1000;
-            let progress = (elapsed / animation.duration) + (animation.offset || 0);
-            
-            if (animation.loop) {
-                if (animation.reverse) {
-                    progress = progress % 2;
-                    if (progress > 1) {
-                        progress = 2 - progress;
-                    }
-                } else {
-                    progress = progress % 1;
-                }
-            } else {
-                progress = Math.min(progress, 1);
-            }
-            
-            const index = Math.floor(progress * animation.symbols.length);
-            tile.char = animation.symbols[index];
-
-            // Remove animation if complete and not looping
-            if (!animation.loop && progress >= 1) {
-                this.symbolAnimations.delete(tileId);
-            }
-
-            this.dirtyMask.markDirty(tile);
-        }
+        this.symbolAnimations.update(timestamp);
     }
-
-    
 
     private updateColorAnimations(timestamp: number): void {
-        for (const [tileId, animations] of this.colorAnimations) {
-            const tile = this.tileMap.get(tileId);
-            if (!tile) {
-                this.colorAnimations.delete(tileId);
-                continue;
-            }
-                        
-            const updateAnimation = (animation: ColorAnimation | undefined, property: 'color' | 'backgroundColor') => {
-                if (!animation || !animation.running) return animation;  // Add running check here
-
-                const elapsed = (timestamp - animation.startTime) / 1000;
-                let progress = (elapsed / animation.duration) + animation.offset;
-                
-                if (animation.loop) {
-                    if (animation.reverse) {
-                        progress = progress % 2;
-                        if (progress > 1) {
-                            progress = 2 - progress;
-                        }
-                    } else {
-                        progress = progress % 1;
-                    }
-                } else {
-                    progress = Math.min(progress, 1);
-                }
-                
-                const easedProgress = animation.easing ? animation.easing(progress) : progress;
-                const interpolatedColor = interpolateColor(animation.startColor, animation.endColor, easedProgress);
-                tile[property] = interpolatedColor;
-
-                // Check if animation is complete
-                if (!animation.loop && progress >= 1) {
-                    if (animation.next) {
-                        animation.next.startTime = timestamp;
-                        return animation.next;
-                    }
-                    return undefined;
-                }
-                
-                return animation;
-            };
-
-            animations.fg = updateAnimation(animations.fg, 'color');
-            animations.bg = updateAnimation(animations.bg, 'backgroundColor');
-
-            // Clean up if no animations remain
-            if (!animations.fg && !animations.bg) {
-                this.colorAnimations.delete(tileId);
-            }
-
-            this.dirtyMask.markDirty(tile);
-        }
+        this.colorAnimations.update(timestamp);
     }
 
-    public addColorAnimation(tileId: TileId, options: TileColorAnimationOptions): void {
-        const animations: {fg?: ColorAnimation, bg?: ColorAnimation} = {};
-        const effectiveStartTime = options.startTime ?? performance.now();
-
-        const createColorAnimationChain = (transition: ColorAnimationOptions, startTime: number): ColorAnimation => {
-            const animation: ColorAnimation = {
-                startColor: transition.start,
-                endColor: transition.end,
-                duration: transition.duration,
-                startTime: startTime,
-                reverse: transition.reverse || false,
-                loop: transition.loop || false,
-                offset: transition.offset || 0,
-                easing: transition.easing,
-                next: transition.next ? createColorAnimationChain(transition.next, performance.now()) : undefined,
-                running: true
-            };
-            return animation;
-        };
-
-        if (options.fg) {
-            animations.fg = createColorAnimationChain(options.fg, effectiveStartTime);
-        }
-
-        if (options.bg) {
-            animations.bg = createColorAnimationChain(options.bg, effectiveStartTime);
-        }
-
-        this.colorAnimations.set(tileId, animations);
+    public addColorAnimation(id: string, config: Omit<ColorAnimationConfig, 'startTime' | 'running'>): void {
+        this.colorAnimations.add(id, config);
     }
 
-    public addValueAnimation(tileId: TileId, options: TileValueAnimationsOptions): void {
-        const effectiveStartTime = options.startTime ?? performance.now();
-        
-        // Properly type the animations object
-        const animations: {
-            rotation?: ValueAnimation;
-            bgPercent?: ValueAnimation;
-            offsetSymbolX?: ValueAnimation;
-            offsetSymbolY?: ValueAnimation;
-            scaleSymbolX?: ValueAnimation;
-            scaleSymbolY?: ValueAnimation;
-            x?: ValueAnimation;
-            y?: ValueAnimation;
-        } = {};
-        
-        const createValueAnimation = (config: ValueAnimationOption): ValueAnimation => {
-            return {
-                startValue: config.start,
-                endValue: config.end,
-                duration: config.duration,
-                startTime: effectiveStartTime,
-                reverse: config.reverse || false,
-                offset: config.offset || 0,
-                easing: config.easing || Easing.linear,
-                loop: config.loop ?? true,
-                next: config.next ? createValueAnimation(config.next) : undefined,
-                running: true  // Set initial state to running
-            };
-        };
-
-        // Add animations with proper typing
-        if (options.rotation) {
-            animations.rotation = createValueAnimation(options.rotation);
-        }
-        if (options.bgPercent) {
-            animations.bgPercent = createValueAnimation(options.bgPercent);
-        }
-        if (options.offsetSymbolX) {
-            animations.offsetSymbolX = createValueAnimation(options.offsetSymbolX);
-        }
-        if (options.offsetSymbolY) {
-            animations.offsetSymbolY = createValueAnimation(options.offsetSymbolY);
-        }
-        if (options.scaleSymbolX) {
-            animations.scaleSymbolX = createValueAnimation(options.scaleSymbolX);
-        }
-        if (options.scaleSymbolY) {
-            animations.scaleSymbolY = createValueAnimation(options.scaleSymbolY);
-        }
-        if (options.x) {
-            animations.x = createValueAnimation(options.x);
-        }
-        if (options.y) {
-            animations.y = createValueAnimation(options.y);
-        }
-
-        this.valueAnimations.set(tileId, animations);
+    public addValueAnimation(id: string, config: Omit<ValueAnimationConfig, 'startTime' | 'running'>): void {
+        this.valueAnimations.add(id, config);
     }
 
     private updateValueAnimations(timestamp: number): void {
-        for (const [tileId, animations] of this.valueAnimations) {
-            const tile = this.tileMap.get(tileId);
-            if (!tile) {
-                this.valueAnimations.delete(tileId);
-                continue;
-            }
-
-            const updateAnimation = (
-                animation: ValueAnimation | undefined, 
-                property: 'x' | 'y' | 'scaleSymbolX' | 'scaleSymbolY' | 'offsetSymbolX' | 'offsetSymbolY' | 'bgPercent' | 'rotation'
-            ) => {
-                if (!animation || !animation.running) return animation;  // Skip if not running
-
-                const elapsed = (timestamp - animation.startTime) / 1000;
-                let progress = (elapsed / animation.duration) + animation.offset;
-
-                if (animation.loop) {
-                    if (animation.reverse) {
-                        progress = progress % 2;
-                        if (progress > 1) {
-                            progress = 2 - progress;
-                        }
-                    } else {
-                        progress = progress % 1;
-                    }
-                } else {
-                    progress = Math.min(progress, 1);
-                }
-
-                const easedProgress = animation.easing(progress);
-                tile[property] = animation.startValue + 
-                    (animation.endValue - animation.startValue) * easedProgress;
-                
-                // Check if animation is complete
-                if (!animation.loop && progress >= 1) {
-                    if (animation.next) {
-                        animation.next.startTime = timestamp;
-                        return animation.next;
-                    }
-                    return undefined;
-                }
-                
-                return animation;
-            };
-
-            // Update each animation type including rotation
-            animations.rotation = updateAnimation(animations.rotation, 'rotation');
-            animations.x = updateAnimation(animations.x, 'x');
-            animations.y = updateAnimation(animations.y, 'y');
-            animations.scaleSymbolX = updateAnimation(animations.scaleSymbolX, 'scaleSymbolX');
-            animations.scaleSymbolY = updateAnimation(animations.scaleSymbolY, 'scaleSymbolY');
-            animations.offsetSymbolX = updateAnimation(animations.offsetSymbolX, 'offsetSymbolX');
-            animations.offsetSymbolY = updateAnimation(animations.offsetSymbolY, 'offsetSymbolY');
-            animations.bgPercent = updateAnimation(animations.bgPercent, 'bgPercent');
-
-            this.dirtyMask.markDirty(tile);
-        }
+        this.valueAnimations.update(timestamp);
     }
 
     public setViewport(x: number, y: number, options?: { 
@@ -1146,12 +932,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.hasChanges = true;
     }
 
-    public clearAnimations(tileId: TileId): void {
-        this.symbolAnimations.delete(tileId);
-        this.colorAnimations.delete(tileId);
-        this.valueAnimations.delete(tileId);
+    public clearAnimations(id: string): void {
+        this.symbolAnimations.clear(id);
+        this.colorAnimations.clear(id);
+        this.valueAnimations.clear(id);
         
-        logger.verbose(`Cleared all animations for tile ${tileId}`);
+        logger.verbose(`Cleared all animations for tile ${id}`);
     }
 
     public moveTiles(tileIds: TileId[], dx: number, dy: number): void {
@@ -1175,36 +961,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         });
     }
 
-    public stopTileAnimations(tileId: TileId): void {
-        // Helper to stop all animations in a chain
-        const stopChain = <T extends { next?: T, running: boolean }>(anim: T): void => {
-            let current: T | undefined = anim;
-            while (current) {
-                current.running = false;
-                current = current.next;
-            }
-        };
-
-        // Stop symbol animations
-        const symbolAnim = this.symbolAnimations.get(tileId);
-        if (symbolAnim) {
-            symbolAnim.running = false;
-        }
-
-        // Stop color animations
-        const colorAnims = this.colorAnimations.get(tileId);
-        if (colorAnims) {
-            if (colorAnims.fg) stopChain(colorAnims.fg);
-            if (colorAnims.bg) stopChain(colorAnims.bg);
-        }
-
-        // Stop value animations
-        const valueAnims = this.valueAnimations.get(tileId);
-        if (valueAnims) {
-            Object.values(valueAnims).forEach(anim => {
-                if (anim) stopChain(anim);
-            });
-        }
+    public stopTileAnimations(id: string): void {
+        this.symbolAnimations.stop(id);
+        this.colorAnimations.stop(id);
+        this.valueAnimations.stop(id);
     }
 
     public toggleDirtyMask(): boolean {
@@ -1508,10 +1268,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             if (valueAnims.x || valueAnims.y) {
                 // Calculate the target position
                 const targetX = valueAnims.x ? 
-                    Math.round(tile.x + (valueAnims.x.endValue - valueAnims.x.startValue)) : 
+                    Math.round(tile.x + (valueAnims.x.end - valueAnims.x.start)) : 
                     tile.x;
                 const targetY = valueAnims.y ? 
-                    Math.round(tile.y + (valueAnims.y.endValue - valueAnims.y.startValue)) : 
+                    Math.round(tile.y + (valueAnims.y.end - valueAnims.y.start)) : 
                     tile.y;
                 
                 // Check visibility at target position
@@ -1539,6 +1299,19 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
         // Not visible (0) - don't render
         return false;
+    }
+
+    private updateTileProperty<K extends keyof Tile>(tileId: TileId, property: K, value: Tile[K]): void {
+        logger.info(`Updating tile property ${property} to ${value} for tile ${tileId}`);
+
+        const tile = this.tileMap.get(tileId);
+
+        
+        if (tile && tile[property] !== value) {
+            this.hasChanges = true;
+            tile[property] = value;
+            this.dirtyMask.markDirty(tile);
+        }
     }
 } 
 

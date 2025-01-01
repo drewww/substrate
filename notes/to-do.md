@@ -77,7 +77,9 @@ Display
    - ???
  - Make smoke bomb FOV aware.
 
- 
+- REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION
+
+
 MODULE LIST
 -----------
  * Display (v1.0 done)

@@ -13,6 +13,7 @@ import { AnimationLoadTest } from './examples/animation-load-test';
 import { logger } from '../../util/logger';
 import { SmallPixelTest } from './examples/small-pixel-test';
 import { VisibilityTest } from './examples/visibility-test';
+import { BasicAnimationTest } from './examples/basic-animation-test';
 
 export class TestManager {
     public currentTest: BaseTest | null = null;
@@ -38,6 +39,7 @@ export class TestManager {
             new AnimationLoadTest(),
             new SmallPixelTest(),
             new VisibilityTest(),
+            new BasicAnimationTest(),
         ];
     }
 
