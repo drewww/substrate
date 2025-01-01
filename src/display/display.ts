@@ -852,7 +852,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         tilesToRemove.forEach(id => this.removeTile(id));
     }
 
-    public addSymbolAnimation(id: string, config: Omit<SymbolAnimationConfig, 'startTime' | 'running'>): void {
+    public addSymbolAnimation(id: string, config: Omit<SymbolAnimationConfig, 'running'>): void {
         this.symbolAnimations.add(id, config);
     }
 
@@ -864,11 +864,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.colorAnimations.update(timestamp);
     }
 
-    public addColorAnimation(id: string, config: Omit<ColorAnimationConfig, 'startTime' | 'running'>): void {
+    public addColorAnimation(id: string, config: Omit<ColorAnimationConfig, 'running'>): void {
         this.colorAnimations.add(id, config);
     }
 
-    public addValueAnimation(id: string, config: Omit<ValueAnimationConfig, 'startTime' | 'running'>): void {
+    public addValueAnimation(id: string, config: Omit<ValueAnimationConfig, 'running'>): void {
         this.valueAnimations.add(id, config);
     }
 

@@ -3,7 +3,7 @@ import { logger } from '../util/logger';
 
 // Base interface for all animation configurations
 export interface AnimationConfig {
-    startTime: number;
+    startTime?: number;
     running: boolean;
 }
 
@@ -43,10 +43,10 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         };
     }
 
-    public add(id: string, config: Omit<TConfig, 'startTime' | 'running'>): void {
+    public add(id: string, config: Omit<TConfig, 'running'>): void {
         this.animations.set(id, {
             ...config,
-            startTime: performance.now(),
+            startTime: config.startTime ?? performance.now(),
             running: true
         } as TConfig);
     }
