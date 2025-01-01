@@ -7,12 +7,21 @@ export interface AnimationConfig {
     running: boolean;
 }
 
-export interface AnimationProperty {
+// Internal type that ensures startTime is set
+type RuntimeAnimationConfig = Omit<AnimationConfig, 'startTime'> & {
+    startTime: number;
+}
+
+export interface AnimationProperty<T = any> {
     duration: number;
     reverse?: boolean;
     loop?: boolean;
     offset?: number;
     easing?: EasingFunction;
+    next?: AnimationProperty<T>;  // Allow chaining to next animation
+    start?: T;
+    end?: T;
+    symbols?: T[];  // For symbol animations
 }
 
 interface AnimationMetrics {
@@ -21,7 +30,7 @@ interface AnimationMetrics {
 }
 
 export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
-    protected animations = new Map<string, TConfig>();
+    protected animations = new Map<string, TConfig & RuntimeAnimationConfig>();
 
     constructor(
         protected onUpdate: (id: string, value: TValue) => void
@@ -48,7 +57,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
             ...config,
             startTime: config.startTime ?? performance.now(),
             running: true
-        } as TConfig);
+        } as TConfig & RuntimeAnimationConfig);
     }
 
     public update(timestamp: number): void {        
@@ -70,6 +79,15 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                         }
                     } else {
                         progress = Math.min(progress, 1);
+                        
+                        // Handle chaining when non-looping animation completes
+                        if (progress === 1 && 'next' in prop && prop.next) {
+                            // Replace current animation with the next one
+                            const nextProp = prop.next;
+                            (animation as any)[key] = nextProp;
+                            animation.startTime = timestamp;
+                            continue;
+                        }
                     }
 
                     const easedProgress = prop.easing ? 

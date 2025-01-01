@@ -272,13 +272,25 @@ export class PatternAnimationTest extends BaseTest {
         // Pattern 1: Binary counter
         const binarySymbols = ['0', '1'];
         const binaryId = this.display.createTile(5, 5, '0', '#00FF00FF', '#000000FF', 1);
-        this.display.addSymbolAnimation(binaryId, binarySymbols, 2.0);
+        this.display.addSymbolAnimation(binaryId, {
+            symbol: {
+                symbols: binarySymbols,
+                duration: 2.0,
+                loop: true
+            }
+        });
         this.animatedTiles.push(binaryId);
 
         // Pattern 2: Clock animation
         const clockSymbols = ['🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛'];
         const clockId = this.display.createTile(10, 5, '🕐', '#FFFFFFFF', '#000000FF', 1);
-        this.display.addSymbolAnimation(clockId, clockSymbols, 12.0);
+        this.display.addSymbolAnimation(clockId, {
+            symbol: {
+                symbols: clockSymbols,
+                duration: 12.0,
+                loop: true
+            }
+        });
         this.animatedTiles.push(clockId);
 
         setTimeout(() => {
@@ -288,7 +300,14 @@ export class PatternAnimationTest extends BaseTest {
         // Pattern 3: Wave pattern
         const waveSymbols = [' ', '▂', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃', '▂'];
         const waveId = this.display.createTile(15, 5, ' ', '#0088FFFF', '#000000FF', 1);
-        this.display.addSymbolAnimation(waveId, waveSymbols, 1.0, 0, true, true);
+        this.display.addSymbolAnimation(waveId, {
+            symbol: {
+                symbols: waveSymbols,
+                duration: 1.0,
+                loop: true,
+                reverse: true
+            }
+        });
         this.animatedTiles.push(waveId);
 
         // Color animation 1: Pulsing red background
@@ -437,7 +456,13 @@ export class PatternAnimationTest extends BaseTest {
         // ASCII spinner with easing (x = 35, y = 8)
         const spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
         const spinnerId = this.display.createTile(35, 8, spinnerFrames[0], '#00FF00FF', '#000000FF', 1);
-        this.display.addSymbolAnimation(spinnerId, spinnerFrames, 1.0);
+        this.display.addSymbolAnimation(spinnerId, {
+            symbol: {
+                symbols: spinnerFrames,
+                duration: 1.0,
+                loop: true
+            }
+        });
         // Add pulsing color with sine easing
         this.display.addColorAnimation(spinnerId, {
             fg: {
@@ -457,7 +482,14 @@ export class PatternAnimationTest extends BaseTest {
                               '[========  ]', '[========= ]', '[==========]'];
         for (let i = 0; i < progressChars[0].length; i++) {
             const charId = this.display.createTile(2 + i, 18, progressChars[0][i], '#00FF00FF', '#000000FF', 1);
-            this.display.addSymbolAnimation(charId, progressChars.map(frame => frame[i]), 2.0, 0, true, true);
+            this.display.addSymbolAnimation(charId, {
+                symbol: {
+                    symbols: progressChars.map(frame => frame[i]),
+                    duration: 2.0,
+                    loop: true,
+                    reverse: true
+                }
+            });
             this.animatedTiles.push(charId);
         }
 
@@ -485,7 +517,15 @@ export class PatternAnimationTest extends BaseTest {
         const matrixChars = '日月火水木金土'.split('');
         for (let y = 2; y < 8; y++) {
             const charId = this.display.createTile(38, y, matrixChars[0], '#00FF00FF', '#000000FF', 1);
-            this.display.addSymbolAnimation(charId, matrixChars, 0.5);
+            this.display.addSymbolAnimation(charId, {
+                symbol: {
+                    symbols: matrixChars,
+                    duration: 0.5,
+                    loop: true,
+                    reverse: true
+                }
+            });
+            
             this.display.addColorAnimation(charId, {
                 fg: {
                     start: '#00FF00FF',
