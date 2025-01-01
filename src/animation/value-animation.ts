@@ -16,6 +16,8 @@ export interface ValueAnimationConfig extends AnimationConfig {
     scaleSymbolX?: ValueProperty;
     scaleSymbolY?: ValueProperty;
     rotation?: ValueProperty;
+    intensity?: ValueProperty;
+    radius?: ValueProperty;
 }
 
 export class ValueAnimationModule extends AnimationModule<Record<string, number>, ValueAnimationConfig> {

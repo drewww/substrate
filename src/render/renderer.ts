@@ -5,7 +5,7 @@ import { Point } from '../types';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
-import { ColorAnimationModule } from '../animation/color-animation';
+import { ValueAnimationModule } from '../animation/value-animation';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -14,18 +14,48 @@ import { ColorAnimationModule } from '../animation/color-animation';
  * - entityMoved: When an entity's position changes
  * - componentModified: When values within a component are updated
  */
+interface LightState {
+    baseProperties: {
+        color: string;
+        intensity: number;
+        radius: number;
+        falloff: 'linear' | 'quadratic' | 'exponential';
+    };
+    currentProperties: {
+        color: string;
+        intensity: number;
+        radius: number;
+    };
+}
+
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
     private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
-    private lightAnimations: ColorAnimationModule;
+    private lightValueAnimations: ValueAnimationModule;
+    private lightStates: Map<string, LightState> = new Map(); // entityId -> LightState
 
     constructor(
         protected world: World,
         protected display: Display
     ) {
-        this.lightAnimations = new ColorAnimationModule((id, value) => {
-            const color = typeof value === 'string' ? value : value.bg;
-            this.display.updateTile(id, { bg: color });
+        this.lightValueAnimations = new ValueAnimationModule((id, value) => {
+            const state = this.lightStates.get(id);
+            if (!state) return;
+
+            logger.info(`Updating light state for entity ${id} with value: ${JSON.stringify(value)}`);
+            
+            // Update the current properties based on animations
+            if (value.intensity !== undefined) {
+                state.currentProperties.intensity = value.intensity;
+            }
+            if (value.radius !== undefined) {
+                state.currentProperties.radius = value.radius;
+            }
+
+            const entity = this.world.getEntity(id);
+            if (entity) {
+                this.renderLightTiles(entity, state);
+            }
         });
 
         this.display.addFrameCallback((display, timestamp) => {
@@ -66,7 +96,9 @@ export abstract class Renderer {
         
         // Handle light emitter if present
         if (entity.hasComponent('lightEmitter')) {
-            this.updateEntityLight(entity);
+            this.addEntityLight(entity);
+
+            
         }
         
         this.handleEntityAdded(entity, tileId);
@@ -120,6 +152,10 @@ export abstract class Renderer {
             this.lightSourceTiles.delete(entity.getId());
         }
         
+        // Clean up light state
+        this.lightStates.delete(entity.getId());
+        this.lightValueAnimations.clear(entity.getId());
+        
         this.handleEntityRemoved(entity);
     }
 
@@ -141,7 +177,7 @@ export abstract class Renderer {
 
         // Update light if entity has a light emitter
         if (entity.hasComponent('lightEmitter')) {
-            this.updateEntityLight(entity);
+            this.addEntityLight(entity);
         }
         
         if (!this.handleEntityMoved(entity, from, to)) {
@@ -152,27 +188,64 @@ export abstract class Renderer {
         }
     }
 
-    protected updateEntityLight(entity: Entity): void {
+    protected addEntityLight(entity: Entity): void {
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (!lightEmitter) return;
 
-        // Clean up existing light tiles and animations
+        // Initialize or update base state
+        let state = this.lightStates.get(entity.getId());
+        if (!state) {
+            state = {
+                baseProperties: {
+                    color: lightEmitter.config.color,
+                    intensity: lightEmitter.config.intensity,
+                    radius: lightEmitter.config.radius,
+                    falloff: lightEmitter.config.falloff
+                },
+                currentProperties: {
+                    color: lightEmitter.config.color,
+                    intensity: lightEmitter.config.intensity,
+                    radius: lightEmitter.config.radius
+                }
+            };
+            this.lightStates.set(entity.getId(), state);
+        }
+
+  // Add animations if needed
+        // if (lightEmitter.config.flicker) {
+            const baseIntensity = state.baseProperties.intensity;
+            const baseRadius = state.baseProperties.radius;
+
+            this.lightValueAnimations.add(entity.getId(), {
+                intensity: {
+                    start: baseIntensity * 0.7,
+                    end: baseIntensity * 1.1,
+                    duration: 0.1 + Math.random() * 0.2,
+                    reverse: true,
+                    loop: true,
+                    easing: (t: number) => t
+                }
+            });
+        // }
+
+        // Update light tiles using current state
+        this.renderLightTiles(entity, state);
+    }
+
+    private renderLightTiles(entity: Entity, state: LightState): void {
+        // Clean up existing light tiles
         const existingTiles = this.lightSourceTiles.get(entity.getId());
         if (existingTiles) {
-            existingTiles.forEach(tileId => {
-                this.display.removeTile(tileId);
-                this.lightAnimations.clear(tileId);
-            });
+            existingTiles.forEach(tileId => this.display.removeTile(tileId));
             existingTiles.clear();
         }
 
-        // Create new light tiles
         const position = entity.getPosition();
-        const visibleTiles = this.world.getVisibleTilesInRadius(position, lightEmitter.config.radius);
+        const visibleTiles = this.world.getVisibleTilesInRadius(position, state.currentProperties.radius);
         const newTiles = new Set<string>();
 
-        for (let y = position.y - lightEmitter.config.radius; y <= position.y + lightEmitter.config.radius; y++) {
-            for (let x = position.x - lightEmitter.config.radius; x <= position.x + lightEmitter.config.radius; x++) {
+        for (let y = position.y - state.currentProperties.radius; y <= position.y + state.currentProperties.radius; y++) {
+            for (let x = position.x - state.currentProperties.radius; x <= position.x + state.currentProperties.radius; x++) {
                 if (y < 0 || y >= this.world.getSize().y || 
                     x < 0 || x >= this.world.getSize().x ||
                     !visibleTiles.has(this.world.pointToKey({x, y}))) {
@@ -184,43 +257,24 @@ export abstract class Renderer {
                     Math.pow(y - position.y, 2)
                 );
                 
-                if (distance <= lightEmitter.config.radius) {
+                if (distance <= state.currentProperties.radius) {
                     const intensity = this.calculateFalloff(
-                        distance, 
-                        lightEmitter.config.radius,
-                        lightEmitter.config.intensity,
-                        lightEmitter.config.falloff
+                        distance,
+                        state.currentProperties.radius,
+                        state.currentProperties.intensity,
+                        state.baseProperties.falloff
                     );
                     
+                    // TODO make this reflect the symbol component on the entity
                     const tileId = this.display.createTile(
                         x, y,
                         ' ',
-                        '#FFFFFF00',  // transparent foreground
-                        `${lightEmitter.config.color}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,  // color with opacity
-                        100,  // z-index
-                        {
-                            blendMode: BlendMode.Screen
-                        }
+                        '#FFFFFF00',
+                        `${state.currentProperties.color}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
+                        100,
+                        { blendMode: BlendMode.Screen }
                     );
 
-                    // Add flicker animation if configured
-                    // if (lightEmitter.config.flicker) {
-                        const baseOpacity = intensity * 255;
-                        const minOpacity = baseOpacity * 0.5;  // 20% dimmer
-                        const maxOpacity = baseOpacity * 1.0;  // 20% brighter
-
-                        this.lightAnimations.add(tileId, {
-                            bg: {
-                                start: `${lightEmitter.config.color}${Math.floor(minOpacity).toString(16).padStart(2, '0')}`,
-                                end: `${lightEmitter.config.color}${Math.floor(maxOpacity).toString(16).padStart(2, '0')}`,
-                                duration: 0.1 + Math.random() * 0.2,  // Random duration between 0.1 and 0.3 seconds
-                                reverse: true,
-                                loop: true,
-                                easing: t => t  // Linear easing
-                            }
-                        });
-                    // }
-                    
                     newTiles.add(tileId);
                 }
             }
@@ -243,10 +297,10 @@ export abstract class Renderer {
         }
     }
 
-    // Add animation update to the renderer's update cycle
+    // Update animation cycle
     public update(timestamp: number): void {
         logger.info(`Renderer updating at ${timestamp}`);
-        this.lightAnimations.update(timestamp);
+        this.lightValueAnimations.update(timestamp);
     }
 
     // Update abstract methods
