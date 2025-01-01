@@ -133,7 +133,7 @@ export class Display {
     private dirtyMask: DirtyMask;
     private useDirtyMask: boolean = false;
 
-    private frameCallbacks: Set<(display: Display) => void> = new Set();
+    private frameCallbacks: Set<(display: Display, timestamp: number) => void> = new Set();
 
     private viewportAnimation?: {
         startX: number;
@@ -587,7 +587,7 @@ export class Display {
             );
 
             // Call frame callbacks
-            this.frameCallbacks.forEach(callback => callback(this));
+            this.frameCallbacks.forEach(callback => callback(this, timestamp));
 
             const renderEnd = performance.now();
 
@@ -977,11 +977,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         return this.useDirtyMask;
     }
 
-    public addFrameCallback(callback: (display: Display) => void): void {
+    public addFrameCallback(callback: (display: Display, timestamp: number) => void): void {
         this.frameCallbacks.add(callback);
     }
 
-    public removeFrameCallback(callback: (display: Display) => void): void {
+    public removeFrameCallback(callback: (display: Display, timestamp: number) => void): void {
         this.frameCallbacks.delete(callback);
     }
 
@@ -1312,6 +1312,20 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             tile[property] = value;
             this.dirtyMask.markDirty(tile);
         }
+    }
+
+    private requestFrame(): void {
+        requestAnimationFrame((timestamp) => {
+            // Existing animation updates
+            this.symbolAnimations.update(timestamp);
+            this.colorAnimations.update(timestamp);
+            this.valueAnimations.update(timestamp);
+            
+            // Continue the animation loop
+            if (this.isRunning) {
+                this.requestFrame();
+            }
+        });
     }
 } 
 

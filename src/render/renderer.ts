@@ -5,7 +5,7 @@ import { Point } from '../types';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
-
+import { ColorAnimationModule } from '../animation/color-animation';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -17,11 +17,22 @@ import { LightEmitterComponent } from '../entity/components/light-emitter-compon
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
     private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
+    private lightAnimations: ColorAnimationModule;
 
     constructor(
         protected world: World,
         protected display: Display
     ) {
+        this.lightAnimations = new ColorAnimationModule((id, value) => {
+            const color = typeof value === 'string' ? value : value.bg;
+            this.display.updateTile(id, { bg: color });
+        });
+
+        this.display.addFrameCallback((display, timestamp) => {
+            logger.info(`Renderer received animation callback at ${timestamp}`);
+            this.update(timestamp);
+        });
+
         this.world.on('entityAdded', ({ entity }) => this.onEntityAdded(entity));
         this.world.on('entityRemoved', ({ entity }) => this.onEntityRemoved(entity));
         this.world.on('entityMoved', ({ entity, from, to }) => this.onEntityMoved(entity, from, to));
@@ -145,10 +156,13 @@ export abstract class Renderer {
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (!lightEmitter) return;
 
-        // Clean up existing light tiles
+        // Clean up existing light tiles and animations
         const existingTiles = this.lightSourceTiles.get(entity.getId());
         if (existingTiles) {
-            existingTiles.forEach(tileId => this.display.removeTile(tileId));
+            existingTiles.forEach(tileId => {
+                this.display.removeTile(tileId);
+                this.lightAnimations.clear(tileId);
+            });
             existingTiles.clear();
         }
 
@@ -188,6 +202,24 @@ export abstract class Renderer {
                             blendMode: BlendMode.Screen
                         }
                     );
+
+                    // Add flicker animation if configured
+                    // if (lightEmitter.config.flicker) {
+                        const baseOpacity = intensity * 255;
+                        const minOpacity = baseOpacity * 0.5;  // 20% dimmer
+                        const maxOpacity = baseOpacity * 1.0;  // 20% brighter
+
+                        this.lightAnimations.add(tileId, {
+                            bg: {
+                                start: `${lightEmitter.config.color}${Math.floor(minOpacity).toString(16).padStart(2, '0')}`,
+                                end: `${lightEmitter.config.color}${Math.floor(maxOpacity).toString(16).padStart(2, '0')}`,
+                                duration: 0.1 + Math.random() * 0.2,  // Random duration between 0.1 and 0.3 seconds
+                                reverse: true,
+                                loop: true,
+                                easing: t => t  // Linear easing
+                            }
+                        });
+                    // }
                     
                     newTiles.add(tileId);
                 }
@@ -209,6 +241,12 @@ export abstract class Renderer {
             default:
                 return normalized * intensity;
         }
+    }
+
+    // Add animation update to the renderer's update cycle
+    public update(timestamp: number): void {
+        logger.info(`Renderer updating at ${timestamp}`);
+        this.lightAnimations.update(timestamp);
     }
 
     // Update abstract methods
