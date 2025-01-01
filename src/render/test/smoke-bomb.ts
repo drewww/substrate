@@ -2,6 +2,7 @@ import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { TimerComponent, SmokeBombComponent, FadeComponent } from './test-components';
 import { SymbolComponent } from '../../entity/components/symbol-component';
+import { OpacityComponent } from '../../entity/components/opacity-component';
 
 export class SmokeBombEntity extends Entity {
     private explosionTimer: TimerComponent;
@@ -65,6 +66,7 @@ export class SmokeCloudEntity extends Entity {
         this.lifetime = new TimerComponent(4.0, 4.0);
         this.setComponent(this.lifetime);
         this.setComponent(new FadeComponent(1.0, 0.0, 4.0));
+        this.setComponent(new OpacityComponent(true));
         this.setComponent(new SymbolComponent(
             ' ',           // empty char for cloud effect
             '#FFFFFFFF',  // transparent foreground
