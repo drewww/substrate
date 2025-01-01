@@ -30,7 +30,6 @@ export class ValueAnimationModule extends AnimationModule<Record<string, number>
                 result[key] = prop.start + (prop.end - prop.start) * progress;
             }
         }
-        logger.info(`Result: ${JSON.stringify(result)}`);
         return result;
     }
 } 

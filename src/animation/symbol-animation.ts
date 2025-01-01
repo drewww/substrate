@@ -6,16 +6,16 @@ export interface SymbolProperty extends AnimationProperty {
 }
 
 export interface SymbolAnimationConfig extends AnimationConfig {
-    symbols?: SymbolProperty;
+    symbol?: SymbolProperty;
 }
 
 export class SymbolAnimationModule extends AnimationModule<Record<string, string>, SymbolAnimationConfig> {
     protected interpolateValue(config: SymbolAnimationConfig, progress: number): Record<string, string> {
         const result: Record<string, string> = {};
         
-        if (config.symbols) {
-            const index = Math.floor(progress * (config.symbols.symbols.length - 1));
-            result.symbol = config.symbols.symbols[index];
+        if (config.symbol) {
+            const index = Math.floor(progress * (config.symbol.symbols.length - 1));
+            result.symbol = config.symbol.symbols[index];
         }
         
         return result;

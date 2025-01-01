@@ -30,9 +30,11 @@ export class BasicAnimationTest extends BaseTest {
         // 1. Symbol Animation - rotating symbols
         const symbolTileId = this.display.createTile(5, 3, '◆', '#FFFFFFFF', '#000000FF', 1);
         this.display.addSymbolAnimation(symbolTileId, {
-            symbols: ['◆', '●', '■', '▲'],
-            duration: 1.0,
-            loop: true
+            symbol: {
+                symbols: ['◆', '●', '■', '▲'],
+                duration: 1.0,
+                loop: true
+            }
         });
         this.tileIds.push(symbolTileId);
 
