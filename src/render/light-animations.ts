@@ -42,7 +42,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             duration: 0.1,
             reverse: true,
             loop: true,
-            easing: Easing.cubicInOut
+            easing: Easing.round
         }
     },
 }; 

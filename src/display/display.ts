@@ -95,7 +95,9 @@ export const Easing = {
     },
     bounceIn: (t: number): number => 1 - Easing.bounceOut(1 - t),
     bounceInOut: (t: number): number => 
-        t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2
+        t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2,
+
+    round: (t: number): number => Math.round(t)
 };
 
 // Constants for viewport padding (percentage of viewport size)
