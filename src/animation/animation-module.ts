@@ -82,10 +82,18 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                         
                         // Handle chaining when non-looping animation completes
                         if (progress === 1 && 'next' in prop && prop.next) {
-                            // Replace current animation with the next one
-                            const nextProp = prop.next;
-                            (animation as any)[key] = nextProp;
-                            animation.startTime = timestamp;
+                            // Create new animation that preserves the chain
+                            const nextProp = {
+                                ...prop.next,
+                                // Preserve the next chain without checking loop
+                                next: prop.next.next
+                            };
+                            
+                            // Type-safe way to update the animation property
+                            const newAnimation = { ...animation };
+                            (newAnimation as any)[key] = nextProp;
+                            newAnimation.startTime = timestamp;  // Reset start time on the new animation
+                            this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
                             continue;
                         }
                     }

@@ -84,7 +84,7 @@ class WorldTest {
                 // const animationTypes: LightAnimationType[] = ['pulse-intensity', 'pulse-radius', 'strobe'];
 
                 // const animationTypes: LightAnimationType[] = ['pulse-radius', 'flicker', 'strobe', 'pulse-intensity'];
-                const animationTypes: LightAnimationType[] = ['flicker'];
+                const animationTypes: LightAnimationType[] = ['rgb'];
                 const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
                 
                 entity = new Entity(worldPos);

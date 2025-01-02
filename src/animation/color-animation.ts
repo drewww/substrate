@@ -1,21 +1,21 @@
-import { Color, EasingFunction } from '../display/types';
 import { interpolateColor } from '../display/util/color';
 import { logger } from '../util/logger';
 import { AnimationConfig, AnimationModule, AnimationProperty } from './animation-module';
 
 export interface ColorProperty extends AnimationProperty {
-    start: Color;
-    end: Color;
+    start: string;  // Hex color string
+    end: string;    // Hex color string
 }
 
 export interface ColorAnimationConfig extends AnimationConfig {
     fg?: ColorProperty;
     bg?: ColorProperty;
+    color?: ColorProperty;  // Add this for light colors
 }
 
-export class ColorAnimationModule extends AnimationModule<Record<string, Color>, ColorAnimationConfig> {
-    protected interpolateValue(config: ColorAnimationConfig, progress: number): Record<string, Color> {
-        const result: Record<string, Color> = {};
+export class ColorAnimationModule extends AnimationModule<Record<string, string>, ColorAnimationConfig> {
+    protected interpolateValue(config: ColorAnimationConfig, progress: number): Record<string, string> {
+        const result: Record<string, string> = {};
         
         if (config.fg) {
             result.fg = interpolateColor(config.fg.start, config.fg.end, progress);
@@ -23,7 +23,11 @@ export class ColorAnimationModule extends AnimationModule<Record<string, Color>,
         if (config.bg) {
             result.bg = interpolateColor(config.bg.start, config.bg.end, progress);
         }
+        if (config.color) {
+            result.color = interpolateColor(config.color.start, config.color.end, progress);
+        }
         
+        logger.info(`interpolation result: ${JSON.stringify(result)} for progress: ${progress}`);
         return result;
     }
 } 

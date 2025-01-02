@@ -7,6 +7,7 @@ import { SymbolComponent } from '../entity/components/symbol-component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
 import { ValueAnimationModule } from '../animation/value-animation';
 import { LIGHT_ANIMATIONS, LightAnimationConfig } from './light-animations';
+import { ColorAnimationModule } from '../animation/color-animation';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -33,6 +34,7 @@ export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
     private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
     private lightValueAnimations: ValueAnimationModule;
+    private lightColorAnimations: ColorAnimationModule;
     private lightStates: Map<string, LightState> = new Map(); // entityId -> LightState
 
     constructor(
@@ -51,6 +53,20 @@ export abstract class Renderer {
             }
             if (value.radius !== undefined) {
                 state.currentProperties.radius = value.radius;
+            }
+
+            const entity = this.world.getEntity(id);
+            if (entity) {
+                this.renderLightTiles(entity, state);
+            }
+        });
+
+        this.lightColorAnimations = new ColorAnimationModule((id, value) => {
+            const state = this.lightStates.get(id);
+            if (!state) return;
+            
+            if (value.color !== undefined) {
+                state.currentProperties.color = value.color;
             }
 
             const entity = this.world.getEntity(id);
@@ -156,6 +172,7 @@ export abstract class Renderer {
         // Clean up light state
         this.lightStates.delete(entity.getId());
         this.lightValueAnimations.clear(entity.getId());
+        this.lightColorAnimations.clear(entity.getId());
         
         this.handleEntityRemoved(entity);
     }
@@ -217,25 +234,26 @@ export abstract class Renderer {
             const animConfig = LIGHT_ANIMATIONS[lightEmitter.config.animation.type];
             const params = lightEmitter.config.animation.params;
             
-            // Apply animation with parameter modifications
             const speedMultiplier = params?.speed === 'fast' ? 0.5 : 
                                   params?.speed === 'slow' ? 2.0 : 1.0;
             const intensityMultiplier = params?.intensity ?? 1.0;
 
-            // Create animation configuration
-            const animations: Record<string, any> = {};
+            // Clear existing animations
+            this.lightValueAnimations.clear(entity.getId());
+            this.lightColorAnimations.clear(entity.getId());
 
-            if (animConfig.intensity && 'start' in animConfig.intensity && 'end' in animConfig.intensity) {
-                animations.intensity = {
+            // Handle numeric animations
+            const valueAnimations: Record<string, any> = {};
+            if (animConfig.intensity) {
+                valueAnimations.intensity = {
                     ...animConfig.intensity,
                     duration: animConfig.intensity.duration * speedMultiplier,
                     start: state.baseProperties.intensity * (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
                     end: state.baseProperties.intensity * (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
                 };
             }
-
-            if (animConfig.radius && 'start' in animConfig.radius && 'end' in animConfig.radius) {
-                animations.radius = {
+            if (animConfig.radius) {
+                valueAnimations.radius = {
                     ...animConfig.radius,
                     duration: animConfig.radius.duration * speedMultiplier,
                     start: state.baseProperties.radius * animConfig.radius.start,
@@ -243,18 +261,28 @@ export abstract class Renderer {
                 };
             }
 
-            if (animConfig.color && 'start' in animConfig.color && 'end' in animConfig.color) {
-                animations.color = {
-                    ...animConfig.color,
-                    duration: animConfig.color.duration * speedMultiplier
-                };
+            // Handle color animations separately
+            if (animConfig.color?.start && animConfig.color?.end) {
+                this.lightColorAnimations.add(entity.getId(), {
+                    color: {
+                        start: animConfig.color.start,
+                        end: animConfig.color.end,
+                        duration: animConfig.color.duration * speedMultiplier,
+                        loop: animConfig.color.loop,
+                        reverse: animConfig.color.reverse,
+                        easing: animConfig.color.easing,
+                        next: animConfig.color.next
+                    }
+                });
             }
 
-            logger.info(`Adding light animation for entity ${entity.getId()} with animations: ${JSON.stringify(animations)}`);
-            this.lightValueAnimations.add(entity.getId(), animations);
+            // Add value animations if any exist
+            if (Object.keys(valueAnimations).length > 0) {
+                this.lightValueAnimations.add(entity.getId(), valueAnimations);
+            }
         }
 
-        // Update light tiles using current state
+        // Initial render
         this.renderLightTiles(entity, state);
     }
 
@@ -292,12 +320,13 @@ export abstract class Renderer {
                         state.baseProperties.falloff
                     );
                     
-                    // TODO make this reflect the symbol component on the entity
+                    // Extract the base color without alpha
+                    const baseColor = state.currentProperties.color.slice(0, 7);
                     const tileId = this.display.createTile(
                         x, y,
                         ' ',
                         '#FFFFFF00',
-                        `${state.currentProperties.color}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
+                        `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
                         100,
                         { blendMode: BlendMode.Screen }
                     );
@@ -328,6 +357,7 @@ export abstract class Renderer {
     public update(timestamp: number): void {
         // logger.info(`Renderer updating at ${timestamp}`);
         this.lightValueAnimations.update(timestamp);
+        this.lightColorAnimations.update(timestamp);
     }
 
     // Update abstract methods
