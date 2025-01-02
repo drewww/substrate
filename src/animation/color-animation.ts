@@ -27,7 +27,7 @@ export class ColorAnimationModule extends AnimationModule<Record<string, string>
             result.color = interpolateColor(config.color.start, config.color.end, progress);
         }
         
-        logger.info(`interpolation result: ${JSON.stringify(result)} for progress: ${progress}`);
+        // logger.info(`interpolation result: ${JSON.stringify(result)} for progress: ${progress}`);
         return result;
     }
 } 

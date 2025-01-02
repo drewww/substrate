@@ -268,6 +268,7 @@ export abstract class Renderer {
                         start: animConfig.color.start,
                         end: animConfig.color.end,
                         duration: animConfig.color.duration * speedMultiplier,
+                        chainLoop: animConfig.color.chainLoop,
                         loop: animConfig.color.loop,
                         reverse: animConfig.color.reverse,
                         easing: animConfig.color.easing,

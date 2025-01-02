@@ -59,6 +59,8 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
             startTime: config.startTime ?? performance.now(),
             running: true
         } as TConfig & RuntimeAnimationConfig);
+
+        logger.info(`Added animation ${id} with config: ${JSON.stringify(config)}`);
     }
 
     public update(timestamp: number): void {        
@@ -71,8 +73,11 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     let progress = (elapsed / prop.duration) + (prop.offset ?? 0);
 
                     // If we have a chain, individual loop properties are ignored
-                    const isChain = 'next' in prop && prop.next;
+                    const isChain = Boolean(prop.chainLoop || prop.next);
                     
+                    logger.info(`prop: ${JSON.stringify(prop)} isChain: ${JSON.stringify(isChain)}`);
+
+
                     if (!isChain && prop.loop) {
                         if (prop.reverse) {
                             progress = progress % 2;
@@ -83,24 +88,36 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     } else {
                         progress = Math.min(progress, 1);
                         
+                        if (progress === 1) {
+                            logger.info(`Chain step complete for ${id} with ${key} and isChain: ${isChain}`);
+                            logger.info(`prop: ${JSON.stringify(prop)}`);
+                        }
+
                         // Handle chaining when animation completes
                         if (progress === 1 && isChain) {
+                            logger.info(`Chain step complete for ${id} with ${key} and prop: ${JSON.stringify(prop)}`);
+                            
+                            // Create next animation step with chainLoop preserved
                             const nextProp = {
                                 ...prop.next,
-                                next: prop.next.next,
-                                // Preserve chainLoop setting through the chain
-                                chainLoop: prop.chainLoop
+                                // Preserve chainLoop from the original animation
+                                chainLoop: prop.chainLoop,
+                                // Preserve next chain
+                                next: prop.next?.next
                             };
                             
                             // If we're at the end of the chain and chainLoop is true,
                             // restart the chain from the beginning
                             if (!nextProp.next && prop.chainLoop) {
-                                // Deep clone the original animation to restart the chain
+                                logger.info(`Restarting chain for ${id} with ${key}`);
+                                // Get the first animation in the chain
                                 const originalAnimation = this.animations.get(id);
                                 if (originalAnimation) {
                                     const firstProp = (originalAnimation as any)[key];
+                                    // Create a deep copy of the first animation
                                     nextProp.next = {
                                         ...firstProp,
+                                        next: firstProp.next,
                                         chainLoop: prop.chainLoop
                                     };
                                 }
