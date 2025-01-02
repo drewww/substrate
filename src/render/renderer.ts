@@ -294,8 +294,15 @@ export abstract class Renderer {
         const position = entity.getPosition();
         const visibleTiles = this.world.getVisibleTilesInRadius(position, state.currentProperties.radius);
         const newTiles = new Set<string>();
-
         const radius = Math.ceil(state.currentProperties.radius);
+
+        // Get light emitter for directional properties
+        const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+        const hasFacing = lightEmitter.config.facing !== undefined;
+        const facing = lightEmitter.config.facing ?? 0;
+        const spread = lightEmitter.config.spread ?? Math.PI * 2; // Default to omnidirectional
+        const halfSpread = spread / 2;
+
         for (let y = position.y - radius; y <= position.y + radius; y++) {
             for (let x = position.x - radius; x <= position.x + radius; x++) {
                 if (y < 0 || y >= this.world.getSize().y || 
@@ -304,32 +311,39 @@ export abstract class Renderer {
                     continue;
                 }
 
-                const distance = Math.sqrt(
-                    Math.pow(x - position.x, 2) + 
-                    Math.pow(y - position.y, 2)
+                const dx = x - position.x;
+                const dy = position.y - y; // Inverted because y increases downward
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Skip if outside radius
+                if (distance > state.currentProperties.radius) continue;
+
+                // Check if the point is within the light cone if we have facing
+                if (hasFacing) {
+                    const angle = Math.atan2(dy, dx);
+                    const angleDiff = Math.abs(this.normalizeAngle(angle - facing));
+                    if (angleDiff > halfSpread) continue;
+                }
+
+                const intensity = this.calculateFalloff(
+                    distance,
+                    state.currentProperties.radius,
+                    state.currentProperties.intensity,
+                    state.baseProperties.falloff
                 );
                 
-                if (distance <= state.currentProperties.radius) {
-                    const intensity = this.calculateFalloff(
-                        distance,
-                        state.currentProperties.radius,
-                        state.currentProperties.intensity,
-                        state.baseProperties.falloff
-                    );
-                    
-                    // Extract the base color without alpha
-                    const baseColor = state.currentProperties.color.slice(0, 7);
-                    const tileId = this.display.createTile(
-                        x, y,
-                        ' ',
-                        '#FFFFFF00',
-                        `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
-                        100,
-                        { blendMode: BlendMode.Screen }
-                    );
+                // Extract the base color without alpha
+                const baseColor = state.currentProperties.color.slice(0, 7);
+                const tileId = this.display.createTile(
+                    x, y,
+                    ' ',
+                    '#FFFFFF00',
+                    `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
+                    100,
+                    { blendMode: BlendMode.Screen }
+                );
 
-                    newTiles.add(tileId);
-                }
+                newTiles.add(tileId);
             }
         }
 
@@ -348,6 +362,13 @@ export abstract class Renderer {
             default:
                 return normalized * intensity;
         }
+    }
+
+    // Helper to normalize angle to [-π, π]
+    private normalizeAngle(angle: number): number {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
     }
 
     // Update animation cycle

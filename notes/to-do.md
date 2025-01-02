@@ -73,8 +73,12 @@ Display
  - LIGHTING
    - DONE add light emitter component
    - more than radial source effects
-   - color animations??
+   - DONE color animations??
    - ???
+   - angle of emission
+   - width of emission
+   - is there a way to handle non-integer source positions? 
+    - you could make it appear to work; intensity is a float and you could have it calculate. The integer x,y is the center of that cell, so (x-0.5, y-0.5) is the upper left corner of that cell. And so on. Then we're calculating the distance from there to the center of other cells to calculate their intensity or radius. 
  - Make smoke bomb FOV aware.
 
 - REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION

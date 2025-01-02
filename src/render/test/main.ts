@@ -108,6 +108,31 @@ class WorldTest {
                         }
                     }
                 }));
+            } else if (entityType === 'spotlight') {
+                entity = new Entity(worldPos);
+                entity.setComponent(new SymbolComponent(
+                    '◆',                // diamond character for spotlight
+                    '#ffff00',          // yellow foreground
+                    '#00000000',        // transparent background
+                    50                  // z-index below light effect
+                ));
+                
+                const randomFacing = Math.random() * Math.PI * 2; // Random angle 0-2π
+                entity.setComponent(new LightEmitterComponent({
+                    radius: 12,
+                    intensity: 0.5,
+                    color: '#ffffff',    // White light
+                    falloff: 'quadratic',
+                    facing: randomFacing,
+                    spread: Math.PI / 2, // 90 degree cone
+                    animation: {
+                        type: 'pulse-intensity',
+                        params: {
+                            speed: 'slow',
+                            intensity: 0.3  // Subtle pulsing
+                        }
+                    }
+                }));
             }
 
             if (entity) {
@@ -366,7 +391,8 @@ class WorldTest {
         
         const options = [
             { value: 'smokeBomb', label: 'Smoke Bomb' },
-            { value: 'light', label: 'Light Source' }
+            { value: 'light', label: 'Light Source' },
+            { value: 'spotlight', label: 'Spotlight' }
         ];
 
         options.forEach(opt => {
