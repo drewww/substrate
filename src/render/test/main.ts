@@ -83,7 +83,8 @@ class WorldTest {
             } else if (entityType === 'light') {
                 // const animationTypes: LightAnimationType[] = ['pulse-intensity', 'pulse-radius', 'strobe'];
 
-                const animationTypes: LightAnimationType[] = ['pulse-radius'];
+                // const animationTypes: LightAnimationType[] = ['pulse-radius', 'flicker', 'strobe', 'pulse-intensity'];
+                const animationTypes: LightAnimationType[] = ['flicker'];
                 const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
                 
                 entity = new Entity(worldPos);

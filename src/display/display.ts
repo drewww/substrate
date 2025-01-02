@@ -97,7 +97,19 @@ export const Easing = {
     bounceInOut: (t: number): number => 
         t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2,
 
-    round: (t: number): number => Math.round(t)
+    round: (t: number): number => Math.round(t),
+    maxDelay: (t: number): number => t >= 0.99 ? 1 : 0,
+    flicker: (t: number): number => {
+        if (t >= 0.99) {
+            return 1;
+        } if (t <= 0.97 && t >= 0.96) {
+            return 1;
+        } if (t <= 0.95 && t >= 0.94) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 };
 
 // Constants for viewport padding (percentage of viewport size)

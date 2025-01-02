@@ -1,7 +1,7 @@
 import { AnimationProperty } from '../animation/animation-module';
 import { Easing } from '../display/display';
 
-export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe';
+export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker';
 
 export interface NumericAnimationProperty extends Omit<AnimationProperty<number>, 'start' | 'end' | 'symbols'> {
     start: number;
@@ -45,4 +45,15 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             easing: Easing.round
         }
     },
+
+    flicker: {
+        intensity: {
+            start: 1.0,
+            end: 0.0,
+            duration: 2,
+            reverse: true,
+            loop: true,
+            easing: Easing.flicker
+        }
+    }
 }; 
