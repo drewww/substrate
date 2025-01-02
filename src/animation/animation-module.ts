@@ -15,13 +15,14 @@ type RuntimeAnimationConfig = Omit<AnimationConfig, 'startTime'> & {
 export interface AnimationProperty<T = any> {
     duration: number;
     reverse?: boolean;
-    loop?: boolean;
+    loop?: boolean;      // Loop this specific animation step
+    chainLoop?: boolean; // Loop the entire chain sequence
     offset?: number;
     easing?: EasingFunction;
-    next?: AnimationProperty<T>;  // Allow chaining to next animation
+    next?: AnimationProperty<T>;  // Next animation in the chain
     start?: T;
     end?: T;
-    symbols?: T[];  // For symbol animations
+    symbols?: T[];
 }
 
 interface AnimationMetrics {
@@ -64,13 +65,15 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         for (const [id, animation] of this.animations) {
             if (!animation.running) continue;
 
-            // Handle each property's animation separately
             for (const [key, prop] of Object.entries(animation)) {
                 if (prop && typeof prop === 'object' && 'duration' in prop) {
                     const elapsed = (timestamp - animation.startTime) / 1000;
                     let progress = (elapsed / prop.duration) + (prop.offset ?? 0);
 
-                    if (prop.loop) {
+                    // If we have a chain, individual loop properties are ignored
+                    const isChain = 'next' in prop && prop.next;
+                    
+                    if (!isChain && prop.loop) {
                         if (prop.reverse) {
                             progress = progress % 2;
                             if (progress > 1) progress = 2 - progress;
@@ -80,19 +83,32 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     } else {
                         progress = Math.min(progress, 1);
                         
-                        // Handle chaining when non-looping animation completes
-                        if (progress === 1 && 'next' in prop && prop.next) {
-                            // Create new animation that preserves the chain
+                        // Handle chaining when animation completes
+                        if (progress === 1 && isChain) {
                             const nextProp = {
                                 ...prop.next,
-                                // Preserve the next chain without checking loop
-                                next: prop.next.next
+                                next: prop.next.next,
+                                // Preserve chainLoop setting through the chain
+                                chainLoop: prop.chainLoop
                             };
                             
-                            // Type-safe way to update the animation property
+                            // If we're at the end of the chain and chainLoop is true,
+                            // restart the chain from the beginning
+                            if (!nextProp.next && prop.chainLoop) {
+                                // Deep clone the original animation to restart the chain
+                                const originalAnimation = this.animations.get(id);
+                                if (originalAnimation) {
+                                    const firstProp = (originalAnimation as any)[key];
+                                    nextProp.next = {
+                                        ...firstProp,
+                                        chainLoop: prop.chainLoop
+                                    };
+                                }
+                            }
+
                             const newAnimation = { ...animation };
                             (newAnimation as any)[key] = nextProp;
-                            newAnimation.startTime = timestamp;  // Reset start time on the new animation
+                            newAnimation.startTime = timestamp;
                             this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
                             continue;
                         }

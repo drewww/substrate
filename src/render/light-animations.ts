@@ -62,7 +62,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             start: '#ff0000',
             end: '#00ff00',
             duration: 0.5,
-            loop: false,
+            chainLoop: true,
             next: {
                 start: '#00ff00',
                 end: '#0000ff',
@@ -70,7 +70,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
                 next: {
                     start: '#0000ff',
                     end: '#ff0000',
-                    duration: 0.5,
+                    duration: 0.5
                 }
             }
         }

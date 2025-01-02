@@ -1078,15 +1078,15 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         );
 
         if (needsReposition) {
-            logger.info(`Reposition check:
-                viewport: (${this.viewport.x}, ${this.viewport.y}, ${this.viewport.width}, ${this.viewport.height})
-                renderBounds: (${this.renderBounds.x}, ${this.renderBounds.y}, ${this.renderBounds.width}, ${this.renderBounds.height})
-                padding: ${paddingX},${paddingY}
-                left: ${this.viewport.x - this.renderBounds.x < paddingX}
-                right: ${(this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX}
-                top: ${this.viewport.y - this.renderBounds.y < paddingY}
-                bottom: ${(this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY}
-            `);
+            // logger.info(`Reposition check:
+            //     viewport: (${this.viewport.x}, ${this.viewport.y}, ${this.viewport.width}, ${this.viewport.height})
+            //     renderBounds: (${this.renderBounds.x}, ${this.renderBounds.y}, ${this.renderBounds.width}, ${this.renderBounds.height})
+            //     padding: ${paddingX},${paddingY}
+            //     left: ${this.viewport.x - this.renderBounds.x < paddingX}
+            //     right: ${(this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX}
+            //     top: ${this.viewport.y - this.renderBounds.y < paddingY}
+            //     bottom: ${(this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY}
+            // `);
 
             // Calculate render bounds size in cells (with double padding on each side)
             const renderWidthInCells = Math.min(
