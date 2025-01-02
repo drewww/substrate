@@ -43,7 +43,7 @@ export abstract class Renderer {
             const state = this.lightStates.get(id);
             if (!state) return;
 
-            logger.info(`Updating light state for entity ${id} with value: ${JSON.stringify(value)}`);
+            // logger.verbose(`Updating light state for entity ${id} with value: ${JSON.stringify(value)}`);
             
             // Update the current properties based on animations
             if (value.intensity !== undefined) {
@@ -270,8 +270,9 @@ export abstract class Renderer {
         const visibleTiles = this.world.getVisibleTilesInRadius(position, state.currentProperties.radius);
         const newTiles = new Set<string>();
 
-        for (let y = position.y - state.currentProperties.radius; y <= position.y + state.currentProperties.radius; y++) {
-            for (let x = position.x - state.currentProperties.radius; x <= position.x + state.currentProperties.radius; x++) {
+        const radius = Math.ceil(state.currentProperties.radius);
+        for (let y = position.y - radius; y <= position.y + radius; y++) {
+            for (let x = position.x - radius; x <= position.x + radius; x++) {
                 if (y < 0 || y >= this.world.getSize().y || 
                     x < 0 || x >= this.world.getSize().x ||
                     !visibleTiles.has(this.world.pointToKey({x, y}))) {
