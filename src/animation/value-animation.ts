@@ -25,7 +25,7 @@ export class ValueAnimationModule extends AnimationModule<Record<string, number>
         const result: Record<string, number> = {};
         
         for (const [key, prop] of Object.entries(config)) {
-            logger.info(`Interpolating value animation with key: ${key} and prop: ${JSON.stringify(prop)}`);
+            // logger.info(`Interpolating value animation with key: ${key} and prop: ${JSON.stringify(prop)}`);
             if (key === 'startTime' || key === 'running') continue;
             
             if (prop && typeof prop === 'object' && 'start' in prop && 'end' in prop) {

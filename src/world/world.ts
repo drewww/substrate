@@ -729,10 +729,11 @@ export class World {
 
     public getVisibleTilesInRadius(origin: Point, radius: number): Set<string> {
         const visibleTiles = new Set<string>();
-        const fov = computeFieldOfView(this.fovMap, origin.x, origin.y, radius);
+        const radiusInteger = Math.floor(radius);
+        const fov = computeFieldOfView(this.fovMap, origin.x, origin.y, radiusInteger);
 
-        for (let y = origin.y - radius; y <= origin.y + radius; y++) {
-            for (let x = origin.x - radius; x <= origin.x + radius; x++) {
+        for (let y = origin.y - radiusInteger; y <= origin.y + radiusInteger; y++) {
+            for (let x = origin.x - radiusInteger; x <= origin.x + radiusInteger; x++) {
                 if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
                     continue;
                 }
@@ -745,4 +746,4 @@ export class World {
 
         return visibleTiles;
     }
-} 
+}

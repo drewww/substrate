@@ -6,6 +6,7 @@ import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
 import { ValueAnimationModule } from '../animation/value-animation';
+import { LIGHT_ANIMATIONS, LightAnimationConfig } from './light-animations';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -59,7 +60,7 @@ export abstract class Renderer {
         });
 
         this.display.addFrameCallback((display, timestamp) => {
-            logger.info(`Renderer received animation callback at ${timestamp}`);
+            // logger.info(`Renderer received animation callback at ${timestamp}`);
             this.update(timestamp);
         });
 
@@ -211,22 +212,47 @@ export abstract class Renderer {
             this.lightStates.set(entity.getId(), state);
         }
 
-  // Add animations if needed
-        // if (lightEmitter.config.flicker) {
-            const baseIntensity = state.baseProperties.intensity;
-            const baseRadius = state.baseProperties.radius;
+        // Add animations if configured
+        if (lightEmitter.config.animation) {
+            const animConfig = LIGHT_ANIMATIONS[lightEmitter.config.animation.type];
+            const params = lightEmitter.config.animation.params;
+            
+            // Apply animation with parameter modifications
+            const speedMultiplier = params?.speed === 'fast' ? 0.5 : 
+                                  params?.speed === 'slow' ? 2.0 : 1.0;
+            const intensityMultiplier = params?.intensity ?? 1.0;
 
-            this.lightValueAnimations.add(entity.getId(), {
-                intensity: {
-                    start: baseIntensity * 0.7,
-                    end: baseIntensity * 1.1,
-                    duration: 0.1 + Math.random() * 0.2,
-                    reverse: true,
-                    loop: true,
-                    easing: (t: number) => t
-                }
-            });
-        // }
+            // Create animation configuration
+            const animations: Record<string, any> = {};
+
+            if (animConfig.intensity && 'start' in animConfig.intensity && 'end' in animConfig.intensity) {
+                animations.intensity = {
+                    ...animConfig.intensity,
+                    duration: animConfig.intensity.duration * speedMultiplier,
+                    start: state.baseProperties.intensity * (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
+                    end: state.baseProperties.intensity * (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
+                };
+            }
+
+            if (animConfig.radius && 'start' in animConfig.radius && 'end' in animConfig.radius) {
+                animations.radius = {
+                    ...animConfig.radius,
+                    duration: animConfig.radius.duration * speedMultiplier,
+                    start: state.baseProperties.radius * animConfig.radius.start,
+                    end: state.baseProperties.radius * animConfig.radius.end
+                };
+            }
+
+            if (animConfig.color && 'start' in animConfig.color && 'end' in animConfig.color) {
+                animations.color = {
+                    ...animConfig.color,
+                    duration: animConfig.color.duration * speedMultiplier
+                };
+            }
+
+            logger.info(`Adding light animation for entity ${entity.getId()} with animations: ${JSON.stringify(animations)}`);
+            this.lightValueAnimations.add(entity.getId(), animations);
+        }
 
         // Update light tiles using current state
         this.renderLightTiles(entity, state);
@@ -299,7 +325,7 @@ export abstract class Renderer {
 
     // Update animation cycle
     public update(timestamp: number): void {
-        logger.info(`Renderer updating at ${timestamp}`);
+        // logger.info(`Renderer updating at ${timestamp}`);
         this.lightValueAnimations.update(timestamp);
     }
 

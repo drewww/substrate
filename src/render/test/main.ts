@@ -11,6 +11,7 @@ import { SymbolComponent } from '../../entity/components/symbol-component';
 import { OpacityComponent } from '../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
+import { LightAnimationType } from '../light-animations';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
@@ -80,6 +81,11 @@ class WorldTest {
             if (entityType === 'smokeBomb') {
                 entity = new SmokeBombEntity(worldPos);
             } else if (entityType === 'light') {
+                // const animationTypes: LightAnimationType[] = ['pulse-intensity', 'pulse-radius', 'strobe'];
+
+                const animationTypes: LightAnimationType[] = ['pulse-intensity'];
+                const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+                
                 entity = new Entity(worldPos);
                 entity.setComponent(new SymbolComponent(
                     '*',                // character
@@ -91,7 +97,15 @@ class WorldTest {
                     radius: 8,
                     intensity: 0.3,
                     color: '#ffff00',
-                    falloff: 'quadratic'
+                    falloff: 'quadratic',
+                    animation: {
+                        type: randomAnimation,
+                        params: {
+                            speed: Math.random() < 0.3 ? 'fast' : 
+                                  Math.random() < 0.6 ? 'slow' : 'normal',
+                            intensity: 0.5 + Math.random() * 0.5  // Random intensity between 0.5 and 1.0
+                        }
+                    }
                 }));
             }
 

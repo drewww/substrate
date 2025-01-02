@@ -1,30 +1,25 @@
 import { Component } from '../component';
-import { EasingFunction } from '../../display/types';
+import { LightAnimationType } from '../../render/light-animations';
 
-export interface LightConfig {
+export interface LightEmitterConfig {
     radius: number;
     intensity: number;
     color: string;
     falloff: 'linear' | 'quadratic' | 'exponential';
-}
-
-export interface LightAnimation {
-    // Base intensity will be multiplied by these values
-    startIntensity: number;  // e.g., 0.8 means 80% of base intensity
-    endIntensity: number;    // e.g., 1.2 means 120% of base intensity
-    duration: number;        // in seconds
-    easing?: EasingFunction;
-    loop?: boolean;
-    reverse?: boolean;
-    next?: LightAnimation;   // For chaining animations
+    animation?: {
+        type: LightAnimationType;
+        params?: {
+            speed?: 'slow' | 'normal' | 'fast';
+            intensity?: number;  // How dramatic the effect is (0-1)
+        }
+    };
 }
 
 export class LightEmitterComponent extends Component {
     public readonly type = 'lightEmitter';
     
     constructor(
-        public config: LightConfig,
-        public animation?: LightAnimation
+        public config: LightEmitterConfig
     ) {
         super();
     }
