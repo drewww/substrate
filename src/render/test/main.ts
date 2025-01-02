@@ -173,7 +173,14 @@ class WorldTest {
                     radius: 20,
                     intensity: 0.2,
                     color: '#ffff00',
-                    falloff: 'quadratic'
+                    falloff: 'quadratic',
+                    animation: {
+                        type: 'rgb',
+                        params: {
+                            speed: 'normal',
+                            intensity: 1.0
+                        }
+                    }
                 }));
                 
                 this.world.addEntity(light);
