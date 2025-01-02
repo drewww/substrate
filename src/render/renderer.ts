@@ -265,14 +265,10 @@ export abstract class Renderer {
             if (animConfig.color?.start && animConfig.color?.end) {
                 this.lightColorAnimations.add(entity.getId(), {
                     color: {
-                        start: animConfig.color.start,
-                        end: animConfig.color.end,
+                        ...animConfig.color,
                         duration: animConfig.color.duration * speedMultiplier,
-                        chainLoop: animConfig.color.chainLoop,
-                        loop: animConfig.color.loop,
-                        reverse: animConfig.color.reverse,
-                        easing: animConfig.color.easing,
-                        next: animConfig.color.next
+                        start: animConfig.color.start,
+                        end: animConfig.color.end
                     }
                 });
             }
