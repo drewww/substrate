@@ -298,41 +298,33 @@ export abstract class Renderer {
 
         // Get light emitter for directional properties
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
-        const hasFacing = lightEmitter.config.facing !== undefined;
-        const facing = lightEmitter.config.facing ?? 0;
-        const spread = lightEmitter.config.spread ?? Math.PI * 2; // Default to omnidirectional
-        const halfSpread = spread / 2;
+        const isDirectional = lightEmitter.config.facing !== undefined;
 
-        for (let y = position.y - radius; y <= position.y + radius; y++) {
-            for (let x = position.x - radius; x <= position.x + radius; x++) {
+        if (isDirectional) {
+            // Directional beam mode
+            const facing = lightEmitter.config.facing ?? 0;
+            const dx = Math.cos(facing);
+            const dy = -Math.sin(facing);  // Inverted because y increases downward
+
+            // Cast ray in facing direction
+            for (let dist = 0; dist <= radius; dist++) {
+                const x = Math.round(position.x + dx * dist);
+                const y = Math.round(position.y + dy * dist);
+
+                // Check bounds and visibility
                 if (y < 0 || y >= this.world.getSize().y || 
                     x < 0 || x >= this.world.getSize().x ||
                     !visibleTiles.has(this.world.pointToKey({x, y}))) {
-                    continue;
-                }
-
-                const dx = x - position.x;
-                const dy = position.y - y; // Inverted because y increases downward
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Skip if outside radius
-                if (distance > state.currentProperties.radius) continue;
-
-                // Check if the point is within the light cone if we have facing
-                if (hasFacing) {
-                    const angle = Math.atan2(dy, dx);
-                    const angleDiff = Math.abs(this.normalizeAngle(angle - facing));
-                    if (angleDiff > halfSpread) continue;
+                    break;  // Stop at first blocked tile
                 }
 
                 const intensity = this.calculateFalloff(
-                    distance,
+                    dist,
                     state.currentProperties.radius,
                     state.currentProperties.intensity,
                     state.baseProperties.falloff
                 );
                 
-                // Extract the base color without alpha
                 const baseColor = state.currentProperties.color.slice(0, 7);
                 const tileId = this.display.createTile(
                     x, y,
@@ -344,6 +336,42 @@ export abstract class Renderer {
                 );
 
                 newTiles.add(tileId);
+            }
+        } else {
+            // Omnidirectional mode (existing 360-degree light code)
+            for (let y = position.y - radius; y <= position.y + radius; y++) {
+                for (let x = position.x - radius; x <= position.x + radius; x++) {
+                    if (y < 0 || y >= this.world.getSize().y || 
+                        x < 0 || x >= this.world.getSize().x ||
+                        !visibleTiles.has(this.world.pointToKey({x, y}))) {
+                        continue;
+                    }
+
+                    const dx = x - position.x;
+                    const dy = position.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > state.currentProperties.radius) continue;
+
+                    const intensity = this.calculateFalloff(
+                        distance,
+                        state.currentProperties.radius,
+                        state.currentProperties.intensity,
+                        state.baseProperties.falloff
+                    );
+                    
+                    const baseColor = state.currentProperties.color.slice(0, 7);
+                    const tileId = this.display.createTile(
+                        x, y,
+                        ' ',
+                        '#FFFFFF00',
+                        `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
+                        100,
+                        { blendMode: BlendMode.Screen }
+                    );
+
+                    newTiles.add(tileId);
+                }
             }
         }
 
