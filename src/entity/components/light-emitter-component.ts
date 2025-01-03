@@ -11,6 +11,9 @@ export interface LightEmitterConfig {
     falloff: 'linear' | 'quadratic' | 'exponential';
     mode: LightMode;
     facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), required for 'beam' mode
+    // New properties for sub-tile positioning
+    xOffset?: number;    // -0.5 to 0.5, relative to tile center
+    yOffset?: number;    // -0.5 to 0.5, relative to tile center
     animation?: {
         type: LightAnimationType;
         params?: {
@@ -47,6 +50,8 @@ export class LightEmitterComponent extends Component {
             falloff: config.falloff ?? 'quadratic',
             mode: config.mode ?? 'omnidirectional',
             facing: config.facing,
+            xOffset: config.xOffset,
+            yOffset: config.yOffset,
             animation: config.animation
         });
     }
