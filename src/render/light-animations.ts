@@ -12,6 +12,8 @@ export interface LightAnimationConfig {
     intensity?: NumericAnimationProperty;
     radius?: NumericAnimationProperty;
     color?: AnimationProperty<string>;
+    xOffset?: NumericAnimationProperty;
+    yOffset?: NumericAnimationProperty;
 }
 
 export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> = {

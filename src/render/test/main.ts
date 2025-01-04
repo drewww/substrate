@@ -99,6 +99,7 @@ class WorldTest {
                     intensity: 0.3,
                     color: '#ffff00',
                     falloff: 'quadratic',
+                    mode: 'omnidirectional',
                     animation: {
                         type: randomAnimation,
                         params: {
@@ -199,6 +200,7 @@ class WorldTest {
                     intensity: 0.2,
                     color: '#ffff00',
                     falloff: 'quadratic',
+                    mode: 'omnidirectional',
                     animation: {
                         type: 'rgb',
                         params: {

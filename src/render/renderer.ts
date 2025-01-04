@@ -22,11 +22,15 @@ interface LightState {
         intensity: number;
         radius: number;
         falloff: 'linear' | 'quadratic' | 'exponential';
+        xOffset: number;
+        yOffset: number;
     };
     currentProperties: {
         color: string;
         intensity: number;
         radius: number;
+        xOffset: number;
+        yOffset: number;
     };
 }
 
@@ -218,12 +222,16 @@ export abstract class Renderer {
                     color: lightEmitter.config.color,
                     intensity: lightEmitter.config.intensity,
                     radius: lightEmitter.config.radius,
-                    falloff: lightEmitter.config.falloff
+                    falloff: lightEmitter.config.falloff,
+                    xOffset: lightEmitter.config.xOffset ?? 0,
+                    yOffset: lightEmitter.config.yOffset ?? 0
                 },
                 currentProperties: {
                     color: lightEmitter.config.color,
                     intensity: lightEmitter.config.intensity,
-                    radius: lightEmitter.config.radius
+                    radius: lightEmitter.config.radius,
+                    xOffset: lightEmitter.config.xOffset ?? 0,
+                    yOffset: lightEmitter.config.yOffset ?? 0
                 }
             };
             this.lightStates.set(entity.getId(), state);
@@ -261,6 +269,24 @@ export abstract class Renderer {
                 };
             }
 
+            if (animConfig.xOffset) {
+                valueAnimations.xOffset = {
+                    ...animConfig.xOffset,
+                    duration: animConfig.xOffset.duration * speedMultiplier,
+                    start: state.baseProperties.xOffset + animConfig.xOffset.start,
+                    end: state.baseProperties.xOffset + animConfig.xOffset.end
+                };
+            }
+
+            if (animConfig.yOffset) {
+                valueAnimations.yOffset = {
+                    ...animConfig.yOffset,
+                    duration: animConfig.yOffset.duration * speedMultiplier,
+                    start: state.baseProperties.yOffset + animConfig.yOffset.start,
+                    end: state.baseProperties.yOffset + animConfig.yOffset.end
+                };
+            }
+
             // Handle color animations separately
             if (animConfig.color?.start && animConfig.color?.end) {
                 this.lightColorAnimations.add(entity.getId(), {
@@ -292,7 +318,13 @@ export abstract class Renderer {
         }
 
         const position = entity.getPosition();
-        const visibleTiles = this.world.getVisibleTilesInRadius(position, state.currentProperties.radius);
+        // Apply offsets to position
+        const offsetPosition = {
+            x: position.x + state.currentProperties.xOffset,
+            y: position.y + state.currentProperties.yOffset
+        };
+
+        const visibleTiles = this.world.getVisibleTilesInRadius(offsetPosition, state.currentProperties.radius);
         const newTiles = new Set<string>();
         const radius = Math.ceil(state.currentProperties.radius);
 
@@ -308,8 +340,8 @@ export abstract class Renderer {
 
             // Cast ray in facing direction
             for (let dist = 0; dist <= radius; dist++) {
-                const x = Math.round(position.x + dx * dist);
-                const y = Math.round(position.y + dy * dist);
+                const x = Math.round(offsetPosition.x + dx * dist);
+                const y = Math.round(offsetPosition.y + dy * dist);
 
                 // Check bounds and visibility
                 if (y < 0 || y >= this.world.getSize().y || 
@@ -339,16 +371,16 @@ export abstract class Renderer {
             }
         } else {
             // Omnidirectional mode (existing 360-degree light code)
-            for (let y = position.y - radius; y <= position.y + radius; y++) {
-                for (let x = position.x - radius; x <= position.x + radius; x++) {
+            for (let y = offsetPosition.y - radius; y <= offsetPosition.y + radius; y++) {
+                for (let x = offsetPosition.x - radius; x <= offsetPosition.x + radius; x++) {
                     if (y < 0 || y >= this.world.getSize().y || 
                         x < 0 || x >= this.world.getSize().x ||
                         !visibleTiles.has(this.world.pointToKey({x, y}))) {
                         continue;
                     }
 
-                    const dx = x - position.x;
-                    const dy = position.y - y;
+                    const dx = x - offsetPosition.x;
+                    const dy = offsetPosition.y - y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance > state.currentProperties.radius) continue;
