@@ -79,7 +79,14 @@ Display
    - width of emission
    - is there a way to handle non-integer source positions? 
     - you could make it appear to work; intensity is a float and you could have it calculate. The integer x,y is the center of that cell, so (x-0.5, y-0.5) is the upper left corner of that cell. And so on. Then we're calculating the distance from there to the center of other cells to calculate their intensity or radius. 
+  - add tests for light emitter JSON serialization
+  - consider a "don't light source tile" option
+
  - Make smoke bomb FOV aware.
+
+ - implement walls??
+ - make sure lighting doesn't waste time simulating when it's not visible
+
 
 - REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION
 
@@ -127,4 +134,3 @@ And does that violate the "you always exist in a space" question? I thiiiink no.
 If you buffer another move command while in move CD, it can chain the animations so they stay smooth. Maybe "escape" clears the buffer.
 
 What about collision detection? When a move is made, we can compute whether the path and destination are valid. I guess traditional collision detection is to move the object and let the world push back. But we could also do it in advance.
-

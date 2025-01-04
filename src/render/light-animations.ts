@@ -1,7 +1,7 @@
 import { AnimationProperty } from '../animation/animation-module';
 import { Easing } from '../display/display';
 
-export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb';
+export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'spin';
 
 export interface NumericAnimationProperty extends Omit<AnimationProperty<number>, 'start' | 'end' | 'symbols'> {
     start: number;
@@ -75,6 +75,23 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
                     duration: 0.5
                 }
             }
+        }
+    },
+
+    'spin': {
+        xOffset: {
+            start: -1,
+            end: 1,
+            duration: 2,
+            loop: true,
+            easing: Easing.cosine
+        },
+        yOffset: {
+            start: -1,
+            end: 1,
+            duration: 2,
+            loop: true,
+            easing: Easing.sine
         }
     }
 }; 

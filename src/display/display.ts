@@ -59,6 +59,9 @@ export const Easing = {
     // Linear (no easing)
     linear: (t: number): number => t,
     
+    cosine: (t: number): number => Math.cos(t * Math.PI * 2),
+    sine: (t: number): number => Math.sin(t * Math.PI * 2),
+
     // Sine
     sineIn: (t: number): number => 1 - Math.cos((t * Math.PI) / 2),
     sineOut: (t: number): number => Math.sin((t * Math.PI) / 2),
@@ -109,7 +112,7 @@ export const Easing = {
         } else {
             return 0;
         }
-    }
+    },
 };
 
 // Constants for viewport padding (percentage of viewport size)

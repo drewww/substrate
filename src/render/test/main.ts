@@ -125,12 +125,33 @@ class WorldTest {
                     color: '#ffffff',    // White light
                     falloff: 'quadratic',
                     facing: randomFacing,
-                    spread: Math.PI / 2, // 90 degree cone
+                    mode: 'omnidirectional',
                     animation: {
                         type: 'pulse-intensity',
                         params: {
                             speed: 'slow',
                             intensity: 0.3  // Subtle pulsing
+                        }
+                    }
+                }));
+            } else if (entityType === 'spin') {
+                entity = new Entity(worldPos);
+                entity.setComponent(new SymbolComponent(
+                    '✦',                // sparkle character
+                    '#ffff00',          // yellow foreground
+                    '#00000000',        // transparent background
+                    50                  // z-index below light effect
+                ));
+                entity.setComponent(new LightEmitterComponent({
+                    radius: 2,
+                    intensity: 0.2,
+                    color: '#ffff00',
+                    falloff: 'linear',
+                    mode: 'omnidirectional',
+                    animation: {
+                        type: 'spin',
+                        params: {
+                            speed: 'normal'
                         }
                     }
                 }));
@@ -394,7 +415,8 @@ class WorldTest {
         const options = [
             { value: 'smokeBomb', label: 'Smoke Bomb' },
             { value: 'light', label: 'Light Source' },
-            { value: 'spotlight', label: 'Spotlight' }
+            { value: 'spotlight', label: 'Spotlight' },
+            { value: 'spin', label: 'Spinning Light' }
         ];
 
         options.forEach(opt => {

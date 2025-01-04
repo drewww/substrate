@@ -6,7 +6,7 @@ import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
 import { ValueAnimationModule } from '../animation/value-animation';
-import { LIGHT_ANIMATIONS, LightAnimationConfig } from './light-animations';
+import { LIGHT_ANIMATIONS } from './light-animations';
 import { ColorAnimationModule } from '../animation/color-animation';
 /**
  * Base renderer class that handles entity visualization
@@ -48,8 +48,6 @@ export abstract class Renderer {
         this.lightValueAnimations = new ValueAnimationModule((id, value) => {
             const state = this.lightStates.get(id);
             if (!state) return;
-
-            // logger.verbose(`Updating light state for entity ${id} with value: ${JSON.stringify(value)}`);
             
             // Update the current properties based on animations
             if (value.intensity !== undefined) {
@@ -57,6 +55,13 @@ export abstract class Renderer {
             }
             if (value.radius !== undefined) {
                 state.currentProperties.radius = value.radius;
+            }
+            // Add handling for offset animations
+            if (value.xOffset !== undefined) {
+                state.currentProperties.xOffset = value.xOffset;
+            }
+            if (value.yOffset !== undefined) {
+                state.currentProperties.yOffset = value.yOffset;
             }
 
             const entity = this.world.getEntity(id);
@@ -319,10 +324,18 @@ export abstract class Renderer {
 
         const position = entity.getPosition();
         // Apply offsets to position
+        // const offsetPosition = {
+        //     x: position.x + state.currentProperties.xOffset,
+        //     y: position.y + state.currentProperties.yOffset
+        // };
+
+
         const offsetPosition = {
-            x: position.x + state.currentProperties.xOffset,
-            y: position.y + state.currentProperties.yOffset
+            x: position.x,
+            y: position.y
         };
+
+        logger.info(`position: ${position.x},${position.y} offset: ${state.currentProperties.xOffset},${state.currentProperties.yOffset}`);
 
         const visibleTiles = this.world.getVisibleTilesInRadius(offsetPosition, state.currentProperties.radius);
         const newTiles = new Set<string>();
