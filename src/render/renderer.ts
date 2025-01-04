@@ -323,21 +323,18 @@ export abstract class Renderer {
         }
 
         const position = entity.getPosition();
-        // Apply offsets to position
-        // const offsetPosition = {
-        //     x: position.x + state.currentProperties.xOffset,
-        //     y: position.y + state.currentProperties.yOffset
-        // };
-
-
+        // Calculate actual position with offsets, using floating point math
         const offsetPosition = {
-            x: position.x,
-            y: position.y
+            x: position.x + state.currentProperties.xOffset,
+            y: position.y + state.currentProperties.yOffset
         };
 
-        logger.info(`position: ${position.x},${position.y} offset: ${state.currentProperties.xOffset},${state.currentProperties.yOffset}`);
+        // Use the exact floating point position for distance calculations
+        const visibleTiles = this.world.getVisibleTilesInRadius(
+            { x: Math.round(offsetPosition.x), y: Math.round(offsetPosition.y) }, 
+            state.currentProperties.radius
+        );
 
-        const visibleTiles = this.world.getVisibleTilesInRadius(offsetPosition, state.currentProperties.radius);
         const newTiles = new Set<string>();
         const radius = Math.ceil(state.currentProperties.radius);
 
@@ -384,16 +381,17 @@ export abstract class Renderer {
             }
         } else {
             // Omnidirectional mode (existing 360-degree light code)
-            for (let y = offsetPosition.y - radius; y <= offsetPosition.y + radius; y++) {
-                for (let x = offsetPosition.x - radius; x <= offsetPosition.x + radius; x++) {
+            for (let y = Math.floor(offsetPosition.y - radius); y <= Math.ceil(offsetPosition.y + radius); y++) {
+                for (let x = Math.floor(offsetPosition.x - radius); x <= Math.ceil(offsetPosition.x + radius); x++) {
                     if (y < 0 || y >= this.world.getSize().y || 
                         x < 0 || x >= this.world.getSize().x ||
-                        !visibleTiles.has(this.world.pointToKey({x, y}))) {
+                        !visibleTiles.has(this.world.pointToKey({x: Math.round(x), y: Math.round(y)}))) {
                         continue;
                     }
 
+                    // Use exact floating point positions for distance calculation
                     const dx = x - offsetPosition.x;
-                    const dy = offsetPosition.y - y;
+                    const dy = y - offsetPosition.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (distance > state.currentProperties.radius) continue;

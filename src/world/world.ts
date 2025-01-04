@@ -729,17 +729,25 @@ export class World {
 
     public getVisibleTilesInRadius(origin: Point, radius: number): Set<string> {
         const visibleTiles = new Set<string>();
-        const radiusInteger = Math.floor(radius);
-        const fov = computeFieldOfView(this.fovMap, origin.x, origin.y, radiusInteger);
+        const radiusInteger = Math.ceil(radius);
+        
+        // Round the origin for FOV calculation since it only works with integers
+        const fov = computeFieldOfView(
+            this.fovMap, 
+            Math.round(origin.x), 
+            Math.round(origin.y), 
+            radiusInteger
+        );
 
-        for (let y = origin.y - radiusInteger; y <= origin.y + radiusInteger; y++) {
-            for (let x = origin.x - radiusInteger; x <= origin.x + radiusInteger; x++) {
+        // Expand the search area slightly to account for rounding
+        for (let y = Math.floor(origin.y - radiusInteger); y <= Math.ceil(origin.y + radiusInteger); y++) {
+            for (let x = Math.floor(origin.x - radiusInteger); x <= Math.ceil(origin.x + radiusInteger); x++) {
                 if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
                     continue;
                 }
                 
-                if (fov.getVisible(x, y)) {
-                    visibleTiles.add(this.pointToKey({x, y}));
+                if (fov.getVisible(Math.round(x), Math.round(y))) {
+                    visibleTiles.add(this.pointToKey({x: Math.round(x), y: Math.round(y)}));
                 }
             }
         }

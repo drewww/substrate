@@ -87,8 +87,8 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             easing: Easing.cosine
         },
         yOffset: {
-            start: -1,
-            end: 1,
+            start: 1,
+            end: -1,
             duration: 2,
             loop: true,
             easing: Easing.sine
