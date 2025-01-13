@@ -1,20 +1,15 @@
-import { AnimationProperty } from '../animation/animation-module';
 import { ColorAnimationProperty } from '../animation/color-animation';
+import { ValueAnimationProperty } from '../animation/value-animation';
 import { Easing, Transform } from '../display/display';
 
 export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'spin';
 
-export interface NumericAnimationProperty extends Omit<AnimationProperty<number>, 'start' | 'end' | 'symbols'> {
-    start: number;
-    end: number;
-}
-
 export interface LightAnimationConfig {
-    intensity?: NumericAnimationProperty;
-    radius?: NumericAnimationProperty;
+    intensity?: ValueAnimationProperty;
+    radius?: ValueAnimationProperty;
     color?: ColorAnimationProperty;
-    xOffset?: NumericAnimationProperty;
-    yOffset?: NumericAnimationProperty;
+    xOffset?: ValueAnimationProperty;
+    yOffset?: ValueAnimationProperty;
 }
 
 export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> = {

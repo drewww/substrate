@@ -20,9 +20,7 @@ export interface AnimationProperty<T = any> {
     progressOffset?: number;
     
     easing?: EasingFunction;
-    range?: number;
-    offset?: number;
-    transform?: TransformFunction;
+
 
     start?: T;
     end?: T;

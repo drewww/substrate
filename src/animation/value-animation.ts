@@ -2,7 +2,7 @@ import { EasingFunction, TransformFunction } from "../display/types";
 import { logger } from "../util/logger";
 import { AnimationConfig, AnimationModule, AnimationProperty } from "./animation-module";
 
-export interface ValueProperty extends AnimationProperty {
+export interface ValueAnimationProperty extends AnimationProperty {
     range?: number;
     offset?: number;
     
@@ -12,16 +12,16 @@ export interface ValueProperty extends AnimationProperty {
 }
 
 export interface ValueAnimationConfig extends AnimationConfig {
-    offsetSymbolX?: ValueProperty;
-    offsetSymbolY?: ValueProperty;
-    bgPercent?: ValueProperty;
-    x?: ValueProperty;
-    y?: ValueProperty;
-    scaleSymbolX?: ValueProperty;
-    scaleSymbolY?: ValueProperty;
-    rotation?: ValueProperty;
-    intensity?: ValueProperty;
-    radius?: ValueProperty;
+    offsetSymbolX?: ValueAnimationProperty;
+    offsetSymbolY?: ValueAnimationProperty;
+    bgPercent?: ValueAnimationProperty;
+    x?: ValueAnimationProperty;
+    y?: ValueAnimationProperty;
+    scaleSymbolX?: ValueAnimationProperty;
+    scaleSymbolY?: ValueAnimationProperty;
+    rotation?: ValueAnimationProperty;
+    intensity?: ValueAnimationProperty;
+    radius?: ValueAnimationProperty;
 }
 
 export class ValueAnimationModule extends AnimationModule<Record<string, number>, ValueAnimationConfig> {
