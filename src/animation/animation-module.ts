@@ -1,4 +1,4 @@
-import { EasingFunction } from '../display/types';
+import { EasingFunction, TransformFunction } from '../display/types';
 import { logger } from '../util/logger';
 
 // Base interface for all animation configurations
@@ -17,12 +17,19 @@ export interface AnimationProperty<T = any> {
     reverse?: boolean;
     loop?: boolean;      // Loop this specific animation step
     chainLoop?: boolean; // Loop the entire chain sequence
-    offset?: number;
+    progressOffset?: number;
+    
     easing?: EasingFunction;
-    next?: AnimationProperty<T>;  // Next animation in the chain
+    range?: number;
+    offset?: number;
+    transform?: TransformFunction;
+
     start?: T;
     end?: T;
+
     symbols?: T[];
+
+    next?: AnimationProperty<T>;  // Next animation in the chain
 }
 
 interface AnimationMetrics {

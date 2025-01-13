@@ -55,12 +55,10 @@ export enum FillDirection {
     LEFT
 }
 
+// A collection of easing functions that translate an input value between 0 and 1 into an output value between 0 and 1
 export const Easing = {
     // Linear (no easing)
     linear: (t: number): number => t,
-    
-    cosine: (t: number): number => Math.cos(t * Math.PI * 2),
-    sine: (t: number): number => Math.sin(t * Math.PI * 2),
 
     // Sine
     sineIn: (t: number): number => 1 - Math.cos((t * Math.PI) / 2),
@@ -114,6 +112,20 @@ export const Easing = {
         }
     },
 };
+
+// Similar but different to Easing functions. These take a value between 0 and 1, but can return  a value from
+// [-Infinity, Infinity]. In practice, they are used to transform the output of an easing function into
+// a domain in a non-linear manner.
+// 
+// This is necessary because the basic linear transform, which the vast majority of animations use, cannot
+// create cyclic behavior because it assumes starting at the min value in a range and ending at the max value.
+// Obviously that does not work for all animations.
+
+export const Transform = {
+    linear: (t: number): number => t,
+    cosine: (t: number): number => Math.cos(t * Math.PI * 2),
+    sine: (t: number): number => Math.sin(t * Math.PI * 2),
+}
 
 // Constants for viewport padding (percentage of viewport size)
 const VIEWPORT_PADDING_X = 0.2; // 20% padding on each side
@@ -1284,11 +1296,42 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         if (valueAnims) {
             if (valueAnims.x || valueAnims.y) {
                 // Calculate the target position
+
+                // this is probematic because it makes assumptions about the value animation behavior
+                // and if we are implement Transform functions. I think for now we can get away with 
+                // simply using range instead. but there are potentially bad cases here for x/y
+                // animations that have greater than 1 range. 
+
+
+                // TODO: consider also folding the transform function into this calculation
+
+                // this gets unnecessarily complex because we have to test for range/offset versus start/end
+                // but for now it's faster than a total refactor.
+
+
+                let rangeX: number = 0;
+                if(valueAnims.x?.range) {
+                    rangeX = valueAnims.x.range;
+                } else if(valueAnims.x?.end && valueAnims.x?.start) {
+                    rangeX = valueAnims.x.end - valueAnims.x.start;
+                } else {
+                    logger.warn(`No range or start/end for x animation ${tile.id}`);
+                }
+ 
+                let rangeY: number = 0;
+                if(valueAnims.y?.range) {
+                    rangeY = valueAnims.y.range;
+                } else if(valueAnims.y?.end && valueAnims.y?.start) {
+                    rangeY = valueAnims.y.end - valueAnims.y.start;
+                } else {
+                    logger.warn(`No range or start/end for y animation ${tile.id}`);
+                }
+
                 const targetX = valueAnims.x ? 
-                    Math.round(tile.x + (valueAnims.x.end - valueAnims.x.start)) : 
+                    Math.round(tile.x + (rangeX)) : 
                     tile.x;
                 const targetY = valueAnims.y ? 
-                    Math.round(tile.y + (valueAnims.y.end - valueAnims.y.start)) : 
+                    Math.round(tile.y + (rangeY)) : 
                     tile.y;
                 
                 // Check visibility at target position

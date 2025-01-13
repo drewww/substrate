@@ -26,7 +26,7 @@ export class AnimationLoadTest extends BaseTest {
 
     protected run(): void {
         const startTime = performance.now();
-        const symbols = ['◆', '●',  '■',  '▲'];
+        const shapeSymbols = ['◆', '●',  '■',  '▲'];
         const colors = [
             '#FF0000FF', // Red
             '#00FF00FF', // Green
@@ -43,14 +43,21 @@ export class AnimationLoadTest extends BaseTest {
             for (let x = 0; x < this.display.getWorldWidth(); x++) {
                 const tileId = this.display.createTile(
                     x, y, 
-                    symbols[0], 
+                    shapeSymbols[0], 
                     colors[0], 
                     '#555555FF', 
                     1
                 );
 
                 // 1. Symbol animation
-                this.display.addSymbolAnimation(tileId, symbols, 1.0);
+                this.display.addSymbolAnimation(tileId, {
+                    symbol: {
+                        symbols: shapeSymbols,
+                        duration: 1.0,
+                        loop: true
+                    },
+                    startTime: startTime
+                });
 
                 // 2. Foreground color animation - Rainbow cycle
                 this.display.addColorAnimation(tileId, {
@@ -59,7 +66,7 @@ export class AnimationLoadTest extends BaseTest {
                         end: colors[x % colors.length],
                         duration: 3.0,
                         reverse: true,
-                        offset: (x + y) * 0.05,
+                        progressOffset: (x + y) * 0.05,
                         easing: Easing.sineInOut,
                         loop: true
                     },
@@ -68,7 +75,7 @@ export class AnimationLoadTest extends BaseTest {
                         end: colors[x % colors.length],
                         duration: 4.0,
                         reverse: true,
-                        offset: (x * y) * 0.01,
+                        progressOffset: (x * y) * 0.01,
                         easing: Easing.quadInOut,
                         loop: true
                     },
@@ -82,7 +89,7 @@ export class AnimationLoadTest extends BaseTest {
                         end: 1,
                         duration: 1.5,
                         reverse: true,
-                        offset: Math.sqrt(x * x + y * y) * 0.05,
+                        progressOffset: Math.sqrt(x * x + y * y) * 0.05,
                         easing: Easing.expoInOut,
                         loop: true
                     },

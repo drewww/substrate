@@ -118,7 +118,7 @@ export class LaserTest extends BaseTest {
                     start: '#FF000000',  // Start fully transparent
                     end: this.LASER_COLOR,  // End with semi-transparent red
                     duration: this.ANIMATION_DURATION,
-                    offset: i * this.CELL_DELAY,
+                    progressOffset: i * this.CELL_DELAY,
                     // offset: 0,
                     easing: Easing.quadOut,
                     loop: false

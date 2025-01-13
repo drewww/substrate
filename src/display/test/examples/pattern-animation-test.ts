@@ -130,7 +130,7 @@ export class PatternAnimationTest extends BaseTest {
                 reverse: true,
                 easing: Easing.sineInOut,
                 loop: true,
-                offset: 0.2
+                progressOffset: 0.2
             }
         });
 
@@ -155,7 +155,7 @@ export class PatternAnimationTest extends BaseTest {
                 reverse: true,
                 easing: Easing.sineInOut,
                 loop: true,
-                offset: 0.1
+                progressOffset: 0.1
             }
         });
 
@@ -188,7 +188,7 @@ export class PatternAnimationTest extends BaseTest {
                 reverse: true,
                 easing: Easing.quadInOut,
                 loop: true,
-                offset: 0.2
+                progressOffset: 0.2
             }
         });
 
@@ -246,7 +246,7 @@ export class PatternAnimationTest extends BaseTest {
                     reverse: true,
                     easing: Easing.sineInOut,
                     loop: loop,
-                    offset: offset
+                    progressOffset: offset
                 }
             });
 
@@ -258,7 +258,7 @@ export class PatternAnimationTest extends BaseTest {
                     reverse: true,
                     easing: Easing.sineInOut,
                     loop: loop,
-                    offset: offset
+                    progressOffset: offset
                 }
             });
 
@@ -318,7 +318,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#FF0000FF',
                 duration: 2.0,
                 reverse: true,
-                offset: 0,
+                progressOffset: 0,
                 loop: true
             }
         });
@@ -332,7 +332,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#00FF00FF',
                 duration: 3.0,
                 reverse: true,
-                offset: 0,
+                progressOffset: 0,
                 loop: true
             }
         });
@@ -347,7 +347,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#00FFFFFF',
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.2,
+                    progressOffset: i * 0.2,
                     loop: true
                 },
                 bg: {
@@ -355,7 +355,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#000000FF',
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.2,
+                    progressOffset: i * 0.2,
                     loop: true
                 }
             });
@@ -372,7 +372,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#0000FFFF',
                     duration: 2.0,
                     reverse: true,
-                    offset: i * 0.02,  // Smaller offset for smoother wave
+                    progressOffset: i * 0.02,  // Smaller offset for smoother wave
                     loop: true
                 },
                 startTime: sharedStartTime
@@ -388,7 +388,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: 1,
                 duration: 2.0,
                 reverse: true,
-                offset: 0,
+                progressOffset: 0,
                 loop: true
             }
         });
@@ -408,7 +408,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: 1,
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.15,
+                    progressOffset: i * 0.15,
                     easing: Easing.bounceOut,  // Changed to bounceOut for dramatic bounce effect
                     loop: true
                 },
@@ -444,7 +444,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: 1,
                     duration: fillDuration,
                     reverse: true,
-                    offset: 0,
+                    progressOffset: 0,
                     easing: (t) => stackedFillEasing(t, i),
                     loop: true
                 },
@@ -470,7 +470,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#00FF0044',
                 duration: 2.0,
                 reverse: true,
-                offset: 0.25,  // Quarter phase offset for smooth sine wave
+                progressOffset: 0.25,  // Quarter phase offset for smooth sine wave
                 loop: true
             }
         });
@@ -506,7 +506,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: colors[colors.length - 1],
                     duration: 3.0,
                     reverse: true,
-                    offset,
+                    progressOffset: offset,
                     loop: true
                 }
             });
@@ -532,7 +532,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#00FF0044',
                     duration: 1.0,
                     reverse: true,
-                    offset: y * 0.15,  // Cascade effect
+                    progressOffset: y * 0.15,  // Cascade effect
                     loop: true
                 }
             });
@@ -551,7 +551,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: '#FFFFFF44',
                     duration: 1.5,
                     reverse: true,
-                    offset,
+                    progressOffset: offset,
                     loop: true
                 }
             });
@@ -568,7 +568,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: 1,
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.1,
+                    progressOffset: i * 0.1,
                     easing: Easing.sineInOut,  // Kept sineInOut for smooth wave motion
                     loop: true
                 },
@@ -587,7 +587,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: 1,
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.1,
+                    progressOffset: i * 0.1,
                     easing: Easing.expoInOut,  // Changed to expoInOut for dramatic acceleration/deceleration
                     loop: true
                 },
@@ -607,7 +607,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: '#0000FFFF',
                 duration: 2.0,
                 reverse: true,
-                offset: 0,
+                progressOffset: 0,
                 loop: true
             },
             startTime: movingTileStartTime
@@ -658,7 +658,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.06,
                 duration: 0.1,
                 reverse: true,
-                offset: 0.05,
+                progressOffset: 0.05,
                 loop: true
             }
         });
@@ -681,7 +681,7 @@ export class PatternAnimationTest extends BaseTest {
                 end: 0.09,
                 duration: 2.0,
                 reverse: true,
-                offset: 0.25,
+                progressOffset: 0.25,
                 easing: Easing.sineInOut,
                 loop: true 
             },
@@ -698,7 +698,7 @@ export class PatternAnimationTest extends BaseTest {
                     end: 0.09,
                     duration: 1.5,
                     reverse: true,
-                    offset: i * 0.2,
+                    progressOffset: i * 0.2,
                     easing: Easing.sineInOut,
                     loop: true
                 }

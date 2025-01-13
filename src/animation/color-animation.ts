@@ -2,15 +2,16 @@ import { interpolateColor } from '../display/util/color';
 import { logger } from '../util/logger';
 import { AnimationConfig, AnimationModule, AnimationProperty } from './animation-module';
 
-export interface ColorProperty extends AnimationProperty {
+export interface ColorAnimationProperty extends AnimationProperty {
     start: string;  // Hex color string
     end: string;    // Hex color string
+    next?: ColorAnimationProperty;
 }
 
 export interface ColorAnimationConfig extends AnimationConfig {
-    fg?: ColorProperty;
-    bg?: ColorProperty;
-    color?: ColorProperty;  // Add this for light colors
+    fg?: ColorAnimationProperty;
+    bg?: ColorAnimationProperty;
+    color?: ColorAnimationProperty;  // Add this for light colors
 }
 
 export class ColorAnimationModule extends AnimationModule<Record<string, string>, ColorAnimationConfig> {

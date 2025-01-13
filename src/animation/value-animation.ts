@@ -1,10 +1,14 @@
-import { EasingFunction } from "../display/types";
+import { EasingFunction, TransformFunction } from "../display/types";
 import { logger } from "../util/logger";
 import { AnimationConfig, AnimationModule, AnimationProperty } from "./animation-module";
 
 export interface ValueProperty extends AnimationProperty {
-    start: number;
-    end: number;
+    range?: number;
+    offset?: number;
+    
+    transform?: TransformFunction;
+    start?: number;
+    end?: number;
 }
 
 export interface ValueAnimationConfig extends AnimationConfig {
@@ -30,7 +34,7 @@ export class ValueAnimationModule extends AnimationModule<Record<string, number>
             
             if (prop && typeof prop === 'object' && 'start' in prop && 'end' in prop) {
                 result[key] = prop.start + (prop.end - prop.start) * progress;
-            }
+            } 
         }
         return result;
     }

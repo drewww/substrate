@@ -198,7 +198,7 @@ export class JumpTest extends BaseTest {
                     };
 
                     this.display.addValueAnimation(tileId, {
-                        x: firstMove,
+                    x: firstMove,
                         y: firstMoveY,
                         scaleSymbolX: scaleXAnimation,
                         scaleSymbolY: scaleYAnimation

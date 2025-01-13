@@ -45,6 +45,7 @@ export interface ColoredString {
 }
 
 export type EasingFunction = (t: number) => number;
+export type TransformFunction = (t: number) => number;
 
 // Keep existing ColorAnimation for backward compatibility
 export interface ColorAnimation {

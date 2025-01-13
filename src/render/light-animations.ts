@@ -1,5 +1,6 @@
 import { AnimationProperty } from '../animation/animation-module';
-import { Easing } from '../display/display';
+import { ColorAnimationProperty } from '../animation/color-animation';
+import { Easing, Transform } from '../display/display';
 
 export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'spin';
 
@@ -11,7 +12,7 @@ export interface NumericAnimationProperty extends Omit<AnimationProperty<number>
 export interface LightAnimationConfig {
     intensity?: NumericAnimationProperty;
     radius?: NumericAnimationProperty;
-    color?: AnimationProperty<string>;
+    color?: ColorAnimationProperty;
     xOffset?: NumericAnimationProperty;
     yOffset?: NumericAnimationProperty;
 }
@@ -84,14 +85,16 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             end: 1,
             duration: 2,
             loop: true,
-            easing: Easing.cosine
+            easing: Easing.linear,
+            transform: Transform.cosine
         },
         yOffset: {
             start: 1,
             end: -1,
             duration: 2,
             loop: true,
-            easing: Easing.sine
+            easing: Easing.linear,
+            transform: Transform.sine
         }
     }
 }; 
