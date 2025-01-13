@@ -1,5 +1,4 @@
 import { interpolateColor } from '../display/util/color';
-import { logger } from '../util/logger';
 import { AnimationConfig, AnimationModule, AnimationProperty } from './animation-module';
 
 export interface ColorAnimationProperty extends AnimationProperty {

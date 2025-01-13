@@ -1,5 +1,5 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, SymbolAnimation, ColorAnimation, ValueAnimation, TileColorAnimationOptions, TileConfig, ValueAnimationOption, ColorAnimationOptions, TileValueAnimationsOptions, BlendMode, TileUpdateConfig } from './types';
+import { Color, Tile, TileId, Viewport, TileConfig, BlendMode, TileUpdateConfig } from './types';
 import { logger } from '../util/logger';
 import { Point } from '../types';
 import { DirtyMask } from './dirty-mask';

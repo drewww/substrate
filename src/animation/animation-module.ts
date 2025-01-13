@@ -1,5 +1,4 @@
 import { EasingFunction } from '../display/types';
-import { logger } from '../util/logger';
 
 // Base interface for all animation configurations
 export interface AnimationConfig {

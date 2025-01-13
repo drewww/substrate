@@ -76,7 +76,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
 
     'spin': {
         xOffset: {
-            range: 1,
+            range: 0.5,
             offset: 0,
             duration: 2,
             loop: true,
@@ -84,7 +84,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             transform: Transform.cosine
         },
         yOffset: {
-            range: 1,
+            range: 0.5,
             offset: 0,
             duration: 2,
             loop: true,
