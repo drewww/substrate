@@ -201,18 +201,6 @@ export abstract class Renderer {
         } else {
             logger.warn(`No tile found for moved entity ${entity.getId()}`);
         }
-
-        // Update light if entity has a light emitter
-        if (entity.hasComponent('lightEmitter')) {
-            this.addEntityLight(entity);
-        }
-        
-        if (!this.handleEntityMoved(entity, from, to)) {
-            const tileId = this.entityTiles.get(entity.getId());
-            if (tileId) {
-                this.display.moveTile(tileId, to.x, to.y);
-            }
-        }
     }
 
     protected addEntityLight(entity: Entity): void {

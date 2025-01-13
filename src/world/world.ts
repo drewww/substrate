@@ -3,10 +3,6 @@ import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Component } from '../entity/component';
 import { logger } from '../util/logger';
-import { ComponentRegistry } from '../entity/component-registry';
-import { DiscoveredByPlayerComponent } from '../entity/components/discovered-by-player-component';
-import { VisibleToPlayerComponent } from '../entity/components/visible-to-player-component';
-import { OpacityComponent } from '../entity/components/opacity-component';
 import { FieldOfViewMap, computeFieldOfView } from 'wally-fov';
 
 interface SerializedWorld {
