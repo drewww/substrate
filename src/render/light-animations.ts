@@ -76,16 +76,16 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
 
     'spin': {
         xOffset: {
-            start: -1,
-            end: 1,
+            range: 1,
+            offset: 0,
             duration: 2,
             loop: true,
             easing: Easing.linear,
             transform: Transform.cosine
         },
         yOffset: {
-            start: 1,
-            end: -1,
+            range: 1,
+            offset: 0,
             duration: 2,
             loop: true,
             easing: Easing.linear,

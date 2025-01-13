@@ -1,4 +1,4 @@
-import { EasingFunction, TransformFunction } from '../display/types';
+import { EasingFunction } from '../display/types';
 import { logger } from '../util/logger';
 
 // Base interface for all animation configurations
@@ -20,7 +20,6 @@ export interface AnimationProperty<T = any> {
     progressOffset?: number;
     
     easing?: EasingFunction;
-
 
     start?: T;
     end?: T;

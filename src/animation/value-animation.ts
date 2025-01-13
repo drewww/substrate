@@ -1,3 +1,4 @@
+import { Easing, Transform } from "../display/display";
 import { EasingFunction, TransformFunction } from "../display/types";
 import { logger } from "../util/logger";
 import { AnimationConfig, AnimationModule, AnimationProperty } from "./animation-module";
@@ -32,9 +33,25 @@ export class ValueAnimationModule extends AnimationModule<Record<string, number>
             // logger.info(`Interpolating value animation with key: ${key} and prop: ${JSON.stringify(prop)}`);
             if (key === 'startTime' || key === 'running') continue;
             
-            if (prop && typeof prop === 'object' && 'start' in prop && 'end' in prop) {
-                result[key] = prop.start + (prop.end - prop.start) * progress;
-            } 
+
+            if(prop && typeof prop === 'object') {
+                // detect transform. if it's null, select linear.
+                const transform = prop.transform ?? Transform.linear;
+
+                // if transform is set to linear or is unset, do this.
+                if ('start' in prop && 'end' in prop && prop.start != null && prop.end != null &&
+                    !isNaN(prop.start) && !isNaN(prop.end)) {
+                    result[key] = prop.start + (prop.end - prop.start) * transform(progress);
+                } else if ('range' in prop && 'offset' in prop && prop.range != null && prop.offset != null &&
+                    !isNaN(prop.range) && !isNaN(prop.offset)) {
+                    
+                    result[key] = prop.offset + (prop.range * transform(progress));
+
+                    logger.info(`non-linear value animation with offset: ${prop.offset} and range: ${prop.range} and transform: ${transform(progress)} result: ${result[key]} progress: ${progress}`);
+                }
+
+
+            }
         }
         return result;
     }
