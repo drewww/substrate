@@ -351,27 +351,56 @@ export abstract class Renderer {
         const isDirectional = lightEmitter.config.facing !== undefined;
 
         if (isDirectional) {
-            const facing = lightEmitter.config.facing ?? 0;
-            const dx = Math.cos(facing);
-            const dy = -Math.sin(facing);
+            const facing = this.normalizeAngle(lightEmitter.config.facing ?? 0);
+            const width = state.currentProperties.width ?? Math.PI / 4;
+            const halfWidth = width / 2;
+
+            const startAngle = this.normalizeAngle(facing - halfWidth);
+            const endAngle = this.normalizeAngle(facing + halfWidth);
+            const isWrapping = startAngle > endAngle;
 
             for (let dist = 0; dist <= radius; dist++) {
-                const x = Math.round(offsetPosition.x + dx * dist);
-                const y = Math.round(offsetPosition.y + dy * dist);
+                // Calculate how many samples we need at this distance
+                // At dist=1, we want at least 8 samples, scaling up with distance
+                const samplesNeeded = Math.max(8, Math.ceil(dist * 8));
+                const angleStep = (2 * Math.PI) / samplesNeeded;
 
-                // Check bounds and visibility first
-                if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
-                    break;  // Stop at first non-visible tile
+                for (let i = 0; i < samplesNeeded; i++) {
+                    const angle = this.normalizeAngle(i * angleStep);
+                    const dx = Math.cos(angle);
+                    const dy = -Math.sin(angle);
+                    const x = Math.round(offsetPosition.x + dx * dist);
+                    const y = Math.round(offsetPosition.y + dy * dist);
+
+                    // Check if this angle is within our beam
+                    const normalizedAngle = this.normalizeAngle(angle);
+                    const inBeam = isWrapping ?
+                        (normalizedAngle >= startAngle || normalizedAngle <= endAngle) :
+                        (normalizedAngle >= startAngle && normalizedAngle <= endAngle);
+
+                    if (!inBeam) continue;
+
+                    // Check visibility
+                    if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
+                        continue;
+                    }
+
+                    // Calculate angle distance from beam center for intensity falloff
+                    let angleDistance = Math.abs(this.getAngleDistance(normalizedAngle, facing));
+                    const angleMultiplier = 1 - (angleDistance / halfWidth);
+                    
+                    if (angleMultiplier <= 0) continue;
+
+                    const baseIntensity = this.calculateFalloff(
+                        dist,
+                        state.currentProperties.radius,
+                        state.currentProperties.intensity,
+                        state.baseProperties.falloff
+                    );
+                    
+                    const intensity = baseIntensity * angleMultiplier;
+                    this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
                 }
-
-                const intensity = this.calculateFalloff(
-                    dist,
-                    state.currentProperties.radius,
-                    state.currentProperties.intensity,
-                    state.baseProperties.falloff
-                );
-                
-                this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
             }
         } else {
             // Pre-calculate bounds based on visible tiles
@@ -474,4 +503,9 @@ export abstract class Renderer {
     protected abstract handleComponentModified(entity: Entity, componentType: string): void;
     protected abstract handleEntityRemoved(entity: Entity): void;
     protected abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
+
+    private getAngleDistance(angle1: number, angle2: number): number {
+        const diff = Math.abs(angle1 - angle2);
+        return Math.min(diff, 2 * Math.PI - diff);
+    }
 }  

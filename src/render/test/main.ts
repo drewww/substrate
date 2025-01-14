@@ -118,8 +118,9 @@ class WorldTest {
                     50                  // z-index below light effect
                 ));
                 
-                const randomFacing = Math.random() * Math.PI * 2; // Random angle 0-2π
-                const randomWidth = Math.PI;
+                // const randomFacing = Math.random() * Math.PI * 2; // Random angle 0-2π
+                const randomFacing = Math.PI / 2;
+                const randomWidth = Math.PI/2;
 
                 entity.setComponent(new LightEmitterComponent({
                     radius: 4,
