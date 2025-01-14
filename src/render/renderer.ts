@@ -271,24 +271,18 @@ export abstract class Renderer {
             }
 
             // Handle xOffset animation
-            if (animConfig.xOffset?.start !== undefined && 
-                animConfig.xOffset?.end !== undefined) {
+            if (animConfig.xOffset !== undefined ) {
                 valueAnimations.xOffset = {
                     ...animConfig.xOffset,
                     duration: animConfig.xOffset.duration * speedMultiplier,
-                    start: state.baseProperties.xOffset + animConfig.xOffset.start,
-                    end: state.baseProperties.xOffset + animConfig.xOffset.end
                 };
             }
 
             // Handle yOffset animation
-            if (animConfig.yOffset?.start !== undefined && 
-                animConfig.yOffset?.end !== undefined) {
+            if (animConfig.yOffset !== undefined ) {
                 valueAnimations.yOffset = {
                     ...animConfig.yOffset,
                     duration: animConfig.yOffset.duration * speedMultiplier,
-                    start: state.baseProperties.yOffset + animConfig.yOffset.start,
-                    end: state.baseProperties.yOffset + animConfig.yOffset.end
                 };
             }
 

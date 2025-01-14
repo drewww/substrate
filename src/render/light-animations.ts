@@ -77,7 +77,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
     'spin': {
         xOffset: {
             range: 0.5,
-            offset: 0,
+        offset: 0,
             duration: 2,
             loop: true,
             easing: Easing.linear,
