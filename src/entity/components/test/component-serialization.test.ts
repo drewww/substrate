@@ -1,29 +1,30 @@
 import { ComponentRegistry } from '../../component-registry';
 import { LightEmitterComponent, LightEmitterConfig } from '../light-emitter-component';
+import { SymbolComponent } from '../symbol-component';
 import { Component } from '../../component';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
-
-describe('Component Serialization Tests', () => {
-    // Test all registered components
-    const registeredComponents = ComponentRegistry.getRegisteredComponents();
-
-    Object.entries(registeredComponents).forEach(([type, componentClass]) => {
-        describe(`${type} Component`, () => {
-            it('should serialize and deserialize correctly', () => {
-                const component = createTestComponent(componentClass as typeof Component);
-                const serialized = JSON.parse(JSON.stringify(component));
-                const deserialized = (componentClass as typeof Component).fromJSON(serialized);
-                
-                expect(deserialized).toBeInstanceOf(componentClass);
-                expect(deserialized).toMatchObject(component);
-            });
-        });
+describe('Component Registry', () => {
+    it('should have registered components', () => {
+        const components = ComponentRegistry.getRegisteredComponents();
+        console.log('Registered components:', Array.from(components.entries()));
+        expect(components.size).toBeGreaterThan(0);
     });
 
-    // Specific test for LightEmitterComponent to ensure all properties are handled
-    describe('LightEmitterComponent Specific Tests', () => {
-        it('should handle all LightEmitterConfig properties', () => {
+    it('should include LightEmitterComponent', () => {
+        const components = ComponentRegistry.getRegisteredComponents();
+        expect(components.get('lightEmitter')).toBe(LightEmitterComponent);
+    });
+
+    it('should include SymbolComponent', () => {
+        const components = ComponentRegistry.getRegisteredComponents();
+        expect(components.get('symbol')).toBe(SymbolComponent);
+    });
+});
+
+describe('Component Serialization Tests', () => {
+    describe('LightEmitterComponent', () => {
+        it('should serialize and deserialize correctly', () => {
             const config: LightEmitterConfig = {
                 radius: 5,
                 intensity: 1.0,
@@ -49,21 +50,14 @@ describe('Component Serialization Tests', () => {
             expect(deserialized.config).toEqual(config);
         });
     });
-});
 
-// Helper function to create test instances of components
-function createTestComponent(componentClass: typeof Component): Component {
-    switch (componentClass.name) {
-        case 'LightEmitterComponent':
-            return new LightEmitterComponent({
-                radius: 5,
-                intensity: 1.0,
-                color: '#FFFFFF',
-                falloff: 'quadratic',
-                mode: 'omnidirectional'
-            });
-        // Add cases for other component types
-        default:
-            throw new Error(`No test configuration for component type: ${componentClass.name}`);
-    }
-} 
+    describe('SymbolComponent', () => {
+        it('should serialize and deserialize correctly', () => {
+            const component = new SymbolComponent('@', '#fff', '#000', 1);
+            const serialized = JSON.parse(JSON.stringify(component));
+            const deserialized = SymbolComponent.fromJSON(serialized);
+
+            expect(deserialized).toMatchObject(component);
+        });
+    });
+}); 
