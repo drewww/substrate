@@ -29,7 +29,7 @@ describe('Component Serialization Tests', () => {
                 radius: 5,
                 intensity: 1.0,
                 color: '#FFFFFF',
-                falloff: 'quadratic',
+                distanceFalloff: 'quadratic',
                 mode: 'beam',
                 facing: Math.PI / 4,
                 xOffset: 0.25,

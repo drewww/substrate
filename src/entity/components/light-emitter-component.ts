@@ -8,7 +8,7 @@ export interface LightEmitterConfig {
     radius: number;
     intensity: number;
     color: string;
-    falloff: 'linear' | 'quadratic' | 'exponential' | 'step';
+    distanceFalloff: 'linear' | 'quadratic' | 'exponential' | 'step';
     mode: LightMode;
     facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), required for 'beam' mode
     width?: number;     // Width of the light beam in tiles
@@ -48,7 +48,7 @@ export class LightEmitterComponent extends Component {
             radius: config.radius ?? 5,
             intensity: config.intensity ?? 1.0,
             color: config.color ?? '#FFFFFF',
-            falloff: config.falloff ?? 'quadratic',
+            distanceFalloff: config.distanceFalloff ?? 'quadratic',
             mode: config.mode ?? 'omnidirectional',
             facing: config.facing,
             width: config.width,

@@ -21,7 +21,7 @@ interface LightState {
         color: string;
         intensity: number;
         radius: number;
-        falloff: 'linear' | 'quadratic' | 'exponential' | 'step';
+        distanceFalloff: 'linear' | 'quadratic' | 'exponential' | 'step';
         xOffset: number;
         yOffset: number;
         facing: number;
@@ -219,7 +219,7 @@ export abstract class Renderer {
                     color: lightEmitter.config.color,
                     intensity: lightEmitter.config.intensity,
                     radius: lightEmitter.config.radius,
-                    falloff: lightEmitter.config.falloff,
+                    distanceFalloff: lightEmitter.config.distanceFalloff,
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,
@@ -395,7 +395,7 @@ export abstract class Renderer {
                         dist,
                         state.currentProperties.radius,
                         state.currentProperties.intensity,
-                        state.baseProperties.falloff
+                        state.baseProperties.distanceFalloff
                     );
                     
                     const intensity = baseIntensity * angleMultiplier;
@@ -426,7 +426,7 @@ export abstract class Renderer {
                         distance,
                         state.currentProperties.radius,
                         state.currentProperties.intensity,
-                        state.baseProperties.falloff
+                        state.baseProperties.distanceFalloff
                     );
                     
                     this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
@@ -477,7 +477,7 @@ export abstract class Renderer {
             case 'exponential':
                 return Math.pow(normalized, 4) * intensity;
             case 'step':
-                return normalized >= 0.5 ? intensity : 0;
+                return normalized <= 0.95 ? intensity : 0;
             default:
                 return normalized * intensity;
         }

@@ -98,7 +98,7 @@ class WorldTest {
                     radius: 8,
                     intensity: 0.3,
                     color: '#ffff00',
-                    falloff: 'quadratic',
+                    distanceFalloff: 'quadratic',
                     mode: 'omnidirectional',
                     animation: {
                         type: randomAnimation,
@@ -119,14 +119,14 @@ class WorldTest {
                 ));
                 
                 // const randomFacing = Math.random() * Math.PI * 2; // Random angle 0-2π
-                const randomFacing = Math.PI / 2;
+                const randomFacing = Math.PI/2;
                 const randomWidth = Math.PI/2;
 
                 entity.setComponent(new LightEmitterComponent({
                     radius: 4,
                     intensity: 0.5,
                     color: '#ffffff',    // White light
-                    falloff: 'step',
+                    distanceFalloff: 'step',
                     facing: randomFacing,
                     width: randomWidth,
 
@@ -146,7 +146,7 @@ class WorldTest {
                     radius: 2,
                     intensity: 0.2,
                     color: '#ffff00',
-                    falloff: 'linear',
+                    distanceFalloff: 'linear',
                     mode: 'omnidirectional',
                     animation: {
                         type: 'spin',
@@ -220,7 +220,7 @@ class WorldTest {
                     radius: 20,
                     intensity: 0.2,
                     color: '#ffff00',
-                    falloff: 'quadratic',
+                    distanceFalloff: 'quadratic',
                     mode: 'omnidirectional',
                     animation: {
                         type: 'pulse-intensity',
