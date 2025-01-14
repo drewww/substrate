@@ -1,18 +1,39 @@
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
 import { Renderer } from '../renderer';
-import { Display } from '../../display/display';
+import { Display, FillDirection } from '../../display/display';
+import { Tile } from '../../display/types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Point } from '../../types';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 // Mock Display class
-class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTile'> {
-    public tiles: Map<string, { x: number, y: number }> = new Map();
+class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTile' | 'updateTile' | 'getTile' | 'addFrameCallback'> {
+    public tiles: Map<string, Tile> = new Map();
     private tileCounter = 0;
+    private frameCallbacks: ((display: Display, timestamp: number) => void)[] = [];
 
     createTile = vi.fn((x: number, y: number, char: string, fg: string, bg: string, zIndex: number, config?: any) => {
         const tileId = `tile_${this.tileCounter++}`;
-        this.tiles.set(tileId, { x, y });
+        const tile: Tile = {
+            id: tileId,
+            x,
+            y,
+            char,
+            color: fg,
+            backgroundColor: bg,
+            zIndex,
+            bgPercent: 1,
+            alwaysRenderIfExplored: config?.alwaysRenderIfExplored ?? false,
+            blendMode: config?.blendMode,
+            rotation: 0,
+            scaleSymbolX: 1,
+            scaleSymbolY: 1,
+            offsetSymbolX: 0,
+            offsetSymbolY: 0,
+            fillDirection: FillDirection.BOTTOM,
+            noClip: false
+        };
+        this.tiles.set(tileId, tile);
         return tileId;
     });
 
@@ -27,6 +48,32 @@ class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTi
             tile.y = y;
         }
     });
+
+    updateTile = vi.fn((tileId: string, config: any) => {
+        const tile = this.tiles.get(tileId);
+        if (tile) {
+            Object.assign(tile, {
+                char: config.char,
+                color: config.fg,
+                backgroundColor: config.bg,
+                zIndex: config.zIndex,
+                ...config
+            });
+        }
+    });
+
+    getTile = vi.fn((tileId: string): Tile | undefined => {
+        return this.tiles.get(tileId);
+    });
+
+    addFrameCallback = vi.fn((callback: (display: Display, timestamp: number) => void) => {
+        this.frameCallbacks.push(callback);
+    });
+
+    // Helper method to trigger frame callbacks (useful for testing animations)
+    triggerFrame(timestamp: number) {
+        this.frameCallbacks.forEach(callback => callback(this as unknown as Display, timestamp));
+    }
 }
 
 // Concrete test implementation of Renderer
@@ -99,6 +146,8 @@ describe('Renderer', () => {
         world.moveEntity(entity.getId(), newPos);
         
         expect(display.moveTile).toHaveBeenCalledWith(tileId, 2, 2);
-        expect(display.tiles.get(tileId)).toEqual(newPos);
+        // Only check x and y properties of the tile
+        const tile = display.tiles.get(tileId);
+        expect({ x: tile?.x, y: tile?.y }).toEqual(newPos);
     });
 }); 

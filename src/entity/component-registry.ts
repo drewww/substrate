@@ -6,9 +6,9 @@ type ComponentConstructor = {
 };
 
 export class ComponentRegistry {
-    private static components = new Map<string, new () => Component>();
+    private static components = new Map<string, ComponentConstructor>();
 
-    static register(type: string, componentClass: new () => Component) {
+    static register(type: string, componentClass: ComponentConstructor) {
         this.components.set(type, componentClass);
     }
 
@@ -20,10 +20,11 @@ export class ComponentRegistry {
             throw new Error(`Unknown component type: ${type}`);
         }
 
-        // Create new instance and deserialize directly
-        const component = new ComponentClass();
-        component.deserialize(data);
-        return component;
+        return ComponentClass.fromJSON(data);
+    }
+
+    public static getRegisteredComponents() {
+        return this.components;
     }
 }
 
