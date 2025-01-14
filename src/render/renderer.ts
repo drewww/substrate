@@ -322,11 +322,16 @@ export abstract class Renderer {
             existingTiles.clear();
         }
 
-        const position = entity.getPosition();
+        const entityTileId = this.entityTiles.get(entity.getId());
+        if (!entityTileId) return;
+
+        const tile = this.display.getTile(entityTileId);
+        if (!tile) return;
+        
         // Calculate actual position with offsets, using floating point math
         const offsetPosition = {
-            x: position.x + state.currentProperties.xOffset,
-            y: position.y + state.currentProperties.yOffset
+            x: (tile.x ?? tile.x) + state.currentProperties.xOffset,
+            y: (tile.y ?? tile.y) + state.currentProperties.yOffset
         };
 
         // Use the exact floating point position for distance calculations
