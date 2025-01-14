@@ -36,5 +36,26 @@ export class GameRenderer extends Renderer {
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleComponentModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}
-    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return false; }
+    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
+        const tileId = this.entityTiles.get(entity.getId());
+        if (!tileId) return false;
+
+        // Add position animation
+        this.display.addValueAnimation(tileId, {
+            x: {
+                start: from.x,
+                end: to.x,
+                duration: 1.0,
+                easing: Easing.sineInOut
+            },
+            y: {
+                start: from.y,
+                end: to.y,
+                duration: 1.0,
+                easing: Easing.sineInOut
+            }
+        });
+
+         return true;
+        }
 } 

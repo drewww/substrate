@@ -223,7 +223,7 @@ class WorldTest {
                     falloff: 'quadratic',
                     mode: 'omnidirectional',
                     animation: {
-                        type: 'rgb',
+                        type: 'pulse-intensity',
                         params: {
                             speed: 'normal',
                             intensity: 1.0
@@ -234,7 +234,7 @@ class WorldTest {
                 this.world.addEntity(light);
                 this.wanderingLightId = light.getId();
 
-                // Move the light every 500ms
+                // Move the light every 1000ms (giving 500ms for the animation)
                 this.wanderingLightInterval = window.setInterval(() => {
                     if (!this.wanderingLightId) return;
                     
@@ -256,7 +256,7 @@ class WorldTest {
                     };
                     
                     this.world.moveEntity(this.wanderingLightId, newPos);
-                }, 500);
+                }, 1000);
             }
         });
     }
