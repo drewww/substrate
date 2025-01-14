@@ -328,41 +328,38 @@ export abstract class Renderer {
         const tile = this.display.getTile(entityTileId);
         if (!tile) return;
         
-        // Calculate actual position with offsets, using floating point math
+        // Calculate actual position with offsets
         const offsetPosition = {
             x: (tile.x ?? tile.x) + state.currentProperties.xOffset,
             y: (tile.y ?? tile.y) + state.currentProperties.yOffset
         };
 
-        // Use the exact floating point position for distance calculations
+        // Get visible tiles first
         const visibleTiles = this.world.getVisibleTilesInRadius(
             { x: Math.round(offsetPosition.x), y: Math.round(offsetPosition.y) }, 
             state.currentProperties.radius
         );
 
+        // If no visible tiles, exit early
+        if (visibleTiles.size === 0) return;
+
         const newTiles = new Set<string>();
         const radius = Math.ceil(state.currentProperties.radius);
-
-        // Get light emitter for directional properties
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         const isDirectional = lightEmitter.config.facing !== undefined;
 
         if (isDirectional) {
-            // Directional beam mode
             const facing = lightEmitter.config.facing ?? 0;
             const dx = Math.cos(facing);
-            const dy = -Math.sin(facing);  // Inverted because y increases downward
+            const dy = -Math.sin(facing);
 
-            // Cast ray in facing direction
             for (let dist = 0; dist <= radius; dist++) {
                 const x = Math.round(offsetPosition.x + dx * dist);
                 const y = Math.round(offsetPosition.y + dy * dist);
 
-                // Check bounds and visibility
-                if (y < 0 || y >= this.world.getSize().y || 
-                    x < 0 || x >= this.world.getSize().x ||
-                    !visibleTiles.has(this.world.pointToKey({x, y}))) {
-                    break;  // Stop at first blocked tile
+                // Check bounds and visibility first
+                if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
+                    break;  // Stop at first non-visible tile
                 }
 
                 const intensity = this.calculateFalloff(
@@ -372,29 +369,22 @@ export abstract class Renderer {
                     state.baseProperties.falloff
                 );
                 
-                const baseColor = state.currentProperties.color.slice(0, 7);
-                const tileId = this.display.createTile(
-                    x, y,
-                    ' ',
-                    '#FFFFFF00',
-                    `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
-                    100,
-                    { blendMode: BlendMode.Screen }
-                );
-
-                newTiles.add(tileId);
+                this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
             }
         } else {
-            // Omnidirectional mode (existing 360-degree light code)
-            for (let y = Math.floor(offsetPosition.y - radius); y <= Math.ceil(offsetPosition.y + radius); y++) {
-                for (let x = Math.floor(offsetPosition.x - radius); x <= Math.ceil(offsetPosition.x + radius); x++) {
-                    if (y < 0 || y >= this.world.getSize().y || 
-                        x < 0 || x >= this.world.getSize().x ||
-                        !visibleTiles.has(this.world.pointToKey({x: Math.round(x), y: Math.round(y)}))) {
+            // Pre-calculate bounds based on visible tiles
+            const bounds = this.calculateVisibleBounds(visibleTiles);
+            
+            // Only iterate over the intersection of radius and visible bounds
+            for (let y = Math.max(bounds.minY, Math.floor(offsetPosition.y - radius)); 
+                 y <= Math.min(bounds.maxY, Math.ceil(offsetPosition.y + radius)); y++) {
+                for (let x = Math.max(bounds.minX, Math.floor(offsetPosition.x - radius)); 
+                     x <= Math.min(bounds.maxX, Math.ceil(offsetPosition.x + radius)); x++) {
+                    
+                    if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
                         continue;
                     }
 
-                    // Use exact floating point positions for distance calculation
                     const dx = x - offsetPosition.x;
                     const dy = y - offsetPosition.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -408,22 +398,42 @@ export abstract class Renderer {
                         state.baseProperties.falloff
                     );
                     
-                    const baseColor = state.currentProperties.color.slice(0, 7);
-                    const tileId = this.display.createTile(
-                        x, y,
-                        ' ',
-                        '#FFFFFF00',
-                        `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
-                        100,
-                        { blendMode: BlendMode.Screen }
-                    );
-
-                    newTiles.add(tileId);
+                    this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
                 }
             }
         }
 
         this.lightSourceTiles.set(entity.getId(), newTiles);
+    }
+
+    // Helper method to create light tiles
+    private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>) {
+        const baseColor = color.slice(0, 7);
+        const tileId = this.display.createTile(
+            x, y,
+            ' ',
+            '#FFFFFF00',
+            `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
+            100,
+            { blendMode: BlendMode.Screen }
+        );
+        newTiles.add(tileId);
+    }
+
+    // Helper to calculate bounds of visible tiles
+    private calculateVisibleBounds(visibleTiles: Set<string>) {
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        
+        for (const key of visibleTiles) {
+            const point = this.world.keyToPoint(key);
+            minX = Math.min(minX, point.x);
+            maxX = Math.max(maxX, point.x);
+            minY = Math.min(minY, point.y);
+            maxY = Math.max(maxY, point.y);
+        }
+        
+        return { minX, maxX, minY, maxY };
     }
 
     private calculateFalloff(distance: number, radius: number, intensity: number, type: 'linear' | 'quadratic' | 'exponential'): number {

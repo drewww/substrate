@@ -88,7 +88,7 @@ Display
  - make sure lighting doesn't waste time simulating when it's not visible
 
 
-- REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION
+- DONE REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION
 
 
 MODULE LIST

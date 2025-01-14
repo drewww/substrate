@@ -71,6 +71,14 @@ export class World {
     }
 
     /**
+     * Convert a point key back to x,y coordinates
+     */
+    public keyToPoint(key: string): Point {
+        const [x, y] = key.split(',').map(Number);
+        return { x, y };
+    }
+
+    /**
      * Add an entity to the world
      * @throws Error if entity's position is out of bounds
      */
