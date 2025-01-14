@@ -79,17 +79,28 @@ Display
    - width of emission
    - DONE is there a way to handle non-integer source positions? 
     - you could make it appear to work; intensity is a float and you could have it calculate. The integer x,y is the center of that cell, so (x-0.5, y-0.5) is the upper left corner of that cell. And so on. Then we're calculating the distance from there to the center of other cells to calculate their intensity or radius. 
-  - add tests for light emitter JSON serialization
+  - DONE add tests for light emitter JSON serialization
   - consider a "don't light source tile" option
 
  - Make smoke bomb FOV aware.
 
  - implement walls??
- - make sure lighting doesn't waste time simulating when it's not visible
+ - DONE make sure lighting doesn't waste time simulating when it's not visible
 
 
 - DONE REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION
 
+- implement width? can we get a like, 180 degree light source working?
+- can we animate facing successfully?
+- then probably get out ...
+
+
+- check on save/load, I think it broke
+- think about what a world generation helper might look like
+- world prefabs?
+- FOV walls? try placing them on all impassable/opaque wall tiles. that might create more realistic lighting.
+  - could there be a way to decrease range of sight going through, like, smoke? maybe not useful
+- start to get actually serious about what game we're thinking about
 
 MODULE LIST
 -----------
@@ -108,8 +119,7 @@ MODULE LIST
   * Objects in the world. Mostly just collections of state.
   * They are seriealizeable and deseriealizable. 
  * UI?? menus? Compositing displays with other things?
- 
-
+ * World generation helpers??
 
 
 THINKING
