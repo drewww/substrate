@@ -8,7 +8,7 @@ export interface LightEmitterConfig {
     radius: number;
     intensity: number;
     color: string;
-    falloff: 'linear' | 'quadratic' | 'exponential';
+    falloff: 'linear' | 'quadratic' | 'exponential' | 'step';
     mode: LightMode;
     facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), required for 'beam' mode
     width?: number;     // Width of the light beam in tiles

@@ -119,20 +119,19 @@ class WorldTest {
                 ));
                 
                 const randomFacing = Math.random() * Math.PI * 2; // Random angle 0-2π
+                const randomWidth = Math.PI;
+
                 entity.setComponent(new LightEmitterComponent({
-                    radius: 12,
+                    radius: 4,
                     intensity: 0.5,
                     color: '#ffffff',    // White light
-                    falloff: 'quadratic',
+                    falloff: 'step',
                     facing: randomFacing,
+                    width: randomWidth,
+
+                    // TODO: 
                     mode: 'omnidirectional',
-                    animation: {
-                        type: 'pulse-intensity',
-                        params: {
-                            speed: 'slow',
-                            intensity: 0.3  // Subtle pulsing
-                        }
-                    }
+                    
                 }));
             } else if (entityType === 'spin') {
                 entity = new Entity(worldPos);

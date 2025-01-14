@@ -21,7 +21,7 @@ interface LightState {
         color: string;
         intensity: number;
         radius: number;
-        falloff: 'linear' | 'quadratic' | 'exponential';
+        falloff: 'linear' | 'quadratic' | 'exponential' | 'step';
         xOffset: number;
         yOffset: number;
         facing: number;
@@ -438,7 +438,7 @@ export abstract class Renderer {
         return { minX, maxX, minY, maxY };
     }
 
-    private calculateFalloff(distance: number, radius: number, intensity: number, type: 'linear' | 'quadratic' | 'exponential'): number {
+    private calculateFalloff(distance: number, radius: number, intensity: number, type: 'linear' | 'quadratic' | 'exponential' | 'step'): number {
         const normalized = Math.max(0, 1 - (distance / radius));
         switch (type) {
             case 'linear':
@@ -447,6 +447,8 @@ export abstract class Renderer {
                 return (normalized * normalized) * intensity;
             case 'exponential':
                 return Math.pow(normalized, 4) * intensity;
+            case 'step':
+                return normalized >= 0.5 ? intensity : 0;
             default:
                 return normalized * intensity;
         }
