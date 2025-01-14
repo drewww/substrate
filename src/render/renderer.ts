@@ -245,15 +245,23 @@ export abstract class Renderer {
 
             // Handle numeric animations
             const valueAnimations: Record<string, any> = {};
-            if (animConfig.intensity) {
+
+            // Handle intensity animation
+            if (animConfig.intensity?.start !== undefined && 
+                animConfig.intensity?.end !== undefined) {
                 valueAnimations.intensity = {
                     ...animConfig.intensity,
                     duration: animConfig.intensity.duration * speedMultiplier,
-                    start: state.baseProperties.intensity * (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
-                    end: state.baseProperties.intensity * (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
+                    start: state.baseProperties.intensity * 
+                           (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
+                    end: state.baseProperties.intensity * 
+                         (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
                 };
             }
-            if (animConfig.radius) {
+
+            // Handle radius animation
+            if (animConfig.radius?.start !== undefined && 
+                animConfig.radius?.end !== undefined) {
                 valueAnimations.radius = {
                     ...animConfig.radius,
                     duration: animConfig.radius.duration * speedMultiplier,
@@ -262,7 +270,9 @@ export abstract class Renderer {
                 };
             }
 
-            if (animConfig.xOffset) {
+            // Handle xOffset animation
+            if (animConfig.xOffset?.start !== undefined && 
+                animConfig.xOffset?.end !== undefined) {
                 valueAnimations.xOffset = {
                     ...animConfig.xOffset,
                     duration: animConfig.xOffset.duration * speedMultiplier,
@@ -271,7 +281,9 @@ export abstract class Renderer {
                 };
             }
 
-            if (animConfig.yOffset) {
+            // Handle yOffset animation
+            if (animConfig.yOffset?.start !== undefined && 
+                animConfig.yOffset?.end !== undefined) {
                 valueAnimations.yOffset = {
                     ...animConfig.yOffset,
                     duration: animConfig.yOffset.duration * speedMultiplier,
