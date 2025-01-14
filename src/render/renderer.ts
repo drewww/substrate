@@ -24,6 +24,8 @@ interface LightState {
         falloff: 'linear' | 'quadratic' | 'exponential';
         xOffset: number;
         yOffset: number;
+        facing: number;
+        width: number;
     };
     currentProperties: {
         color: string;
@@ -31,6 +33,8 @@ interface LightState {
         radius: number;
         xOffset: number;
         yOffset: number;
+        facing: number;
+        width: number;
     };
 }
 
@@ -217,14 +221,18 @@ export abstract class Renderer {
                     radius: lightEmitter.config.radius,
                     falloff: lightEmitter.config.falloff,
                     xOffset: lightEmitter.config.xOffset ?? 0,
-                    yOffset: lightEmitter.config.yOffset ?? 0
+                    yOffset: lightEmitter.config.yOffset ?? 0,
+                    facing: lightEmitter.config.facing ?? 0,
+                    width: lightEmitter.config.width ?? 0
                 },
                 currentProperties: {
                     color: lightEmitter.config.color,
                     intensity: lightEmitter.config.intensity,
                     radius: lightEmitter.config.radius,
                     xOffset: lightEmitter.config.xOffset ?? 0,
-                    yOffset: lightEmitter.config.yOffset ?? 0
+                    yOffset: lightEmitter.config.yOffset ?? 0,
+                    facing: lightEmitter.config.facing ?? 0,
+                    width: lightEmitter.config.width ?? 0
                 }
             };
             this.lightStates.set(entity.getId(), state);
