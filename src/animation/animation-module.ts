@@ -78,7 +78,6 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
 
                 prop.lastDuration = duration;
 
-
                 let progress = (timestamp - animation.startTime) / (duration * 1000);
 
                 // If we have a chain, individual loop properties are ignored
@@ -96,29 +95,22 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     if (progress < (prop as any).lastProgress) {
                         delete (prop as any).lastDuration;
                     }
-
                     (prop as any).lastProgress = progress;
-                }
-
-                if (!isChain && prop.chainLoop) {
-                    
+                } else if (isChain && progress >= 1) {
                     // Create next animation step with chainLoop preserved
                     const nextProp = {
                         ...prop.next,
-                        // Preserve chainLoop from the original animation
                         chainLoop: prop.chainLoop,
-                        // Preserve next chain
                         next: prop.next?.next
                     };
                     
                     // If we're at the end of the chain and chainLoop is true,
                     // restart the chain from the beginning
                     if (!nextProp.next && prop.chainLoop) {
-                        // Get the first animation in the chain
+                        logger.info(`Restarting chain loop for ${id}`);
                         const originalAnimation = this.animations.get(id);
                         if (originalAnimation) {
                             const firstProp = (originalAnimation as any)[key];
-                            // Create a deep copy of the first animation
                             nextProp.next = {
                                 ...firstProp,
                                 next: firstProp.next,
@@ -132,7 +124,6 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     newAnimation.startTime = timestamp;
                     this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
                     continue;
-         
                 }
 
                 const easedProgress = prop.easing ? 
