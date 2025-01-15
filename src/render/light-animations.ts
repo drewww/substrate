@@ -49,10 +49,10 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
         intensity: {
             start: 1.0,
             end: 0.0,
-            duration: 2,
+            duration: [2, 2, 8, 10, 5, 3, 2, 1, 1],
             reverse: true,
             loop: true,
-            easing: Easing.flicker
+            easing: Easing.maxDelay
         }
     },
 

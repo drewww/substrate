@@ -157,6 +157,27 @@ class WorldTest {
                         }
                     }
                 }));
+            } else if (entityType === 'flicker') {
+                entity = new Entity(worldPos);
+                entity.setComponent(new SymbolComponent(
+                    '🔥',               // fire emoji or could use '§' as alternative
+                    '#ffa500',          // orange foreground
+                    '#00000000',        // transparent background
+                    50                  // z-index below light effect
+                ));
+                entity.setComponent(new LightEmitterComponent({
+                    radius: 6,
+                    intensity: 0.4,
+                    color: '#ffa500',    // Orange light
+                    distanceFalloff: 'quadratic',
+                    animation: {
+                        type: 'flicker',
+                        params: {
+                            speed: 'normal',
+                            intensity: 1.0
+                        }
+                    }
+                }));
             }
 
             if (entity) {
@@ -417,7 +438,8 @@ class WorldTest {
             { value: 'smokeBomb', label: 'Smoke Bomb' },
             { value: 'light', label: 'Light Source' },
             { value: 'spotlight', label: 'Spotlight' },
-            { value: 'spin', label: 'Spinning Light' }
+            { value: 'spin', label: 'Spinning Light' },
+            { value: 'flicker', label: 'Flickering Light' }
         ];
 
         options.forEach(opt => {

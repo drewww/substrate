@@ -263,7 +263,7 @@ export abstract class Renderer {
                 animConfig.intensity?.end !== undefined) {
                 valueAnimations.intensity = {
                     ...animConfig.intensity,
-                    duration: animConfig.intensity.duration * speedMultiplier,
+                    duration: animConfig.intensity.duration,  // Pass the original duration/array
                     start: state.baseProperties.intensity * 
                            (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
                     end: state.baseProperties.intensity * 
@@ -276,7 +276,7 @@ export abstract class Renderer {
                 animConfig.radius?.end !== undefined) {
                 valueAnimations.radius = {
                     ...animConfig.radius,
-                    duration: animConfig.radius.duration * speedMultiplier,
+                    duration: animConfig.radius.duration,
                     start: state.baseProperties.radius * animConfig.radius.start,
                     end: state.baseProperties.radius * animConfig.radius.end
                 };
@@ -286,7 +286,7 @@ export abstract class Renderer {
             if (animConfig.xOffset !== undefined ) {
                 valueAnimations.xOffset = {
                     ...animConfig.xOffset,
-                    duration: animConfig.xOffset.duration * speedMultiplier,
+                    duration: animConfig.xOffset.duration,
                 };
             }
 
@@ -294,7 +294,7 @@ export abstract class Renderer {
             if (animConfig.yOffset !== undefined ) {
                 valueAnimations.yOffset = {
                     ...animConfig.yOffset,
-                    duration: animConfig.yOffset.duration * speedMultiplier,
+                    duration: animConfig.yOffset.duration,
                 };
             }
 
@@ -302,7 +302,7 @@ export abstract class Renderer {
             if (animConfig.facing !== undefined) {
                 valueAnimations.facing = {
                     ...animConfig.facing,
-                    duration: animConfig.facing.duration * speedMultiplier,
+                    duration: animConfig.facing.duration,
                 };
             }
 
@@ -311,7 +311,7 @@ export abstract class Renderer {
                 this.lightColorAnimations.add(entity.getId(), {
                     color: {
                         ...animConfig.color,
-                        duration: animConfig.color.duration * speedMultiplier,
+                        duration: animConfig.color.duration,
                         start: animConfig.color.start,
                         end: animConfig.color.end
                     }
