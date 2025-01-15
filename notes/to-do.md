@@ -90,10 +90,10 @@ Display
 
 - DONE REMEMBER TO CHECK ON LIGHT EMITTER COMPONTNET SERIALIZATION
 
-- implement width? can we get a like, 180 degree light source working?
+- DONE implement width? can we get a like, 180 degree light source working?
   - fix the "mode" -- probably don't need it at all?
-  - factor out the falloff types into a type
-- can we animate facing successfully?
+  - DONE factor out the falloff types into a type
+- DONE can we animate facing successfully?
 - then probably get out ...
 
 

@@ -99,7 +99,6 @@ class WorldTest {
                     intensity: 0.3,
                     color: '#ffff00',
                     distanceFalloff: 'quadratic',
-                    mode: 'omnidirectional',
                     animation: {
                         type: randomAnimation,
                         params: {
@@ -130,9 +129,6 @@ class WorldTest {
                     angleFalloff: 'step',
                     facing: randomFacing,
                     width: randomWidth,
-
-                    // TODO: 
-                    mode: 'omnidirectional',
                     
                     animation: {
                         type: 'rotate',
@@ -154,7 +150,6 @@ class WorldTest {
                     intensity: 0.2,
                     color: '#ffff00',
                     distanceFalloff: 'linear',
-                    mode: 'omnidirectional',
                     animation: {
                         type: 'offset-rotate',
                         params: {
@@ -228,7 +223,6 @@ class WorldTest {
                     intensity: 0.2,
                     color: '#ffff00',
                     distanceFalloff: 'quadratic',
-                    mode: 'omnidirectional',
                     animation: {
                         type: 'pulse-intensity',
                         params: {

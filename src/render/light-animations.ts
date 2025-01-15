@@ -77,8 +77,8 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
 
     'rotate': {
         facing: {
-            start: 0,
-            end: Math.PI * 2,
+            range: Math.PI * 2,
+            offset: 0,
             duration: 2,
             loop: true,
             easing: Easing.linear,

@@ -2,7 +2,6 @@ import { Component } from '../component';
 import { LightAnimationType } from '../../render/light-animations';
 import { RegisterComponent } from '../component-registry';
 
-export type LightMode = 'omnidirectional' | 'beam';
 export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step';
 
 export interface LightEmitterConfig {
@@ -11,10 +10,8 @@ export interface LightEmitterConfig {
     color: string;
     distanceFalloff: LightFalloff;
     angleFalloff?: LightFalloff;
-    mode: LightMode;
-    facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), required for 'beam' mode
-    width?: number;     // Width of the light beam in tiles
-    // New properties for sub-tile positioning
+    facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), if set makes this a directional light
+    width?: number;      // Width of the light beam in radians, required if facing is set
     xOffset?: number;    // -0.5 to 0.5, relative to tile center
     yOffset?: number;    // -0.5 to 0.5, relative to tile center
     animation?: {
@@ -34,9 +31,9 @@ export class LightEmitterComponent extends Component {
         public config: LightEmitterConfig
     ) {
         super();
-        // Validate beam mode has facing direction
-        if (config.mode === 'beam' && config.facing === undefined) {
-            throw new Error('Beam mode requires facing direction');
+        // Validate that if facing is set, width is also set
+        if (config.facing !== undefined && config.width === undefined) {
+            throw new Error('Directional lights (with facing) require width to be set');
         }
     }
 
@@ -44,7 +41,6 @@ export class LightEmitterComponent extends Component {
         return new LightEmitterComponent(data.config);
     }
 
-    // Helper method to create from config object, with defaults
     static fromConfig(config: Partial<LightEmitterConfig>): LightEmitterComponent {
         return new LightEmitterComponent({
             radius: config.radius ?? 5,
@@ -52,7 +48,6 @@ export class LightEmitterComponent extends Component {
             color: config.color ?? '#FFFFFF',
             distanceFalloff: config.distanceFalloff ?? 'quadratic',
             angleFalloff: config.angleFalloff ?? 'linear',
-            mode: config.mode ?? 'omnidirectional',
             facing: config.facing,
             width: config.width,
             xOffset: config.xOffset,

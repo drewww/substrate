@@ -1362,7 +1362,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private updateTileProperty<K extends keyof Tile>(tileId: TileId, property: K, value: Tile[K]): void {
-        logger.info(`Updating tile property ${property} to ${value} for tile ${tileId}`);
+        logger.verbose(`Updating tile property ${property} to ${value} for tile ${tileId}`);
 
         const tile = this.tileMap.get(tileId);
 
