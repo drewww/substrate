@@ -2,7 +2,7 @@ import { ColorAnimationProperty } from '../animation/color-animation';
 import { ValueAnimationProperty } from '../animation/value-animation';
 import { Easing, Transform } from '../display/display';
 
-export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'rotate' | 'offset-rotate';
+export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'rotate' | 'offset-rotate' | 'pulse-width' | 'charge-shoot';
 
 export interface LightAnimationConfig {
     intensity?: ValueAnimationProperty;
@@ -11,6 +11,7 @@ export interface LightAnimationConfig {
     xOffset?: ValueAnimationProperty;
     yOffset?: ValueAnimationProperty;
     facing?: ValueAnimationProperty;
+    width?: ValueAnimationProperty;
 }
 
 export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> = {
@@ -102,6 +103,38 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             loop: true,
             easing: Easing.linear,
             transform: Transform.sine
+        }
+    },
+
+    'pulse-width': {
+        width: {
+            range: Math.PI / 2,
+            offset: Math.PI / 4,
+            duration: 2,
+            loop: true,
+            easing: Easing.sineInOut,
+            transform: Transform.linear
+        }
+    },
+
+    'charge-shoot': {
+        width: {
+            start: Math.PI,
+            end: Math.PI / 32,
+            duration: 3,
+            easing: Easing.expoInOut
+        },
+        radius: {
+            start: 3,
+            end: 15,
+            duration: 3,
+            easing: Easing.expoIn
+        },
+        intensity: {
+            start: 0.3,
+            end: 1.0,
+            duration: 3,
+            easing: Easing.expoIn
         }
     }
 }; 

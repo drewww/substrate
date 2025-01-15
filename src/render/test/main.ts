@@ -179,6 +179,25 @@ class WorldTest {
                         }
                     }
                 }));
+            } else if (entityType === 'chargedShot') {
+                entity = new Entity(worldPos);
+                entity.setComponent(new SymbolComponent(
+                    '^',                // Diamond with dot character
+                    '#00ffff',          // cyan foreground
+                    '#00000000',        // transparent background
+                    50                  // z-index below light effect
+                ));
+                entity.setComponent(new LightEmitterComponent({
+                    radius: 2,          // Starts small
+                    intensity: 0.5,     // Starts dim
+                    color: '#00ffff',   // Cyan light
+                    distanceFalloff: 'linear',
+                    facing: Math.PI/2,  // Face upward
+                    width: Math.PI,     // Start wide
+                    animation: {
+                        type: 'charge-shoot'
+                    }
+                }));
             }
 
             if (entity) {
@@ -440,7 +459,8 @@ class WorldTest {
             { value: 'light', label: 'Light Source' },
             { value: 'spotlight', label: 'Spotlight' },
             { value: 'spin', label: 'Spinning Light' },
-            { value: 'flicker', label: 'Flickering Light' }
+            { value: 'flicker', label: 'Flickering Light' },
+            { value: 'chargedShot', label: 'Charged Shot' }
         ];
 
         options.forEach(opt => {

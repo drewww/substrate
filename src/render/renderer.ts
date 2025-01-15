@@ -70,6 +70,9 @@ export abstract class Renderer {
             if (value.facing !== undefined) {
                 state.currentProperties.facing = value.facing;
             }
+            if (value.width !== undefined) {
+                state.currentProperties.width = value.width;
+            }
 
             const entity = this.world.getEntity(id);
             if (entity) {
@@ -316,6 +319,14 @@ export abstract class Renderer {
                         end: animConfig.color.end
                     }
                 });
+            }
+
+            // Handle width animation
+            if (animConfig.width !== undefined) {
+                valueAnimations.width = {
+                    ...animConfig.width,
+                    duration: animConfig.width.duration,
+                };
             }
 
             // Add value animations if any exist
