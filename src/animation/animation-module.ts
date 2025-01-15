@@ -71,7 +71,14 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                 if (key === 'startTime' || key === 'running') continue;
                 if (!prop || typeof prop !== 'object') continue;
 
-                const duration = this.getNextDuration(prop);
+
+                // logger.info(`current duration: ${prop.lastDuration}`);
+
+                const duration = prop.lastDuration ?? this.getNextDuration(prop);
+
+                prop.lastDuration = duration;
+
+
                 let progress = (timestamp - animation.startTime) / (duration * 1000);
 
                 // If we have a chain, individual loop properties are ignored
@@ -89,6 +96,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     if (progress < (prop as any).lastProgress) {
                         delete (prop as any).lastDuration;
                     }
+
                     (prop as any).lastProgress = progress;
                 }
 
@@ -124,6 +132,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     newAnimation.startTime = timestamp;
                     this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
                     continue;
+         
                 }
 
                 const easedProgress = prop.easing ? 
@@ -161,11 +170,15 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
     }
 
     protected getNextDuration(prop: AnimationProperty): number {
+        let duration = 1;
+
         if (Array.isArray(prop.duration)) {
-            const duration = prop.duration[Math.floor(Math.random() * prop.duration.length)];
-            // logger.info(`Selected duration: ${duration}`);
-            return duration;
+            duration = prop.duration[Math.floor(Math.random() * prop.duration.length)];
+        } else {
+            duration = prop.duration;
         }
-        return prop.duration;
+
+        // logger.info(`Selected new duration: ${duration}`);
+        return duration;
     }
 } 
