@@ -125,17 +125,17 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
             easing: Easing.expoInOut,
         },
         radius: {
-            start: 1,
-            end: 8,
+            start: 0,
+            end: 18,
             duration: 1,
             easing: Easing.expoIn,
 
         },
         intensity: {
-            start: 0.3,
-            end: 1.0,
+            start: 0.1,
+            end: 0.5,
             duration: 1,
-            easing: Easing.expoIn,
+            easing: Easing.quadOut,
         }
     },
 

@@ -145,6 +145,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                 const easedProgress = prop.easing ? 
                     prop.easing(progress) : progress;
 
+                logger.info(`Updating value animation with key: ${key} and prop: ${JSON.stringify(prop)}`);
                 this.updateValue(id, animation, easedProgress);
             }
 

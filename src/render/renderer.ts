@@ -53,6 +53,8 @@ export abstract class Renderer {
     ) {
         this.lightValueAnimations = new ValueAnimationModule((id, value) => {
             const state = this.lightStates.get(id);
+
+            logger.info(`Renderer received value animation update for ${id} with value ${JSON.stringify(value)}`);
             if (!state) return;
             
             // Update the current properties based on animations
@@ -140,7 +142,7 @@ export abstract class Renderer {
         
         // Handle light emitter independently
         if (entity.hasComponent('lightEmitter')) {
-            logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component`);
+            logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
             this.addEntityLight(entity);
         }
     }
@@ -278,7 +280,9 @@ export abstract class Renderer {
         if (lightEmitter.config.animation) {
             const animConfig = LIGHT_ANIMATIONS[lightEmitter.config.animation.type];
             const params = lightEmitter.config.animation.params;
-            
+
+            logger.info(`Adding value animations for ${entity.getId()}: ${JSON.stringify(animConfig)}`);
+
             const speedMultiplier = params?.speed === 'fast' ? 0.5 : 
                                   params?.speed === 'slow' ? 2.0 : 1.0;
             const intensityMultiplier = params?.intensity ?? 1.0;
@@ -296,10 +300,8 @@ export abstract class Renderer {
                 valueAnimations.intensity = {
                     ...animConfig.intensity,
                     duration: animConfig.intensity.duration,  // Pass the original duration/array
-                    start: state.baseProperties.intensity * 
-                           (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
-                    end: state.baseProperties.intensity * 
-                         (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
+                    start: (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
+                    end: (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
                 };
             }
 
@@ -309,8 +311,8 @@ export abstract class Renderer {
                 valueAnimations.radius = {
                     ...animConfig.radius,
                     duration: animConfig.radius.duration,
-                    start: state.baseProperties.radius * animConfig.radius.start,
-                    end: state.baseProperties.radius * animConfig.radius.end
+                    start: animConfig.radius.start,
+                    end: animConfig.radius.end
                 };
             }
 
@@ -407,18 +409,19 @@ export abstract class Renderer {
             }
         }
 
-        // Get visible tiles first
+        // Get visible tiles first, always check at least 1 tile radius for visibility
+        const visibilityRadius = Math.max(1, state.currentProperties.radius);
         const visibleTiles = this.world.getVisibleTilesInRadius(
             { x: Math.round(offsetPosition.x), y: Math.round(offsetPosition.y) }, 
-            state.currentProperties.radius
+            visibilityRadius
         );
 
         // If no visible tiles, exit early
         if (visibleTiles.size === 0) return;
 
         const newTiles = new Set<string>();
-        const radius = Math.ceil(state.currentProperties.radius);
-        const isDirectional = lightEmitter.config.facing !== undefined;
+        const radius = state.currentProperties.radius;
+        const isDirectional = state.currentProperties.width > 0;
 
         if (isDirectional) {
             const facing = this.normalizeAngle(state.currentProperties.facing);
@@ -491,25 +494,33 @@ export abstract class Renderer {
             // Pre-calculate bounds based on visible tiles
             const bounds = this.calculateVisibleBounds(visibleTiles);
             
-            // Only iterate over the intersection of radius and visible bounds
-            for (let y = Math.max(bounds.minY, Math.floor(offsetPosition.y - radius)); 
-                 y <= Math.min(bounds.maxY, Math.ceil(offsetPosition.y + radius)); y++) {
-                for (let x = Math.max(bounds.minX, Math.floor(offsetPosition.x - radius)); 
-                     x <= Math.min(bounds.maxX, Math.ceil(offsetPosition.x + radius)); x++) {
-                    
+            // For radius 0, ensure we render at least the center tile
+            // For radius > 0, add a small buffer to handle sub-tile animations
+            const effectiveRadius = radius === 0 ? 0.5 : radius + 0.5;
+                        
+            const minX = Math.max(bounds.minX, Math.floor(offsetPosition.x - effectiveRadius));
+            const maxX = Math.min(bounds.maxX, Math.ceil(offsetPosition.x + effectiveRadius));
+            const minY = Math.max(bounds.minY, Math.floor(offsetPosition.y - effectiveRadius));
+            const maxY = Math.min(bounds.maxY, Math.ceil(offsetPosition.y + effectiveRadius));
+            
+            for (let y = minY; y <= maxY; y++) {
+                for (let x = minX; x <= maxX; x++) {
                     if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
                         continue;
                     }
+
+                    logger.info(`Checking tile ${x},${y} for visibility`);
 
                     const dx = x - offsetPosition.x;
                     const dy = y - offsetPosition.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (distance > state.currentProperties.radius) continue;
+                    // Use actual radius for falloff calculation
+                    if (distance > radius) continue;
 
                     const intensity = this.calculateFalloff(
                         distance,
-                        state.currentProperties.radius,
+                        radius,
                         state.currentProperties.intensity,
                         state.baseProperties.distanceFalloff
                     );
@@ -524,6 +535,10 @@ export abstract class Renderer {
 
     // Helper method to create light tiles
     private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>, blendMode: BlendMode) {
+        
+        logger.info(`Creating light tile at ${x},${y} with intensity ${intensity} and color ${color}`);
+
+
         const baseColor = color.slice(0, 7);
         const tileId = this.display.createTile(
             x, y,
@@ -553,6 +568,11 @@ export abstract class Renderer {
     }
 
     private calculateFalloff(distance: number, radius: number, intensity: number, type: LightFalloff): number {
+        // Special case for radius 0 - only light up the center tile
+        if (radius === 0) {
+            return distance === 0 ? intensity : 0;
+        }
+
         const normalized = Math.max(0, 1 - (distance / radius));
         switch (type) {
             case 'linear':

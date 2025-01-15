@@ -187,8 +187,8 @@ class WorldTest {
                     50                  // z-index below light effect
                 ));
                 entity.setComponent(new LightEmitterComponent({
-                    radius: 2,          // Starts small
-                    intensity: 0.5,     // Starts dim
+                    radius: 0,          // Starts small
+                    intensity: 0,     // Starts dim
                     color: '#00ffff',   // Cyan light
                     distanceFalloff: 'step',
                     facing: Math.PI/2,  // Face upward
