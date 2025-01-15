@@ -82,6 +82,8 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
 
                 let progress = (timestamp - animation.startTime) / (duration * 1000);
 
+
+                
                 // If we have a chain, individual loop properties are ignored
                 const isChain = Boolean(prop.chainLoop || prop.next);
 
@@ -133,10 +135,9 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                         this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
                         continue;
                     }
-
-                    
-
-                    const easedProgress = prop.easing ?
+                }
+                
+                const easedProgress = prop.easing ?
                         prop.easing(progress) : progress;
 
                     this.updateValue(id, animation, easedProgress);
@@ -146,7 +147,6 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                         this.animations.delete(id);
                         continue;
                     }
-                }
             }
         }
     }
