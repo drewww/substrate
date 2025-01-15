@@ -127,6 +127,7 @@ class WorldTest {
                     intensity: 0.5,
                     color: '#ffffff',    // White light
                     distanceFalloff: 'step',
+                    angleFalloff: 'step',
                     facing: randomFacing,
                     width: randomWidth,
 

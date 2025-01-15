@@ -4,7 +4,7 @@ import { World } from '../world/world';
 import { Point } from '../types';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
-import { LightEmitterComponent } from '../entity/components/light-emitter-component';
+import { LightEmitterComponent, LightFalloff } from '../entity/components/light-emitter-component';
 import { ValueAnimationModule } from '../animation/value-animation';
 import { LIGHT_ANIMATIONS } from './light-animations';
 import { ColorAnimationModule } from '../animation/color-animation';
@@ -21,7 +21,8 @@ interface LightState {
         color: string;
         intensity: number;
         radius: number;
-        distanceFalloff: 'linear' | 'quadratic' | 'exponential' | 'step';
+        distanceFalloff: LightFalloff;
+        angleFalloff?: LightFalloff;
         xOffset: number;
         yOffset: number;
         facing: number;
@@ -220,6 +221,7 @@ export abstract class Renderer {
                     intensity: lightEmitter.config.intensity,
                     radius: lightEmitter.config.radius,
                     distanceFalloff: lightEmitter.config.distanceFalloff,
+                    angleFalloff: lightEmitter.config.angleFalloff,
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,
@@ -359,9 +361,10 @@ export abstract class Renderer {
             const endAngle = this.normalizeAngle(facing + halfWidth);
             const isWrapping = startAngle > endAngle;
 
+            // Track tile intensities
+            const tileIntensities = new Map<string, number>();
+
             for (let dist = 0; dist <= radius; dist++) {
-                // Calculate how many samples we need at this distance
-                // At dist=1, we want at least 8 samples, scaling up with distance
                 const samplesNeeded = Math.max(8, Math.ceil(dist * 8));
                 const angleStep = (2 * Math.PI) / samplesNeeded;
 
@@ -372,7 +375,6 @@ export abstract class Renderer {
                     const x = Math.round(offsetPosition.x + dx * dist);
                     const y = Math.round(offsetPosition.y + dy * dist);
 
-                    // Check if this angle is within our beam
                     const normalizedAngle = this.normalizeAngle(angle);
                     const inBeam = isWrapping ?
                         (normalizedAngle >= startAngle || normalizedAngle <= endAngle) :
@@ -380,27 +382,30 @@ export abstract class Renderer {
 
                     if (!inBeam) continue;
 
-                    // Check visibility
+                    const tileKey = `${x},${y}`;
                     if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
                         continue;
                     }
 
-                    // Calculate angle distance from beam center for intensity falloff
-                    let angleDistance = Math.abs(this.getAngleDistance(normalizedAngle, facing));
-                    const angleMultiplier = 1 - (angleDistance / halfWidth);
-                    
-                    if (angleMultiplier <= 0) continue;
-
-                    const baseIntensity = this.calculateFalloff(
+                    const intensity = this.calculateFalloff(
                         dist,
                         state.currentProperties.radius,
                         state.currentProperties.intensity,
                         state.baseProperties.distanceFalloff
                     );
                     
-                    const intensity = baseIntensity * angleMultiplier;
-                    this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
+                    // Keep track of maximum intensity for each tile
+                    const currentIntensity = tileIntensities.get(tileKey) ?? 0;
+                    if (intensity > currentIntensity) {
+                        tileIntensities.set(tileKey, intensity);
+                    }
                 }
+            }
+
+            // Create light tiles using the tracked intensities
+            for (const [tileKey, intensity] of tileIntensities) {
+                const [x, y] = tileKey.split(',').map(Number);
+                this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
             }
         } else {
             // Pre-calculate bounds based on visible tiles

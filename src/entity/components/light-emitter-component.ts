@@ -3,12 +3,14 @@ import { LightAnimationType } from '../../render/light-animations';
 import { RegisterComponent } from '../component-registry';
 
 export type LightMode = 'omnidirectional' | 'beam';
+export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step';
 
 export interface LightEmitterConfig {
     radius: number;
     intensity: number;
     color: string;
-    distanceFalloff: 'linear' | 'quadratic' | 'exponential' | 'step';
+    distanceFalloff: LightFalloff;
+    angleFalloff?: LightFalloff;
     mode: LightMode;
     facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), required for 'beam' mode
     width?: number;     // Width of the light beam in tiles
@@ -49,6 +51,7 @@ export class LightEmitterComponent extends Component {
             intensity: config.intensity ?? 1.0,
             color: config.color ?? '#FFFFFF',
             distanceFalloff: config.distanceFalloff ?? 'quadratic',
+            angleFalloff: config.angleFalloff ?? 'linear',
             mode: config.mode ?? 'omnidirectional',
             facing: config.facing,
             width: config.width,
