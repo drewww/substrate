@@ -397,12 +397,23 @@ export abstract class Renderer {
                         continue;
                     }
 
+                    // Calculate angle distance and normalized distance for falloff
+                    const angleDistance = Math.abs(this.getAngleDistance(normalizedAngle, facing));
+                    const normalizedAngleDistance = angleDistance / halfWidth;
+                    
+                    // Only apply falloff in the outer 5% of the beam
+                    const angleMultiplier = normalizedAngleDistance > 0.65 ? 
+                        (1 - (normalizedAngleDistance - 0.65) / 0.35) : // Linear falloff in last 5%
+                        1.0; // Full intensity for inner 95%
+                    
+                    if (angleMultiplier <= 0) continue;
+
                     const intensity = this.calculateFalloff(
                         dist,
                         state.currentProperties.radius,
                         state.currentProperties.intensity,
                         state.baseProperties.distanceFalloff
-                    );
+                    ) * angleMultiplier;
                     
                     // Keep track of maximum intensity for each tile
                     const currentIntensity = tileIntensities.get(tileKey) ?? 0;
