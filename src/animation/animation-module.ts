@@ -63,7 +63,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         // logger.info(`Added animation ${id} with config: ${JSON.stringify(config)}`);
     }
 
-    public update(timestamp: number): void {        
+    public update(timestamp: number): void {
         for (const [id, animation] of this.animations) {
             if (!animation.running) continue;
 
@@ -71,6 +71,8 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                 if (key === 'startTime' || key === 'running') continue;
                 if (!prop || typeof prop !== 'object') continue;
 
+
+                // logger.info(`${id} ${key} ${JSON.stringify(prop)}`);
 
                 // logger.info(`current duration: ${prop.lastDuration}`);
 
@@ -90,49 +92,65 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     } else {
                         progress = progress % 1;
                     }
-                    
+
                     // Reset duration when a loop completes
                     if (progress < (prop as any).lastProgress) {
                         delete (prop as any).lastDuration;
                     }
                     (prop as any).lastProgress = progress;
-                } else if (isChain && progress >= 1) {
-                    // Create next animation step with chainLoop preserved
-                    const nextProp = {
-                        ...prop.next,
-                        chainLoop: prop.chainLoop,
-                        next: prop.next?.next
-                    };
-                    
-                    // If we're at the end of the chain and chainLoop is true,
-                    // restart the chain from the beginning
-                    if (!nextProp.next && prop.chainLoop) {
-                        logger.info(`Restarting chain loop for ${id}`);
-                        const originalAnimation = this.animations.get(id);
-                        if (originalAnimation) {
-                            const firstProp = (originalAnimation as any)[key];
-                            nextProp.next = {
-                                ...firstProp,
-                                next: firstProp.next,
-                                chainLoop: prop.chainLoop
-                            };
+                } else {
+
+                    // For non-chain animations that complete, cap at 1 and stop
+                    progress = Math.min(progress, 1);
+
+                    if (isChain && progress === 1) {
+                        // Create next animation step with chainLoop preserved
+                        const nextProp = {
+                            ...prop.next,
+                            chainLoop: prop.chainLoop,
+                            next: prop.next?.next
+                        };
+
+                        // If we're at the end of the chain and chainLoop is true,
+                        // restart the chain from the beginning
+                        if (!nextProp.next && prop.chainLoop) {
+                            logger.info(`Restarting chain loop for ${id}`);
+                            const originalAnimation = this.animations.get(id);
+                            if (originalAnimation) {
+                                const firstProp = (originalAnimation as any)[key];
+                                nextProp.next = {
+                                    ...firstProp,
+                                    next: firstProp.next,
+                                    chainLoop: prop.chainLoop
+                                };
+                            }
                         }
+
+
+                        const newAnimation = { ...animation };
+                        (newAnimation as any)[key] = nextProp;
+                        newAnimation.startTime = timestamp;
+                        this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
+                        continue;
                     }
 
-                    const newAnimation = { ...animation };
-                    (newAnimation as any)[key] = nextProp;
-                    newAnimation.startTime = timestamp;
-                    this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
-                    continue;
+                    
+
+                    const easedProgress = prop.easing ?
+                        prop.easing(progress) : progress;
+
+                    this.updateValue(id, animation, easedProgress);
+
+                    if(progress === 1) {
+                        animation.running = false;
+                        this.animations.delete(id);
+                        continue;
+                    }
                 }
-
-                const easedProgress = prop.easing ? 
-                    prop.easing(progress) : progress;
-
-                this.updateValue(id, animation, easedProgress);
             }
         }
     }
+    
 
     public get(id: string): TConfig | undefined {
         return this.animations.get(id);

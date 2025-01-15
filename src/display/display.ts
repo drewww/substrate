@@ -1316,7 +1316,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 } else if(valueAnims.x?.end && valueAnims.x?.start) {
                     rangeX = valueAnims.x.end - valueAnims.x.start;
                 } else {
-                    logger.warn(`No range or start/end for x animation ${tile.id}`);
+                    logger.warn(`No range or start/end for x animation ${tile.id} ${JSON.stringify(valueAnims.x)}`);
                 }
  
                 let rangeY: number = 0;
@@ -1325,7 +1325,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 } else if(valueAnims.y?.end && valueAnims.y?.start) {
                     rangeY = valueAnims.y.end - valueAnims.y.start;
                 } else {
-                    logger.warn(`No range or start/end for y animation ${tile.id}`);
+                    logger.warn(`No range or start/end for y animation ${tile.id} ${JSON.stringify(valueAnims.y)}`);
                 }
 
                 const targetX = valueAnims.x ? 

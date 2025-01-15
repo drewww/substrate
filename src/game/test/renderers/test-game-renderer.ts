@@ -27,14 +27,14 @@ export class TestGameRenderer extends GameRenderer {
             this.handleComponentAdded(data.entity, data.componentType);
         });
 
-        // Subscribe to entity movement to update visibility
-        this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
-            // if (data.entity.hasComponent('player')) {
-            //     // Update visibility immediately using the destination position
-            //     this.updateVisibility();
-            // }
-            return this.handleEntityMoved(data.entity, data.from, data.to);
-        });
+        // // Subscribe to entity movement to update visibility
+        // this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
+        //     // if (data.entity.hasComponent('player')) {
+        //     //     // Update visibility immediately using the destination position
+        //     //     this.updateVisibility();
+        //     // }
+        //     return this.handleEntityMoved(data.entity, data.from, data.to);
+        // });
 
         this.world.on('playerVisionUpdated', (data: { playerPos: Point, visibleLocations: Set<string> }) => {
             this.updateVisibility(data.playerPos);
@@ -44,9 +44,6 @@ export class TestGameRenderer extends GameRenderer {
     public updateVisibility(overridePosition?: Point): void {
         const player = this.world.getEntitiesWithComponent('player')[0];
         if (!player) return;
-
-        logger.info('Updating visibility: ', overridePosition);
-        console.trace();
 
         // Use override position if provided, otherwise use player's current position
         const pos = overridePosition || player.getPosition();
@@ -79,6 +76,10 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
+
+        logger.info(`handleEntityMoved ${entity.getId()} from ${from.x},${from.y} to ${to.x},${to.y}`);
+        console.trace();
+
         const tileId = this.entityTiles.get(entity.getId());
         if (tileId) {
             const isPlayer = entity.hasComponent('player');
