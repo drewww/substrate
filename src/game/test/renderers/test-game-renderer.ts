@@ -7,6 +7,7 @@ import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { logger } from '../../../util/logger';
 import { World } from '../../../world/world';
 import { Display } from '../../../display/display';
+import { Component } from '../../../entity/component';
 
 export class TestGameRenderer extends GameRenderer {
     private readonly VISION_RADIUS = 5;  // Chebyshev distance for visibility
@@ -73,6 +74,10 @@ export class TestGameRenderer extends GameRenderer {
         });
 
         this.display.setVisibilityMask(mask);
+    }
+
+    protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+        logger.warn(`[NOT IMPLEMENTED] Component removed: ${entity.getId()} - ${componentType}`);
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {

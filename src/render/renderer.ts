@@ -8,6 +8,7 @@ import { LightEmitterComponent, LightFalloff } from '../entity/components/light-
 import { ValueAnimationModule } from '../animation/value-animation';
 import { LIGHT_ANIMATIONS } from './light-animations';
 import { ColorAnimationModule } from '../animation/color-animation';
+import { Component } from '../entity/component';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -77,6 +78,15 @@ export abstract class Renderer {
             const entity = this.world.getEntity(id);
             if (entity) {
                 this.renderLightTiles(entity, state);
+
+                // Check if animation is complete and should be removed
+                const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+                if (lightEmitter?.config.removeOnComplete && !this.lightValueAnimations.isRunning(id)) {
+                    const entity = this.world.getEntity(id);
+                    if (entity) {
+                        entity.removeComponent('lightEmitter');
+                    }
+                }
             }
         });
 
@@ -104,6 +114,7 @@ export abstract class Renderer {
         this.world.on('entityMoved', ({ entity, from, to }) => this.onEntityMoved(entity, from, to));
         this.world.on('entityModified', ({ entity, componentType }) => this.onEntityModified(entity, componentType));
         this.world.on('componentModified', ({ entity, componentType }) => this.onComponentModified(entity, componentType));
+        this.world.on('componentRemoved', ({ entity, componentType, component }) => this.onComponentRemoved(entity, componentType, component));
     }
 
     /**
@@ -144,6 +155,7 @@ export abstract class Renderer {
      * Handle component addition/removal
      */
     protected onEntityModified(entity: Entity, componentType: string): void {
+        logger.info(`Renderer received entityModified event for ${entity.getId()} with component ${componentType}`);
         if (componentType === 'symbol') {
             const tileId = this.entityTiles.get(entity.getId());
             const symbol = entity.getComponent('symbol') as SymbolComponent;
@@ -155,7 +167,7 @@ export abstract class Renderer {
                     zIndex: symbol.zIndex
                 });
             }
-        }
+        } 
         this.handleEntityModified(entity, componentType);
     }
 
@@ -194,6 +206,30 @@ export abstract class Renderer {
         this.lightColorAnimations.clear(entity.getId());
         
         this.handleEntityRemoved(entity);
+    }
+
+    /**
+     * Handle component removal
+     */
+    protected onComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+        if (componentType === 'lightEmitter') {
+            // If the component was removed (no longer exists on entity)
+            if (!entity.hasComponent('lightEmitter')) {
+                // Clean up light tiles
+                const lightTiles = this.lightSourceTiles.get(entity.getId());
+                if (lightTiles) {
+                    lightTiles.forEach(tileId => this.display.removeTile(tileId));
+                    this.lightSourceTiles.delete(entity.getId());
+                }
+                
+                // Clean up light state and animations
+                this.lightStates.delete(entity.getId());
+                this.lightValueAnimations.clear(entity.getId());
+                this.lightColorAnimations.clear(entity.getId());
+            }
+        }
+
+        this.handleComponentRemoved(entity, componentType, component);
     }
 
     /**
@@ -542,6 +578,7 @@ export abstract class Renderer {
     protected abstract handleEntityAdded(entity: Entity, tileId: string): void;
     protected abstract handleEntityModified(entity: Entity, componentType: string): void;
     protected abstract handleComponentModified(entity: Entity, componentType: string): void;
+    protected abstract handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;
     protected abstract handleEntityRemoved(entity: Entity): void;
     protected abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
 

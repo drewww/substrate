@@ -710,10 +710,11 @@ export class World {
     /**
      * Called when a component is removed from an entity
      */
-    onComponentRemoved(entity: Entity, componentType: string): void {
+    onComponentRemoved(entity: Entity, componentType: string, component: Component): void {
         this.emit('componentRemoved', {
             entity,
-            componentType
+            componentType,
+            component
         });
     }
 

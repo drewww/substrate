@@ -4,6 +4,7 @@ import { Point } from '../../types';
 import { Easing, BlendMode } from '../../display/display';
 import { FadeComponent } from './test-components';
 import { logger } from '../../util/logger';
+import { Component } from '../../entity/component';
 
 export class GameRenderer extends Renderer {
     protected onEntityAdded(entity: Entity): void {
@@ -36,6 +37,7 @@ export class GameRenderer extends Renderer {
 
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleComponentModified(entity: Entity, componentType: string): void {}
+    protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
     protected handleEntityRemoved(entity: Entity): void {}
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
         const tileId = this.entityTiles.get(entity.getId());

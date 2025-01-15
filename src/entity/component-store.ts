@@ -26,10 +26,14 @@ export class ComponentStore {
   /**
    * Remove a component by type
    * @param type The literal type of the component to remove
-   * @returns true if the component was removed, false if it didn't exist
+   * @returns the component that was removed, or undefined if it didn't exist
    */
-  remove(type: string): boolean {
-    return this.components.delete(type);
+  remove(type: string): Component | undefined {
+    const component = this.components.get(type);
+    if (component) {
+      this.components.delete(type);
+    }
+    return component;
   }
 
   /**

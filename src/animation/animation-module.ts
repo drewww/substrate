@@ -171,6 +171,11 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         }
     }
 
+    public isRunning(id: string): boolean {
+        const animation = this.animations.get(id);
+        return animation?.running ?? false;
+    }
+
     protected abstract interpolateValue(config: TConfig, progress: number): TValue;
 
     protected updateValue(id: string, config: TConfig, progress: number): void {

@@ -194,6 +194,7 @@ class WorldTest {
                     distanceFalloff: 'linear',
                     facing: Math.PI/2,  // Face upward
                     width: Math.PI,     // Start wide
+                    removeOnComplete: true,
                     animation: {
                         type: 'charge-shoot'
                     }

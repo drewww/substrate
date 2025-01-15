@@ -16,6 +16,7 @@ export interface LightEmitterConfig {
     xOffset?: number;    // -0.5 to 0.5, relative to tile center
     yOffset?: number;    // -0.5 to 0.5, relative to tile center
     mode?: LightMode;    // Whether to affect background ('bg') or foreground ('fg') color
+    removeOnComplete?: boolean;
     animation?: {
         type: LightAnimationType;
         params?: {

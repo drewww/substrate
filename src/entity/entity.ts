@@ -73,10 +73,10 @@ export class Entity {
   /**
    * Remove a component from the entity
    */
-  removeComponent(type: string): boolean {
+  removeComponent(type: string): Component | undefined {
     const removed = this.store.remove(type);
     if (removed && this.world) {
-      this.world.onComponentRemoved(this, type);
+      this.world.onComponentRemoved(this, type, removed);
     }
     return removed;
   }
