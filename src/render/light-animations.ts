@@ -2,7 +2,7 @@ import { ColorAnimationProperty } from '../animation/color-animation';
 import { ValueAnimationProperty } from '../animation/value-animation';
 import { Easing, Transform } from '../display/display';
 
-export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'spin';
+export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'rotate' | 'offset-rotate';
 
 export interface LightAnimationConfig {
     intensity?: ValueAnimationProperty;
@@ -10,6 +10,7 @@ export interface LightAnimationConfig {
     color?: ColorAnimationProperty;
     xOffset?: ValueAnimationProperty;
     yOffset?: ValueAnimationProperty;
+    facing?: ValueAnimationProperty;
 }
 
 export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> = {
@@ -74,7 +75,18 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
         }
     },
 
-    'spin': {
+    'rotate': {
+        facing: {
+            start: 0,
+            end: Math.PI * 2,
+            duration: 2,
+            loop: true,
+            easing: Easing.linear,
+            transform: Transform.linear
+        }
+    },
+
+    'offset-rotate': {
         xOffset: {
             range: 0.5,
         offset: 0,

@@ -134,6 +134,12 @@ class WorldTest {
                     // TODO: 
                     mode: 'omnidirectional',
                     
+                    animation: {
+                        type: 'rotate',
+                        params: {
+                            speed: 'normal'
+                        }
+                    }
                 }));
             } else if (entityType === 'spin') {
                 entity = new Entity(worldPos);
@@ -150,7 +156,7 @@ class WorldTest {
                     distanceFalloff: 'linear',
                     mode: 'omnidirectional',
                     animation: {
-                        type: 'spin',
+                        type: 'offset-rotate',
                         params: {
                             speed: 'normal'
                         }

@@ -61,12 +61,14 @@ export abstract class Renderer {
             if (value.radius !== undefined) {
                 state.currentProperties.radius = value.radius;
             }
-            // Add handling for offset animations
             if (value.xOffset !== undefined) {
                 state.currentProperties.xOffset = value.xOffset;
             }
             if (value.yOffset !== undefined) {
                 state.currentProperties.yOffset = value.yOffset;
+            }
+            if (value.facing !== undefined) {
+                state.currentProperties.facing = value.facing;
             }
 
             const entity = this.world.getEntity(id);
@@ -296,6 +298,14 @@ export abstract class Renderer {
                 };
             }
 
+            // Handle facing animation
+            if (animConfig.facing !== undefined) {
+                valueAnimations.facing = {
+                    ...animConfig.facing,
+                    duration: animConfig.facing.duration * speedMultiplier,
+                };
+            }
+
             // Handle color animations separately
             if (animConfig.color?.start && animConfig.color?.end) {
                 this.lightColorAnimations.add(entity.getId(), {
@@ -353,7 +363,7 @@ export abstract class Renderer {
         const isDirectional = lightEmitter.config.facing !== undefined;
 
         if (isDirectional) {
-            const facing = this.normalizeAngle(lightEmitter.config.facing ?? 0);
+            const facing = this.normalizeAngle(state.currentProperties.facing);
             const width = state.currentProperties.width ?? Math.PI / 4;
             const halfWidth = width / 2;
 

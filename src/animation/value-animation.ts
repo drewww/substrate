@@ -23,6 +23,7 @@ export interface ValueAnimationConfig extends AnimationConfig {
     rotation?: ValueAnimationProperty;
     intensity?: ValueAnimationProperty;
     radius?: ValueAnimationProperty;
+    facing?: ValueAnimationProperty;
 }
 
 export class ValueAnimationModule extends AnimationModule<Record<string, number>, ValueAnimationConfig> {
@@ -46,8 +47,6 @@ export class ValueAnimationModule extends AnimationModule<Record<string, number>
                     !isNaN(prop.range) && !isNaN(prop.offset)) {
                     
                     result[key] = prop.offset + (prop.range * transform(progress));
-
-                    logger.info(`non-linear value animation with offset: ${prop.offset} and range: ${prop.range} and transform: ${transform(progress)} result: ${result[key]} progress: ${progress}`);
                 }
 
 
