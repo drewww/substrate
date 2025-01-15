@@ -126,7 +126,6 @@ class WorldTest {
                     intensity: 1.0,
                     color: '#ffffff',    // White light
                     distanceFalloff: 'step',
-                    angleFalloff: 'step',
                     facing: randomFacing,
                     width: randomWidth,
                     mode: 'fg',
@@ -191,7 +190,7 @@ class WorldTest {
                     radius: 2,          // Starts small
                     intensity: 0.5,     // Starts dim
                     color: '#00ffff',   // Cyan light
-                    distanceFalloff: 'linear',
+                    distanceFalloff: 'step',
                     facing: Math.PI/2,  // Face upward
                     width: Math.PI,     // Start wide
                     removeOnComplete: true,

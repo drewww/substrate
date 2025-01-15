@@ -120,20 +120,20 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
     'charge-shoot': {
         width: {
             start: Math.PI,
-            end: Math.PI / 32,
-            duration: 3,
+            end: 0,
+            duration: 1,
             easing: Easing.expoInOut
         },
         radius: {
             start: 3,
             end: 15,
-            duration: 3,
+            duration: 1,
             easing: Easing.expoIn
         },
         intensity: {
             start: 0.3,
             end: 1.0,
-            duration: 3,
+            duration: 1,
             easing: Easing.expoIn
         }
     }

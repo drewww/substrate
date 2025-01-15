@@ -262,7 +262,6 @@ export abstract class Renderer {
                     intensity: lightEmitter.config.intensity,
                     radius: lightEmitter.config.radius,
                     distanceFalloff: lightEmitter.config.distanceFalloff,
-                    angleFalloff: lightEmitter.config.angleFalloff,
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,
@@ -452,10 +451,11 @@ export abstract class Renderer {
                     const angleDistance = Math.abs(this.getAngleDistance(normalizedAngle, facing));
                     const normalizedAngleDistance = angleDistance / halfWidth;
                     
-                    // Only apply falloff in the outer 5% of the beam
-                    const angleMultiplier = normalizedAngleDistance > 0.65 ? 
-                        (1 - (normalizedAngleDistance - 0.65) / 0.35) : // Linear falloff in last 5%
-                        1.0; // Full intensity for inner 95%
+                    // Only apply falloff in the outer 5% of the beam, and only if width is significant
+                    const angleMultiplier = (halfWidth <= Math.PI/16) ? 1.0 : // No falloff for narrow beams
+                        normalizedAngleDistance > 0.65 ? 
+                            (1 - (normalizedAngleDistance - 0.65) / 0.35) : // Linear falloff in last 35%
+                            1.0; // Full intensity for inner 65%
                     
                     if (angleMultiplier <= 0) continue;
 
@@ -544,7 +544,7 @@ export abstract class Renderer {
         return { minX, maxX, minY, maxY };
     }
 
-    private calculateFalloff(distance: number, radius: number, intensity: number, type: 'linear' | 'quadratic' | 'exponential' | 'step'): number {
+    private calculateFalloff(distance: number, radius: number, intensity: number, type: LightFalloff): number {
         const normalized = Math.max(0, 1 - (distance / radius));
         switch (type) {
             case 'linear':
@@ -555,6 +555,8 @@ export abstract class Renderer {
                 return Math.pow(normalized, 4) * intensity;
             case 'step':
                 return normalized <= 0.95 ? intensity : 0;
+            case 'none':
+                return 1;
             default:
                 return normalized * intensity;
         }

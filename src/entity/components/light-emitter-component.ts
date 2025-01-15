@@ -2,7 +2,7 @@ import { Component } from '../component';
 import { LightAnimationType } from '../../render/light-animations';
 import { RegisterComponent } from '../component-registry';
 
-export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step';
+export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step' | 'none';
 export type LightMode = 'bg' | 'fg';
 
 export interface LightEmitterConfig {
@@ -10,7 +10,6 @@ export interface LightEmitterConfig {
     intensity: number;
     color: string;
     distanceFalloff: LightFalloff;
-    angleFalloff?: LightFalloff;
     facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), if set makes this a directional light
     width?: number;      // Width of the light beam in radians, required if facing is set
     xOffset?: number;    // -0.5 to 0.5, relative to tile center
@@ -50,7 +49,6 @@ export class LightEmitterComponent extends Component {
             intensity: config.intensity ?? 1.0,
             color: config.color ?? '#FFFFFF',
             distanceFalloff: config.distanceFalloff ?? 'quadratic',
-            angleFalloff: config.angleFalloff ?? 'linear',
             facing: config.facing,
             width: config.width,
             xOffset: config.xOffset,
