@@ -47,7 +47,7 @@ class WorldTest {
             viewportHeight: WORLD_HEIGHT
         });
 
-        this.display.setBackground(' ', '#000000FF', '#000000FF');
+        this.display.setBackground('.', '#222222FF', '#000000FF');
 
         this.renderer = new GameRenderer(this.world, this.display);
         
