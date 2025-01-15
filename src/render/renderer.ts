@@ -329,6 +329,11 @@ export abstract class Renderer {
     }
 
     private renderLightTiles(entity: Entity, state: LightState): void {
+        const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+        if (!lightEmitter) return;
+
+        const blendMode = lightEmitter.config.mode === 'fg' ? BlendMode.Overlay : BlendMode.Screen;
+        
         // Clean up existing light tiles
         const existingTiles = this.lightSourceTiles.get(entity.getId());
         if (existingTiles) {
@@ -359,7 +364,6 @@ export abstract class Renderer {
 
         const newTiles = new Set<string>();
         const radius = Math.ceil(state.currentProperties.radius);
-        const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         const isDirectional = lightEmitter.config.facing !== undefined;
 
         if (isDirectional) {
@@ -426,7 +430,7 @@ export abstract class Renderer {
             // Create light tiles using the tracked intensities
             for (const [tileKey, intensity] of tileIntensities) {
                 const [x, y] = tileKey.split(',').map(Number);
-                this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
+                this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
             }
         } else {
             // Pre-calculate bounds based on visible tiles
@@ -455,7 +459,7 @@ export abstract class Renderer {
                         state.baseProperties.distanceFalloff
                     );
                     
-                    this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles);
+                    this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
                 }
             }
         }
@@ -464,7 +468,7 @@ export abstract class Renderer {
     }
 
     // Helper method to create light tiles
-    private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>) {
+    private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>, blendMode: BlendMode) {
         const baseColor = color.slice(0, 7);
         const tileId = this.display.createTile(
             x, y,
@@ -472,7 +476,7 @@ export abstract class Renderer {
             '#FFFFFF00',
             `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
             100,
-            { blendMode: BlendMode.Screen }
+            { blendMode }
         );
         newTiles.add(tileId);
     }

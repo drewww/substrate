@@ -122,14 +122,14 @@ class WorldTest {
                 const randomWidth = Math.PI/2;
 
                 entity.setComponent(new LightEmitterComponent({
-                    radius: 4,
-                    intensity: 0.5,
+                    radius: 10,
+                    intensity: 1.0,
                     color: '#ffffff',    // White light
                     distanceFalloff: 'step',
                     angleFalloff: 'step',
                     facing: randomFacing,
                     width: randomWidth,
-                    
+                    mode: 'fg',
                     animation: {
                         type: 'rotate',
                         params: {
@@ -166,10 +166,11 @@ class WorldTest {
                     50                  // z-index below light effect
                 ));
                 entity.setComponent(new LightEmitterComponent({
-                    radius: 6,
+                    radius: 10,
                     intensity: 0.4,
                     color: '#ffa500',    // Orange light
                     distanceFalloff: 'quadratic',
+                    mode: 'fg',
                     animation: {
                         type: 'flicker',
                         params: {

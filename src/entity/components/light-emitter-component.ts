@@ -3,6 +3,7 @@ import { LightAnimationType } from '../../render/light-animations';
 import { RegisterComponent } from '../component-registry';
 
 export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step';
+export type LightMode = 'bg' | 'fg';
 
 export interface LightEmitterConfig {
     radius: number;
@@ -14,6 +15,7 @@ export interface LightEmitterConfig {
     width?: number;      // Width of the light beam in radians, required if facing is set
     xOffset?: number;    // -0.5 to 0.5, relative to tile center
     yOffset?: number;    // -0.5 to 0.5, relative to tile center
+    mode?: LightMode;    // Whether to affect background ('bg') or foreground ('fg') color
     animation?: {
         type: LightAnimationType;
         params?: {
@@ -52,6 +54,7 @@ export class LightEmitterComponent extends Component {
             width: config.width,
             xOffset: config.xOffset,
             yOffset: config.yOffset,
+            mode: config.mode ?? 'bg',
             animation: config.animation
         });
     }

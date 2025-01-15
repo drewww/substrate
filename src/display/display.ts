@@ -472,6 +472,7 @@ export class Display {
         
         this.renderCtx.save();
         this.renderCtx.translate(x, y);
+        this.renderCtx.globalCompositeOperation = tile.blendMode;
 
         if (!tile.noClip) {
             this.renderCtx.beginPath();
