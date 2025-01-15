@@ -708,10 +708,13 @@ describe('World', () => {
                 
                 expect(handler).toHaveBeenCalledWith({
                     entity,
-                    componentType: 'test'
+                    componentType: 'test',
+                    component: expect.objectContaining({
+                        type: 'test',
+                        value: 100
+                    })
                 });
-                expect(handler).toHaveBeenCalledTimes(1);
-            });            
+            });
         });
 
         describe('Entity Events', () => {

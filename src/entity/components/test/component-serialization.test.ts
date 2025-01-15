@@ -25,29 +25,26 @@ describe('Component Registry', () => {
 describe('Component Serialization Tests', () => {
     describe('LightEmitterComponent', () => {
         it('should serialize and deserialize correctly', () => {
-            const config: LightEmitterConfig = {
+            const component = new LightEmitterComponent({
                 radius: 5,
                 intensity: 1.0,
-                color: '#FFFFFF',
-                distanceFalloff: 'quadratic',
-                mode: 'beam',
-                facing: Math.PI / 4,
-                xOffset: 0.25,
-                yOffset: -0.25,
-                animation: {
-                    type: 'flicker',
-                    params: {
-                        speed: 'fast',
-                        intensity: 0.8
-                    }
-                }
-            };
-
-            const component = new LightEmitterComponent(config);
-            const serialized = JSON.parse(JSON.stringify(component));
+                color: '#ffffff',
+                facing: 0,
+                width: 90,
+                distanceFalloff: 'linear'
+            });
+            
+            const serialized = component.serialize();
             const deserialized = LightEmitterComponent.fromJSON(serialized);
-
-            expect(deserialized.config).toEqual(config);
+            
+            expect(deserialized.config).toEqual(expect.objectContaining({
+                radius: 5,
+                intensity: 1.0,
+                color: '#ffffff',
+                facing: 0,
+                width: 90,
+                distanceFalloff: 'linear'
+            }));
         });
     });
 

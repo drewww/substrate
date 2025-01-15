@@ -161,9 +161,27 @@ describe('Entity', () => {
             expect(entity.hasComponent('health')).toBe(true);
             
             const removed = entity.removeComponent('health');
-            expect(removed).toBe(true);
+            expect(removed).toBeInstanceOf(HealthComponent);
             expect(entity.hasComponent('health')).toBe(false);
             expect(entity.getComponent('health')).toBeUndefined();
+        });
+
+        it('returns removed component when removing a component', () => {
+            const health = new HealthComponent(100, 100);
+            entity.setComponent(health);
+            
+            const removed = entity.removeComponent('health');
+            expect(removed).toBeInstanceOf(HealthComponent);
+            expect(removed).toMatchObject({
+                type: 'health',
+                current: 100,
+                max: 100
+            });
+        });
+
+        it('returns undefined when removing non-existent component', () => {
+            const removed = entity.removeComponent('nonexistent');
+            expect(removed).toBeUndefined();
         });
 
         describe('Component Queries', () => {
@@ -601,7 +619,15 @@ describe('Entity', () => {
             entity.addComponent(health);
             entity.removeComponent('health');
             
-            expect(mockWorld.onComponentRemoved).toHaveBeenCalledWith(entity, 'health');
+            expect(mockWorld.onComponentRemoved).toHaveBeenCalledWith(
+                entity, 
+                'health',
+                expect.objectContaining({
+                    type: 'health',
+                    current: 100,
+                    max: 100
+                })
+            );
         });
 
         it('notifies world when component is modified internally', () => {
