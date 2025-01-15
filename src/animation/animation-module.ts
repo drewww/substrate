@@ -32,6 +32,7 @@ interface AnimationMetrics {
 
 export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
     protected animations = new Map<string, TConfig & RuntimeAnimationConfig>();
+    private onCompleteCallbacks = new Map<string, () => void>();
 
     constructor(
         protected onUpdate: (id: string, value: TValue) => void
@@ -53,37 +54,37 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         };
     }
 
-    public add(id: string, config: Omit<TConfig, 'running'>): void {
+    public add(id: string, config: Omit<TConfig, 'running'>, onComplete?: () => void): void {
         this.animations.set(id, {
             ...config,
             startTime: config.startTime ?? performance.now(),
             running: true
         } as TConfig & RuntimeAnimationConfig);
 
-        // logger.info(`Added animation ${id} with config: ${JSON.stringify(config)}`);
+        if (onComplete) {
+            this.onCompleteCallbacks.set(id, onComplete);
+        }
+
+        logger.info(`Added animation ${id} with config: ${JSON.stringify(config)}`);
     }
 
     public update(timestamp: number): void {
+        const toDelete = new Set<string>();
+
         for (const [id, animation] of this.animations) {
             if (!animation.running) continue;
+
+            let shouldComplete = false;
 
             for (const [key, prop] of Object.entries(animation)) {
                 if (key === 'startTime' || key === 'running') continue;
                 if (!prop || typeof prop !== 'object') continue;
 
-
-                // logger.info(`${id} ${key} ${JSON.stringify(prop)}`);
-
-                // logger.info(`current duration: ${prop.lastDuration}`);
-
                 const duration = prop.lastDuration ?? this.getNextDuration(prop);
-
                 prop.lastDuration = duration;
 
                 let progress = (timestamp - animation.startTime) / (duration * 1000);
 
-
-                
                 // If we have a chain, individual loop properties are ignored
                 const isChain = Boolean(prop.chainLoop || prop.next);
 
@@ -137,18 +138,34 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     }
                 }
                 
-                const easedProgress = prop.easing ?
-                        prop.easing(progress) : progress;
+                if (!isChain && !prop.loop && progress >= 1) {
+                    shouldComplete = true;
+                }
 
-                    this.updateValue(id, animation, easedProgress);
+                const easedProgress = prop.easing ? 
+                    prop.easing(progress) : progress;
 
-                    if(progress === 1) {
-                        animation.running = false;
-                        this.animations.delete(id);
-                        continue;
-                    }
+                this.updateValue(id, animation, easedProgress);
+            }
+
+            if (shouldComplete) {
+                animation.running = false;
+                toDelete.add(id);
+                
+                // Call the completion callback if it exists
+                const callback = this.onCompleteCallbacks.get(id);
+                if (callback) {
+                    callback();
+                    this.onCompleteCallbacks.delete(id);
+                }
             }
         }
+
+        // Delete animations after all updates are complete
+        toDelete.forEach(id => {
+            this.animations.delete(id);
+            logger.info(`Deleted animation ${id}`);
+        });
     }
     
 

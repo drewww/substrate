@@ -80,13 +80,7 @@ export abstract class Renderer {
                 this.renderLightTiles(entity, state);
 
                 // Check if animation is complete and should be removed
-                const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
-                if (lightEmitter?.config.removeOnComplete && !this.lightValueAnimations.isRunning(id)) {
-                    const entity = this.world.getEntity(id);
-                    if (entity) {
-                        entity.removeComponent('lightEmitter');
-                    }
-                }
+                this.checkRemoveOnComplete(entity, id);
             }
         });
 
@@ -101,6 +95,9 @@ export abstract class Renderer {
             const entity = this.world.getEntity(id);
             if (entity) {
                 this.renderLightTiles(entity, state);
+
+                // Add the same check here for color animations
+                this.checkRemoveOnComplete(entity, id);
             }
         });
 
@@ -121,34 +118,31 @@ export abstract class Renderer {
      * Handle entity addition
      */
     protected onEntityAdded(entity: Entity): void {
+        // Handle symbol component if present
         const symbolComponent = entity.getComponent('symbol') as SymbolComponent;
-        if (!symbolComponent) {
-            return; // Don't render entities without symbol components
-        }
-
-        const position = entity.getPosition();
-        const tileId = this.display.createTile(
-            position.x,
-            position.y,
-            symbolComponent.char,
-            symbolComponent.foreground,
-            symbolComponent.background,
-            symbolComponent.zIndex,
-            {
-                alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored
-            }
-        );
-        
-        this.entityTiles.set(entity.getId(), tileId);
-        
-        // Handle light emitter if present
-        if (entity.hasComponent('lightEmitter')) {
-            this.addEntityLight(entity);
-
+        if (symbolComponent) {
+            const position = entity.getPosition();
+            const tileId = this.display.createTile(
+                position.x,
+                position.y,
+                symbolComponent.char,
+                symbolComponent.foreground,
+                symbolComponent.background,
+                symbolComponent.zIndex,
+                {
+                    alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored
+                }
+            );
             
+            this.entityTiles.set(entity.getId(), tileId);
+            this.handleEntityAdded(entity, tileId);
         }
         
-        this.handleEntityAdded(entity, tileId);
+        // Handle light emitter independently
+        if (entity.hasComponent('lightEmitter')) {
+            logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component`);
+            this.addEntityLight(entity);
+        }
     }
 
     /**
@@ -346,14 +340,18 @@ export abstract class Renderer {
 
             // Handle color animations separately
             if (animConfig.color?.start && animConfig.color?.end) {
-                this.lightColorAnimations.add(entity.getId(), {
-                    color: {
-                        ...animConfig.color,
-                        duration: animConfig.color.duration,
-                        start: animConfig.color.start,
-                        end: animConfig.color.end
-                    }
-                });
+                this.lightColorAnimations.add(
+                    entity.getId(), 
+                    {
+                        color: {
+                            ...animConfig.color,
+                            duration: animConfig.color.duration,
+                            start: animConfig.color.start,
+                            end: animConfig.color.end
+                        }
+                    },
+                    () => this.checkRemoveOnComplete(entity, entity.getId())
+                );
             }
 
             // Handle width animation
@@ -366,7 +364,11 @@ export abstract class Renderer {
 
             // Add value animations if any exist
             if (Object.keys(valueAnimations).length > 0) {
-                this.lightValueAnimations.add(entity.getId(), valueAnimations);
+                this.lightValueAnimations.add(
+                    entity.getId(), 
+                    valueAnimations,
+                    () => this.checkRemoveOnComplete(entity, entity.getId())
+                );
             }
         }
 
@@ -387,17 +389,23 @@ export abstract class Renderer {
             existingTiles.clear();
         }
 
-        const entityTileId = this.entityTiles.get(entity.getId());
-        if (!entityTileId) return;
-
-        const tile = this.display.getTile(entityTileId);
-        if (!tile) return;
-        
-        // Calculate actual position with offsets
-        const offsetPosition = {
-            x: (tile.x ?? tile.x) + state.currentProperties.xOffset,
-            y: (tile.y ?? tile.y) + state.currentProperties.yOffset
+        // Initialize with entity position as fallback
+        let offsetPosition: Point = {
+            x: entity.getPosition().x + state.currentProperties.xOffset,
+            y: entity.getPosition().y + state.currentProperties.yOffset
         };
+
+        // Try to get position from tile if it exists
+        const entityTileId = this.entityTiles.get(entity.getId());
+        if (entityTileId) {
+            const tile = this.display.getTile(entityTileId);
+            if (tile) {
+                offsetPosition = {
+                    x: (tile.x ?? 0) + state.currentProperties.xOffset,
+                    y: (tile.y ?? 0) + state.currentProperties.yOffset
+                };
+            }
+        }
 
         // Get visible tiles first
         const visibleTiles = this.world.getVisibleTilesInRadius(
@@ -587,5 +595,16 @@ export abstract class Renderer {
     private getAngleDistance(angle1: number, angle2: number): number {
         const diff = Math.abs(angle1 - angle2);
         return Math.min(diff, 2 * Math.PI - diff);
+    }
+
+    // Helper method to check and handle removeOnComplete
+    private checkRemoveOnComplete(entity: Entity, id: string): void {
+        const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+        logger.info(`Checking removeOnComplete for ${id} ${lightEmitter?.config.removeOnComplete} ${this.lightValueAnimations.isRunning(id)} ${this.lightColorAnimations.isRunning(id)}`);
+        if (lightEmitter?.config.removeOnComplete && 
+            !this.lightValueAnimations.isRunning(id) && 
+            !this.lightColorAnimations.isRunning(id)) {
+            entity.removeComponent('lightEmitter');
+        }
     }
 }  
