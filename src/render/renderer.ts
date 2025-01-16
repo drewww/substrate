@@ -380,7 +380,10 @@ export abstract class Renderer {
 
     private renderLightTiles(entity: Entity, state: LightState): void {
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
-        if (!lightEmitter) return;
+        if (!lightEmitter) {
+            logger.info(`No light emitter component found for ${entity.getId()}`);
+            return;
+        }
 
         const blendMode = lightEmitter.config.mode === 'fg' ? BlendMode.Overlay : BlendMode.Screen;
         
@@ -417,16 +420,22 @@ export abstract class Renderer {
         );
 
         // If no visible tiles, exit early
-        if (visibleTiles.size === 0) return;
+        if (visibleTiles.size === 0) {
+            logger.info(`No visible tiles for ${entity.getId()}`);
+            return;
+        }
 
         const newTiles = new Set<string>();
         const radius = state.currentProperties.radius;
-        const isDirectional = state.currentProperties.width > 0;
+        const isDirectional = state.currentProperties.width < 2*Math.PI;
 
         if (isDirectional) {
             const facing = this.normalizeAngle(state.currentProperties.facing);
             const width = state.currentProperties.width ?? Math.PI / 4;
             const halfWidth = width / 2;
+
+            logger.info(`Rendering light tiles for ${entity.getId()} with radius ${radius} and width ${width}`);
+
 
             const startAngle = this.normalizeAngle(facing - halfWidth);
             const endAngle = this.normalizeAngle(facing + halfWidth);
@@ -509,7 +518,7 @@ export abstract class Renderer {
                         continue;
                     }
 
-                    logger.info(`Checking tile ${x},${y} for visibility`);
+                    // logger.info(`Checking tile ${x},${y} for visibility`);
 
                     const dx = x - offsetPosition.x;
                     const dy = y - offsetPosition.y;
@@ -530,6 +539,7 @@ export abstract class Renderer {
             }
         }
 
+        logger.info(`Setting light source tiles for ${entity.getId()} to ${newTiles.size} tiles`);
         this.lightSourceTiles.set(entity.getId(), newTiles);
     }
 

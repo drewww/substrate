@@ -2,7 +2,7 @@ import { ColorAnimationProperty } from '../animation/color-animation';
 import { ValueAnimationProperty } from '../animation/value-animation';
 import { Easing, Transform } from '../display/display';
 
-export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'rotate' | 'offset-rotate' | 'pulse-width' | 'charge-shoot' | 'aoe-charge-shoot';
+export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'rotate' | 'offset-rotate' | 'pulse-width' | 'charge-shoot' | 'aoe-charge-shoot' | 'charge-shoot-complex';
 
 export interface LightAnimationConfig {
     intensity?: ValueAnimationProperty;
@@ -117,37 +117,70 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
         }
     },
 
+
     'charge-shoot': {
         width: {
-            start: Math.PI,
-            end: 0,
-            duration: 1,
+            start: 0,
+            end: Math.PI,
+            duration: 0.5,
             easing: Easing.expoInOut,
+            next: {
+                start: Math.PI,
+                end: 0,
+                duration: 0.5,
+                easing: Easing.expoInOut
+            }
+        },
+    },
+
+    'charge-shoot-complex': {
+        width: {
+            start: 0,
+            end: Math.PI,
+            duration: 0.5,
+            easing: Easing.expoInOut,
+            next: {
+                start: Math.PI,
+                end: 0,
+                duration: 0.5,
+                easing: Easing.expoInOut
+            }
         },
         radius: {
             start: 0,
-            end: 18,
-            duration: 1,
+            end: 2,
+            duration: 0.5,
             easing: Easing.expoIn,
-
+            next: {
+                start: 2,
+                end: 18,
+                duration: 0.5,
+                easing: Easing.expoInOut
+            }
         },
         intensity: {
-            start: 0.1,
-            end: 0.5,
-            duration: 1,
-            easing: Easing.quadOut,
+            start: 0.0,
+            end: 0.2,
+            duration: 0.5,
+            easing: Easing.linear,
+            next: {
+                start: 0.2,
+                end: 0.8,
+                duration: 0.5,
+                easing: Easing.linear
+            }
         }
     },
 
     'aoe-charge-shoot': {
         radius: {
-            start: 2,
-            end: 10,
+            start: 0,
+            end: 4,
             duration: 1,
             easing: Easing.linear,
             next: {
-                start: 10,
-                end: 1,
+                start: 4,
+                end: 0,
                 duration: 0.05,
                 easing: Easing.linear
             }

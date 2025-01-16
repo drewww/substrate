@@ -97,6 +97,9 @@ Display
 - then probably get out ...
 
 
+- There's still something wrong with chainloops. If there are different depths of loop, or different timings of loops on the same entity, it can get messed up. Not sure what to do about that.
+
+
 - check on save/load, I think it broke
 - think about what a world generation helper might look like
 - world prefabs?

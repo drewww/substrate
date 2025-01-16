@@ -74,7 +74,10 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         for (const [id, animation] of this.animations) {
             if (!animation.running) continue;
 
-            let shouldComplete = false;
+            let shouldComplete = true;
+            let hasRunningAnimation = false;
+
+            logger.info(`Updating animation ${id} with properties: ${Object.keys(animation).filter(k => k !== 'startTime' && k !== 'running')}`);
 
             for (const [key, prop] of Object.entries(animation)) {
                 if (key === 'startTime' || key === 'running') continue;
@@ -82,8 +85,9 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
 
                 const duration = prop.lastDuration ?? this.getNextDuration(prop);
                 prop.lastDuration = duration;
-
                 let progress = (timestamp - animation.startTime) / (duration * 1000);
+
+                logger.info(`  ${key}: progress=${progress.toFixed(2)}, duration=${duration}, has_next=${Boolean(prop.next)}`);
 
                 // If we have a chain, individual loop properties are ignored
                 const isChain = Boolean(prop.chainLoop || prop.next);
@@ -102,58 +106,46 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     }
                     (prop as any).lastProgress = progress;
                 } else {
-
-                    // For non-chain animations that complete, cap at 1 and stop
                     progress = Math.min(progress, 1);
-
-                    if (isChain && progress === 1) {
-                        // Create next animation step with chainLoop preserved
+                    
+                    // Handle chaining when animation completes
+                    if (progress >= 1 && prop.next) {
+                        logger.info(`  ${key}: transitioning to next animation`);
+                        // Create next animation step
                         const nextProp = {
                             ...prop.next,
-                            chainLoop: prop.chainLoop,
-                            next: prop.next?.next
+                            next: prop.next.next
                         };
-
-                        // If we're at the end of the chain and chainLoop is true,
-                        // restart the chain from the beginning
-                        if (!nextProp.next && prop.chainLoop) {
-                            logger.info(`Restarting chain loop for ${id}`);
-                            const originalAnimation = this.animations.get(id);
-                            if (originalAnimation) {
-                                const firstProp = (originalAnimation as any)[key];
-                                nextProp.next = {
-                                    ...firstProp,
-                                    next: firstProp.next,
-                                    chainLoop: prop.chainLoop
-                                };
-                            }
-                        }
-
 
                         const newAnimation = { ...animation };
                         (newAnimation as any)[key] = nextProp;
                         newAnimation.startTime = timestamp;
                         this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
+                        hasRunningAnimation = true;
+                        shouldComplete = false;
                         continue;
                     }
-                }
-                
-                if (!isChain && !prop.loop && progress >= 1) {
-                    shouldComplete = true;
+
+                    // If this property isn't done or has more steps, don't complete
+                    if (progress < 1 || prop.next) {
+                        shouldComplete = false;
+                        hasRunningAnimation = true;
+                    }
                 }
 
                 const easedProgress = prop.easing ? 
                     prop.easing(progress) : progress;
 
-                logger.info(`Updating value animation with key: ${key} and prop: ${JSON.stringify(prop)}`);
                 this.updateValue(id, animation, easedProgress);
             }
 
-            if (shouldComplete) {
+            logger.info(`  shouldComplete=${shouldComplete}, hasRunningAnimation=${hasRunningAnimation}`);
+
+            // Only complete the animation if all properties are done
+            if (shouldComplete && !hasRunningAnimation) {
                 animation.running = false;
                 toDelete.add(id);
                 
-                // Call the completion callback if it exists
                 const callback = this.onCompleteCallbacks.get(id);
                 if (callback) {
                     callback();
@@ -162,7 +154,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
             }
         }
 
-        // Delete animations after all updates are complete
+        // Delete completed animations
         toDelete.forEach(id => {
             this.animations.delete(id);
             logger.info(`Deleted animation ${id}`);

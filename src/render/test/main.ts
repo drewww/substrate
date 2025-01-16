@@ -187,12 +187,12 @@ class WorldTest {
                     50                  // z-index below light effect
                 ));
                 entity.setComponent(new LightEmitterComponent({
-                    radius: 0,          // Starts small
-                    intensity: 0,     // Starts dim
+                    radius: 5,          // Starts small
+                    intensity: 0.5,     // Starts dim
                     color: '#00ffff',   // Cyan light
                     distanceFalloff: 'step',
                     facing: Math.PI/2,  // Face upward
-                    width: Math.PI,     // Start wide
+                    width: 0,     // Start wide
                     removeOnComplete: true,
                     animation: {
                         type: 'charge-shoot'
@@ -201,20 +201,20 @@ class WorldTest {
 
 
                 // add another entity for aoe charge shoot
-                const aoeChargeShoot = new Entity(worldPos);
+                // const aoeChargeShoot = new Entity(worldPos);
 
-                aoeChargeShoot.setComponent(new LightEmitterComponent({
-                    radius: 1,
-                    intensity: 1.0,
-                    color: '#00ffff',
-                    mode: 'fg',
-                    removeOnComplete: true,
-                    distanceFalloff: 'linear',
-                    animation: {
-                        type: 'aoe-charge-shoot'
-                    }
-                }));
-                this.world.addEntity(aoeChargeShoot);
+                // aoeChargeShoot.setComponent(new LightEmitterComponent({
+                //     radius: 1,
+                //     intensity: 1.0,
+                //     color: '#00ffff',
+                //     mode: 'fg',
+                //     removeOnComplete: true,
+                //     distanceFalloff: 'linear',
+                //     animation: {
+                //         type: 'aoe-charge-shoot'
+                //     }
+                // }));
+                // this.world.addEntity(aoeChargeShoot);
             }
 
             if (entity) {
