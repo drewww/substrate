@@ -118,16 +118,16 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
     },
 
 
-    'charge-shoot': {
+    'charge-shoot-complex': {
         width: {
             start: 0,
             end: Math.PI,
-            duration: 0.5,
+            duration: 5,
             easing: Easing.expoInOut,
             next: {
                 start: Math.PI,
                 end: 0,
-                duration: 0.5,
+                duration: 5,
                 easing: Easing.expoInOut
             }
         },
@@ -135,22 +135,22 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
         intensity: {
             start: 0.0,
             end: 0.2,
-            duration: 0.5,
+            duration: 5,
             easing: Easing.linear,
             next: {
                 start: 0.2,
                 end: 0.8,
-                duration: 0.5,
+                duration: 5,
                 easing: Easing.linear
             }
         }
     },
 
-    'charge-shoot-complex': {
+    'charge-shoot': {
         width: {
             start: 0,
             end: Math.PI,
-            duration: 0.5,
+            duration: 1,
             easing: Easing.expoInOut,
             next: {
                 start: Math.PI,
@@ -162,7 +162,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
         radius: {
             start: 0,
             end: 2,
-            duration: 0.5,
+            duration: 1,
             easing: Easing.expoIn,
             next: {
                 start: 2,
@@ -174,7 +174,7 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
         intensity: {
             start: 0.0,
             end: 0.2,
-            duration: 0.5,
+            duration: 1,
             easing: Easing.linear,
             next: {
                 start: 0.2,

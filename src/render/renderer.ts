@@ -436,7 +436,7 @@ export abstract class Renderer {
             const width = state.currentProperties.width ?? Math.PI / 4;
             const halfWidth = width / 2;
 
-            logger.info(`Rendering light tiles for ${entity.getId()} with radius ${radius} and width ${width} and intensity ${state.currentProperties.intensity}`);
+            // logger.info(`Rendering light tiles for ${entity.getId()} with radius ${radius} and width ${width} and intensity ${state.currentProperties.intensity}`);
 
 
             const startAngle = this.normalizeAngle(facing - halfWidth);

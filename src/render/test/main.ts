@@ -201,20 +201,20 @@ class WorldTest {
 
 
                 // add another entity for aoe charge shoot
-                // const aoeChargeShoot = new Entity(worldPos);
+                const aoeChargeShoot = new Entity(worldPos);
 
-                // aoeChargeShoot.setComponent(new LightEmitterComponent({
-                //     radius: 1,
-                //     intensity: 1.0,
-                //     color: '#00ffff',
-                //     mode: 'fg',
-                //     removeOnComplete: true,
-                //     distanceFalloff: 'linear',
-                //     animation: {
-                //         type: 'aoe-charge-shoot'
-                //     }
-                // }));
-                // this.world.addEntity(aoeChargeShoot);
+                aoeChargeShoot.setComponent(new LightEmitterComponent({
+                    radius: 1,
+                    intensity: 1.0,
+                    color: '#00ffff',
+                    mode: 'fg',
+                    removeOnComplete: true,
+                    distanceFalloff: 'linear',
+                    animation: {
+                        type: 'aoe-charge-shoot'
+                    }
+                }));
+                this.world.addEntity(aoeChargeShoot);
             }
 
             if (entity) {

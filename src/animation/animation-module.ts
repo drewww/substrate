@@ -78,7 +78,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
             let shouldComplete = true;
             let hasRunningAnimation = false;
 
-            logger.info(`Updating animation ${id} with properties: ${Object.keys(animation).filter(k => k !== 'startTime' && k !== 'running')}`);
+            // logger.info(`Updating animation ${id} with properties: ${Object.keys(animation).filter(k => k !== 'startTime' && k !== 'running')}`);
 
             for (const [key, prop] of Object.entries(animation)) {
                 if (key === 'startTime' || key === 'running') continue;
@@ -162,7 +162,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                 this.updateValue(id, animation, easedProgress);
             }
 
-            logger.info(`  shouldComplete=${shouldComplete}, hasRunningAnimation=${hasRunningAnimation}`);
+            // logger.info(`  shouldComplete=${shouldComplete}, hasRunningAnimation=${hasRunningAnimation}`);
 
             // Only complete the animation if all properties are done
             if (shouldComplete && !hasRunningAnimation) {
