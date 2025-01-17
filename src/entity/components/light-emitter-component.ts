@@ -16,6 +16,7 @@ export interface LightEmitterConfig {
     yOffset?: number;    // -0.5 to 0.5, relative to tile center
     mode?: LightMode;    // Whether to affect background ('bg') or foreground ('fg') color
     removeOnComplete?: boolean;
+    lightSourceTile?: boolean;  // Whether to render a light tile at the entity's position (default: true)
     animation?: {
         type: LightAnimationType;
         params?: {
@@ -37,6 +38,8 @@ export class LightEmitterComponent extends Component {
         if (config.facing !== undefined && config.width === undefined) {
             throw new Error('Directional lights (with facing) require width to be set');
         }
+        // Set default for lightSourceTile
+        this.config.lightSourceTile = config.lightSourceTile ?? true;
     }
 
     static fromJSON(data: any): LightEmitterComponent {

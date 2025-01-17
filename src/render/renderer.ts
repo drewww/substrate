@@ -535,6 +535,16 @@ export abstract class Renderer {
                         state.currentProperties.intensity,
                         state.baseProperties.distanceFalloff
                     );
+
+                    const skipSourceTile = !lightEmitter.config.lightSourceTile;
+                    const sourcePos = { 
+                        x: Math.round(offsetPosition.x), 
+                        y: Math.round(offsetPosition.y) 
+                    };
+
+                    if(skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
+                        continue;
+                    }
                     
                     this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
                 }
@@ -632,7 +642,7 @@ export abstract class Renderer {
     // Helper method to check and handle removeOnComplete
     private checkRemoveOnComplete(entity: Entity, id: string): void {
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
-        logger.info(`Checking removeOnComplete for ${id} ${lightEmitter?.config.removeOnComplete} ${this.lightValueAnimations.isRunning(id)} ${this.lightColorAnimations.isRunning(id)}`);
+        // logger.info(`Checking removeOnComplete for ${id} ${lightEmitter?.config.removeOnComplete} ${this.lightValueAnimations.isRunning(id)} ${this.lightColorAnimations.isRunning(id)}`);
         if (lightEmitter?.config.removeOnComplete && 
             !this.lightValueAnimations.isRunning(id) && 
             !this.lightColorAnimations.isRunning(id)) {

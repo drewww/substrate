@@ -99,6 +99,7 @@ class WorldTest {
                     intensity: 0.3,
                     color: '#ffff00',
                     distanceFalloff: 'quadratic',
+                    lightSourceTile: false,
                     animation: {
                         type: randomAnimation,
                         params: {
@@ -149,6 +150,7 @@ class WorldTest {
                     intensity: 0.2,
                     color: '#ffff00',
                     distanceFalloff: 'linear',
+                    lightSourceTile: false,
                     animation: {
                         type: 'offset-rotate',
                         params: {
