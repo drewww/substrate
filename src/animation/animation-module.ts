@@ -23,6 +23,7 @@ export interface AnimationProperty<T = any> {
     end?: T;
     symbols?: T[];
     next?: AnimationProperty<T>;
+    startTime?: number;  // Add per-property start time
 }
 
 interface AnimationMetrics {
@@ -83,9 +84,11 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                 if (key === 'startTime' || key === 'running') continue;
                 if (!prop || typeof prop !== 'object') continue;
 
+                // Use property-specific start time or animation start time
+                const startTime = prop.startTime ?? animation.startTime;
                 const duration = prop.lastDuration ?? this.getNextDuration(prop);
                 prop.lastDuration = duration;
-                let progress = (timestamp - animation.startTime) / (duration * 1000);
+                let progress = (timestamp - startTime) / (duration * 1000);
 
                 logger.info(`  ${key}: progress=${progress.toFixed(2)}, duration=${duration}, has_next=${Boolean(prop.next)}`);
 
@@ -99,27 +102,47 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     } else {
                         progress = progress % 1;
                     }
-
+                    
                     // Reset duration when a loop completes
                     if (progress < (prop as any).lastProgress) {
                         delete (prop as any).lastDuration;
                     }
                     (prop as any).lastProgress = progress;
+                    
+                    // Mark as running if it's a looped animation
+                    hasRunningAnimation = true;
+                    shouldComplete = false;
                 } else {
                     progress = Math.min(progress, 1);
                     
                     // Handle chaining when animation completes
                     if (progress >= 1 && prop.next) {
                         logger.info(`  ${key}: transitioning to next animation`);
-                        // Create next animation step
                         const nextProp = {
                             ...prop.next,
-                            next: prop.next.next
+                            next: prop.next.next,
+                            startTime: timestamp,  // Set property-specific start time
+                            lastDuration: undefined,
+                            chainLoop: prop.chainLoop  // Preserve chainLoop property
                         };
+
+                        // If we're at the end of the chain and chainLoop is true,
+                        // restart the chain from the beginning
+                        if (!nextProp.next && prop.chainLoop) {
+                            // Get the first animation in the chain
+                            const originalAnimation = this.animations.get(id);
+                            if (originalAnimation) {
+                                const firstProp = (originalAnimation as any)[key];
+                                nextProp.next = {
+                                    ...firstProp,
+                                    next: firstProp.next,
+                                    chainLoop: prop.chainLoop
+                                };
+                            }
+                        }
 
                         const newAnimation = { ...animation };
                         (newAnimation as any)[key] = nextProp;
-                        newAnimation.startTime = timestamp;
                         this.animations.set(id, newAnimation as TConfig & RuntimeAnimationConfig);
                         hasRunningAnimation = true;
                         shouldComplete = false;

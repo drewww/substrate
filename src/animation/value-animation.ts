@@ -30,7 +30,7 @@ export class ValueAnimationModule extends AnimationModule<Record<string, number>
     protected interpolateValue(config: ValueAnimationConfig, progress: number): Record<string, number> {
         const result: Record<string, number> = {};
 
-        logger.info(`Interpolating value animation with config: ${JSON.stringify(config)}`);
+        // logger.info(`Interpolating value animation with config: ${JSON.stringify(config)}`);
 
         for (const [key, prop] of Object.entries(config)) {
             if (key === 'startTime' || key === 'running') continue;

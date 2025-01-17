@@ -54,7 +54,7 @@ export abstract class Renderer {
         this.lightValueAnimations = new ValueAnimationModule((id, value) => {
             const state = this.lightStates.get(id);
 
-            logger.info(`Renderer received value animation update for ${id} with value ${JSON.stringify(value)}`);
+            // logger.info(`Renderer received value animation update for ${id} with value ${JSON.stringify(value)}`);
             if (!state) return;
             
             // Update the current properties based on animations
@@ -261,7 +261,7 @@ export abstract class Renderer {
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,
-                    width: lightEmitter.config.width ?? 0
+                    width: lightEmitter.config.width ?? (2 * Math.PI)
                 },
                 currentProperties: {
                     color: lightEmitter.config.color,
@@ -270,7 +270,7 @@ export abstract class Renderer {
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,
-                    width: lightEmitter.config.width ?? 0
+                    width: lightEmitter.config.width ?? (2 * Math.PI)
                 }
             };
             this.lightStates.set(entity.getId(), state);
@@ -299,9 +299,11 @@ export abstract class Renderer {
                 animConfig.intensity?.end !== undefined) {
                 valueAnimations.intensity = {
                     ...animConfig.intensity,
-                    duration: animConfig.intensity.duration,  // Pass the original duration/array
+                    duration: animConfig.intensity.duration,
                     start: (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
-                    end: (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
+                    end: (1 + (animConfig.intensity.end - 1) * intensityMultiplier),
+                    // Only use property-specific timing for chained animations
+                    startTime: animConfig.intensity.startTime
                 };
             }
 
@@ -434,7 +436,7 @@ export abstract class Renderer {
             const width = state.currentProperties.width ?? Math.PI / 4;
             const halfWidth = width / 2;
 
-            logger.info(`Rendering light tiles for ${entity.getId()} with radius ${radius} and width ${width}`);
+            logger.info(`Rendering light tiles for ${entity.getId()} with radius ${radius} and width ${width} and intensity ${state.currentProperties.intensity}`);
 
 
             const startAngle = this.normalizeAngle(facing - halfWidth);
@@ -539,14 +541,14 @@ export abstract class Renderer {
             }
         }
 
-        logger.info(`Setting light source tiles for ${entity.getId()} to ${newTiles.size} tiles`);
+        // logger.info(`Setting light source tiles for ${entity.getId()} to ${newTiles.size} tiles`);
         this.lightSourceTiles.set(entity.getId(), newTiles);
     }
 
     // Helper method to create light tiles
     private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>, blendMode: BlendMode) {
         
-        logger.info(`Creating light tile at ${x},${y} with intensity ${intensity} and color ${color}`);
+        // logger.info(`Creating light tile at ${x},${y} with intensity ${intensity} and color ${color}`);
 
 
         const baseColor = color.slice(0, 7);

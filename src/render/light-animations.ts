@@ -131,6 +131,19 @@ export const LIGHT_ANIMATIONS: Record<LightAnimationType, LightAnimationConfig> 
                 easing: Easing.expoInOut
             }
         },
+
+        intensity: {
+            start: 0.0,
+            end: 0.2,
+            duration: 0.5,
+            easing: Easing.linear,
+            next: {
+                start: 0.2,
+                end: 0.8,
+                duration: 0.5,
+                easing: Easing.linear
+            }
+        }
     },
 
     'charge-shoot-complex': {
