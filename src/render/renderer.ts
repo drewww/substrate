@@ -243,6 +243,15 @@ export abstract class Renderer {
         } else {
             logger.warn(`No tile found for moved entity ${entity.getId()}`);
         }
+
+        // Re-render light tiles if entity has a light emitter
+        const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+        if (lightEmitter) {
+            const state = this.lightStates.get(entity.getId());
+            if (state) {
+                this.renderLightTiles(entity, state);
+            }
+        }
     }
 
     protected addEntityLight(entity: Entity): void {
@@ -301,9 +310,7 @@ export abstract class Renderer {
                     ...animConfig.intensity,
                     duration: animConfig.intensity.duration,
                     start: (1 + (animConfig.intensity.start - 1) * intensityMultiplier),
-                    end: (1 + (animConfig.intensity.end - 1) * intensityMultiplier),
-                    // Only use property-specific timing for chained animations
-                    startTime: animConfig.intensity.startTime
+                    end: (1 + (animConfig.intensity.end - 1) * intensityMultiplier)
                 };
             }
 
@@ -431,6 +438,12 @@ export abstract class Renderer {
         const radius = state.currentProperties.radius;
         const isDirectional = state.currentProperties.width < 2*Math.PI;
 
+        const skipSourceTile = !lightEmitter.config.lightSourceTile;
+        const sourcePos = { 
+            x: Math.round(offsetPosition.x), 
+            y: Math.round(offsetPosition.y) 
+        };
+
         if (isDirectional) {
             const facing = this.normalizeAngle(state.currentProperties.facing);
             const width = state.currentProperties.width ?? Math.PI / 4;
@@ -499,6 +512,9 @@ export abstract class Renderer {
             // Create light tiles using the tracked intensities
             for (const [tileKey, intensity] of tileIntensities) {
                 const [x, y] = tileKey.split(',').map(Number);
+                if (skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
+                    continue;
+                }
                 this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
             }
         } else {
@@ -536,13 +552,7 @@ export abstract class Renderer {
                         state.baseProperties.distanceFalloff
                     );
 
-                    const skipSourceTile = !lightEmitter.config.lightSourceTile;
-                    const sourcePos = { 
-                        x: Math.round(offsetPosition.x), 
-                        y: Math.round(offsetPosition.y) 
-                    };
-
-                    if(skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
+                    if (skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
                         continue;
                     }
                     
@@ -557,16 +567,15 @@ export abstract class Renderer {
 
     // Helper method to create light tiles
     private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>, blendMode: BlendMode) {
+        // Clamp intensity between 0 and 1
+        const clampedIntensity = Math.max(0, Math.min(1, intensity));
         
-        // logger.info(`Creating light tile at ${x},${y} with intensity ${intensity} and color ${color}`);
-
-
         const baseColor = color.slice(0, 7);
         const tileId = this.display.createTile(
             x, y,
             ' ',
             '#FFFFFF00',
-            `${baseColor}${Math.floor(intensity * 255).toString(16).padStart(2, '0')}`,
+            `${baseColor}${Math.floor(clampedIntensity * 255).toString(16).padStart(2, '0')}`,
             100,
             { blendMode }
         );

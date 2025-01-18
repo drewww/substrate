@@ -213,6 +213,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
 
     protected updateValue(id: string, config: TConfig, progress: number): void {
         const value = this.interpolateValue(config, progress);
+        logger.info(`Updating animation ${id} with value: ${JSON.stringify(value)}`);
         this.onUpdate(id, value);
     }
 

@@ -279,8 +279,8 @@ class WorldTest {
                     50
                 ));
                 light.setComponent(new LightEmitterComponent({
-                    radius: 20,
-                    intensity: 0.2,
+                    radius: 5,
+                    intensity: 0.7,
                     color: '#ffff00',
                     distanceFalloff: 'quadratic',
                     animation: {
