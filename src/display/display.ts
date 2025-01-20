@@ -387,7 +387,7 @@ export class Display {
         y: number, 
         char: string, 
         color: Color, 
-        backgroundColor: Color,
+        backgroundColor: Color = '#00000000',  // Default to transparent
         zIndex: number = 1,
         config?: TileConfig
     ): TileId {
@@ -400,7 +400,7 @@ export class Display {
             y,
             char,
             color,
-            backgroundColor,
+            backgroundColor: char ? backgroundColor : '#00000000',  // If no char, force transparent
             zIndex,
             bgPercent: config?.bgPercent ?? 1,
             fillDirection: config?.fillDirection ?? FillDirection.BOTTOM,
@@ -469,8 +469,8 @@ export class Display {
             return;
         }
 
-        const x = Math.round(renderX ?? (tile.x * this.cellWidthScaled));  // Round to nearest pixel
-        const y = Math.round(renderY ?? (tile.y * this.cellHeightScaled));  // Round to nearest pixel
+        const x = Math.round(renderX ?? (tile.x * this.cellWidthScaled));
+        const y = Math.round(renderY ?? (tile.y * this.cellHeightScaled));
         
         this.renderCtx.save();
         this.renderCtx.translate(x, y);
@@ -478,7 +478,6 @@ export class Display {
 
         if (!tile.noClip) {
             this.renderCtx.beginPath();
-            // Use integer coordinates for the clip rectangle
             this.renderCtx.rect(
                 0,
                 0,
@@ -491,16 +490,7 @@ export class Display {
         const cellWidth = this.cellWidthScaled;
         const cellHeight = this.cellHeightScaled;
 
-        // Rotate from center if needed
-        if (tile.rotation) {
-            this.renderCtx.save();
-            this.renderCtx.translate(cellWidth/2, cellHeight/2);
-            this.renderCtx.rotate(tile.rotation);
-            this.renderCtx.translate(-cellWidth/2, -cellHeight/2);
-            this.renderCtx.restore();
-        }
-       
-        
+        // Only render background if it has a non-transparent background
         if (tile.backgroundColor && tile.backgroundColor !== '#00000000') {
             const bgPercent = tile.bgPercent ?? 1;
             if (bgPercent > 0) {
@@ -542,8 +532,8 @@ export class Display {
                 }                
             }
         }
-        
-        // After background rendering but before character rendering, add wall rendering
+
+        // Render walls if present
         if (tile.walls && tile.wallColor) {
             const WALL_THICKNESS = 2;  // pixels
             this.renderCtx.fillStyle = tile.wallColor;
@@ -551,25 +541,26 @@ export class Display {
             // North wall
             if (tile.walls[0]) {
                 this.renderCtx.fillRect(
-                    0,                    // x
-                    0,                    // y
-                    cellWidth,            // width
-                    WALL_THICKNESS        // height
+                    0,
+                    0,
+                    cellWidth,
+                    WALL_THICKNESS
                 );
             }
 
             // West wall
             if (tile.walls[1]) {
                 this.renderCtx.fillRect(
-                    0,                    // x
-                    0,                    // y
-                    WALL_THICKNESS,       // width
-                    cellHeight           // height
+                    0,
+                    0,
+                    WALL_THICKNESS,
+                    cellHeight
                 );
             }
         }
-        
-        if (tile.char && tile.color) {
+
+        // Only render character if it exists and it's not a wall-only tile
+        if (!tile.walls && tile.char && tile.color) {
             const offsetX = (tile.offsetSymbolX || 0) * this.cellWidthScaled;
             const offsetY = (tile.offsetSymbolY || 0) * this.cellHeightScaled;
             

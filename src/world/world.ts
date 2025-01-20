@@ -799,7 +799,11 @@ export class World {
 
         if (!entity && properties.some(prop => prop)) {
             entity = new Entity(targetPos);
-            const wallComponent = new WallComponent();
+            const wallComponent = new WallComponent({
+                [wallDirection]: {
+                    color: '#888888FF',
+                }
+            });
             wallComponent.setWallProperties(wallDirection, ...properties);
             entity.setComponent(wallComponent);
             this.addEntity(entity);

@@ -12,6 +12,7 @@ import { OpacityComponent } from '../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
 import { LightAnimationType } from '../light-animations';
+import { WallComponent, WallDirection } from '../../entity/components/wall-component';
 
 const WORLD_WIDTH = 40;
 const WORLD_HEIGHT = 30;
@@ -31,6 +32,7 @@ class WorldTest {
     private cursorTileId: string | null = null;
     private wanderingLightId: string | null = null;
     private wanderingLightInterval: number | null = null;
+    private wallStates: Map<string, WallDirection[]> = new Map();  // Track wall states per position
 
     constructor() {
         this.setupLogLevel();
@@ -217,6 +219,32 @@ class WorldTest {
                     }
                 }));
                 this.world.addEntity(aoeChargeShoot);
+            } else if (entityType === 'wall') {
+                const pos = worldPos;
+                
+                // Get current walls at this position
+                const currentWalls = this.world.getWallsAt(pos);
+                
+                // Determine next wall state based on current walls
+                if (currentWalls.length === 0) {
+                    // Add North wall
+                    this.world.setWall(pos, WallDirection.NORTH, [true, false, false]);
+                } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.NORTH) {
+                    // Remove North wall, add East wall
+                    this.world.setWall(pos, WallDirection.NORTH, [false, false, false]);
+                    this.world.setWall(pos, WallDirection.EAST, [true, false, false]);
+                } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.EAST) {
+                    // Remove East wall, add South wall
+                    this.world.setWall(pos, WallDirection.EAST, [false, false, false]);
+                    this.world.setWall(pos, WallDirection.SOUTH, [true, false, false]);
+                } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.SOUTH) {
+                    // Remove South wall, add West wall
+                    this.world.setWall(pos, WallDirection.SOUTH, [false, false, false]);
+                    this.world.setWall(pos, WallDirection.WEST, [true, false, false]);
+                } else {
+                    // Remove West wall (back to no walls)
+                    this.world.setWall(pos, WallDirection.WEST, [false, false, false]);
+                }
             }
 
             if (entity) {
@@ -479,7 +507,8 @@ class WorldTest {
             { value: 'spotlight', label: 'Spotlight' },
             { value: 'spin', label: 'Spinning Light' },
             { value: 'flicker', label: 'Flickering Light' },
-            { value: 'chargedShot', label: 'Charged Shot' }
+            { value: 'chargedShot', label: 'Charged Shot' },
+            { value: 'wall', label: 'Wall' }  // Add wall option
         ];
 
         options.forEach(opt => {

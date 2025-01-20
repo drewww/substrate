@@ -9,6 +9,7 @@ import { ValueAnimationModule } from '../animation/value-animation';
 import { LIGHT_ANIMATIONS } from './light-animations';
 import { ColorAnimationModule } from '../animation/color-animation';
 import { Component } from '../entity/component';
+import { WallComponent, WallDirection } from '../entity/components/wall-component';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -46,6 +47,7 @@ export abstract class Renderer {
     private lightValueAnimations: ValueAnimationModule;
     private lightColorAnimations: ColorAnimationModule;
     private lightStates: Map<string, LightState> = new Map(); // entityId -> LightState
+    private wallTiles: Map<string, string> = new Map();  // entityId -> tileId
 
     constructor(
         protected world: World,
@@ -145,6 +147,12 @@ export abstract class Renderer {
             logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
             this.addEntityLight(entity);
         }
+
+        // Handle wall component if present
+        const wallComponent = entity.getComponent('wall') as WallComponent;
+        if (wallComponent) {
+            this.addEntityWalls(entity);
+        }
     }
 
     /**
@@ -165,6 +173,10 @@ export abstract class Renderer {
             }
         } 
         this.handleEntityModified(entity, componentType);
+
+        if (componentType === 'wall') {
+            this.updateEntityWalls(entity);
+        }
     }
 
     /**
@@ -172,6 +184,10 @@ export abstract class Renderer {
      */
     protected onComponentModified(entity: Entity, componentType: string): void {
         this.handleComponentModified(entity, componentType);
+
+        if (componentType === 'wall') {
+            this.updateEntityWalls(entity);
+        }
     }
 
     /**
@@ -200,6 +216,15 @@ export abstract class Renderer {
         this.lightStates.delete(entity.getId());
         this.lightValueAnimations.clear(entity.getId());
         this.lightColorAnimations.clear(entity.getId());
+        
+        // Clean up wall tiles
+        ['north', 'south', 'east', 'west'].forEach(dir => {
+            const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
+            if (tileId) {
+                this.display.removeTile(tileId);
+                this.wallTiles.delete(`${entity.getId()}_${dir}`);
+            }
+        });
         
         this.handleEntityRemoved(entity);
     }
@@ -657,5 +682,94 @@ export abstract class Renderer {
             !this.lightColorAnimations.isRunning(id)) {
             entity.removeComponent('lightEmitter');
         }
+    }
+
+    private addEntityWalls(entity: Entity): void {
+        const wallComponent = entity.getComponent('wall') as WallComponent;
+        if (!wallComponent) return;
+
+        const position = entity.getPosition();
+        
+        // Create tile for North wall if needed
+        if (wallComponent.hasAnyProperties(WallDirection.NORTH)) {
+            const northTileId = this.display.createTile(
+                position.x,
+                position.y,
+                '',
+                '#FFFFFF',
+                '#000000',
+                1,
+                {
+                    walls: [true, false],  // [north, west]
+                    wallColor: wallComponent.getWallColor(WallDirection.NORTH)
+                }
+            );
+            this.wallTiles.set(`${entity.getId()}_north`, northTileId);
+        }
+
+        // Create tile for West wall if needed
+        if (wallComponent.hasAnyProperties(WallDirection.WEST)) {
+            const westTileId = this.display.createTile(
+                position.x,
+                position.y,
+                '',
+                '#FFFFFF',
+                '#000000',
+                1,
+                {
+                    walls: [false, true],  // [north, west]
+                    wallColor: wallComponent.getWallColor(WallDirection.WEST)
+                }
+            );
+            this.wallTiles.set(`${entity.getId()}_west`, westTileId);
+        }
+
+        // Create tile for South wall if needed (rendered as north wall in cell below)
+        if (wallComponent.hasAnyProperties(WallDirection.SOUTH)) {
+            const southTileId = this.display.createTile(
+                position.x,
+                position.y + 1,
+                '',
+                '#FFFFFF',
+                '#000000',
+                1,
+                {
+                    walls: [true, false],  // [north, west]
+                    wallColor: wallComponent.getWallColor(WallDirection.SOUTH)
+                }
+            );
+            this.wallTiles.set(`${entity.getId()}_south`, southTileId);
+        }
+
+        // Create tile for East wall if needed (rendered as west wall in cell to right)
+        if (wallComponent.hasAnyProperties(WallDirection.EAST)) {
+            const eastTileId = this.display.createTile(
+                position.x + 1,
+                position.y,
+                '',
+                '#FFFFFF',
+                '#000000',
+                1,
+                {
+                    walls: [false, true],  // [north, west]
+                    wallColor: wallComponent.getWallColor(WallDirection.EAST)
+                }
+            );
+            this.wallTiles.set(`${entity.getId()}_east`, eastTileId);
+        }
+    }
+
+    private updateEntityWalls(entity: Entity): void {
+        // Remove existing wall tiles
+        ['north', 'south', 'east', 'west'].forEach(dir => {
+            const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
+            if (tileId) {
+                this.display.removeTile(tileId);
+                this.wallTiles.delete(`${entity.getId()}_${dir}`);
+            }
+        });
+
+        // Add new wall tiles
+        this.addEntityWalls(entity);
     }
 }  
