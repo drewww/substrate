@@ -14,27 +14,44 @@ export enum WallProperty {
     IMPASSABLE = 2
 }
 
+interface WallData {
+    properties: [boolean, boolean, boolean];  // [render, opaque, impassable]
+    color: string;
+}
+
 export interface WallConfig {
-    north?: [boolean, boolean, boolean];  // [render, opaque, impassable]
-    west?: [boolean, boolean, boolean];   // [render, opaque, impassable]
+    north?: WallData;
+    west?: WallData;
 }
 
 @RegisterComponent('wall')
 export class WallComponent extends Component {
     public readonly type = 'wall';
     
-    private walls: Map<WallDirection, [boolean, boolean, boolean]> = new Map();
+    private walls: Map<WallDirection, WallData> = new Map();
 
     constructor(config: WallConfig = {}) {
         super();
-        this.walls.set(WallDirection.NORTH, config.north ?? [false, false, false]);
-        this.walls.set(WallDirection.WEST, config.west ?? [false, false, false]);
+        this.walls.set(WallDirection.NORTH, {
+            properties: config.north?.properties ?? [false, false, false],
+            color: config.north?.color ?? '#FFFFFF'
+        });
+        this.walls.set(WallDirection.WEST, {
+            properties: config.west?.properties ?? [false, false, false],
+            color: config.west?.color ?? '#FFFFFF'
+        });
     }
 
     static fromJSON(data: any): WallComponent {
         return new WallComponent({
-            north: data.north,
-            west: data.west
+            north: {
+                properties: data.north?.properties,
+                color: data.north?.color
+            },
+            west: {
+                properties: data.west?.properties,
+                color: data.west?.color
+            }
         });
     }
 
@@ -45,18 +62,25 @@ export class WallComponent extends Component {
         };
     }
 
-    // Helper methods to make the code more readable
-    setWallProperties(direction: WallDirection, render: boolean, opaque: boolean, impassable: boolean): void {
+    setWallProperties(direction: WallDirection, render: boolean, opaque: boolean, impassable: boolean, color?: string): void {
         if (direction === WallDirection.NORTH || direction === WallDirection.WEST) {
-            this.walls.set(direction, [render, opaque, impassable]);
+            const currentWall = this.walls.get(direction);
+            this.walls.set(direction, {
+                properties: [render, opaque, impassable],
+                color: color ?? currentWall?.color ?? '#FFFFFF'
+            });
         }
     }
 
     getWallProperties(direction: WallDirection): [boolean, boolean, boolean] {
-        return [...(this.walls.get(direction) ?? [false, false, false])];
+        return [...(this.walls.get(direction)?.properties ?? [false, false, false])];
+    }
+
+    getWallColor(direction: WallDirection): string {
+        return this.walls.get(direction)?.color ?? '#FFFFFF';
     }
 
     hasAnyProperties(direction: WallDirection): boolean {
-        return this.walls.get(direction)?.some(prop => prop) ?? false;
+        return this.walls.get(direction)?.properties.some(prop => prop) ?? false;
     }
 } 
