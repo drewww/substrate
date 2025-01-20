@@ -3,7 +3,7 @@ import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { Component } from '../entity/component';
 import { logger } from '../util/logger';
-import { FieldOfViewMap, computeFieldOfView } from 'wally-fov';
+import { FieldOfViewMap, computeFieldOfView, CardinalDirection } from 'wally-fov';
 import { WallComponent, WallDirection, WallProperty } from '../entity/components/wall-component';
 
 interface SerializedWorld {
@@ -680,6 +680,27 @@ export class World {
             const pos = entity.getPosition();
             this.fovMap.addBody(pos.x, pos.y);
         }
+
+        // Add all walls to the FOV map
+        const wallEntities = this.getEntitiesWithComponent('wall');
+        for (const entity of wallEntities) {
+            const pos = entity.getPosition();
+            const wall = entity.getComponent('wall') as WallComponent;
+            
+            // Check each wall direction
+            if (wall.hasAnyProperties(WallDirection.NORTH)) {
+                this.fovMap.addWall(pos.x, pos.y, CardinalDirection.NORTH);
+            }
+            if (wall.hasAnyProperties(WallDirection.SOUTH)) {
+                this.fovMap.addWall(pos.x, pos.y, CardinalDirection.SOUTH);
+            }
+            if (wall.hasAnyProperties(WallDirection.EAST)) {
+                this.fovMap.addWall(pos.x, pos.y, CardinalDirection.EAST);
+            }
+            if (wall.hasAnyProperties(WallDirection.WEST)) {
+                this.fovMap.addWall(pos.x, pos.y, CardinalDirection.WEST);
+            }
+        }
     }
 
     // Update FOV for entity changes
@@ -689,6 +710,28 @@ export class World {
                 this.fovMap.addBody(position.x, position.y);
             } else {
                 this.fovMap.removeBody(position.x, position.y);
+            }
+        }
+
+        if (entity.hasComponent('wall')) {
+            const wall = entity.getComponent('wall') as WallComponent;
+            
+            // For each direction, add or remove the wall as needed
+            const directions = [
+                [WallDirection.NORTH, CardinalDirection.NORTH],
+                [WallDirection.SOUTH, CardinalDirection.SOUTH],
+                [WallDirection.EAST, CardinalDirection.EAST],
+                [WallDirection.WEST, CardinalDirection.WEST]
+            ] as const;
+
+            for (const [wallDir, fovDir] of directions) {
+                if (wall.hasAnyProperties(wallDir)) {
+                    if (isAdding) {
+                        this.fovMap.addWall(position.x, position.y, fovDir);
+                    } else {
+                        this.fovMap.removeWall(position.x, position.y, fovDir);
+                    }
+                }
             }
         }
     }
