@@ -767,24 +767,24 @@ export class World {
      */
     public setWall(pos: Point, direction: WallDirection, properties: [boolean, boolean, boolean]): boolean {
         let targetPos: Point;
-        let wallDirection: 'north' | 'west';
+        let wallDirection: WallDirection;
 
         switch (direction) {
             case WallDirection.NORTH:
                 targetPos = pos;
-                wallDirection = 'north';
+                wallDirection = WallDirection.NORTH;
                 break;
             case WallDirection.SOUTH:
                 targetPos = { x: pos.x, y: pos.y + 1 };
-                wallDirection = 'north';
+                wallDirection = WallDirection.NORTH;
                 break;
             case WallDirection.WEST:
                 targetPos = pos;
-                wallDirection = 'west';
+                wallDirection = WallDirection.WEST;
                 break;
             case WallDirection.EAST:
                 targetPos = { x: pos.x + 1, y: pos.y };
-                wallDirection = 'west';
+                wallDirection = WallDirection.WEST;
                 break;
         }
 
@@ -799,9 +799,9 @@ export class World {
 
         if (!entity && properties.some(prop => prop)) {
             entity = new Entity(targetPos);
-            entity.setComponent(new WallComponent({
-                [wallDirection]: properties
-            }));
+            const wallComponent = new WallComponent();
+            wallComponent.setWallProperties(wallDirection, ...properties);
+            entity.setComponent(wallComponent);
             this.addEntity(entity);
             return true;
         }
@@ -809,9 +809,9 @@ export class World {
         if (entity) {
             const wall = entity.getComponent('wall') as WallComponent;
             if (wall) {
-                wall[wallDirection] = properties;
+                wall.setWallProperties(wallDirection, ...properties);
                 // Remove entity if no walls have any properties
-                if (!wall.hasAnyProperties('north') && !wall.hasAnyProperties('west')) {
+                if (!wall.hasAnyProperties(WallDirection.NORTH) && !wall.hasAnyProperties(WallDirection.WEST)) {
                     this.removeEntity(entity.getId());
                 }
                 return true;
@@ -826,24 +826,24 @@ export class World {
      */
     public hasWall(pos: Point, direction: WallDirection): [boolean, boolean, boolean] {
         let targetPos: Point;
-        let wallDirection: 'north' | 'west';
+        let wallDirection: WallDirection;
 
         switch (direction) {
             case WallDirection.NORTH:
                 targetPos = pos;
-                wallDirection = 'north';
+                wallDirection = WallDirection.NORTH;
                 break;
             case WallDirection.SOUTH:
                 targetPos = { x: pos.x, y: pos.y + 1 };
-                wallDirection = 'north';
+                wallDirection = WallDirection.NORTH;
                 break;
             case WallDirection.WEST:
                 targetPos = pos;
-                wallDirection = 'west';
+                wallDirection = WallDirection.WEST;
                 break;
             case WallDirection.EAST:
                 targetPos = { x: pos.x + 1, y: pos.y };
-                wallDirection = 'west';
+                wallDirection = WallDirection.WEST;
                 break;
         }
 
