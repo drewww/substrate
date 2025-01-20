@@ -412,7 +412,9 @@ export class Display {
             noClip: config?.noClip ?? false,
             blendMode: config?.blendMode ?? BlendMode.SourceOver,
             alwaysRenderIfExplored: config?.alwaysRenderIfExplored ?? false,
-         };
+            walls: config?.walls,
+            wallColor: config?.wallColor
+        };
         
         this.tileMap.set(id, tile);
         this.dirtyMask.markDirty(tile);
@@ -538,6 +540,32 @@ export class Display {
                         );
                         break;
                 }                
+            }
+        }
+        
+        // After background rendering but before character rendering, add wall rendering
+        if (tile.walls && tile.wallColor) {
+            const WALL_THICKNESS = 2;  // pixels
+            this.renderCtx.fillStyle = tile.wallColor;
+
+            // North wall
+            if (tile.walls[0]) {
+                this.renderCtx.fillRect(
+                    0,                    // x
+                    0,                    // y
+                    cellWidth,            // width
+                    WALL_THICKNESS        // height
+                );
+            }
+
+            // West wall
+            if (tile.walls[1]) {
+                this.renderCtx.fillRect(
+                    0,                    // x
+                    0,                    // y
+                    WALL_THICKNESS,       // width
+                    cellHeight           // height
+                );
             }
         }
         

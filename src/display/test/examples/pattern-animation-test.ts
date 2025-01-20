@@ -267,7 +267,6 @@ export class PatternAnimationTest extends BaseTest {
     }
 
     protected run(): void {
-
         this.display.setBackground(' ', '#000000FF', '#000000FF');
         // Pattern 1: Binary counter
         const binarySymbols = ['0', '1'];
@@ -958,47 +957,44 @@ export class PatternAnimationTest extends BaseTest {
 
         this.animatedTiles.push(doorLeft, doorRight);
 
+        // Add door animation
+        const doubleDoorStartTime = performance.now();
+        const doubleDoorLeft = this.display.createTile(
+            4, 3,           // Position left door panel
+            '',             // Right-half block
+            '#888888FF',     // Gray color
+            '#444444FF',     // Darker background
+            3,              // zIndex
+            {
+                bgPercent: 0.5,
+                fillDirection: FillDirection.RIGHT  // Fill from left to right
+            }
+        );
 
+        const doubleDoorRight = this.display.createTile(
+            4, 3,          // Position right door panel
+            '',            // Left-half block
+            '#888888FF',    // Match left door
+            '#444444FF',
+            3,
+            {
+                bgPercent: 0.5,
+                fillDirection: FillDirection.LEFT  // Fill from right to left
+            }
+        );
 
-
-           // Add door animation
-           const doubleDoorStartTime = performance.now();
-           const doubleDoorLeft = this.display.createTile(
-               4, 3,           // Position left door panel
-               '',             // Right-half block
-               '#888888FF',     // Gray color
-               '#444444FF',     // Darker background
-               3,              // zIndex
-               {
-                   bgPercent: 0.5,
-                   fillDirection: FillDirection.RIGHT  // Fill from left to right
-               }
-           );
-   
-           const doubleDoorRight = this.display.createTile(
-               4, 3,          // Position right door panel
-               '',            // Left-half block
-               '#888888FF',    // Match left door
-               '#444444FF',
-               3,
-               {
-                   bgPercent: 0.5,
-                   fillDirection: FillDirection.LEFT  // Fill from right to left
-               }
-           );
-
-           const doubleDoorTop = this.display.createTile(4, 3, '', '#666666FF', '#333333FF', 2, {
+        const doubleDoorTop = this.display.createTile(4, 3, '', '#666666FF', '#333333FF', 2, {
             bgPercent: 0.5,
             fillDirection: FillDirection.TOP  // Fill from top to bottom
-           });
-           const doubleDoorBottom = this.display.createTile(4, 3, '', '#666666FF', '#333333FF', 2, {
+        });
+        const doubleDoorBottom = this.display.createTile(4, 3, '', '#666666FF', '#333333FF', 2, {
             bgPercent: 0.5,
             fillDirection: FillDirection.BOTTOM  // Fill from bottom to top
-           });
-   
-           const doubleDoorBehind = this.display.createTile(4, 3, '', '#000000FF', '#000000FF', 1);
+        });
 
-           this.display.addValueAnimation(doubleDoorLeft, {
+        const doubleDoorBehind = this.display.createTile(4, 3, '', '#000000FF', '#000000FF', 1);
+
+        this.display.addValueAnimation(doubleDoorLeft, {
             bgPercent: {
                 start: 0.5,
                 end: 0.05,
@@ -1008,9 +1004,9 @@ export class PatternAnimationTest extends BaseTest {
                 loop: true
             },
             startTime: doubleDoorStartTime
-           });
+        });
 
-           this.display.addValueAnimation(doubleDoorRight, {
+        this.display.addValueAnimation(doubleDoorRight, {
             bgPercent: {
                 start: 0.5,
                 end: 0.05,
@@ -1020,9 +1016,9 @@ export class PatternAnimationTest extends BaseTest {
                 loop: true
             },
             startTime: doubleDoorStartTime
-           });  
+        });  
 
-           this.display.addValueAnimation(doubleDoorTop, {
+        this.display.addValueAnimation(doubleDoorTop, {
             bgPercent: {
                 start: 0.5,
                 end: 0.05,
@@ -1032,9 +1028,9 @@ export class PatternAnimationTest extends BaseTest {
                 loop: true
             },
             startTime: doubleDoorStartTime + 450  // Add 250ms (0.25 seconds) delay
-           });      
+        });      
 
-           this.display.addValueAnimation(doubleDoorBottom, {
+        this.display.addValueAnimation(doubleDoorBottom, {
             bgPercent: {
                 start: 0.5,
                 end: 0.05,
@@ -1044,10 +1040,9 @@ export class PatternAnimationTest extends BaseTest {
                 loop: true
             },
             startTime: doubleDoorStartTime + 450  // Add 250ms (0.25 seconds) delay
-           });      
+        });      
 
-           this.animatedTiles.push(doubleDoorLeft, doubleDoorRight, doubleDoorTop, doubleDoorBottom);
-
+        this.animatedTiles.push(doubleDoorLeft, doubleDoorRight, doubleDoorTop, doubleDoorBottom);
 
         // Replace the single smoke bomb with the pattern
         this.createSmokeBombPattern(10, 7);
@@ -1123,6 +1118,143 @@ export class PatternAnimationTest extends BaseTest {
             }
         });
         this.animatedTiles.push(pulsarTile);
+
+        // Wall demonstration section (at y = 8)
+        // Single walls in different directions
+        const wallColors = {
+            north: '#FF0000FF',  // Red
+            south: '#00FF00FF',  // Green
+            east: '#0000FFFF',   // Blue
+            west: '#FFFF00FF'    // Yellow
+        };
+
+        // North wall only
+        this.display.createTile(
+            5, 8,
+            'N',
+            '#FFFFFFFF',
+            '#000000FF',
+            1,
+            {
+                walls: [true, false],  // [north, west]
+                wallColor: wallColors.north
+            }
+        );
+
+        // West wall only
+        this.display.createTile(
+            7, 8,
+            'W',
+            '#FFFFFFFF',
+            '#000000FF',
+            1,
+            {
+                walls: [false, true],  // [north, west]
+                wallColor: wallColors.west
+            }
+        );
+
+        // Both walls
+        this.display.createTile(
+            9, 8,
+            '+',
+            '#FFFFFFFF',
+            '#000000FF',
+            1,
+            {
+                walls: [true, true],  // [north, west]
+                wallColor: '#FF00FFFF'  // Magenta for combined
+            }
+        );
+
+        // Animated wall colors
+        const animatedWallId = this.display.createTile(
+            11, 8,
+            'A',
+            '#FFFFFFFF',
+            '#000000FF',
+            1,
+            {
+                walls: [true, true],
+                wallColor: '#FF0000FF'
+            }
+        );
+
+        this.animatedTiles.push(animatedWallId);
+
+        // Create a small room with all walls
+        const roomSize = 2;
+        const roomStartX = 14;
+        const roomStartY = 7;
+
+        for (let x = 0; x < roomSize; x++) {
+            for (let y = 0; y < roomSize; y++) {
+                const hasNorthWall = y === 0;
+                const hasWestWall = x === 0;
+                const hasSouthWall = y === roomSize - 1;  // Last row
+                const hasEastWall = x === roomSize - 1;   // Last column
+                
+                if (hasNorthWall || hasWestWall) {
+                    // Create North and West walls at current position
+                    this.display.createTile(
+                        roomStartX + x,
+                        roomStartY + y,
+                        '',
+                        '#FFFFFFFF',
+                        '#000000FF',
+                        1,
+                        {
+                            walls: [hasNorthWall, hasWestWall],
+                            wallColor: '#888888FF'
+                        }
+                    );
+                }
+
+                if(hasSouthWall && hasEastWall) {
+                    this.display.createTile(
+                        roomStartX + x + 1,
+                        roomStartY + y,
+                        '',
+                        '#FFFFFFFF',
+                        '#000000FF',
+                        1,
+                        {
+                            walls: [false, true],
+                            wallColor: '#004488FF'
+                        }
+                    );
+
+                    this.display.createTile(
+                        roomStartX + x,
+                        roomStartY + y+1,
+                        '',
+                        '#FFFFFFFF',
+                        '#000000FF',
+                        1,
+                        {
+                            walls: [true, false],
+                            wallColor: '#004488FF'
+                        }
+                    );
+                } else if (hasSouthWall || hasEastWall) {
+                    // Create South walls as North walls in the cell below
+                    // Create East walls as West walls in the cell to the right
+                    this.display.createTile(
+                        roomStartX + x + (hasEastWall ? 1 : 0),
+                        roomStartY + y + (hasSouthWall ? 1 : 0),
+                        '',
+                        '#FFFFFFFF',
+                        '#000000FF',
+                        1,
+                        {
+                            walls: [hasSouthWall, hasEastWall],
+                            wallColor: '#884488FF'
+                        }
+                    );
+                }
+
+            }
+        }
     }
 
     protected cleanup(): void {

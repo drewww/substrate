@@ -22,6 +22,8 @@ export interface Tile {
     noClip?: boolean;     // New option to disable clipping mask
     blendMode: BlendMode;  // Now required with a default value
     alwaysRenderIfExplored?: boolean;
+    walls?: [boolean, boolean];
+    wallColor?: Color;
 }
 
 export interface Cell {
@@ -110,6 +112,8 @@ export interface TileConfig {
     noClip?: boolean;
     blendMode?: BlendMode;
     alwaysRenderIfExplored?: boolean;
+    walls?: [boolean, boolean];
+    wallColor?: Color;
 }
 
 
