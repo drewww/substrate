@@ -39,6 +39,7 @@ Answers to questions:
  - Walls can be destroyed; functionally this is just removing the component or unsetting one of the flags on the component.
  - Entities do not at first have any interaction with walls. The one feature I have in mind is that an entity moving fast enough can break certain walls.
  - Walls that are impassable block pathfinding. But not all walls must be impassable.
+ - We should have helper methods like `hasWallBetween` and `setWallBetween`.
 
 
  Future ideas:
