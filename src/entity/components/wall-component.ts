@@ -8,55 +8,54 @@ export enum WallDirection {
     WEST = 3
 }
 
+export enum WallProperty {
+    RENDER = 0,
+    OPAQUE = 1,
+    IMPASSABLE = 2
+}
+
 export interface WallConfig {
-    north?: boolean;      // Wall on north edge
-    west?: boolean;       // Wall on west edge
-    northOpaque?: boolean;  // Is the north wall opaque
-    westOpaque?: boolean;   // Is the west wall opaque
-    northPassable?: boolean;  // Can entities pass through north wall
-    westPassable?: boolean;   // Can entities pass through west wall
+    north?: [boolean, boolean, boolean];  // [render, opaque, impassable]
+    west?: [boolean, boolean, boolean];   // [render, opaque, impassable]
 }
 
 @RegisterComponent('wall')
 export class WallComponent extends Component {
     public readonly type = 'wall';
     
-    public north: boolean;
-    public west: boolean;
-    public northOpaque: boolean;
-    public westOpaque: boolean;
-    public northPassable: boolean;
-    public westPassable: boolean;
+    public north: [boolean, boolean, boolean];
+    public west: [boolean, boolean, boolean];
 
     constructor(config: WallConfig = {}) {
         super();
-        this.north = config.north ?? false;
-        this.west = config.west ?? false;
-        this.northOpaque = config.northOpaque ?? false;
-        this.westOpaque = config.westOpaque ?? false;
-        this.northPassable = config.northPassable ?? false;
-        this.westPassable = config.westPassable ?? false;
+        this.north = config.north ?? [false, false, false];
+        this.west = config.west ?? [false, false, false];
     }
 
     static fromJSON(data: any): WallComponent {
         return new WallComponent({
             north: data.north,
-            west: data.west,
-            northOpaque: data.northOpaque,
-            westOpaque: data.westOpaque,
-            northPassable: data.northPassable,
-            westPassable: data.westPassable
+            west: data.west
         });
     }
 
     toJSON(): any {
         return {
             north: this.north,
-            west: this.west,
-            northOpaque: this.northOpaque,
-            westOpaque: this.westOpaque,
-            northPassable: this.northPassable,
-            westPassable: this.westPassable
+            west: this.west
         };
+    }
+
+    // Helper methods to make the code more readable
+    setWallProperties(direction: 'north' | 'west', render: boolean, opaque: boolean, impassable: boolean): void {
+        this[direction] = [render, opaque, impassable];
+    }
+
+    getWallProperties(direction: 'north' | 'west'): [boolean, boolean, boolean] {
+        return [...this[direction]];
+    }
+
+    hasAnyProperties(direction: 'north' | 'west'): boolean {
+        return this[direction].some(prop => prop);
     }
 } 

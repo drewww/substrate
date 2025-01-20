@@ -4,7 +4,7 @@ import { Point } from '../types';
 import { Component } from '../entity/component';
 import { logger } from '../util/logger';
 import { FieldOfViewMap, computeFieldOfView } from 'wally-fov';
-import { WallComponent, WallDirection } from '../entity/components/wall-component';
+import { WallComponent, WallDirection, WallProperty } from '../entity/components/wall-component';
 
 interface SerializedWorld {
     width: number;
@@ -765,8 +765,7 @@ export class World {
      * Set a wall in a specific direction from a position
      * @returns false if the target position would be out of bounds
      */
-    public setWall(pos: Point, direction: WallDirection, hasWall: boolean = true): boolean {
-        // Calculate target position and wall direction based on input direction
+    public setWall(pos: Point, direction: WallDirection, properties: [boolean, boolean, boolean]): boolean {
         let targetPos: Point;
         let wallDirection: 'north' | 'west';
 
@@ -795,25 +794,24 @@ export class World {
             return false;
         }
 
-        // Find or create wall entity at target position
         let entity = this.getEntitiesWithComponent('wall')
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
 
-        if (!entity && hasWall) {
+        if (!entity && properties.some(prop => prop)) {
             entity = new Entity(targetPos);
             entity.setComponent(new WallComponent({
-                [wallDirection]: true
+                [wallDirection]: properties
             }));
             this.addEntity(entity);
             return true;
         }
 
         if (entity) {
-            const wall = entity.getComponent('wall') as WallComponent | undefined;
+            const wall = entity.getComponent('wall') as WallComponent;
             if (wall) {
-                wall[wallDirection] = hasWall;
-                // Remove entity if no walls remain
-                if (!wall.north && !wall.west) {
+                wall[wallDirection] = properties;
+                // Remove entity if no walls have any properties
+                if (!wall.hasAnyProperties('north') && !wall.hasAnyProperties('west')) {
                     this.removeEntity(entity.getId());
                 }
                 return true;
@@ -826,7 +824,7 @@ export class World {
     /**
      * Check if there's a wall in a specific direction from a position
      */
-    public hasWall(pos: Point, direction: WallDirection): boolean {
+    public hasWall(pos: Point, direction: WallDirection): [boolean, boolean, boolean] {
         let targetPos: Point;
         let wallDirection: 'north' | 'west';
 
@@ -852,26 +850,28 @@ export class World {
         // Check bounds
         if (targetPos.x < 0 || targetPos.x >= this.width || 
             targetPos.y < 0 || targetPos.y >= this.height) {
-            return false;
+            return [false, false, false];
         }
 
         const entity = this.getEntitiesWithComponent('wall')
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
         const wall = entity?.getComponent('wall') as WallComponent | undefined;
         
-        return wall?.[wallDirection] ?? false;
+        return wall?.getWallProperties(wallDirection) ?? [false, false, false];
     }
 
     /**
      * Get all walls at a position
      */
-    public getWallsAt(pos: Point): WallDirection[] {
-        const walls: WallDirection[] = [];
+    public getWallsAt(pos: Point): Array<[WallDirection, [boolean, boolean, boolean]]> {
+        const walls: Array<[WallDirection, [boolean, boolean, boolean]]> = [];
         
-        if (this.hasWall(pos, WallDirection.NORTH)) walls.push(WallDirection.NORTH);
-        if (this.hasWall(pos, WallDirection.SOUTH)) walls.push(WallDirection.SOUTH);
-        if (this.hasWall(pos, WallDirection.EAST)) walls.push(WallDirection.EAST);
-        if (this.hasWall(pos, WallDirection.WEST)) walls.push(WallDirection.WEST);
+        for (const direction of [WallDirection.NORTH, WallDirection.SOUTH, WallDirection.EAST, WallDirection.WEST]) {
+            const properties = this.hasWall(pos, direction);
+            if (properties.some(prop => prop)) {
+                walls.push([direction, properties]);
+            }
+        }
         
         return walls;
     }

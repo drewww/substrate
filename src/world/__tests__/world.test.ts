@@ -6,6 +6,7 @@ import { Component } from '../../entity/component';
 import { ComponentRegistry, RegisterComponent } from '../../entity/component-registry';
 import { transient } from '../../decorators/transient';
 import { OpacityComponent } from '../../entity/components/opacity-component';
+import { WallDirection } from '../../entity/components/wall-component';
 
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
@@ -831,6 +832,118 @@ describe('World', () => {
             // Position should no longer be visible but should remain discovered
             expect(world.isLocationVisible(pos)).toBe(false);
             expect(world.isLocationDiscovered(pos)).toBe(true);
+        });
+    });
+
+    describe('Wall Management', () => {
+        let world: World;
+        const center = { x: 5, y: 5 };
+        
+        beforeEach(() => {
+            world = new World(10, 10);
+        });
+
+        it('should initialize with no walls', () => {
+            const properties = world.hasWall(center, WallDirection.NORTH);
+            expect(properties).toEqual([false, false, false]);
+        });
+
+        it('should set and get wall properties', () => {
+            // Set a wall with all properties true
+            world.setWall(center, WallDirection.NORTH, [true, true, true]);
+            expect(world.hasWall(center, WallDirection.NORTH)).toEqual([true, true, true]);
+
+            // Set a wall with mixed properties
+            world.setWall(center, WallDirection.WEST, [true, false, true]);
+            expect(world.hasWall(center, WallDirection.WEST)).toEqual([true, false, true]);
+        });
+
+        it('should handle wall direction translation correctly', () => {
+            // Setting a south wall at (5,5) should create a north wall at (5,6)
+            world.setWall(center, WallDirection.SOUTH, [true, true, true]);
+            expect(world.hasWall({ x: 5, y: 6 }, WallDirection.NORTH)).toEqual([true, true, true]);
+
+            // Setting an east wall at (5,5) should create a west wall at (6,5)
+            world.setWall(center, WallDirection.EAST, [true, true, true]);
+            expect(world.hasWall({ x: 6, y: 5 }, WallDirection.WEST)).toEqual([true, true, true]);
+        });
+
+        it('should return all walls at a position', () => {
+            world.setWall(center, WallDirection.NORTH, [true, false, true]);
+            world.setWall(center, WallDirection.WEST, [true, true, false]);
+
+            const walls = world.getWallsAt(center);
+            expect(walls).toHaveLength(2);
+            expect(walls).toContainEqual([WallDirection.NORTH, [true, false, true]]);
+            expect(walls).toContainEqual([WallDirection.WEST, [true, true, false]]);
+        });
+
+        it('should handle out of bounds positions', () => {
+            const outOfBounds = { x: -1, y: 0 };
+            expect(world.setWall(outOfBounds, WallDirection.NORTH, [true, true, true])).toBe(false);
+            expect(world.hasWall(outOfBounds, WallDirection.NORTH)).toEqual([false, false, false]);
+        });
+
+        it('should remove walls when all properties are false', () => {
+            // Set up a wall
+            world.setWall(center, WallDirection.NORTH, [true, true, true]);
+            expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
+
+            // Remove the wall by setting all properties to false
+            world.setWall(center, WallDirection.NORTH, [false, false, false]);
+            expect(world.getEntitiesWithComponent('wall')).toHaveLength(0);
+        });
+
+        it('should maintain wall entity when at least one property is true', () => {
+            // Set up walls in both directions
+            world.setWall(center, WallDirection.NORTH, [true, true, true]);
+            world.setWall(center, WallDirection.WEST, [true, true, true]);
+            expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
+
+            // Set one wall to have only one property
+            world.setWall(center, WallDirection.NORTH, [true, false, false]);
+            world.setWall(center, WallDirection.WEST, [false, false, false]);
+            
+            // Should still have the entity because north wall has one true property
+            expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
+        });
+
+        it('should handle bidirectional wall queries', () => {
+            // Setting a wall should be queryable from both sides
+            world.setWall(center, WallDirection.NORTH, [true, true, true]);
+            
+            // Check from the original position
+            expect(world.hasWall(center, WallDirection.NORTH)).toEqual([true, true, true]);
+            
+            // Check from the adjacent position
+            const adjacentPos = { x: center.x, y: center.y - 1 };
+            expect(world.hasWall(adjacentPos, WallDirection.SOUTH)).toEqual([true, true, true]);
+        });
+
+        it('should handle adding walls where entities already exist', () => {
+            // Add a non-wall entity at the target position first
+            const existingEntity = new Entity(center);
+            existingEntity.setComponent(new OpacityComponent(true));
+            world.addEntity(existingEntity);
+            
+            // Verify the entity is there
+            expect(world.getEntitiesAt(center)).toHaveLength(1);
+            expect(world.getEntitiesWithComponent('wall')).toHaveLength(0);
+
+            // Add a wall at the same position
+            world.setWall(center, WallDirection.NORTH, [true, true, true]);
+            
+            // Should now have both entities at the position
+            expect(world.getEntitiesAt(center)).toHaveLength(2);
+            expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
+            
+            // Verify wall properties
+            expect(world.hasWall(center, WallDirection.NORTH)).toEqual([true, true, true]);
+            
+            // Verify the original entity is still there and unchanged
+            const entitiesAtPos = world.getEntitiesAt(center);
+            expect(entitiesAtPos.some(e => e.getId() === existingEntity.getId())).toBe(true);
+            expect(existingEntity.hasComponent('opacity')).toBe(true);
         });
     });
 }); 
