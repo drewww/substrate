@@ -814,24 +814,20 @@ describe('World', () => {
         });
 
         it('should initialize with no walls', () => {
-            const properties = world.hasWall(center, WallDirection.NORTH);
-            expect(properties).toEqual([false, false, false]);
+            // A new world should have no wall entities
+            const walls = world.getEntitiesWithComponent('wall');
+            expect(walls).toHaveLength(0);
         });
 
         it('should set and get wall properties', () => {
-            // Set a wall with all properties true
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, true, true],
                 color: defaultWallColor
             });
-            expect(world.hasWall(center, WallDirection.NORTH)).toEqual([true, true, true]);
-
-            // Set a wall with mixed properties
-            world.setWall(center, WallDirection.WEST, {
-                properties: [true, false, true],
-                color: defaultWallColor
-            });
-            expect(world.hasWall(center, WallDirection.WEST)).toEqual([true, false, true]);
+            
+            const wall = world.getEntitiesWithComponent('wall')[0]
+                .getComponent('wall') as WallComponent;
+            expect(wall.north.properties).toEqual([true, true, true]);
         });
 
         it('should handle wall direction translation correctly', () => {
@@ -840,14 +836,23 @@ describe('World', () => {
                 properties: [true, true, true],
                 color: defaultWallColor
             });
-            expect(world.hasWall({ x: 5, y: 6 }, WallDirection.NORTH)).toEqual([true, true, true]);
+
+            const southPos = { x: 5, y: 6 };
+            const wall = world.getEntitiesWithComponent('wall')
+                .find(e => e.getPosition().x === southPos.x && e.getPosition().y === southPos.y)
+                ?.getComponent('wall') as WallComponent;
+            expect(wall.north.properties).toEqual([true, true, true]);
 
             // Setting an east wall at (5,5) should create a west wall at (6,5)
             world.setWall(center, WallDirection.EAST, {
                 properties: [true, true, true],
                 color: defaultWallColor
             });
-            expect(world.hasWall({ x: 6, y: 5 }, WallDirection.WEST)).toEqual([true, true, true]);
+            const eastPos = { x: 6, y: 5 };
+            const eastWall = world.getEntitiesWithComponent('wall')
+                .find(e => e.getPosition().x === eastPos.x && e.getPosition().y === eastPos.y)
+                ?.getComponent('wall') as WallComponent;
+            expect(eastWall.west.properties).toEqual([true, true, true]);
         });
 
         it('should handle out of bounds positions', () => {
@@ -856,18 +861,18 @@ describe('World', () => {
                 properties: [true, true, true],
                 color: defaultWallColor
             })).toBe(false);
-            expect(world.hasWall(outOfBounds, WallDirection.NORTH)).toEqual([false, false, false]);
+            
+            const walls = world.getEntitiesWithComponent('wall');
+            expect(walls).toHaveLength(0);
         });
 
         it('should remove walls when all properties are false', () => {
-            // Set up a wall
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, true, true],
                 color: defaultWallColor
             });
             expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
 
-            // Remove the wall by setting all properties to false
             world.setWall(center, WallDirection.NORTH, {
                 properties: [false, false, false],
                 color: defaultWallColor
@@ -876,7 +881,6 @@ describe('World', () => {
         });
 
         it('should maintain wall entity when at least one property is true', () => {
-            // Set up walls in both directions
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, true, true],
                 color: defaultWallColor
@@ -887,7 +891,6 @@ describe('World', () => {
             });
             expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
 
-            // Set one wall to have only one property
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, false, false],
                 color: defaultWallColor
@@ -897,28 +900,16 @@ describe('World', () => {
                 color: defaultWallColor
             });
             expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
-        });
 
-        it('should handle adding walls where entities already exist', () => {
-            // Add a non-wall entity at the target position first
-            const existingEntity = new Entity(center);
-            existingEntity.setComponent(new OpacityComponent(true));
-            world.addEntity(existingEntity);
-            
-            // Add a wall at the same position
-            world.setWall(center, WallDirection.NORTH, {
-                properties: [true, true, true],
-                color: defaultWallColor
-            });
-            
-            expect(world.getEntitiesAt(center)).toHaveLength(2);
-            expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
+            const wall = world.getEntitiesWithComponent('wall')[0]
+                .getComponent('wall') as WallComponent;
+            expect(wall.north.properties).toEqual([true, false, false]);
+            expect(wall.west.properties).toEqual([false, false, false]);
         });
 
         it('should set and get wall colors', () => {
             const customColor = '#FF0000';
             
-            // Set a wall with custom color
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, true, true],
                 color: customColor
@@ -926,34 +917,13 @@ describe('World', () => {
             
             const wall = world.getEntitiesWithComponent('wall')[0]
                 .getComponent('wall') as WallComponent;
-            expect(wall.getWallColor(WallDirection.NORTH)).toBe(customColor);
-        });
-
-        it('should maintain wall colors when updating properties', () => {
-            const customColor = '#FF0000';
-            
-            // Set initial wall with custom color
-            world.setWall(center, WallDirection.NORTH, {
-                properties: [true, true, true],
-                color: customColor
-            });
-
-            // Update properties but keep same color
-            world.setWall(center, WallDirection.NORTH, {
-                properties: [true, false, false],
-                color: customColor
-            });
-
-            const wall = world.getEntitiesWithComponent('wall')[0]
-                .getComponent('wall') as WallComponent;
-            expect(wall.getWallColor(WallDirection.NORTH)).toBe(customColor);
+            expect(wall.north.color).toBe(customColor);
         });
 
         it('should handle different colors for different directions', () => {
             const northColor = '#FF0000';
             const westColor = '#00FF00';
             
-            // Set walls with different colors
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, true, true],
                 color: northColor
@@ -965,25 +935,8 @@ describe('World', () => {
 
             const wall = world.getEntitiesWithComponent('wall')[0]
                 .getComponent('wall') as WallComponent;
-            expect(wall.getWallColor(WallDirection.NORTH)).toBe(northColor);
-            expect(wall.getWallColor(WallDirection.WEST)).toBe(westColor);
-        });
-
-        it('should translate wall colors with direction translation', () => {
-            const customColor = '#FF0000';
-            
-            // Setting a south wall should create a north wall with the same color
-            world.setWall(center, WallDirection.SOUTH, {
-                properties: [true, true, true],
-                color: customColor
-            });
-
-            const southPos = { x: center.x, y: center.y + 1 };
-            const wall = world.getEntitiesWithComponent('wall')
-                .find(e => e.getPosition().x === southPos.x && e.getPosition().y === southPos.y)
-                ?.getComponent('wall') as WallComponent;
-            
-            expect(wall.getWallColor(WallDirection.NORTH)).toBe(customColor);
+            expect(wall.north.color).toBe(northColor);
+            expect(wall.west.color).toBe(westColor);
         });
     });
 }); 

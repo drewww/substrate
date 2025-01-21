@@ -33,8 +33,8 @@ export interface WallConfig {
 export class WallComponent extends Component {
     public readonly type = 'wall';
     
-    private north: WallData = { ...DEFAULT_WALL_DATA };
-    private west: WallData = { ...DEFAULT_WALL_DATA };
+    public north: WallData = { ...DEFAULT_WALL_DATA };
+    public west: WallData = { ...DEFAULT_WALL_DATA };
 
     constructor(config: WallConfig = {}) {
         super();
@@ -65,33 +65,5 @@ export class WallComponent extends Component {
             north: this.north,
             west: this.west
         };
-    }
-
-    setWallProperties(direction: WallDirection, render: boolean, opaque: boolean, impassable: boolean, color?: string): void {
-        const wallData = {
-            properties: [render, opaque, impassable] as [boolean, boolean, boolean],
-            color: color ?? '#FFFFFF'
-        };
-
-        if (direction === WallDirection.NORTH) {
-            this.north = wallData;
-        } else if (direction === WallDirection.WEST) {
-            this.west = wallData;
-        }
-    }
-
-    getWallProperties(direction: WallDirection): [boolean, boolean, boolean] {
-        const wall = direction === WallDirection.NORTH ? this.north : this.west;
-        return [...wall.properties];
-    }
-
-    getWallColor(direction: WallDirection): string {
-        const wall = direction === WallDirection.NORTH ? this.north : this.west;
-        return wall.color;
-    }
-
-    hasAnyProperties(direction: WallDirection): boolean {
-        const wall = direction === WallDirection.NORTH ? this.north : this.west;
-        return wall.properties.some(prop => prop);
     }
 } 

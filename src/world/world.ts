@@ -663,16 +663,10 @@ export class World {
             const wall = entity.getComponent('wall') as WallComponent;
             
             // Check each wall direction
-            if (wall.hasAnyProperties(WallDirection.NORTH)) {
+            if (wall.north?.properties[WallProperty.OPAQUE]) {
                 this.fovMap.addWall(pos.x, pos.y, CardinalDirection.NORTH);
             }
-            if (wall.hasAnyProperties(WallDirection.SOUTH)) {
-                this.fovMap.addWall(pos.x, pos.y, CardinalDirection.SOUTH);
-            }
-            if (wall.hasAnyProperties(WallDirection.EAST)) {
-                this.fovMap.addWall(pos.x, pos.y, CardinalDirection.EAST);
-            }
-            if (wall.hasAnyProperties(WallDirection.WEST)) {
+            if (wall.west?.properties[WallProperty.OPAQUE]) {
                 this.fovMap.addWall(pos.x, pos.y, CardinalDirection.WEST);
             }
         }
@@ -691,23 +685,20 @@ export class World {
         if (entity.hasComponent('wall')) {
             const wall = entity.getComponent('wall') as WallComponent;
             
-            // For each direction, add or remove the wall as needed
-            const directions = [
-                [WallDirection.NORTH, CardinalDirection.NORTH],
-                [WallDirection.SOUTH, CardinalDirection.SOUTH],
-                [WallDirection.EAST, CardinalDirection.EAST],
-                [WallDirection.WEST, CardinalDirection.WEST]
-            ] as const;
-
-            for (const [wallDir, fovDir] of directions) {
-                // Only add wall to FOV if it has the opaque property
-                const properties = wall.getWallProperties(wallDir);
-                if (properties[WallProperty.OPAQUE]) {
-                    if (isAdding) {
-                        this.fovMap.addWall(position.x, position.y, fovDir);
-                    } else {
-                        this.fovMap.removeWall(position.x, position.y, fovDir);
-                    }
+            // Only check north and west walls since those are the only ones we store
+            if (wall.north.properties[WallProperty.OPAQUE]) {
+                if (isAdding) {
+                    this.fovMap.addWall(position.x, position.y, CardinalDirection.NORTH);
+                } else {
+                    this.fovMap.removeWall(position.x, position.y, CardinalDirection.NORTH);
+                }
+            }
+            
+            if (wall.west.properties[WallProperty.OPAQUE]) {
+                if (isAdding) {
+                    this.fovMap.addWall(position.x, position.y, CardinalDirection.WEST);
+                } else {
+                    this.fovMap.removeWall(position.x, position.y, CardinalDirection.WEST);
                 }
             }
         }
@@ -817,7 +808,7 @@ export class World {
         let entity = this.getEntitiesWithComponent('wall')
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
 
-        if (!entity && wall.properties.some((prop: boolean) => prop)) {
+        if (!entity && wall.properties.some(prop => prop)) {
             entity = new Entity(targetPos);
             const config: WallConfig = {
                 [wallDirection === WallDirection.NORTH ? 'north' : 'west']: wall
@@ -830,9 +821,15 @@ export class World {
         if (entity) {
             const wallComponent = entity.getComponent('wall') as WallComponent;
             if (wallComponent) {
-                wallComponent.setWallProperties(wallDirection, ...wall.properties, wall.color);
+                if (wallDirection === WallDirection.NORTH) {
+                    wallComponent.north = wall;
+                } else {
+                    wallComponent.west = wall;
+                }
+                
                 // Remove entity if no walls have any properties
-                if (!wallComponent.hasAnyProperties(WallDirection.NORTH) && !wallComponent.hasAnyProperties(WallDirection.WEST)) {
+                if (!wallComponent.north.properties.some(p => p) && 
+                    !wallComponent.west.properties.some(p => p)) {
                     this.removeEntity(entity.getId());
                 }
                 return true;
@@ -878,7 +875,13 @@ export class World {
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
         const wall = entity?.getComponent('wall') as WallComponent | undefined;
         
-        return wall?.getWallProperties(wallDirection) ?? [false, false, false];
+        if (wall) {
+            return wallDirection === WallDirection.NORTH ? 
+                [...wall.north.properties] : 
+                [...wall.west.properties];
+        }
+        
+        return [false, false, false];
     }
 
     /**
