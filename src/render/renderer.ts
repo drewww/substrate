@@ -691,7 +691,7 @@ export abstract class Renderer {
         const position = entity.getPosition();
         
         // Create tile for North wall if needed
-        if (wallComponent.hasAnyProperties(WallDirection.NORTH)) {
+        if (wallComponent.north.properties.some(prop => prop)) {
             const northTileId = this.display.createTile(
                 position.x,
                 position.y,
@@ -701,14 +701,14 @@ export abstract class Renderer {
                 1,
                 {
                     walls: [true, false],  // [north, west]
-                    wallColor: wallComponent.getWallColor(WallDirection.NORTH)
+                    wallColor: wallComponent.north.color
                 }
             );
             this.wallTiles.set(`${entity.getId()}_north`, northTileId);
         }
 
         // Create tile for West wall if needed
-        if (wallComponent.hasAnyProperties(WallDirection.WEST)) {
+        if (wallComponent.west.properties.some(prop => prop)) {
             const westTileId = this.display.createTile(
                 position.x,
                 position.y,
@@ -718,44 +718,10 @@ export abstract class Renderer {
                 1,
                 {
                     walls: [false, true],  // [north, west]
-                    wallColor: wallComponent.getWallColor(WallDirection.WEST)
+                    wallColor: wallComponent.west.color
                 }
             );
             this.wallTiles.set(`${entity.getId()}_west`, westTileId);
-        }
-
-        // Create tile for South wall if needed (rendered as north wall in cell below)
-        if (wallComponent.hasAnyProperties(WallDirection.SOUTH)) {
-            const southTileId = this.display.createTile(
-                position.x,
-                position.y + 1,
-                '',
-                '#FFFFFF',
-                '#000000',
-                1,
-                {
-                    walls: [true, false],  // [north, west]
-                    wallColor: wallComponent.getWallColor(WallDirection.SOUTH)
-                }
-            );
-            this.wallTiles.set(`${entity.getId()}_south`, southTileId);
-        }
-
-        // Create tile for East wall if needed (rendered as west wall in cell to right)
-        if (wallComponent.hasAnyProperties(WallDirection.EAST)) {
-            const eastTileId = this.display.createTile(
-                position.x + 1,
-                position.y,
-                '',
-                '#FFFFFF',
-                '#000000',
-                1,
-                {
-                    walls: [false, true],  // [north, west]
-                    wallColor: wallComponent.getWallColor(WallDirection.EAST)
-                }
-            );
-            this.wallTiles.set(`${entity.getId()}_east`, eastTileId);
         }
     }
 

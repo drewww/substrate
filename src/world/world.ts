@@ -809,10 +809,14 @@ export class World {
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
 
         if (!entity && wall.properties.some(prop => prop)) {
+            // Create new entity with wall
             entity = new Entity(targetPos);
-            const config: WallConfig = {
-                [wallDirection === WallDirection.NORTH ? 'north' : 'west']: wall
-            };
+            const config: WallConfig = {};
+            if (wallDirection === WallDirection.NORTH) {
+                config.north = wall;
+            } else {
+                config.west = wall;
+            }
             entity.setComponent(new WallComponent(config));
             this.addEntity(entity);
             return true;
@@ -821,16 +825,20 @@ export class World {
         if (entity) {
             const wallComponent = entity.getComponent('wall') as WallComponent;
             if (wallComponent) {
+                // Update existing wall component
                 if (wallDirection === WallDirection.NORTH) {
-                    wallComponent.north = wall;
+                    wallComponent.north = { ...wall };
                 } else {
-                    wallComponent.west = wall;
+                    wallComponent.west = { ...wall };
                 }
                 
                 // Remove entity if no walls have any properties
                 if (!wallComponent.north.properties.some(p => p) && 
                     !wallComponent.west.properties.some(p => p)) {
                     this.removeEntity(entity.getId());
+                } else {
+                    // Notify that the component was modified
+                    this.emit('componentModified', { entity, componentType: 'wall' });
                 }
                 return true;
             }
