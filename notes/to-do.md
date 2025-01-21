@@ -97,7 +97,7 @@ Display
 - then probably get out ...
 
 
-- There's still something wrong with chainloops. If there are different depths of loop, or different timings of loops on the same entity, it can get messed up. Not sure what to do about that.
+DONE  There's still something wrong with chainloops. If there are different depths of loop, or different timings of loops on the same entity, it can get messed up. Not sure what to do about that.
 
 
 - check on save/load, I think it broke
@@ -106,6 +106,20 @@ Display
 - FOV walls? try placing them on all impassable/opaque wall tiles. that might create more realistic lighting.
   - could there be a way to decrease range of sight going through, like, smoke? maybe not useful
 - start to get actually serious about what game we're thinking about
+
+
+WALL TODOS
+----------
+
+ - DONE add wall component
+ - DONE add wall tests
+ - DONE add wall serialization tests
+ - DONE add wall rendering tests
+
+ - add impassability checks (in the game itself)
+ - fix bump anim
+ - think about lighting walls -- both "should it render" and how to render it
+
 
 MODULE LIST
 -----------

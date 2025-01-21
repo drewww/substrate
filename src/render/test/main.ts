@@ -33,6 +33,7 @@ class WorldTest {
     private wanderingLightId: string | null = null;
     private wanderingLightInterval: number | null = null;
     private wallStates: Map<string, WallDirection[]> = new Map();  // Track wall states per position
+    private keyStates: Set<string>;
 
     constructor() {
         this.setupLogLevel();
@@ -79,6 +80,11 @@ class WorldTest {
         this.display.onCellClick((worldPos) => {
             const entityType = (document.getElementById('entityType') as HTMLSelectElement).value;
             
+            if (entityType === 'wall') {
+                this.handleWallPlacement(worldPos);
+                return;
+            }
+
             let entity;
             if (entityType === 'smokeBomb') {
                 entity = new SmokeBombEntity(worldPos);
@@ -219,56 +225,6 @@ class WorldTest {
                     }
                 }));
                 this.world.addEntity(aoeChargeShoot);
-            } else if (entityType === 'wall') {
-                const pos = worldPos;
-                
-                // Get current walls at this position
-                const currentWalls = this.world.getWallsAt(pos);
-                
-                // Determine next wall state based on current walls
-                if (currentWalls.length === 0) {
-                    // Add North wall
-                    this.world.setWall(pos, WallDirection.NORTH, {
-                        properties: [true, true, true], // render, opaque, impassable
-                        color: '#888888'
-                    });
-                } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.NORTH) {
-                    // Remove North wall, add East wall
-                    this.world.setWall(pos, WallDirection.NORTH, {
-                        properties: [false, false, false],
-                        color: '#888888'
-                    });
-                    this.world.setWall(pos, WallDirection.EAST, {
-                        properties: [true, true, true], // render, opaque, impassable
-                        color: '#888888'
-                    });
-                } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.EAST) {
-                    // Remove East wall, add South wall
-                    this.world.setWall(pos, WallDirection.EAST, {
-                        properties: [false, false, false],
-                        color: '#888888'
-                    });
-                    this.world.setWall(pos, WallDirection.SOUTH, {
-                        properties: [true, true, true], // render, opaque, impassable
-                        color: '#888888'
-                    });
-                } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.SOUTH) {
-                    // Remove South wall, add West wall
-                    this.world.setWall(pos, WallDirection.SOUTH, {
-                        properties: [false, false, false],
-                        color: '#888888'
-                    });
-                    this.world.setWall(pos, WallDirection.WEST, {
-                        properties: [true, true, true], // render, opaque, impassable
-                        color: '#888888'
-                    });
-                } else {
-                    // Remove West wall (back to no walls)
-                    this.world.setWall(pos, WallDirection.WEST, {
-                        properties: [false, false, false],
-                        color: '#888888'
-                    });
-                }
             }
 
             if (entity) {
@@ -371,6 +327,31 @@ class WorldTest {
                     this.world.moveEntity(this.wanderingLightId, newPos);
                 }, 1000);
             }
+        });
+
+        // Add keyboard state tracking
+        this.keyStates = new Set();
+        const keyToDirection = {
+            'ArrowUp': WallDirection.NORTH,
+            'ArrowDown': WallDirection.SOUTH,
+            'ArrowLeft': WallDirection.WEST,
+            'ArrowRight': WallDirection.EAST,
+            'KeyW': WallDirection.NORTH,
+            'KeyS': WallDirection.SOUTH,
+            'KeyA': WallDirection.WEST,
+            'KeyD': WallDirection.EAST,
+        } as const;
+        window.addEventListener('keydown', (e) => {
+            if (Object.keys(keyToDirection).includes(e.key) || 
+                Object.keys(keyToDirection).includes(e.code)) {
+                e.preventDefault();
+                this.keyStates.add(e.key);  // For arrow keys
+                this.keyStates.add(e.code); // For WASD
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            this.keyStates.delete(e.key);   // For arrow keys
+            this.keyStates.delete(e.code);  // For WASD
         });
     }
 
@@ -545,6 +526,39 @@ class WorldTest {
         const container = document.getElementById('controls');
         if (container) {
             container.insertBefore(select, container.firstChild);
+        }
+    }
+
+    private handleWallPlacement(pos: Point) {
+        // Map arrow keys to wall directions
+        const keyToDirection = {
+            'ArrowUp': WallDirection.NORTH,
+            'ArrowDown': WallDirection.SOUTH,
+            'ArrowLeft': WallDirection.WEST,
+            'ArrowRight': WallDirection.EAST,
+            'KeyW': WallDirection.NORTH,
+            'KeyS': WallDirection.SOUTH,
+            'KeyA': WallDirection.WEST,
+            'KeyD': WallDirection.EAST,
+        } as const;
+
+        // Check which arrow keys are pressed
+        const pressedDirections = Object.entries(keyToDirection)
+            .filter(([key]) => this.keyStates.has(key))
+            .map(([_, direction]) => direction);
+
+        if (pressedDirections.length === 0) {
+            // If no arrow keys are pressed, do nothing
+            return;
+        }
+
+        // Toggle each pressed direction
+        for (const direction of pressedDirections) {
+            const currentProperties = this.world.hasWall(pos, direction);
+            this.world.setWall(pos, direction, {
+                properties: [!currentProperties[0], !currentProperties[1], !currentProperties[2]],
+                color: '#888888'
+            });
         }
     }
 }
