@@ -53,14 +53,27 @@ export class Entity {
   }
 
   /**
-   * Set a component (triggers entityModified event)
+   * Set a component on the entity (adds or updates)
    */
   setComponent(component: Component): this {
-    if (this.store.has(component.type)) {
-      return this.updateComponent(component);
-    } else {
-      return this.addComponent(component);
+    const copy = Object.create(
+        Object.getPrototypeOf(component),
+        Object.getOwnPropertyDescriptors(component)
+    );
+    
+    const isUpdate = this.store.has(component.type);
+    this.store.set(copy);
+    this.changedComponents.add(component.type);
+    
+    if (this.world) {
+        if (isUpdate) {
+            this.world.onComponentModified(this, component.type);
+        } else {
+            this.world.onComponentAdded(this, component.type);
+        }
     }
+    
+    return this;
   }
 
   /**
@@ -339,53 +352,5 @@ export class Entity {
         this.world.onComponentModified(this, type);
       }
     }
-  }
-
-  /**
-   * Add a new component to the entity
-   * @throws Error if component type already exists
-   */
-  addComponent(component: Component): this {
-    if (this.store.has(component.type)) {
-      throw new Error(`Entity ${this.id} already has component of type: ${component.type}`);
-    }
-
-    const copy = Object.create(
-      Object.getPrototypeOf(component),
-      Object.getOwnPropertyDescriptors(component)
-    );
-    copy.modified = true;
-    this.store.set(copy);
-    this.changedComponents.add(component.type);
-    
-    if (this.world) {
-      this.world.onComponentAdded(this, component.type);
-    }
-    
-    return this;
-  }
-
-  /**
-   * Update an existing component
-   * @throws Error if component type doesn't exist
-   */
-  updateComponent(component: Component): this {
-    if (!this.store.has(component.type)) {
-      throw new Error(`Entity ${this.id} does not have component of type: ${component.type}`);
-    }
-
-    const copy = Object.create(
-      Object.getPrototypeOf(component),
-      Object.getOwnPropertyDescriptors(component)
-    );
-    copy.modified = true;
-    this.store.set(copy);
-    this.changedComponents.add(component.type);
-    
-    if (this.world) {
-      this.world.onComponentModified(this, component.type);
-    }
-    
-    return this;
   }
 } 
