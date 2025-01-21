@@ -19,19 +19,19 @@ export abstract class Component {
   }
 
   // Helper to create property descriptors that auto-mark as modified
-  protected createModifiedProperty<T>(privateKey: string) {
-    return {
-      get(this: Component): T {
-        return (this as any)[privateKey];
-      },
-      set(this: Component, value: T) {
-        (this as any)[privateKey] = value;
-        this.modified = true;
-      },
-      enumerable: true,
-      configurable: true
-    };
-  }
+  // protected createModifiedProperty<T>(privateKey: string) {
+  //   return {
+  //     get(this: Component): T {
+  //       return (this as any)[privateKey];
+  //     },
+  //     set(this: Component, value: T) {
+  //       (this as any)[privateKey] = value;
+  //       this.modified = true;
+  //     },
+  //     enumerable: true,
+  //     configurable: true
+  //   };
+  // }
 
   serialize(): SerializedComponent {
     const json: SerializedComponent = {

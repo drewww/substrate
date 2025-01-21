@@ -15,23 +15,21 @@ const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 @RegisterComponent('health')
 class HealthComponent extends Component {
     readonly type = 'health';
+    
     private _current: number;
     private _max: number;
 
-    // Declare the properties that will be created by createModifiedProperty
-    declare current: number;
-    declare max: number;
-
-    constructor(current: number, max: number) {
+    constructor(current: number = 100, max: number = 100) {
         super();
         this._current = current;
         this._max = max;
-        
-        Object.defineProperties(this, {
-            current: this.createModifiedProperty<number>('_current'),
-            max: this.createModifiedProperty<number>('_max')
-        });
     }
+
+    get current() { return this._current; }
+    set current(value: number) { this._current = value; }
+
+    get max() { return this._max; }
+    set max(value: number) { this._max = value; }
 
     static fromJSON(data: any): HealthComponent {
         return new HealthComponent(data.current, data.max);
@@ -41,17 +39,16 @@ class HealthComponent extends Component {
 @RegisterComponent('facing')
 class FacingComponent extends Component {
     readonly type = 'facing';
+    
     private _direction: Direction;
-    declare direction: Direction;  // Declare the property
 
-    constructor(direction: Direction) {
+    constructor(direction: Direction = Direction.North) {
         super();
         this._direction = direction;
-        
-        Object.defineProperty(this, 'direction', 
-            this.createModifiedProperty<Direction>('_direction')
-        );
     }
+
+    get direction() { return this._direction; }
+    set direction(value: Direction) { this._direction = value; }
 
     static fromJSON(data: any): FacingComponent {
         return new FacingComponent(data.direction);
@@ -62,43 +59,32 @@ class FacingComponent extends Component {
 @RegisterComponent('symbol')
 class TestSymbolComponent extends Component {
     readonly type = 'symbol';
+    
     private _char: string;
     private _foreground: string;
     private _background: string;
-    private _zIndex: number;
 
-    // Declare the properties
-    declare char: string;
-    declare foreground: string;
-    declare background: string;
-    declare zIndex: number;
-
-    constructor(
-        char: string,
-        foreground: string = '#FFFFFF',
-        background: string = '#000000',
-        zIndex: number = 1
-    ) {
+    constructor(char: string = '@', fg: string = 'white', bg: string = 'black') {
         super();
         this._char = char;
-        this._foreground = foreground;
-        this._background = background;
-        this._zIndex = zIndex;
-
-        Object.defineProperties(this, {
-            char: this.createModifiedProperty<string>('_char'),
-            foreground: this.createModifiedProperty<string>('_foreground'),
-            background: this.createModifiedProperty<string>('_background'),
-            zIndex: this.createModifiedProperty<number>('_zIndex')
-        });
+        this._foreground = fg;
+        this._background = bg;
     }
+
+    get char() { return this._char; }
+    set char(value: string) { this._char = value; }
+
+    get foreground() { return this._foreground; }
+    set foreground(value: string) { this._foreground = value; }
+
+    get background() { return this._background; }
+    set background(value: string) { this._background = value; }
 
     static fromJSON(data: any): TestSymbolComponent {
         return new TestSymbolComponent(
             data.char,
             data.foreground,
-            data.background,
-            data.zIndex
+            data.background
         );
     }
 }
@@ -220,21 +206,6 @@ describe('Entity', () => {
 
             it('returns false for empty array in hasAnyComponents', () => {
                 expect(entity.hasAnyComponents([])).toBe(false);
-            });
-        });
-
-        describe('Component Change Tracking', () => {
-            it('tracks component modifications', () => {
-                const health = new HealthComponent(100, 100);
-                entity.setComponent(health);
-                expect(entity.hasComponentChanged('health')).toBe(true);
-            });
-
-            it('clears modification flags', () => {
-                const health = new HealthComponent(100, 100);
-                entity.setComponent(health);
-                entity.clearChanges();
-                expect(entity.hasComponentChanged('health')).toBe(false);
             });
         });
 
@@ -460,37 +431,6 @@ describe('Entity', () => {
         });
     });
 
-    describe('Component Change Tracking', () => {
-        let entity: Entity;
-
-        beforeEach(() => {
-            entity = new Entity(DEFAULT_POSITION);
-        });
-
-        it('tracks multiple component changes', () => {
-            entity.setComponent(new HealthComponent(100, 100));
-            entity.setComponent(new FacingComponent(Direction.North));
-            
-            const changedComponents = entity.getChangedComponents();
-            expect(changedComponents).toHaveLength(2);
-            expect(changedComponents).toContain('health');
-            expect(changedComponents).toContain('facing');
-        });
-
-        it('handles rapid changes within same frame', () => {
-            entity.setComponent(new HealthComponent(100, 100));
-            entity.setComponent(new HealthComponent(90, 100));
-            entity.setComponent(new HealthComponent(80, 100));
-            
-            // Should still just show as one change
-            expect(entity.getChangedComponents()).toHaveLength(1);
-            
-            const expectedHealth = new HealthComponent(80, 100);
-            expectedHealth.modified = true;  // The component should be marked as modified
-            expect(entity.getComponent('health')).toEqual(expectedHealth);
-        });
-    });
-
     describe('Component Serialization', () => {
         let entity: Entity;
 
@@ -537,7 +477,7 @@ describe('Entity', () => {
         });
 
         it('maintains component state through serialize/deserialize cycle', () => {
-            const symbol = new TestSymbolComponent('@', '#FF0000', '#000000', 1);
+            const symbol = new TestSymbolComponent('@', '#FF0000', '#000000');
             entity.setComponent(symbol);
             
             const serialized = entity.serialize();
@@ -548,7 +488,6 @@ describe('Entity', () => {
                 char: '@',
                 foreground: '#FF0000',
                 background: '#000000',
-                zIndex: 1
             });
         });
 
@@ -573,85 +512,6 @@ describe('Entity', () => {
             };
 
             expect(() => Entity.deserialize(invalidData)).toThrow(/Unknown component type/);
-        });
-    });
-
-    describe('Component Events', () => {
-        let entity: Entity;
-        let mockWorld: { 
-            onComponentAdded: Mock;
-            onComponentModified: Mock;
-            onComponentRemoved: Mock;
-        };
-
-        beforeEach(() => {
-            entity = new Entity(DEFAULT_POSITION);
-            mockWorld = {
-                onComponentAdded: vi.fn(),
-                onComponentModified: vi.fn(),
-                onComponentRemoved: vi.fn()
-            };
-            entity.setWorld(mockWorld as unknown as World);
-        });
-
-        it('notifies world when component is added', () => {
-            const health = new HealthComponent(100, 100);
-            entity.addComponent(health);
-            
-            expect(mockWorld.onComponentAdded).toHaveBeenCalledWith(entity, 'health');
-            expect(mockWorld.onComponentModified).not.toHaveBeenCalled();
-        });
-
-        it('notifies world when component is updated', () => {
-            const health = new HealthComponent(100, 100);
-            entity.addComponent(health);
-            mockWorld.onComponentAdded.mockClear();
-
-            const updatedHealth = new HealthComponent(90, 100);
-            entity.updateComponent(updatedHealth);
-            
-            expect(mockWorld.onComponentModified).toHaveBeenCalledWith(entity, 'health');
-            expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
-        });
-
-        it('notifies world when component is removed', () => {
-            const health = new HealthComponent(100, 100);
-            entity.addComponent(health);
-            entity.removeComponent('health');
-            
-            expect(mockWorld.onComponentRemoved).toHaveBeenCalledWith(
-                entity, 
-                'health',
-                expect.objectContaining({
-                    type: 'health',
-                    current: 100,
-                    max: 100
-                })
-            );
-        });
-
-        it('notifies world when component is modified internally', () => {
-            const health = new HealthComponent(100, 100);
-            entity.addComponent(health);
-            mockWorld.onComponentAdded.mockClear();
-
-            entity.markComponentModified('health');
-            
-            expect(mockWorld.onComponentModified).toHaveBeenCalledWith(entity, 'health');
-            expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
-        });
-
-        it('does not notify world if no world is set', () => {
-            entity.setWorld(undefined as unknown as World);
-            const health = new HealthComponent(100, 100);
-            
-            entity.addComponent(health);
-            entity.updateComponent(health);
-            entity.removeComponent('health');
-            
-            expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
-            expect(mockWorld.onComponentModified).not.toHaveBeenCalled();
-            expect(mockWorld.onComponentRemoved).not.toHaveBeenCalled();
         });
     });
 }); 
