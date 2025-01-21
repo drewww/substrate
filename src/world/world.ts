@@ -725,7 +725,9 @@ export class World {
             ] as const;
 
             for (const [wallDir, fovDir] of directions) {
-                if (wall.hasAnyProperties(wallDir)) {
+                // Only add wall to FOV if it has the opaque property
+                const properties = wall.getWallProperties(wallDir);
+                if (properties[WallProperty.OPAQUE]) {
                     if (isAdding) {
                         this.fovMap.addWall(position.x, position.y, fovDir);
                     } else {

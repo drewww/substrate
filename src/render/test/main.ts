@@ -229,7 +229,7 @@ class WorldTest {
                 if (currentWalls.length === 0) {
                     // Add North wall
                     this.world.setWall(pos, WallDirection.NORTH, {
-                        properties: [true, false, false],
+                        properties: [true, true, true], // render, opaque, impassable
                         color: '#888888'
                     });
                 } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.NORTH) {
@@ -239,7 +239,7 @@ class WorldTest {
                         color: '#888888'
                     });
                     this.world.setWall(pos, WallDirection.EAST, {
-                        properties: [true, false, false],
+                        properties: [true, true, true], // render, opaque, impassable
                         color: '#888888'
                     });
                 } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.EAST) {
@@ -249,7 +249,7 @@ class WorldTest {
                         color: '#888888'
                     });
                     this.world.setWall(pos, WallDirection.SOUTH, {
-                        properties: [true, false, false],
+                        properties: [true, true, true], // render, opaque, impassable
                         color: '#888888'
                     });
                 } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.SOUTH) {
@@ -259,7 +259,7 @@ class WorldTest {
                         color: '#888888'
                     });
                     this.world.setWall(pos, WallDirection.WEST, {
-                        properties: [true, false, false],
+                        properties: [true, true, true], // render, opaque, impassable
                         color: '#888888'
                     });
                 } else {
