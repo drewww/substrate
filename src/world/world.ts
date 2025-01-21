@@ -4,7 +4,7 @@ import { Point } from '../types';
 import { Component } from '../entity/component';
 import { logger } from '../util/logger';
 import { FieldOfViewMap, computeFieldOfView, CardinalDirection } from 'wally-fov';
-import { WallComponent, WallDirection, WallProperty } from '../entity/components/wall-component';
+import { WallComponent, WallConfig, WallData, WallDirection, WallProperty } from '../entity/components/wall-component';
 
 interface SerializedWorld {
     width: number;
@@ -808,7 +808,7 @@ export class World {
      * Set a wall in a specific direction from a position
      * @returns false if the target position would be out of bounds
      */
-    public setWall(pos: Point, direction: WallDirection, properties: [boolean, boolean, boolean]): boolean {
+    public setWall(pos: Point, direction: WallDirection, wall: WallData): boolean {
         let targetPos: Point;
         let wallDirection: WallDirection;
 
@@ -840,25 +840,22 @@ export class World {
         let entity = this.getEntitiesWithComponent('wall')
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
 
-        if (!entity && properties.some(prop => prop)) {
+        if (!entity && wall.properties.some((prop: boolean) => prop)) {
             entity = new Entity(targetPos);
-            const wallComponent = new WallComponent({
-                [wallDirection]: {
-                    color: '#888888FF',
-                }
-            });
-            wallComponent.setWallProperties(wallDirection, ...properties);
-            entity.setComponent(wallComponent);
+            const config: WallConfig = {
+                [wallDirection === WallDirection.NORTH ? 'north' : 'west']: wall
+            };
+            entity.setComponent(new WallComponent(config));
             this.addEntity(entity);
             return true;
         }
 
         if (entity) {
-            const wall = entity.getComponent('wall') as WallComponent;
-            if (wall) {
-                wall.setWallProperties(wallDirection, ...properties);
+            const wallComponent = entity.getComponent('wall') as WallComponent;
+            if (wallComponent) {
+                wallComponent.setWallProperties(wallDirection, ...wall.properties, wall.color);
                 // Remove entity if no walls have any properties
-                if (!wall.hasAnyProperties(WallDirection.NORTH) && !wall.hasAnyProperties(WallDirection.WEST)) {
+                if (!wallComponent.hasAnyProperties(WallDirection.NORTH) && !wallComponent.hasAnyProperties(WallDirection.WEST)) {
                     this.removeEntity(entity.getId());
                 }
                 return true;

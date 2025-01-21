@@ -228,22 +228,46 @@ class WorldTest {
                 // Determine next wall state based on current walls
                 if (currentWalls.length === 0) {
                     // Add North wall
-                    this.world.setWall(pos, WallDirection.NORTH, [true, false, false]);
+                    this.world.setWall(pos, WallDirection.NORTH, {
+                        properties: [true, false, false],
+                        color: '#888888'
+                    });
                 } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.NORTH) {
                     // Remove North wall, add East wall
-                    this.world.setWall(pos, WallDirection.NORTH, [false, false, false]);
-                    this.world.setWall(pos, WallDirection.EAST, [true, false, false]);
+                    this.world.setWall(pos, WallDirection.NORTH, {
+                        properties: [false, false, false],
+                        color: '#888888'
+                    });
+                    this.world.setWall(pos, WallDirection.EAST, {
+                        properties: [true, false, false],
+                        color: '#888888'
+                    });
                 } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.EAST) {
                     // Remove East wall, add South wall
-                    this.world.setWall(pos, WallDirection.EAST, [false, false, false]);
-                    this.world.setWall(pos, WallDirection.SOUTH, [true, false, false]);
+                    this.world.setWall(pos, WallDirection.EAST, {
+                        properties: [false, false, false],
+                        color: '#888888'
+                    });
+                    this.world.setWall(pos, WallDirection.SOUTH, {
+                        properties: [true, false, false],
+                        color: '#888888'
+                    });
                 } else if (currentWalls.length === 1 && currentWalls[0][0] === WallDirection.SOUTH) {
                     // Remove South wall, add West wall
-                    this.world.setWall(pos, WallDirection.SOUTH, [false, false, false]);
-                    this.world.setWall(pos, WallDirection.WEST, [true, false, false]);
+                    this.world.setWall(pos, WallDirection.SOUTH, {
+                        properties: [false, false, false],
+                        color: '#888888'
+                    });
+                    this.world.setWall(pos, WallDirection.WEST, {
+                        properties: [true, false, false],
+                        color: '#888888'
+                    });
                 } else {
                     // Remove West wall (back to no walls)
-                    this.world.setWall(pos, WallDirection.WEST, [false, false, false]);
+                    this.world.setWall(pos, WallDirection.WEST, {
+                        properties: [false, false, false],
+                        color: '#888888'
+                    });
                 }
             }
 

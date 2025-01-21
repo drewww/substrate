@@ -14,7 +14,7 @@ export enum WallProperty {
     IMPASSABLE = 2
 }
 
-interface WallData {
+export interface WallData {
     properties: [boolean, boolean, boolean];  // [render, opaque, impassable]
     color: string;
 }
