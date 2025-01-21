@@ -419,31 +419,6 @@ export class World {
         return this.entities.size === 0;
     }
 
-    public update(deltaTime: number): void {
-        for (const entity of this.entities.values()) {
-            const componentTypes = entity.getComponentTypes();
-            
-            for (const type of componentTypes) {
-                const component = entity.getComponent(type);
-                if (!component) continue;
-
-                const isUpdatable = (comp: any): comp is (Component & UpdatableComponent) => {
-                    return typeof comp.update === 'function';
-                };
-
-                if (isUpdatable(component)) {
-                    component.update(deltaTime);
-                    component.modified = true;
-                    entity.markComponentModified(type);
-                    this.emit('componentModified', {
-                        entity,
-                        componentType: type
-                    });
-                }
-            }
-        }
-    }
-
     /**
      * Batch update entity positions
      * @throws Error if any position is invalid or entity doesn't exist

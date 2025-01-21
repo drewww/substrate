@@ -33,7 +33,6 @@ class UpdatableComponent extends Component {
 
     update(deltaTime: number): void {
         this.value += deltaTime;
-        this.markModified();
     }
 
     static fromJSON(data: any): UpdatableComponent {
@@ -604,23 +603,6 @@ describe('World', () => {
             ComponentRegistry.register('updatable', UpdatableComponent);
         });
 
-        it('updates components that support updating', () => {
-            const handler = vi.fn();
-            world.on('componentModified', handler);
-
-            const entity = new Entity(DEFAULT_POSITION);
-            const component = new UpdatableComponent();
-            entity.setComponent(component);
-            world.addEntity(entity);
-
-            world.update(100);
-            
-            expect(handler).toHaveBeenCalledWith({
-                entity,
-                componentType: 'updatable'
-            });
-        });
-
         it('batch updates entity positions', () => {
             const handler = vi.fn();
             world.on('entityMoved', handler);
@@ -686,19 +668,6 @@ describe('World', () => {
                     componentType: 'test'
                 });
                 expect(handler).toHaveBeenCalledTimes(1);
-            });
-
-            it('emits componentModified when component is modified', () => {
-                const component = new UpdatableComponent();
-                entity.setComponent(component);
-                world.on('componentModified', handler);
-                
-                world.update(1.0); // This triggers the component's update method
-                
-                expect(handler).toHaveBeenCalledWith({
-                    entity,
-                    componentType: 'updatable'
-                });
             });
 
             it('emits componentRemoved when removing component', () => {

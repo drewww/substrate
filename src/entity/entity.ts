@@ -150,9 +150,6 @@ export class Entity {
    */
   clearChanges(): void {
     this.positionChanged = false;
-    for (const component of this.getComponents()) {
-      component.modified = false;
-    }
     this.changedComponents.clear();
   }
 
@@ -336,7 +333,6 @@ export class Entity {
   markComponentModified(type: string): void {
     const component = this.getComponent(type);
     if (component) {
-      component.modified = true;
       this.changedComponents.add(type);
       
       if (this.world) {
