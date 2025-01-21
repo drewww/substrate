@@ -559,8 +559,8 @@ export class Display {
             }
         }
 
-        // Only render character if it exists and it's not a wall-only tile
-        if (!tile.walls && tile.char && tile.color) {
+        // Only render character if it exists
+        if (tile.char && tile.color) {
             const offsetX = (tile.offsetSymbolX || 0) * this.cellWidthScaled;
             const offsetY = (tile.offsetSymbolY || 0) * this.cellHeightScaled;
             
