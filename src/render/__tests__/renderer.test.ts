@@ -1,12 +1,14 @@
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
 import { Renderer } from '../renderer';
-import { Display, FillDirection } from '../../display/display';
+import { FillDirection } from '../../display/types';
 import { Tile } from '../../display/types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Point } from '../../types';
 import { SymbolComponent } from '../../entity/components/symbol-component';
-// Mock Display class
+import { Display } from '../../display/display';
+
+
 class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTile' | 'updateTile' | 'getTile' | 'addFrameCallback'> {
     public tiles: Map<string, Tile> = new Map();
     private tileCounter = 0;

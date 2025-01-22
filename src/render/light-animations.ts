@@ -1,6 +1,6 @@
 import { ColorAnimationProperty } from '../animation/color-animation';
 import { ValueAnimationProperty } from '../animation/value-animation';
-import { Easing, Transform } from '../display/display';
+import { Easing, Transform } from '../display/types';
 
 export type LightAnimationType = 'pulse-intensity' | 'pulse-radius' | 'strobe' | 'flicker' | 'rgb' | 'rotate' | 'offset-rotate' | 'pulse-width' | 'charge-shoot' | 'aoe-charge-shoot' | 'charge-shoot-complex';
 

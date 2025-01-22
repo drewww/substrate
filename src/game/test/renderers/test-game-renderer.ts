@@ -2,7 +2,7 @@ import { GameRenderer } from '../../../render/test/game-renderer';
 import { Entity } from '../../../entity/entity';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
-import { Easing } from '../../../display/display';
+import { Easing } from '../../../display/types';
 import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { logger } from '../../../util/logger';
 import { World } from '../../../world/world';
