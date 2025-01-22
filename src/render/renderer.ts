@@ -10,6 +10,7 @@ import { LIGHT_ANIMATIONS } from './light-animations';
 import { ColorAnimationModule } from '../animation/color-animation';
 import { Component } from '../entity/component';
 import { WallComponent, WallDirection } from '../entity/components/wall-component';
+import { computeFieldOfView } from 'wally-fov';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -469,6 +470,15 @@ export abstract class Renderer {
             y: Math.round(offsetPosition.y) 
         };
 
+        // Get FOV map and compute FOV for this light source
+        const fovMap = this.world.getFOVMap();
+        const fov = computeFieldOfView(
+            fovMap,
+            Math.round(offsetPosition.x),
+            Math.round(offsetPosition.y),
+            Math.ceil(radius)
+        );
+
         if (isDirectional) {
             const facing = this.normalizeAngle(state.currentProperties.facing);
             const width = state.currentProperties.width ?? Math.PI / 4;
@@ -492,6 +502,22 @@ export abstract class Renderer {
                     const angle = this.normalizeAngle(i * angleStep);
                     const dx = Math.cos(angle);
                     const dy = -Math.sin(angle);
+                    
+                    // Check line of sight along the ray
+                    let blocked = false;
+                    for (let step = 0; step <= dist; step++) {
+                        const checkX = Math.round(offsetPosition.x + dx * step);
+                        const checkY = Math.round(offsetPosition.y + dy * step);
+                        
+                        // If we hit a wall, block all further light propagation along this ray
+                        if (!fov.getVisible(checkX, checkY)) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    
+                    if (blocked) continue;
+
                     const x = Math.round(offsetPosition.x + dx * dist);
                     const y = Math.round(offsetPosition.y + dy * dist);
 
@@ -557,18 +583,28 @@ export abstract class Renderer {
             
             for (let y = minY; y <= maxY; y++) {
                 for (let x = minX; x <= maxX; x++) {
-                    if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
-                        continue;
-                    }
-
-                    // logger.info(`Checking tile ${x},${y} for visibility`);
-
+                    // Check line of sight to the target position
                     const dx = x - offsetPosition.x;
                     const dy = y - offsetPosition.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
-                    // Use actual radius for falloff calculation
                     if (distance > radius) continue;
+
+                    // Check visibility along the ray to this position
+                    let blocked = false;
+                    const steps = Math.max(1, Math.floor(distance));
+                    for (let step = 0; step <= steps; step++) {
+                        const fraction = step / steps;
+                        const checkX = Math.round(offsetPosition.x + dx * fraction);
+                        const checkY = Math.round(offsetPosition.y + dy * fraction);
+                        
+                        if (!fov.getVisible(checkX, checkY)) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    
+                    if (blocked) continue;
 
                     const intensity = this.calculateFalloff(
                         distance,

@@ -90,7 +90,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                 prop.lastDuration = duration;
                 let progress = (timestamp - startTime) / (duration * 1000);
 
-                logger.info(`  ${key}: progress=${progress.toFixed(2)}, duration=${duration}, has_next=${Boolean(prop.next)}`);
+                // logger.info(`  ${key}: progress=${progress.toFixed(2)}, duration=${duration}, has_next=${Boolean(prop.next)}`);
 
                 // If we have a chain, individual loop properties are ignored
                 const isChain = Boolean(prop.chainLoop || prop.next);
@@ -213,7 +213,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
 
     protected updateValue(id: string, config: TConfig, progress: number): void {
         const value = this.interpolateValue(config, progress);
-        logger.info(`Updating animation ${id} with value: ${JSON.stringify(value)}`);
+        // logger.info(`Updating animation ${id} with value: ${JSON.stringify(value)}`);
         this.onUpdate(id, value);
     }
 

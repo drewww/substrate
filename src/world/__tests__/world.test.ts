@@ -728,12 +728,12 @@ describe('World', () => {
 
     describe('Field of View', () => {
         let world: World;
-        let player: Entity;
+        let source: Entity;
         
         beforeEach(() => {
             world = new World(10, 10);
-            player = new Entity({ x: 5, y: 5 }); // Center of the map
-            world.addEntity(player);
+            source = new Entity({ x: 5, y: 5 }); // Center of the map
+            world.addEntity(source);
         });
 
         it('should initialize with empty FOV map', () => {
@@ -742,7 +742,7 @@ describe('World', () => {
         });
 
         it('should update visibility when player vision is updated', () => {
-            world.updatePlayerVision(player.getPosition(), 3);
+            world.updatePlayerVision(source.getPosition(), 3);
             
             // Check positions within vision radius
             expect(world.isLocationVisible({ x: 5, y: 5 })).toBe(true); // Player position
@@ -760,7 +760,7 @@ describe('World', () => {
             wall.setComponent(new OpacityComponent(true));
             world.addEntity(wall);
 
-            world.updatePlayerVision(player.getPosition(), 3);
+            world.updatePlayerVision(source.getPosition(), 3);
 
             // Position behind wall should not be visible
             expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
@@ -775,19 +775,19 @@ describe('World', () => {
             wall.setComponent(new OpacityComponent(true));
             world.addEntity(wall);
 
-            world.updatePlayerVision(player.getPosition(), 3);
+            world.updatePlayerVision(source.getPosition(), 3);
             expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
 
             // Move wall
             world.moveEntity(wall.getId(), { x: 6, y: 4 });
-            world.updatePlayerVision(player.getPosition(), 3);
+            world.updatePlayerVision(source.getPosition(), 3);
             
             // Previously blocked position should now be visible
             expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(true);
         });
 
         it('should track discovered locations', () => {
-            world.updatePlayerVision(player.getPosition(), 3);
+            world.updatePlayerVision(source.getPosition(), 3);
             const pos = { x: 4, y: 4 };
             
             // Position should be both visible and discovered
@@ -795,12 +795,99 @@ describe('World', () => {
             expect(world.isLocationDiscovered(pos)).toBe(true);
 
             // Move player away and update vision
-            world.moveEntity(player.getId(), { x: 8, y: 8 });
+            world.moveEntity(source.getId(), { x: 8, y: 8 });
             world.updatePlayerVision({ x: 8, y: 8 }, 3);
 
             // Position should no longer be visible but should remain discovered
             expect(world.isLocationVisible(pos)).toBe(false);
             expect(world.isLocationDiscovered(pos)).toBe(true);
+        });
+
+        it('should block visibility with opaque body', () => {
+            const opaqueEntity = new Entity({ x: 5, y: 4 });
+            opaqueEntity.setComponent(new OpacityComponent(true));
+            world.addEntity(opaqueEntity);
+
+            world.updatePlayerVision(source.getPosition(), 3);
+            
+            // Position at the opaque entity should be visible
+            expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(true);
+            // Position behind opaque entity should not be visible
+            expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
+            // Positions to the sides should still be visible
+            expect(world.isLocationVisible({ x: 4, y: 4 })).toBe(true);
+            expect(world.isLocationVisible({ x: 6, y: 4 })).toBe(true);
+        });
+
+        it('should block visibility with wall', () => {
+            // Add a north wall at (5,4)
+            world.setWall({ x: 5, y: 4 }, WallDirection.NORTH, {
+                properties: [true, false, false],
+                color: '#FFFFFF'
+            });
+
+            world.updatePlayerVision(source.getPosition(), 3);
+            
+            // Position at the wall should be visible
+            expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(true);
+            // Position beyond wall should not be visible
+            expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
+            // Positions to the sides should still be visible
+            expect(world.isLocationVisible({ x: 4, y: 4 })).toBe(true);
+            expect(world.isLocationVisible({ x: 6, y: 4 })).toBe(true);
+        });
+
+        it('should handle multiple directional walls correctly', () => {
+            // Add walls north and south of source
+            world.setWall({ x: 5, y: 5 }, WallDirection.NORTH, {
+                properties: [true, false, false],
+                color: '#FFFFFF'
+            });
+            world.setWall({ x: 5, y: 5 }, WallDirection.SOUTH, {
+                properties: [true, false, false],
+                color: '#FFFFFF'
+            });
+
+            world.updatePlayerVision(source.getPosition(), 3);
+            
+            // North should be blocked
+            expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(false);
+            // South should be blocked
+            expect(world.isLocationVisible({ x: 5, y: 6 })).toBe(false);
+            // East should be visible
+            expect(world.isLocationVisible({ x: 6, y: 5 })).toBe(true);
+            // West should be visible
+            expect(world.isLocationVisible({ x: 4, y: 5 })).toBe(true);
+        });
+
+        it('should block all visibility when surrounded by walls', () => {
+            // Add walls in all directions around source
+            const directions = [
+                WallDirection.NORTH,
+                WallDirection.SOUTH,
+                WallDirection.EAST,
+                WallDirection.WEST
+            ];
+            
+            for (const direction of directions) {
+                world.setWall({ x: 5, y: 5 }, direction, {
+                    properties: [true, false, false],
+                    color: '#FFFFFF'
+                });
+            }
+
+            world.updatePlayerVision(source.getPosition(), 3);
+            
+            // Source position should be visible
+            expect(world.isLocationVisible({ x: 5, y: 5 })).toBe(true);
+            
+            // All adjacent positions should not be visible
+            expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(false); // North
+            expect(world.isLocationVisible({ x: 5, y: 6 })).toBe(false); // South
+            expect(world.isLocationVisible({ x: 6, y: 5 })).toBe(false); // East
+            expect(world.isLocationVisible({ x: 4, y: 5 })).toBe(false); // West
+            expect(world.isLocationVisible({ x: 6, y: 6 })).toBe(false); // Southeast
+            expect(world.isLocationVisible({ x: 4, y: 4 })).toBe(false); // Northwest
         });
     });
 

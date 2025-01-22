@@ -808,20 +808,6 @@ export class World {
         let entity = this.getEntitiesWithComponent('wall')
             .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
 
-        if (!entity && wall.properties.some(prop => prop)) {
-            // Create new entity with wall
-            entity = new Entity(targetPos);
-            const config: WallConfig = {};
-            if (wallDirection === WallDirection.NORTH) {
-                config.north = wall;
-            } else {
-                config.west = wall;
-            }
-            entity.setComponent(new WallComponent(config));
-            this.addEntity(entity);
-            return true;
-        }
-
         if (entity) {
             const wallComponent = entity.getComponent('wall') as WallComponent;
             if (wallComponent) {
@@ -832,19 +818,78 @@ export class World {
                     wallComponent.west = { ...wall };
                 }
                 
-                // Remove entity if no walls have any properties
+                // Update FOV map when walls change
+                this.updateFovMapAt(targetPos);
+
                 if (!wallComponent.north.properties.some(p => p) && 
                     !wallComponent.west.properties.some(p => p)) {
                     this.removeEntity(entity.getId());
                 } else {
-                    // Notify that the component was modified
                     this.emit('componentModified', { entity, componentType: 'wall' });
                 }
                 return true;
             }
+        } else if (wall.properties.some(prop => prop)) {
+            // Create new entity with wall
+            entity = new Entity(targetPos);
+            const config: WallConfig = {};
+            if (wallDirection === WallDirection.NORTH) {
+                config.north = wall;
+            } else {
+                config.west = wall;
+            }
+            entity.setComponent(new WallComponent(config));
+            
+            // Update FOV map for new wall
+            this.updateFovMapAt(targetPos);
+            
+            this.addEntity(entity);
+            return true;
         }
 
         return false;
+    }
+
+    private updateFovMapAt(pos: Point): void {
+        // First remove any existing walls at this position
+        this.fovMap.removeWall(pos.x, pos.y, CardinalDirection.NORTH);
+        this.fovMap.removeWall(pos.x, pos.y, CardinalDirection.SOUTH);
+        this.fovMap.removeWall(pos.x, pos.y, CardinalDirection.EAST);
+        this.fovMap.removeWall(pos.x, pos.y, CardinalDirection.WEST);
+        
+        // Remove any existing body (for opaque entities)
+        this.fovMap.removeBody(pos.x, pos.y);
+        
+        // Check for opaque entity first
+        const opaqueEntity = this.getEntitiesWithComponent('opacity')
+            .find(e => e.getPosition().x === pos.x && e.getPosition().y === pos.y);
+        if (opaqueEntity) {
+            this.fovMap.addBody(pos.x, pos.y);
+            return;
+        }
+
+        // Handle walls
+        const walls = this.getWallsAt(pos);
+        for (const [direction, properties] of walls) {
+            if (properties.some(p => p)) {
+                switch (direction) {
+                    case WallDirection.NORTH:
+                        this.fovMap.addWall(pos.x, pos.y, CardinalDirection.NORTH);
+                        break;
+                    case WallDirection.SOUTH:
+                        // South wall at (x,y) is actually a north wall at (x,y+1)
+                        this.fovMap.addWall(pos.x, pos.y + 1, CardinalDirection.NORTH);
+                        break;
+                    case WallDirection.WEST:
+                        this.fovMap.addWall(pos.x, pos.y, CardinalDirection.WEST);
+                        break;
+                    case WallDirection.EAST:
+                        // East wall at (x,y) is actually a west wall at (x+1,y)
+                        this.fovMap.addWall(pos.x + 1, pos.y, CardinalDirection.WEST);
+                        break;
+                }
+            }
+        }
     }
 
     /**
