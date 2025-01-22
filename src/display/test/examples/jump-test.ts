@@ -1,6 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../../types';
-import { Easing, FillDirection } from '../../display';
+import { Color, TileId, Easing, FillDirection } from '../../types';
 import { logger } from '../../../util/logger';
 
 export class JumpTest extends BaseTest {

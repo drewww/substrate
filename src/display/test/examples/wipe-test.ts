@@ -1,6 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, TileId, BlendMode } from '../../types';
-import { FillDirection } from '../../display';
+import { Color, TileId, BlendMode, FillDirection } from '../../types';
 
 interface WipeConfig {
     color: Color;

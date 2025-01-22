@@ -10,11 +10,12 @@ import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
 import { ActionHandler, BaseAction, ActionClass } from '../../action/action-handler';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
-import { Display, Easing } from '../../display/display';
+import { Display } from '../../display/display';
 import { World } from '../../world/world';
 import { BumpingComponent } from '../../entity/components/bumping-component';
 import { logger } from '../../util/logger';
 import { OpacityComponent } from '../../entity/components/opacity-component';
+import { Easing } from '../../display/types';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game

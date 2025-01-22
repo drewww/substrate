@@ -1,6 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../../types';
-import { FillDirection } from '../../display';
+import { Color, TileId, FillDirection } from '../../types';
 
 export class RandomScanTest extends BaseTest {
     private currentX: number = 0;

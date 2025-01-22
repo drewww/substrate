@@ -1,30 +1,7 @@
-import { FillDirection } from "./display";
 
 export type Color = string; // CSS color string in #RRGGBBAA format
 
 export type TileId = string;
-
-export interface Tile {
-    id: TileId;
-    x: number;
-    y: number;
-    char: string;
-    color: Color;
-    backgroundColor: Color;
-    zIndex: number;
-    bgPercent: number;
-    fillDirection: FillDirection;
-    offsetSymbolX: number;
-    offsetSymbolY: number;
-    scaleSymbolX: number;  // Default to 1.0
-    scaleSymbolY: number;  // Default to 1.0
-    rotation: number;     // New property: rotation in radians
-    noClip?: boolean;     // New option to disable clipping mask
-    blendMode: BlendMode;  // Now required with a default value
-    alwaysRenderIfExplored?: boolean;
-    walls?: [boolean, boolean];
-    wallColor?: Color;
-}
 
 export interface Cell {
     tiles: Tile[];
@@ -131,7 +108,7 @@ export interface AnimationOptions {
 }
 
 // Base interface for chaining
-interface ChainableAnimation {
+export interface ChainableAnimation {
     next?: ColorAnimationOptions;  // Reference to the next animation in chain
 }
 
@@ -195,4 +172,169 @@ export interface TileUpdateConfig {
     fillDirection?: FillDirection;
     noClip?: boolean;
     blendMode?: BlendMode;
+}
+
+
+export interface PerformanceMetrics {
+    lastRenderTime: number;
+    averageRenderTime: number;
+    totalRenderCalls: number;
+    fps: number;
+    lastFpsUpdate: number;
+    frameCount: number;
+    symbolAnimationCount: number;
+    colorAnimationCount: number;
+    valueAnimationCount: number;
+    lastAnimationUpdateTime: number;
+    lastWorldUpdateTime: number;
+    averageAnimationTime: number;
+    averageWorldUpdateTime: number;
+    lastDirtyTileCount: number;
+    averageDirtyTileCount: number;
+}
+
+export interface DisplayOptions {
+    elementId?: string;
+    cellWidth: number;
+    cellHeight: number;
+    worldWidth: number;
+    worldHeight: number;
+    viewportWidth: number;
+    viewportHeight: number;
+    defaultFont?: string;
+    customFont?: string;
+}
+
+export interface StringOptions {
+    text: string;
+    options?: {
+        zIndex?: number;
+        backgroundColor?: string;
+        textBackgroundColor?: string;
+        fillBox?: boolean;
+        padding?: number;
+    };
+}
+
+export enum FillDirection {
+    TOP,
+    RIGHT,
+    BOTTOM,
+    LEFT
+}
+
+// A collection of easing functions that translate an input value between 0 and 1 into an output value between 0 and 1
+export const Easing = {
+    // Linear (no easing)
+    linear: (t: number): number => t,
+
+    // Sine
+    sineIn: (t: number): number => 1 - Math.cos((t * Math.PI) / 2),
+    sineOut: (t: number): number => Math.sin((t * Math.PI) / 2),
+    sineInOut: (t: number): number => -(Math.cos(Math.PI * t) - 1) / 2,
+    
+    // Quadratic
+    quadIn: (t: number): number => t * t,
+    quadOut: (t: number): number => 1 - (1 - t) * (1 - t),
+    quadInOut: (t: number): number => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+    
+    // Cubic
+    cubicIn: (t: number): number => t * t * t,
+    cubicOut: (t: number): number => 1 - Math.pow(1 - t, 3),
+    cubicInOut: (t: number): number => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+    
+    // Exponential
+    expoIn: (t: number): number => t === 0 ? 0 : Math.pow(2, 10 * t - 10),
+    expoOut: (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+    expoInOut: (t: number): number => {
+        if (t === 0) return 0;
+        if (t === 1) return 1;
+        if (t < 0.5) return Math.pow(2, 20 * t - 10) / 2;
+        return (2 - Math.pow(2, -20 * t + 10)) / 2;
+    },
+    
+    // Bounce
+    bounceOut: (t: number): number => {
+        const n1 = 7.5625;
+        const d1 = 2.75;
+        if (t < 1 / d1) return n1 * t * t;
+        if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+        if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+        return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    },
+    bounceIn: (t: number): number => 1 - Easing.bounceOut(1 - t),
+    bounceInOut: (t: number): number => 
+        t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2,
+
+    round: (t: number): number => Math.round(t),
+    maxDelay: (t: number): number => t >= 0.99 ? 1 : 0,
+    flicker: (t: number): number => {
+        if (t >= 0.99) {
+            return 1;
+        } if (t <= 0.97 && t >= 0.96) {
+            return 1;
+        } if (t <= 0.95 && t >= 0.94) {
+            return 1;
+        } else {
+            return 0;
+        }
+    },
+};
+
+// Similar but different to Easing functions. These take a value between 0 and 1, but can return  a value from
+// [-Infinity, Infinity]. In practice, they are used to transform the output of an easing function into
+// a domain in a non-linear manner.
+// 
+// This is necessary because the basic linear transform, which the vast majority of animations use, cannot
+// create cyclic behavior because it assumes starting at the min value in a range and ending at the max value.
+// Obviously that does not work for all animations.
+
+export const Transform = {
+    linear: (t: number): number => t,
+    cosine: (t: number): number => Math.cos(t * Math.PI * 2),
+    sine: (t: number): number => Math.sin(t * Math.PI * 2),
+}
+
+
+
+export interface TileConfig {
+    bgPercent?: number;
+    fillDirection?: FillDirection;
+    noClip?: boolean;
+    blendMode?: BlendMode;
+    alwaysRenderIfExplored?: boolean;
+    walls?: [boolean, boolean];  // [north, west]
+    wallColors?: [string, string];  // [north, west]
+    wallOverlays?: Array<{
+        direction: 'north' | 'west';
+        color: string;
+        blendMode: BlendMode;
+    }>;
+}
+
+export interface Tile {
+    id: TileId;
+    x: number;
+    y: number;
+    char: string;
+    color: Color;
+    backgroundColor: Color;
+    zIndex: number;
+    bgPercent: number;
+    fillDirection: FillDirection;
+    offsetSymbolX: number;
+    offsetSymbolY: number;
+    scaleSymbolX: number;
+    scaleSymbolY: number;
+    rotation: number;
+    noClip: boolean;
+    blendMode: BlendMode;
+    alwaysRenderIfExplored: boolean;
+    walls?: [boolean, boolean];  // [north, west]
+    wallColors?: [string | undefined, string | undefined];  // [north, west]
+    wallOverlays?: Array<{
+        direction: 'north' | 'west';
+        color: string;
+        blendMode: BlendMode;
+    }>;
 }

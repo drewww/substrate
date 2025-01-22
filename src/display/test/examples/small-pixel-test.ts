@@ -1,6 +1,5 @@
 import { BaseTest } from './base-test';
-import { Color, TileId } from '../../types';
-import { Easing } from '../../display';
+import { Color, TileId, Easing } from '../../types';
 
 export class SmallPixelTest extends BaseTest {
     private tileIds: TileId[] = [];

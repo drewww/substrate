@@ -1,6 +1,5 @@
 import { BaseTest } from './base-test';
-import { TileId } from '../../types';
-import { Easing } from '../../display';
+import { TileId, Easing } from '../../types';
 
 export class BasicAnimationTest extends BaseTest {
     private tileIds: TileId[] = [];

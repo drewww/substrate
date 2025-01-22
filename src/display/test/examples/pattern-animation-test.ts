@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../../types';
-import { Easing, FillDirection } from '../../display';
+import { Easing, FillDirection } from '../../types';
 
 export class PatternAnimationTest extends BaseTest {
     private animatedTiles: TileId[] = [];

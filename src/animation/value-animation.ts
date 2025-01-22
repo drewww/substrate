@@ -1,5 +1,4 @@
-import { Transform } from "../display/display";
-import { TransformFunction } from "../display/types";
+import { Transform, TransformFunction } from "../display/types";
 import { logger } from "../util/logger";
 import { AnimationConfig, AnimationModule, AnimationProperty } from "./animation-module";
 

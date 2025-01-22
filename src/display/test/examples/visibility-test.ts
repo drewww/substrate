@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../../types';
-import { Easing } from '../../display';
+import { Easing } from '../../types';
 import { logger } from '../../../util/logger';
 
 export class VisibilityTest extends BaseTest {

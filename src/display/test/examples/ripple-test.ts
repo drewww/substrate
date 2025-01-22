@@ -1,5 +1,4 @@
-import { FillDirection } from '../../display';
-import { TileId } from '../../types';
+import { TileId, FillDirection } from '../../types';
 import { BaseTest } from './base-test';
 
 interface Ripple {

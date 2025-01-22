@@ -1,131 +1,12 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, TileConfig, BlendMode, TileUpdateConfig } from './types';
+import { Color, Tile, TileId, Viewport, TileConfig, BlendMode, TileUpdateConfig, PerformanceMetrics, DisplayOptions, FillDirection, Easing } from './types';
 import { logger } from '../util/logger';
-import { Point } from '../types';
+import { Point, Direction } from '../types';
 import { DirtyMask } from './dirty-mask';
 import { SymbolAnimationConfig, SymbolAnimationModule } from '../animation/symbol-animation';
 import { ColorAnimationConfig, ColorAnimationModule } from '../animation/color-animation';
 import { ValueAnimationConfig, ValueAnimationModule } from '../animation/value-animation';
 
-interface PerformanceMetrics {
-    lastRenderTime: number;
-    averageRenderTime: number;
-    totalRenderCalls: number;
-    fps: number;
-    lastFpsUpdate: number;
-    frameCount: number;
-    symbolAnimationCount: number;
-    colorAnimationCount: number;
-    valueAnimationCount: number;
-    lastAnimationUpdateTime: number;
-    lastWorldUpdateTime: number;
-    averageAnimationTime: number;
-    averageWorldUpdateTime: number;
-    lastDirtyTileCount: number;
-    averageDirtyTileCount: number;
-}
-
-export interface DisplayOptions {
-    elementId?: string;
-    cellWidth: number;
-    cellHeight: number;
-    worldWidth: number;
-    worldHeight: number;
-    viewportWidth: number;
-    viewportHeight: number;
-    defaultFont?: string;
-    customFont?: string;
-}
-
-export interface StringOptions {
-    text: string;
-    options?: {
-        zIndex?: number;
-        backgroundColor?: string;
-        textBackgroundColor?: string;
-        fillBox?: boolean;
-        padding?: number;
-    };
-}
-
-export enum FillDirection {
-    TOP,
-    RIGHT,
-    BOTTOM,
-    LEFT
-}
-
-// A collection of easing functions that translate an input value between 0 and 1 into an output value between 0 and 1
-export const Easing = {
-    // Linear (no easing)
-    linear: (t: number): number => t,
-
-    // Sine
-    sineIn: (t: number): number => 1 - Math.cos((t * Math.PI) / 2),
-    sineOut: (t: number): number => Math.sin((t * Math.PI) / 2),
-    sineInOut: (t: number): number => -(Math.cos(Math.PI * t) - 1) / 2,
-    
-    // Quadratic
-    quadIn: (t: number): number => t * t,
-    quadOut: (t: number): number => 1 - (1 - t) * (1 - t),
-    quadInOut: (t: number): number => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
-    
-    // Cubic
-    cubicIn: (t: number): number => t * t * t,
-    cubicOut: (t: number): number => 1 - Math.pow(1 - t, 3),
-    cubicInOut: (t: number): number => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
-    
-    // Exponential
-    expoIn: (t: number): number => t === 0 ? 0 : Math.pow(2, 10 * t - 10),
-    expoOut: (t: number): number => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
-    expoInOut: (t: number): number => {
-        if (t === 0) return 0;
-        if (t === 1) return 1;
-        if (t < 0.5) return Math.pow(2, 20 * t - 10) / 2;
-        return (2 - Math.pow(2, -20 * t + 10)) / 2;
-    },
-    
-    // Bounce
-    bounceOut: (t: number): number => {
-        const n1 = 7.5625;
-        const d1 = 2.75;
-        if (t < 1 / d1) return n1 * t * t;
-        if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
-        if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
-        return n1 * (t -= 2.625 / d1) * t + 0.984375;
-    },
-    bounceIn: (t: number): number => 1 - Easing.bounceOut(1 - t),
-    bounceInOut: (t: number): number => 
-        t < 0.5 ? (1 - Easing.bounceOut(1 - 2 * t)) / 2 : (1 + Easing.bounceOut(2 * t - 1)) / 2,
-
-    round: (t: number): number => Math.round(t),
-    maxDelay: (t: number): number => t >= 0.99 ? 1 : 0,
-    flicker: (t: number): number => {
-        if (t >= 0.99) {
-            return 1;
-        } if (t <= 0.97 && t >= 0.96) {
-            return 1;
-        } if (t <= 0.95 && t >= 0.94) {
-            return 1;
-        } else {
-            return 0;
-        }
-    },
-};
-
-// Similar but different to Easing functions. These take a value between 0 and 1, but can return  a value from
-// [-Infinity, Infinity]. In practice, they are used to transform the output of an easing function into
-// a domain in a non-linear manner.
-// 
-// This is necessary because the basic linear transform, which the vast majority of animations use, cannot
-// create cyclic behavior because it assumes starting at the min value in a range and ending at the max value.
-// Obviously that does not work for all animations.
-
-export const Transform = {
-    linear: (t: number): number => t,
-    cosine: (t: number): number => Math.cos(t * Math.PI * 2),
-    sine: (t: number): number => Math.sin(t * Math.PI * 2),
-}
 
 // Constants for viewport padding (percentage of viewport size)
 const VIEWPORT_PADDING_X = 0.2; // 20% padding on each side
@@ -413,7 +294,8 @@ export class Display {
             blendMode: config?.blendMode ?? BlendMode.SourceOver,
             alwaysRenderIfExplored: config?.alwaysRenderIfExplored ?? false,
             walls: config?.walls,
-            wallColor: config?.wallColor
+            wallColors: config?.wallColors,
+            wallOverlays: config?.wallOverlays
         };
         
         this.tileMap.set(id, tile);
@@ -534,12 +416,12 @@ export class Display {
         }
 
         // Render walls if present
-        if (tile.walls && tile.wallColor) {
+        if (tile.walls) {
             const WALL_THICKNESS = 2;  // pixels
-            this.renderCtx.fillStyle = tile.wallColor;
 
             // North wall
-            if (tile.walls[0]) {
+            if (tile.walls[0] && tile.wallColors?.[0]) {
+                this.renderCtx.fillStyle = tile.wallColors[0];
                 this.renderCtx.fillRect(
                     0,
                     0,
@@ -549,13 +431,41 @@ export class Display {
             }
 
             // West wall
-            if (tile.walls[1]) {
+            if (tile.walls[1] && tile.wallColors?.[1]) {
+                this.renderCtx.fillStyle = tile.wallColors[1];
                 this.renderCtx.fillRect(
                     0,
                     0,
                     WALL_THICKNESS,
                     cellHeight
                 );
+            }
+
+            // Render wall overlays if present
+            if (tile.wallOverlays) {
+                for (const overlay of tile.wallOverlays) {
+                    this.renderCtx.save();
+                    this.renderCtx.globalCompositeOperation = overlay.blendMode;
+                    this.renderCtx.fillStyle = overlay.color;
+
+                    if (overlay.direction === 'north' && tile.walls[0]) {
+                        this.renderCtx.fillRect(
+                            0,
+                            0,
+                            cellWidth,
+                            WALL_THICKNESS
+                        );
+                    } else if (overlay.direction === 'west' && tile.walls[1]) {
+                        this.renderCtx.fillRect(
+                            0,
+                            0,
+                            WALL_THICKNESS,
+                            cellHeight
+                        );
+                    }
+
+                    this.renderCtx.restore();
+                }
             }
         }
 

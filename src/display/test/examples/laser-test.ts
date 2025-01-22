@@ -1,6 +1,5 @@
 import { BaseTest } from './base-test';
-import { TileId, BlendMode } from '../../types';
-import { Easing } from '../../display';
+import { TileId, BlendMode, Easing } from '../../types';
 
 type LineType = 'row' | 'column';
 interface Line {
