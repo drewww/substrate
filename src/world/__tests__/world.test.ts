@@ -822,7 +822,7 @@ describe('World', () => {
         it('should block visibility with wall', () => {
             // Add a north wall at (5,4)
             world.setWall({ x: 5, y: 4 }, WallDirection.NORTH, {
-                properties: [true, false, false],
+                properties: [true, true, false],
                 color: '#FFFFFF'
             });
 
@@ -840,11 +840,11 @@ describe('World', () => {
         it('should handle multiple directional walls correctly', () => {
             // Add walls north and south of source
             world.setWall({ x: 5, y: 5 }, WallDirection.NORTH, {
-                properties: [true, false, false],
+                properties: [true, true, false],
                 color: '#FFFFFF'
             });
             world.setWall({ x: 5, y: 5 }, WallDirection.SOUTH, {
-                properties: [true, false, false],
+                properties: [true, true, false],
                 color: '#FFFFFF'
             });
 
@@ -871,7 +871,7 @@ describe('World', () => {
             
             for (const direction of directions) {
                 world.setWall({ x: 5, y: 5 }, direction, {
-                    properties: [true, false, false],
+                    properties: [true, true, false],
                     color: '#FFFFFF'
                 });
             }
