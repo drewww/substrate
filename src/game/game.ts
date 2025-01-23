@@ -2,8 +2,9 @@ import { Engine } from '../engine/engine';
 import { InputManager } from '../input/input';
 import { World } from '../world/world';
 import { Entity } from '../entity/entity';
-import { Display, DisplayOptions } from '../display/display';
+import { Display } from '../display/display';
 import { Renderer } from '../render/renderer';
+import { DisplayOptions } from '../display/types';
 
 export abstract class Game {
     protected engine!: Engine;

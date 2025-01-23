@@ -19,7 +19,7 @@ export class EnemyMovementSystem {
             const cooldown = enemy.getComponent('moveCooldown') as MoveCooldownComponent;
             cooldown.cooldown -= deltaTime * 1000;
             
-            logger.info(`Enemy ${enemy.getId()} cooldown: ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
+            // logger.info(`Enemy ${enemy.getId()} cooldown: ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
             
             if (cooldown.cooldown <= 0) {
                 this.moveEnemy(enemy);
