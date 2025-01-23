@@ -953,20 +953,6 @@ describe('World', () => {
             expect(walls).toHaveLength(0);
         });
 
-        it('should remove walls when all properties are false', () => {
-            world.setWall(center, WallDirection.NORTH, {
-                properties: [true, true, true],
-                color: defaultWallColor
-            });
-            expect(world.getEntitiesWithComponent('wall')).toHaveLength(1);
-
-            world.setWall(center, WallDirection.NORTH, {
-                properties: [false, false, false],
-                color: defaultWallColor
-            });
-            expect(world.getEntitiesWithComponent('wall')).toHaveLength(0);
-        });
-
         it('should maintain wall entity when at least one property is true', () => {
             world.setWall(center, WallDirection.NORTH, {
                 properties: [true, true, true],

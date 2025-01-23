@@ -85,6 +85,7 @@ class TestRenderer extends Renderer {
     protected handleEntityModified(entity: Entity, componentType: string): void {}
     protected handleEntityRemoved(entity: Entity): void {}
     protected handleEntityMoved(entity: Entity, to: Point): boolean { return false; }
+    protected handleComponentRemoved(entity: Entity, componentType: string): void {}
 }
 
 describe('Renderer', () => {

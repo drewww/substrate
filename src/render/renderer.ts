@@ -485,147 +485,112 @@ export abstract class Renderer {
             Math.ceil(radius)
         );
 
+        const tileIntensities = new Map<string, number>();
+        
+        // Initialize directional variables with defaults
+        let facing = 0;
+        let startAngle = -Math.PI;
+        let endAngle = Math.PI;
+        let isWrapping = false;
+
+        // Update angles for directional lights
         if (isDirectional) {
-            const facing = this.normalizeAngle(state.currentProperties.facing);
+            facing = this.normalizeAngle(state.currentProperties.facing);
             const width = state.currentProperties.width ?? Math.PI / 4;
             const halfWidth = width / 2;
+            startAngle = this.normalizeAngle(facing - halfWidth);
+            endAngle = this.normalizeAngle(facing + halfWidth);
+            isWrapping = startAngle > endAngle;
+        }
 
-            // logger.info(`Rendering light tiles for ${entity.getId()} with radius ${radius} and width ${width} and intensity ${state.currentProperties.intensity}`);
+        // Common sampling loop
+        for (let dist = 0; dist <= radius; dist++) {
+            // For non-directional lights, we need more samples at larger distances
+            // For directional lights, we need consistent angular resolution
+            const samplesNeeded = isDirectional ? 
+                Math.max(8, Math.ceil(dist * 8)) : 
+                Math.max(16, Math.ceil(dist * Math.PI * 4));  // Double the sampling density
+            const angleStep = (2 * Math.PI) / samplesNeeded;
 
+            for (let i = 0; i < samplesNeeded; i++) {
+                const angle = this.normalizeAngle(i * angleStep);
+                const dx = Math.cos(angle);
+                const dy = -Math.sin(angle);
 
-            const startAngle = this.normalizeAngle(facing - halfWidth);
-            const endAngle = this.normalizeAngle(facing + halfWidth);
-            const isWrapping = startAngle > endAngle;
-
-            // Track tile intensities
-            const tileIntensities = new Map<string, number>();
-
-            for (let dist = 0; dist <= radius; dist++) {
-                const samplesNeeded = Math.max(8, Math.ceil(dist * 8));
-                const angleStep = (2 * Math.PI) / samplesNeeded;
-
-                for (let i = 0; i < samplesNeeded; i++) {
-                    const angle = this.normalizeAngle(i * angleStep);
-                    const dx = Math.cos(angle);
-                    const dy = -Math.sin(angle);
-                    
-                    // Check line of sight along the ray
-                    let blocked = false;
-                    for (let step = 0; step <= dist; step++) {
-                        const checkX = Math.round(offsetPosition.x + dx * step);
-                        const checkY = Math.round(offsetPosition.y + dy * step);
-                        
-                        // If we hit a wall, block all further light propagation along this ray
-                        if (!fov.getVisible(checkX, checkY)) {
-                            blocked = true;
-                            break;
-                        }
-                    }
-                    
-                    if (blocked) continue;
-
-                    const x = Math.round(offsetPosition.x + dx * dist);
-                    const y = Math.round(offsetPosition.y + dy * dist);
-
+                // Skip if outside directional light cone
+                if (isDirectional) {
                     const normalizedAngle = this.normalizeAngle(angle);
                     const inBeam = isWrapping ?
                         (normalizedAngle >= startAngle || normalizedAngle <= endAngle) :
                         (normalizedAngle >= startAngle && normalizedAngle <= endAngle);
-
                     if (!inBeam) continue;
+                }
 
-                    const tileKey = `${x},${y}`;
-                    if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
-                        continue;
-                    }
-
-                    // Calculate angle distance and normalized distance for falloff
-                    const angleDistance = Math.abs(this.getAngleDistance(normalizedAngle, facing));
-                    const normalizedAngleDistance = angleDistance / halfWidth;
+                // Check line of sight along the ray
+                let blocked = false;
+                for (let step = 0; step <= dist; step++) {
+                    const checkX = Math.round(offsetPosition.x + dx * step);
+                    const checkY = Math.round(offsetPosition.y + dy * step);
                     
-                    // Only apply falloff in the outer 5% of the beam, and only if width is significant
-                    const angleMultiplier = (halfWidth <= Math.PI/16) ? 1.0 : // No falloff for narrow beams
-                        normalizedAngleDistance > 0.65 ? 
-                            (1 - (normalizedAngleDistance - 0.65) / 0.35) : // Linear falloff in last 35%
-                            1.0; // Full intensity for inner 65%
-                    
-                    if (angleMultiplier <= 0) continue;
-
-                    const intensity = this.calculateFalloff(
-                        dist,
-                        state.currentProperties.radius,
-                        state.currentProperties.intensity,
-                        state.baseProperties.distanceFalloff
-                    ) * angleMultiplier;
-                    
-                    // Keep track of maximum intensity for each tile
-                    const currentIntensity = tileIntensities.get(tileKey) ?? 0;
-                    if (intensity > currentIntensity) {
-                        tileIntensities.set(tileKey, intensity);
+                    // If we hit a wall, block all further light propagation along this ray
+                    if (!fov.getVisible(checkX, checkY)) {
+                        blocked = true;
+                        break;
                     }
                 }
-            }
+                
+                if (blocked) continue;
 
-            // Create light tiles using the tracked intensities
-            for (const [tileKey, intensity] of tileIntensities) {
-                const [x, y] = tileKey.split(',').map(Number);
-                if (skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
+                const x = Math.round(offsetPosition.x + dx * dist);
+                const y = Math.round(offsetPosition.y + dy * dist);
+
+                const normalizedAngle = this.normalizeAngle(angle);
+                const inBeam = isWrapping ?
+                    (normalizedAngle >= startAngle || normalizedAngle <= endAngle) :
+                    (normalizedAngle >= startAngle && normalizedAngle <= endAngle);
+
+                if (!inBeam) continue;
+
+                const tileKey = `${x},${y}`;
+                if (!visibleTiles.has(this.world.pointToKey({x, y}))) {
                     continue;
                 }
-                this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
-            }
-        } else {
-            // Pre-calculate bounds based on visible tiles
-            const bounds = this.calculateVisibleBounds(visibleTiles);
-            
-            // For radius 0, ensure we render at least the center tile
-            // For radius > 0, add a small buffer to handle sub-tile animations
-            const effectiveRadius = radius === 0 ? 0.5 : radius + 0.5;
-                        
-            const minX = Math.max(bounds.minX, Math.floor(offsetPosition.x - effectiveRadius));
-            const maxX = Math.min(bounds.maxX, Math.ceil(offsetPosition.x + effectiveRadius));
-            const minY = Math.max(bounds.minY, Math.floor(offsetPosition.y - effectiveRadius));
-            const maxY = Math.min(bounds.maxY, Math.ceil(offsetPosition.y + effectiveRadius));
-            
-            for (let y = minY; y <= maxY; y++) {
-                for (let x = minX; x <= maxX; x++) {
-                    // Check line of sight to the target position
-                    const dx = x - offsetPosition.x;
-                    const dy = y - offsetPosition.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance > radius) continue;
 
-                    // Check visibility along the ray to this position
-                    let blocked = false;
-                    const steps = Math.max(1, Math.floor(distance));
-                    for (let step = 0; step <= steps; step++) {
-                        const fraction = step / steps;
-                        const checkX = Math.round(offsetPosition.x + dx * fraction);
-                        const checkY = Math.round(offsetPosition.y + dy * fraction);
-                        
-                        if (!fov.getVisible(checkX, checkY)) {
-                            blocked = true;
-                            break;
-                        }
-                    }
-                    
-                    if (blocked) continue;
+                // Calculate intensity with optional angular falloff
+                let intensity = this.calculateFalloff(
+                    dist,
+                    state.currentProperties.radius,
+                    state.currentProperties.intensity,
+                    state.baseProperties.distanceFalloff
+                );
 
-                    const intensity = this.calculateFalloff(
-                        distance,
-                        radius,
-                        state.currentProperties.intensity,
-                        state.baseProperties.distanceFalloff
-                    );
+                // Apply angular falloff for directional lights
+                if (isDirectional) {
+                    const angleDistance = Math.abs(this.getAngleDistance(this.normalizeAngle(angle), facing!));
+                    const normalizedAngleDistance = angleDistance / (state.currentProperties.width! / 2);
+                    const angleMultiplier = (state.currentProperties.width! <= Math.PI/16) ? 1.0 :
+                        normalizedAngleDistance > 0.65 ? 
+                            (1 - (normalizedAngleDistance - 0.65) / 0.35) :
+                            1.0;
+                    if (angleMultiplier <= 0) continue;
+                    intensity *= angleMultiplier;
+                }
 
-                    if (skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
-                        continue;
-                    }
-                    
-                    this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
+                // Track maximum intensity per tile
+                const currentIntensity = tileIntensities.get(tileKey) ?? 0;
+                if (intensity > currentIntensity) {
+                    tileIntensities.set(tileKey, intensity);
                 }
             }
+        }
+
+        // Create light tiles using tracked intensities
+        for (const [tileKey, intensity] of tileIntensities) {
+            const [x, y] = tileKey.split(',').map(Number);
+            if (skipSourceTile && x === sourcePos.x && y === sourcePos.y) {
+                continue;
+            }
+            this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
         }
 
         // logger.info(`Setting light source tiles for ${entity.getId()} to ${newTiles.size} tiles`);
