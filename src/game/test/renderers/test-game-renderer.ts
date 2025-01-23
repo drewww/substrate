@@ -10,11 +10,13 @@ import { Display } from '../../../display/display';
 import { Component } from '../../../entity/component';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { Direction } from '../../../types';
+import { InertiaComponent } from '../components/inertia.component';
 
 export class TestGameRenderer extends GameRenderer {
     private readonly VISION_RADIUS = 10;  // Chebyshev distance for visibility
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
+    private inertiaTiles: Map<string, string> = new Map(); // entityId -> tileId
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -88,6 +90,13 @@ export class TestGameRenderer extends GameRenderer {
                 this.bufferedMoveTiles.delete(entity.getId());
             }
         }
+        if (componentType === 'inertia') {
+            const tileId = this.inertiaTiles.get(entity.getId());
+            if (tileId) {
+                this.display.removeTile(tileId);
+                this.inertiaTiles.delete(entity.getId());
+            }
+        }
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
@@ -137,6 +146,11 @@ export class TestGameRenderer extends GameRenderer {
                     bgPercent: percent
                 });
             }
+        }
+        if (componentType === 'inertia') {
+            // When inertia is modified, remove and re-add to update visualization
+            this.handleComponentRemoved(entity, 'inertia', entity.getComponent('inertia') as Component);
+            this.handleComponentAdded(entity, 'inertia');
         }
     }
 
@@ -242,6 +256,41 @@ export class TestGameRenderer extends GameRenderer {
                     entity.removeComponent('bumping');
                 }, bump.duration * 1000);
             }
+        }
+
+        if (componentType === 'inertia') {
+            const inertia = entity.getComponent('inertia') as InertiaComponent;
+            const pos = entity.getPosition();
+            
+            // Calculate target position based on inertia direction
+            let targetPos: Point;
+            switch (inertia.direction) {
+                case Direction.North: targetPos = { x: pos.x, y: pos.y - 2 }; break;
+                case Direction.South: targetPos = { x: pos.x, y: pos.y + 2 }; break;
+                case Direction.West:  targetPos = { x: pos.x - 2, y: pos.y }; break;
+                case Direction.East:  targetPos = { x: pos.x + 2, y: pos.y }; break;
+            }
+
+            // Remove any existing inertia tile
+            const existingTileId = this.inertiaTiles.get(entity.getId());
+            if (existingTileId) {
+                this.display.removeTile(existingTileId);
+            }
+
+            // Create indicator tile with opacity based on inertia magnitude
+            const tileId = this.display.createTile(
+                targetPos.x,
+                targetPos.y,
+                inertia.magnitude.toString(),  // Show the magnitude as a number
+                '#FFFFFF',  // white text
+                '#FF0000',  // red background
+                999,        // zIndex (below buffered move indicators)
+                {
+                    bgPercent: 0.25 * inertia.magnitude  // 25% opacity per magnitude level
+                }
+            );
+
+            this.inertiaTiles.set(entity.getId(), tileId);
         }
     }
     

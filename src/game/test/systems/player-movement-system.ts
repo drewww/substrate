@@ -5,6 +5,7 @@ import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
+import { InertiaComponent } from '../components/inertia.component';
 
 export class PlayerMovementSystem {
     constructor(
@@ -52,6 +53,22 @@ export class PlayerMovementSystem {
         };
 
         logger.info(`moving player to ${newPos.x}, ${newPos.y} based on buffered direction`);
+
+
+        const inertia = player.getComponent('inertia') as InertiaComponent;
+        if (inertia) {
+            // if there is inertia, see if our move is in the same direction as inertia or not.
+            if (inertia.direction == bufferedMove.direction) {
+                // if it is, add more inertia.
+                player.setComponent(new InertiaComponent(inertia.direction, inertia.magnitude + 1));
+            } else {
+                // more complex logic here.
+                player.removeComponent('inertia');
+            }
+        } else {
+            // if there's no inertia, add it.
+            player.setComponent(new InertiaComponent(bufferedMove.direction, 0));
+        }
 
         // Remove the buffered move component
         player.removeComponent('bufferedMove');
