@@ -1,9 +1,10 @@
 import { World } from '../../../world/world';
-import { Point } from '../../../types';
+import { Point, Direction } from '../../../types';
 import { ActionHandler } from '../../../action/action-handler';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
+import { BufferedMoveComponent } from '../components/buffered-move.component';
 
 export class PlayerMovementSystem {
     constructor(
@@ -30,27 +31,34 @@ export class PlayerMovementSystem {
         }
     }
 
+    private directionToPoint(direction: Direction): Point {
+        switch (direction) {
+            case Direction.North: return { x: 0, y: -1 };
+            case Direction.South: return { x: 0, y: 1 };
+            case Direction.West:  return { x: -1, y: 0 };
+            case Direction.East:  return { x: 1, y: 0 };
+        }
+    }
+
     private movePlayer(player: Entity): void {
+        const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
+        if (!bufferedMove) return;
+
         const pos = player.getPosition();
-        const directions = [
-            { x: 0, y: -1 }, // up
-            { x: 0, y: 1 },  // down
-            { x: -1, y: 0 }, // left
-            { x: 1, y: 0 }   // right
-        ];
-        
-        // Pick a random direction
-        const dir = directions[Math.floor(Math.random() * directions.length)];
+        const dir = this.directionToPoint(bufferedMove.direction);
         const newPos: Point = {
             x: pos.x + dir.x,
             y: pos.y + dir.y
         };
 
-        logger.info(`moving player to ${newPos.x}, ${newPos.y}`);
+        logger.info(`moving player to ${newPos.x}, ${newPos.y} based on buffered direction`);
 
-        // Use action handler with proper data structure
+        // Remove the buffered move component
+        player.removeComponent('bufferedMove');
+
+        // Execute the move
         this.actionHandler.execute({
-            type: 'move',
+            type: 'playerMove',
             entityId: player.getId(),
             data: { to: newPos }
         });

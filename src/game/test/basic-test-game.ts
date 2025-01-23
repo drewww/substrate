@@ -19,6 +19,8 @@ import { Easing } from '../../display/types';
 import { PlayerMoveAction } from '../../game/test/actions/player-movement.action';
 import { MoveCooldownComponent } from './components/move-cooldown.component';
 import { PlayerMovementSystem } from './systems/player-movement-system';
+import { BufferedMoveComponent } from './components/buffered-move.component';
+import { Direction } from '../../types';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -71,6 +73,9 @@ export class BasicTestGame extends Game {
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime);
             this.playerMovementSystem.update(deltaTime);
+
+            // UNSURE ABOUT THIS but it can't be in "tryMove" here.
+            this.updateViewport();
         });
 
         // Add cooldown component to player
@@ -336,7 +341,6 @@ export class BasicTestGame extends Game {
         });
 
         // Update viewport to follow player
-        this.updateViewport();
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
@@ -345,11 +349,18 @@ export class BasicTestGame extends Game {
         }
 
         if (action === 'move') {
-            const direction = params[0];
-            const cooldown = this.player.getComponent('moveCooldown') as MoveCooldownComponent;
+            const directionStr = params[0];
+            let direction: Direction;
             
-            this.lastBufferedDirection = direction;
-            logger.info(`buffered movement: ${this.lastBufferedDirection}`);
+            switch(directionStr) {
+                case 'up':    direction = Direction.North; break;
+                case 'down':  direction = Direction.South; break;
+                case 'left':  direction = Direction.West;  break;
+                case 'right': direction = Direction.East;  break;
+                default: return;
+            }
+
+            this.player.setComponent(new BufferedMoveComponent(direction));
         }
     }
     
