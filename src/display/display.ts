@@ -1220,6 +1220,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         // Check current position visibility
         const currentVisibility = this.visibilityMask[tile.y]?.[tile.x];
         
+        // logger.info(`shouldRenderTile: ${tile.id} @ ${tile.x},${tile.y} visibility: ${currentVisibility} alwaysRenderIfExplored: ${tile.alwaysRenderIfExplored}`);
+
         // For animated tiles, also check target position
         let targetVisibility = currentVisibility;
         const valueAnims = this.valueAnimations.get(tile.id);

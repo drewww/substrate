@@ -23,11 +23,11 @@ export abstract class Game {
         this.display = new Display(displayConfig);
     
         // Set black background
-        this.display.setBackground(
-            ' ',           // Empty character
-            '#00000000', // Transparent foreground
-            '#000000FF'     // Black background
-        );
+        // this.display.setBackground(
+        //     ' ',           // Empty character
+        //     '#00000000', // Transparent foreground
+        //     '#000000FF'     // Black background
+        // );
 
         this.world = new World(width, height);
         

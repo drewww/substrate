@@ -109,26 +109,29 @@ export class BasicTestGame extends Game {
     }
 
     protected createRenderer(): Renderer {
-        return new TestGameRenderer(this.display, this.world);
+        const renderer = new TestGameRenderer(this.display, this.world);
+        // Increase vision radius by 50%
+        return renderer;
     }
 
     protected initializeWorld(): void {
         const width = this.display.getWorldWidth();
         const height = this.display.getWorldHeight();
+        const center = { x: Math.floor(width/2), y: Math.floor(height/2) };
 
-        // Create and configure player
-        this.player = new Entity({ x: Math.floor(width/2), y: Math.floor(height/2) });
+        // Create and configure player at center
+        this.player = new Entity(center);
         this.player.setComponent(new SymbolComponent(
             '@',            
             '#FFD700FF',     
-            '#00000000',   // Explicitly use 8-digit hex for full transparency
+            '#00000000',   
             5              
         ));
         this.player.setComponent(new PlayerComponent());
         this.player.setComponent(new ImpassableComponent());
         this.world.addEntity(this.player);
 
-        // Initialize engine with our world
+        // Initialize engine
         this.engine = new Engine({
             mode: 'realtime',
             worldWidth: width,
@@ -137,65 +140,147 @@ export class BasicTestGame extends Game {
             world: this.world
         });
 
-        // Add enemies
-        const enemyPositions = new Set<string>();
-        for (let i = 0; i < 100; i++) {
-            const x = Math.floor(Math.random() * width);
-            const y = Math.floor(Math.random() * height);
-            const posKey = `${x},${y}`;
-            
-            // Don't place enemy if there's already one there or if it's the player position
-            if (!enemyPositions.has(posKey) && 
-                (x !== this.player.getPosition().x || y !== this.player.getPosition().y)) {
-                enemyPositions.add(posKey);
-                const enemy = new EnemyEntity({ x, y });
-                enemy.setComponent(new ImpassableComponent());
-                enemy.setComponent(new SymbolComponent(
-                    'E',
-                    '#FFFFFFFF',
-                    '#00000000',  // Explicitly use 8-digit hex for full transparency
-                    2
-                ));
-                this.world.addEntity(enemy);
-            }
-        }
+        // Add border walls
+        this.createBorderWalls();
 
-        // Add walls (impassable entities)
-        const numWalls = Math.floor(width * height * 0.08); // 8% of the map
-        for (let i = 0; i < numWalls; i++) {
-            const x = Math.floor(Math.random() * width);
-            const y = Math.floor(Math.random() * height);
-            const posKey = `${x},${y}`;
+        // Add distance indicator tiles
+        this.createDistanceIndicators(center);
 
-            // Don't place wall if there's already an entity there
-            if (!enemyPositions.has(posKey) && 
-                (x !== this.player.getPosition().x || y !== this.player.getPosition().y)) {
+        // Add scattered obstacles (about 2% of the map)
+        const numObstacles = Math.floor(width * height * 0.02);
+        const usedPositions = new Set<string>();
+        usedPositions.add(this.pointToKey(center)); // Reserve player position
+
+        for (let i = 0; i < numObstacles; i++) {
+            const x = Math.floor(Math.random() * (width - 2)) + 1; // Keep away from borders
+            const y = Math.floor(Math.random() * (height - 2)) + 1;
+            const posKey = this.pointToKey({ x, y });
+
+            if (!usedPositions.has(posKey)) {
                 const wall = new Entity({ x, y });
                 wall.setComponent(new ImpassableComponent());
                 wall.setComponent(new OpacityComponent(true));
                 wall.setComponent(new SymbolComponent(
-                    '#',           // Wall symbol
-                    '#aaaaaaff',   // Light gray foreground
-                    '#ddddddff',   // Lighter gray background
-                    1,             // Low z-index to stay below other entities
-                    true           // Always render if explored
+                    '#',
+                    '#aaaaaaff',
+                    '#ddddddff',
+                    1,
+                    true
                 ));
                 this.world.addEntity(wall);
-                enemyPositions.add(posKey); // Prevent enemies from spawning here
+                usedPositions.add(posKey);
             }
         }
 
-        // Add opacity to walls
-        const wall = this.world.getEntitiesWithComponent('impassable')[0];
-        wall.setComponent(new OpacityComponent(true));
+        // Add single enemy
+        const enemyPos = this.findRandomEmptyPosition(usedPositions);
+        if (enemyPos) {
+            const enemy = new EnemyEntity(enemyPos);
+            enemy.setComponent(new ImpassableComponent());
+            enemy.setComponent(new SymbolComponent(
+                'E',
+                '#FF0000FF', // Make it red to stand out
+                '#00000000',
+                2,
+                false
+            ));
+            this.world.addEntity(enemy);
+        }
 
-        // After adding all entities, update initial visibility
+        // Update initial visibility
         (this.renderer as TestGameRenderer).updateVisibility();
-
-        // Center viewport on player after world is initialized
         this.updateViewport(false);
-
         this.world.updatePlayerVision(this.player.getPosition());
+    }
+
+    private pointToKey(point: Point): string {
+        return `${point.x},${point.y}`;
+    }
+
+    private createBorderWalls(): void {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+
+        // Create walls along all edges
+        for (let x = 0; x < width; x++) {
+            this.createWall({ x, y: 0 });           // Top wall
+            this.createWall({ x, y: height - 1 });  // Bottom wall
+        }
+        for (let y = 1; y < height - 1; y++) {
+            this.createWall({ x: 0, y });           // Left wall
+            this.createWall({ x: width - 1, y });   // Right wall
+        }
+    }
+
+    private createWall(pos: Point): void {
+        const wall = new Entity(pos);
+        wall.setComponent(new ImpassableComponent());
+        wall.setComponent(new OpacityComponent(true));
+        wall.setComponent(new SymbolComponent(
+            '#',
+            '#888888ff', // Darker gray for border walls
+            '#666666ff',
+            1,
+            true
+        ));
+        this.world.addEntity(wall);
+    }
+
+    private createDistanceIndicators(center: Point): void {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        const spacing = 5; // Space between numbers
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const dx = Math.abs(x - center.x);
+                const dy = Math.abs(y - center.y);
+                const distance = Math.max(dx, dy);
+                
+                const entity = new Entity({ x, y });
+                
+                if (distance % spacing === 0) {
+                    // Add number indicator
+                    entity.setComponent(new SymbolComponent(
+                        Math.floor(distance / spacing).toString(),
+                        '#444444FF', // Dark gray numbers
+                        '#000000FF', // Very subtle background
+                        1,          
+                        true       
+                    ));
+                } else {
+                    // Add floor tile
+                    entity.setComponent(new SymbolComponent(
+                        '.',
+                        '#333333FF', // Slightly darker gray for floor
+                        '#000000FF', // Very subtle background
+                        1,          
+                        true       
+                    ));
+                }
+                
+                this.world.addEntity(entity);
+            }
+        }
+    }
+
+    private findRandomEmptyPosition(usedPositions: Set<string>): Point {
+        const width = this.display.getWorldWidth();
+        const height = this.display.getWorldHeight();
+        let attempts = 100; // Prevent infinite loop
+
+        while (attempts > 0) {
+            const x = Math.floor(Math.random() * (width - 2)) + 1;
+            const y = Math.floor(Math.random() * (height - 2)) + 1;
+            const posKey = this.pointToKey({ x, y });
+
+            if (!usedPositions.has(posKey)) {
+                return { x, y };
+            }
+            attempts--;
+        }
+        
+        return null; // Could not find empty position
     }
 
     private updateViewport(animate: boolean = true): void {

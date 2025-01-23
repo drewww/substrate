@@ -10,7 +10,7 @@ import { Display } from '../../../display/display';
 import { Component } from '../../../entity/component';
 
 export class TestGameRenderer extends GameRenderer {
-    private readonly VISION_RADIUS = 5;  // Chebyshev distance for visibility
+    private readonly VISION_RADIUS = 3;  // Chebyshev distance for visibility
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
 
     constructor(display: Display, world: World) {
@@ -69,7 +69,7 @@ export class TestGameRenderer extends GameRenderer {
         this.discoveredTiles.forEach(coord => {
             const [x, y] = coord.split(',').map(Number);
             if (mask[y][x] === 0) {  // If not currently visible
-                mask[y][x] = 0.1;     // Partially visible
+                mask[y][x] = 0.3;     // Partially visible
             }
         });
 
