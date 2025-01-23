@@ -821,12 +821,8 @@ export class World {
                 // Update FOV map when walls change
                 this.updateFovMapAt(targetPos);
 
-                if (!wallComponent.north.properties.some(p => p) && 
-                    !wallComponent.west.properties.some(p => p)) {
-                    this.removeEntity(entity.getId());
-                } else {
-                    this.emit('componentModified', { entity, componentType: 'wall' });
-                }
+                // Always emit the modification event, don't remove the entity
+                this.emit('componentModified', { entity, componentType: 'wall' });
                 return true;
             }
         } else if (wall.properties.some(prop => prop)) {

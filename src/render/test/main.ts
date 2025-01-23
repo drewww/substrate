@@ -555,8 +555,9 @@ class WorldTest {
         // Toggle each pressed direction
         for (const direction of pressedDirections) {
             const currentProperties = this.world.hasWall(pos, direction);
+            logger.info(`Current properties: ${currentProperties}`);
             this.world.setWall(pos, direction, {
-                properties: [!currentProperties[0], !currentProperties[1], !currentProperties[2]],
+                properties: [!currentProperties[0], !currentProperties[1], false], // Only toggle first property
                 color: '#888888'
             });
         }

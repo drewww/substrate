@@ -759,14 +759,12 @@ export abstract class Renderer {
     }
 
     private updateEntityWalls(entity: Entity): void {
-        // Remove existing wall tiles
-        ['north', 'south', 'east', 'west'].forEach(dir => {
-            const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
-            if (tileId) {
-                this.display.removeTile(tileId);
-                this.wallTiles.delete(`${entity.getId()}_${dir}`);
-            }
-        });
+        // Remove existing wall tile
+        const tileId = this.wallTiles.get(entity.getId());
+        if (tileId) {
+            this.display.removeTile(tileId);
+            this.wallTiles.delete(entity.getId());
+        }
 
         // Add new wall tiles
         this.addEntityWalls(entity);
