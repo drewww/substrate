@@ -1137,7 +1137,7 @@ export class PatternAnimationTest extends BaseTest {
             1,
             {
                 walls: [true, false],  // [north, west]
-                wallColor: wallColors.north
+                wallColors: ['#FF0000FF', null]  // [north, west] - Add explicit null
             }
         );
 
@@ -1150,7 +1150,7 @@ export class PatternAnimationTest extends BaseTest {
             1,
             {
                 walls: [false, true],  // [north, west]
-                wallColor: wallColors.west
+                wallColors: [null, '#FFFF00FF']  // [north, west] - Add explicit null
             }
         );
 
@@ -1163,7 +1163,7 @@ export class PatternAnimationTest extends BaseTest {
             1,
             {
                 walls: [true, true],  // [north, west]
-                wallColor: '#FF00FFFF'  // Magenta for combined
+                wallColors: ['#FF00FFFF', '#FF00FFFF']  // [north, west] - Add both colors
             }
         );
 
@@ -1176,7 +1176,7 @@ export class PatternAnimationTest extends BaseTest {
             1,
             {
                 walls: [true, true],
-                wallColor: '#FF0000FF'
+                wallColors: ['#FF0000FF', '#0000FFFF']  // [north, west]
             }
         );
 
@@ -1195,7 +1195,6 @@ export class PatternAnimationTest extends BaseTest {
                 const hasEastWall = x === roomSize - 1;   // Last column
                 
                 if (hasNorthWall || hasWestWall) {
-                    // Create North and West walls at current position
                     this.display.createTile(
                         roomStartX + x,
                         roomStartY + y,
@@ -1205,7 +1204,10 @@ export class PatternAnimationTest extends BaseTest {
                         1,
                         {
                             walls: [hasNorthWall, hasWestWall],
-                            wallColor: '#888888FF'
+                            wallColors: [
+                                hasNorthWall ? '#888888FF' : null,
+                                hasWestWall ? '#888888FF' : null
+                            ]
                         }
                     );
                 }
@@ -1220,7 +1222,7 @@ export class PatternAnimationTest extends BaseTest {
                         1,
                         {
                             walls: [false, true],
-                            wallColor: '#004488FF'
+                            wallColors: [null, '#004488FF']  // [north, west]
                         }
                     );
 
@@ -1233,12 +1235,10 @@ export class PatternAnimationTest extends BaseTest {
                         1,
                         {
                             walls: [true, false],
-                            wallColor: '#004488FF'
+                            wallColors: ['#004488FF', null]  // [north, west]
                         }
                     );
                 } else if (hasSouthWall || hasEastWall) {
-                    // Create South walls as North walls in the cell below
-                    // Create East walls as West walls in the cell to the right
                     this.display.createTile(
                         roomStartX + x + (hasEastWall ? 1 : 0),
                         roomStartY + y + (hasSouthWall ? 1 : 0),
@@ -1248,11 +1248,13 @@ export class PatternAnimationTest extends BaseTest {
                         1,
                         {
                             walls: [hasSouthWall, hasEastWall],
-                            wallColor: '#884488FF'
+                            wallColors: [
+                                hasSouthWall ? '#884488FF' : null,
+                                hasEastWall ? '#884488FF' : null
+                            ]
                         }
                     );
                 }
-
             }
         }
     }

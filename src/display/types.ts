@@ -1,4 +1,3 @@
-
 export type Color = string; // CSS color string in #RRGGBBAA format
 
 export type TileId = string;
@@ -89,11 +88,14 @@ export interface TileConfig {
     noClip?: boolean;
     blendMode?: BlendMode;
     alwaysRenderIfExplored?: boolean;
-    walls?: [boolean, boolean];
-    wallColor?: Color;
+    walls?: [boolean, boolean];  // [north, west]
+    wallColors?: [string | null, string | null];  // [north, west]
+    wallOverlays?: Array<{
+        direction: 'north' | 'west';
+        color: string;
+        blendMode: BlendMode;
+    }>;
 }
-
-
 
 // BELOW HERE ARE TYPES SPECIFICALLY FOR EXTENDED FUNCTION ARGUMENTS
 // Calling these "options."
@@ -173,7 +175,6 @@ export interface TileUpdateConfig {
     noClip?: boolean;
     blendMode?: BlendMode;
 }
-
 
 export interface PerformanceMetrics {
     lastRenderTime: number;
@@ -295,23 +296,6 @@ export const Transform = {
     sine: (t: number): number => Math.sin(t * Math.PI * 2),
 }
 
-
-
-export interface TileConfig {
-    bgPercent?: number;
-    fillDirection?: FillDirection;
-    noClip?: boolean;
-    blendMode?: BlendMode;
-    alwaysRenderIfExplored?: boolean;
-    walls?: [boolean, boolean];  // [north, west]
-    wallColors?: [string, string];  // [north, west]
-    wallOverlays?: Array<{
-        direction: 'north' | 'west';
-        color: string;
-        blendMode: BlendMode;
-    }>;
-}
-
 export interface Tile {
     id: TileId;
     x: number;
@@ -331,7 +315,7 @@ export interface Tile {
     blendMode: BlendMode;
     alwaysRenderIfExplored: boolean;
     walls?: [boolean, boolean];  // [north, west]
-    wallColors?: [string | undefined, string | undefined];  // [north, west]
+    wallColors?: [string | null, string | null];  // [north, west]
     wallOverlays?: Array<{
         direction: 'north' | 'west';
         color: string;
