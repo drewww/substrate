@@ -1,5 +1,5 @@
 import { BaseTest } from './base-test';
-import { TileId } from '../../types';
+import { BlendMode, TileId } from '../../types';
 import { Easing, FillDirection } from '../../types';
 
 export class PatternAnimationTest extends BaseTest {
@@ -1176,9 +1176,41 @@ export class PatternAnimationTest extends BaseTest {
             1,
             {
                 walls: [true, true],
-                wallColors: ['#FF0000FF', '#0000FFFF']  // [north, west]
+                wallColors: ['#FF0000FF', '#0000FFFF'],  // [north, west]
+                wallOverlays: [
+                    {
+                        direction: 'north',
+                        color: '#FFFF00AA',  // Semi-transparent yellow
+                        blendMode: BlendMode.Screen
+                    },
+                    {
+                        direction: 'west',
+                        color: '#00FFFF55',  // Semi-transparent cyan
+                        blendMode: BlendMode.Screen
+                    }
+                ]
             }
         );
+
+        // Add color animation for the overlays
+        this.display.addColorAnimation(animatedWallId, {
+            wallOverlays: [
+                {
+                    start: '#FFFF00AA',
+                    end: '#FF00FFAA',  // Fade to purple
+                    duration: 2.0,
+                    reverse: true,
+                    loop: true
+                },
+                {
+                    start: '#00FFFFAA',
+                    end: '#FFFF00AA',  // Fade to yellow
+                    duration: 2.0,
+                    reverse: true,
+                    loop: true
+                }
+            ]
+        });
 
         this.animatedTiles.push(animatedWallId);
 
