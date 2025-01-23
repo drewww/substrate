@@ -974,7 +974,7 @@ export class World {
         }
 
         // Check for impassable entities at destination
-        const entitiesAtDest = this.getEntitiesAt(destPoint);
+        const entitiesAtDest = this.getEntitiesAt({ x: toX, y: toY });
         if (entitiesAtDest.some(e => e.hasComponent('impassable'))) {
             return false;
         }

@@ -116,9 +116,9 @@ WALL TODOS
  - DONE add wall serialization tests
  - DONE add wall rendering tests
 
- - add impassability checks (in the game itself)
- - fix bump anim
- - think about lighting walls -- both "should it render" and how to render it
+ done add impassability checks (in the game itself)
+ done fix bump anim
+ done think about lighting walls -- both "should it render" and how to render it
 
 
 MODULE LIST

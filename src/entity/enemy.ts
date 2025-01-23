@@ -11,6 +11,6 @@ export class EnemyEntity extends Entity {
             '#FF000055',   
             1               
         ));
-        this.setComponent(new MoveCooldownComponent(4, 4));
+        this.setComponent(new MoveCooldownComponent(4000, 4000));
     }
 } 

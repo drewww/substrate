@@ -17,17 +17,17 @@ export class EnemyMovementSystem {
 
         for (const enemy of enemies) {
             const cooldown = enemy.getComponent('moveCooldown') as MoveCooldownComponent;
+            cooldown.cooldown -= deltaTime * 1000;
             
-            cooldown.cooldown -= deltaTime;
-            enemy.setComponent(cooldown);
-            
-            logger.verbose(`Enemy ${enemy.getId()} cooldown: ${cooldown.cooldown}`);
+            logger.info(`Enemy ${enemy.getId()} cooldown: ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
             
             if (cooldown.cooldown <= 0) {
                 this.moveEnemy(enemy);
                 cooldown.cooldown = cooldown.baseTime;
-                enemy.markComponentModified('moveCooldown');
             }
+
+            enemy.setComponent(cooldown);
+
         }
     }
 

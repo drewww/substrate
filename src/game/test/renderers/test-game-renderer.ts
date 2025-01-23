@@ -77,13 +77,12 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        logger.warn(`[NOT IMPLEMENTED] Component removed: ${entity.getId()} - ${componentType}`);
+        // logger.warn(`[NOT IMPLEMENTED] Component removed: ${entity.getId()} - ${componentType}`);
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
 
-        logger.info(`handleEntityMoved ${entity.getId()} from ${from.x},${from.y} to ${to.x},${to.y}`);
-        console.trace();
+        // logger.info(`handleEntityMoved ${entity.getId()} from ${from.x},${from.y} to ${to.x},${to.y}`);
 
         const tileId = this.entityTiles.get(entity.getId());
         if (tileId) {

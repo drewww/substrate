@@ -66,7 +66,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
             this.onCompleteCallbacks.set(id, onComplete);
         }
 
-        logger.info(`Added animation ${id} with config: ${JSON.stringify(config)}`);
+        // logger.info(`Added animation ${id} with config: ${JSON.stringify(config)}`);
     }
 
     public update(timestamp: number): void {
@@ -117,7 +117,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
                     
                     // Handle chaining when animation completes
                     if (progress >= 1 && prop.next) {
-                        logger.info(`  ${key}: transitioning to next animation`);
+                        // logger.info(`  ${key}: transitioning to next animation`);
                         const nextProp = {
                             ...prop.next,
                             next: prop.next.next,
@@ -180,7 +180,7 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
         // Delete completed animations
         toDelete.forEach(id => {
             this.animations.delete(id);
-            logger.info(`Deleted animation ${id}`);
+            // logger.info(`Deleted animation ${id}`);
         });
     }
     
