@@ -218,10 +218,10 @@ export interface StringOptions {
 }
 
 export enum FillDirection {
-    TOP,
-    RIGHT,
-    BOTTOM,
-    LEFT
+    TOP = 0,
+    RIGHT = 1,
+    BOTTOM = 2,
+    LEFT = 3
 }
 
 // A collection of easing functions that translate an input value between 0 and 1 into an output value between 0 and 1

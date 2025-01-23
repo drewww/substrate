@@ -2,16 +2,19 @@ import { GameRenderer } from '../../../render/test/game-renderer';
 import { Entity } from '../../../entity/entity';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
-import { Easing } from '../../../display/types';
+import { Easing, FillDirection } from '../../../display/types';
 import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { logger } from '../../../util/logger';
 import { World } from '../../../world/world';
 import { Display } from '../../../display/display';
 import { Component } from '../../../entity/component';
+import { BufferedMoveComponent } from '../components/buffered-move.component';
+import { Direction } from '../../../types';
 
 export class TestGameRenderer extends GameRenderer {
-    private readonly VISION_RADIUS = 3;  // Chebyshev distance for visibility
+    private readonly VISION_RADIUS = 10;  // Chebyshev distance for visibility
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
+    private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -77,7 +80,13 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        // logger.warn(`[NOT IMPLEMENTED] Component removed: ${entity.getId()} - ${componentType}`);
+        if (componentType === 'bufferedMove') {
+            const tileId = this.bufferedMoveTiles.get(entity.getId());
+            if (tileId) {
+                this.display.removeTile(tileId);
+                this.bufferedMoveTiles.delete(entity.getId());
+            }
+        }
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
@@ -130,7 +139,49 @@ export class TestGameRenderer extends GameRenderer {
         }
     }
 
+    protected getOppositeDirection(dir: Direction): FillDirection {
+        switch (dir) {
+            case Direction.North: return FillDirection.BOTTOM;
+            case Direction.South: return FillDirection.TOP;
+            case Direction.East: return FillDirection.LEFT;
+            case Direction.West: return FillDirection.RIGHT;
+        }
+    }
+
     protected handleComponentAdded(entity: Entity, componentType: string): void {
+        if (componentType === 'bufferedMove') {
+            const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
+            const pos = entity.getPosition();
+            
+            // Calculate target position
+            let targetPos: Point;
+            switch (bufferedMove.direction) {
+                case Direction.North: targetPos = { x: pos.x, y: pos.y - 1 }; break;
+                case Direction.South: targetPos = { x: pos.x, y: pos.y + 1 }; break;
+                case Direction.West:  targetPos = { x: pos.x - 1, y: pos.y }; break;
+                case Direction.East:  targetPos = { x: pos.x + 1, y: pos.y }; break;
+            }
+
+            // Create indicator tile
+            const tileId = this.display.createTile(
+                targetPos.x,
+                targetPos.y,
+                ' ',  // no character
+                '#FFFFFFFF',  // transparent foreground
+                '#005577AA',    // background color
+                1000,           // zIndex
+                {
+                    bgPercent: 0.4,  // 40% coverage
+                    fillDirection: this.getOppositeDirection(bufferedMove.direction)
+                }
+            );
+
+            // Store the tile ID for later removal
+            this.bufferedMoveTiles.set(entity.getId(), tileId);
+
+            logger.info(`created buffered move tile ${tileId} for entity ${entity.getId()} at ${targetPos.x},${targetPos.y}`);
+        }
+
         // Handle bumping animation
         // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {

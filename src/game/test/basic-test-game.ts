@@ -19,8 +19,8 @@ import { Easing } from '../../display/types';
 import { PlayerMoveAction } from '../../game/test/actions/player-movement.action';
 import { MoveCooldownComponent } from './components/move-cooldown.component';
 import { PlayerMovementSystem } from './systems/player-movement-system';
-import { BufferedMoveComponent } from './components/buffered-move.component';
 import { Direction } from '../../types';
+import { BufferedMoveComponent } from './components/buffered-move.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
