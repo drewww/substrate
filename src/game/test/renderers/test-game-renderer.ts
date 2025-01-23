@@ -80,6 +80,7 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+        logger.info(`handleComponentRemoved ${entity.getId()} - ${componentType}`);
         if (componentType === 'bufferedMove') {
             const tileId = this.bufferedMoveTiles.get(entity.getId());
             if (tileId) {

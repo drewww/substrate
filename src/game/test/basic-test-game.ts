@@ -360,6 +360,7 @@ export class BasicTestGame extends Game {
                 default: return;
             }
 
+            this.player.removeComponent('bufferedMove');
             this.player.setComponent(new BufferedMoveComponent(direction));
         }
     }
