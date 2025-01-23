@@ -16,6 +16,9 @@ import { BumpingComponent } from '../../entity/components/bumping-component';
 import { logger } from '../../util/logger';
 import { OpacityComponent } from '../../entity/components/opacity-component';
 import { Easing } from '../../display/types';
+import { PlayerMoveAction } from '../../game/test/actions/player-movement.action';
+import { MoveCooldownComponent } from './components/move-cooldown.component';
+import { PlayerMovementSystem } from './systems/player-movement-system';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -31,6 +34,8 @@ d move right
 export class BasicTestGame extends Game {
     private enemyMovementSystem: EnemyMovementSystem;
     private actionHandler: ActionHandler;
+    private lastBufferedDirection: string | null = null;
+    playerMovementSystem: PlayerMovementSystem;
     
     constructor(canvasId: string) {
         super({
@@ -50,9 +55,9 @@ export class BasicTestGame extends Game {
             existingRenderCanvas.replaceWith(renderCanvas);
         }
         
-        // Set up action handler
+        // Set up action handler with new PlayerMoveAction
         this.actionHandler = new ActionHandler(this.world);
-        this.actionHandler.registerAction('move', MoveAction);
+        this.actionHandler.registerAction('playerMove', PlayerMoveAction);
         
         // Set up input configuration
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
@@ -60,11 +65,16 @@ export class BasicTestGame extends Game {
         
         // Initialize our systems
         this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
+        this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
         
         // Add system to engine update loop
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime);
+            this.playerMovementSystem.update(deltaTime);
         });
+
+        // Add cooldown component to player
+        this.player.setComponent(new MoveCooldownComponent(0, 1000)); // 100ms cooldown
 
         // Add cell inspection
         this.display.onCellClick((pos) => {
@@ -185,6 +195,8 @@ export class BasicTestGame extends Game {
                 false
             ));
             this.world.addEntity(enemy);
+        } else {
+            logger.warn('Could not find empty position for enemy');
         }
 
         // Update initial visibility
@@ -280,7 +292,7 @@ export class BasicTestGame extends Game {
             attempts--;
         }
         
-        return null; // Could not find empty position
+        return { x: 0, y: 0 }; // Could not find empty position
     }
 
     private updateViewport(animate: boolean = true): void {
@@ -306,30 +318,38 @@ export class BasicTestGame extends Game {
         // this.display.setViewport(viewportX, viewportY);
     }
 
+    private tryMove(direction: string): void {
+        const pos = this.player.getPosition();
+        let newPos: Point = { ...pos };
+
+        switch(direction) {
+            case 'up':    newPos.y--; break;
+            case 'down':  newPos.y++; break;
+            case 'left':  newPos.x--; break;
+            case 'right': newPos.x++; break;
+        }
+
+        this.actionHandler.execute({
+            type: 'playerMove',
+            entityId: this.player.getId(),
+            data: { to: newPos }
+        });
+
+        // Update viewport to follow player
+        this.updateViewport();
+    }
+
     protected handleInput(type: string, action: string, params: string[]): void {
         if (type === 'up') {
             return;
         }
 
         if (action === 'move') {
-            const pos = this.player.getPosition();
-            let newPos: Point = { ...pos };
-
-            switch(params[0]) {
-                case 'up':    newPos.y--; break;
-                case 'down':  newPos.y++; break;
-                case 'left':  newPos.x--; break;
-                case 'right': newPos.x++; break;
-            }
-
-            this.actionHandler.execute({
-                type: 'move',
-                entityId: this.player.getId(),
-                data: { to: newPos }
-            });
-
-            // Update viewport to follow player
-            this.updateViewport();
+            const direction = params[0];
+            const cooldown = this.player.getComponent('moveCooldown') as MoveCooldownComponent;
+            
+            this.lastBufferedDirection = direction;
+            logger.info(`buffered movement: ${this.lastBufferedDirection}`);
         }
     }
     

@@ -119,8 +119,11 @@ export class TestGameRenderer extends GameRenderer {
             
             if (cooldown && tileId) {
                 const percent = 1 - (cooldown.cooldown / cooldown.baseTime);
+
+                const color = entity.hasComponent('player') ? '#005577' : '#FF0000';
+
                 this.display.updateTile(tileId, {
-                    bg: '#FF0000',
+                    bg: color,
                     bgPercent: percent
                 });
             }
