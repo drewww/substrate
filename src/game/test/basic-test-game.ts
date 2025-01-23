@@ -301,27 +301,20 @@ export const MoveAction: ActionClass<MoveActionData> = {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 
-        const { x, y } = action.data.to;
-        const size = world.getSize();
-        if (x < 0 || x >= size.x || y < 0 || y >= size.y) {
+        const from = entity.getPosition();
+        const to = action.data.to;
+
+        // Check if movement is possible using the new isPassable method
+        if (!world.isPassable(from.x, from.y, to.x, to.y)) {
+            // If movement is blocked, trigger bump animation
+            entity.setComponent(new BumpingComponent({
+                x: to.x - from.x,
+                y: to.y - from.y
+            }));
             return false;
         }
 
-        // Check for impassable entities at the destination
-        const entitiesAtDest = world.getEntitiesAt(action.data.to);
-        const hasImpassable = entitiesAtDest.some(e => e.hasComponent('impassable'));
-        
-        if (hasImpassable) {
-            const from = entity.getPosition();
-            const direction = {
-                x: action.data.to.x - from.x,
-                y: action.data.to.y - from.y
-            };
-            entity.setComponent(new BumpingComponent(direction));
-            return false;
-        }
-
-        return !hasImpassable;
+        return true;
     },
 
     execute(world: World, action: BaseAction<MoveActionData>): boolean {

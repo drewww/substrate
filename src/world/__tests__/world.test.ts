@@ -7,6 +7,7 @@ import { ComponentRegistry, RegisterComponent } from '../../entity/component-reg
 import { transient } from '../../decorators/transient';
 import { OpacityComponent } from '../../entity/components/opacity-component';
 import { WallComponent, WallDirection } from '../../entity/components/wall-component';
+import { ImpassableComponent } from '../../entity/components/impassable-component';
 
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
@@ -1010,6 +1011,69 @@ describe('World', () => {
                 .getComponent('wall') as WallComponent;
             expect(wall.north.color).toBe(northColor);
             expect(wall.west.color).toBe(westColor);
+        });
+    });
+
+    describe('Movement Passability', () => {
+        let world: World;
+        const defaultWallColor = '#FFFFFF';
+        
+        beforeEach(() => {
+            world = new World(10, 10);
+        });
+
+        it('should allow movement between adjacent empty tiles', () => {
+            expect(world.isPassable(5, 5, 5, 6)).toBe(true);  // North-South
+            expect(world.isPassable(5, 5, 6, 5)).toBe(true);  // East-West
+        });
+
+        it('should not allow diagonal movement', () => {
+            expect(world.isPassable(5, 5, 6, 6)).toBe(false);
+            expect(world.isPassable(5, 5, 4, 4)).toBe(false);
+        });
+
+        it('should not allow movement between non-adjacent tiles', () => {
+            expect(world.isPassable(5, 5, 5, 7)).toBe(false);
+            expect(world.isPassable(5, 5, 7, 5)).toBe(false);
+        });
+
+        it('should block movement through impassable walls', () => {
+            // Add a north wall at (5,5)
+            world.setWall({ x: 5, y: 5 }, WallDirection.NORTH, {
+                properties: [false, false, true], // Third property is impassable
+                color: defaultWallColor
+            });
+
+            // Should not be able to move north through the wall
+            expect(world.isPassable(5, 5, 5, 4)).toBe(false);
+            // But should be able to move in other directions
+            expect(world.isPassable(5, 5, 5, 6)).toBe(true);
+            expect(world.isPassable(5, 5, 4, 5)).toBe(true);
+            expect(world.isPassable(5, 5, 6, 5)).toBe(true);
+        });
+
+        it('should block movement through impassable walls from either direction', () => {
+            // Add a south wall at (5,5) (creates north wall at 5,6)
+            world.setWall({ x: 5, y: 5 }, WallDirection.SOUTH, {
+                properties: [false, false, true],
+                color: defaultWallColor
+            });
+
+            // Should not be able to move through the wall from either side
+            expect(world.isPassable(5, 5, 5, 6)).toBe(false);
+            expect(world.isPassable(5, 6, 5, 5)).toBe(false);
+        });
+
+        it('should block movement into tiles with impassable entities', () => {
+            const impassableEntity = new Entity({ x: 5, y: 5 });
+            impassableEntity.setComponent(new ImpassableComponent());
+            world.addEntity(impassableEntity);
+
+            // Should not be able to move into the tile with an impassable entity
+            expect(world.isPassable(5, 4, 5, 5)).toBe(false);
+            expect(world.isPassable(5, 6, 5, 5)).toBe(false);
+            expect(world.isPassable(4, 5, 5, 5)).toBe(false);
+            expect(world.isPassable(6, 5, 5, 5)).toBe(false);
         });
     });
 }); 

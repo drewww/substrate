@@ -12,11 +12,6 @@ interface SerializedWorld {
     entities: SerializedEntity[];
 }
 
-interface UpdatableComponent {
-    update(deltaTime: number): void;
-    value?: number;
-}
-
 export type WorldEventMap = {
     'entityAdded': { entity: Entity };
     'entityRemoved': { entity: Entity, position: Point };
@@ -947,5 +942,43 @@ export class World {
         }
         
         return walls;
+    }
+
+    /**
+     * Check if movement between two adjacent tiles is possible
+     * @returns false if tiles aren't adjacent, if there's an impassable wall between them, or if destination is impassable
+     */
+    public isPassable(fromX: number, fromY: number, toX: number, toY: number): boolean {
+        // Check if tiles are adjacent in cardinal directions
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        
+        // Must be adjacent in exactly one direction
+        if (Math.abs(dx) + Math.abs(dy) !== 1) {
+            return false;
+        }
+
+        // Check walls between tiles
+        if (dx === 1) { // Moving east
+            const [_, __, impassable] = this.hasWall({ x: fromX, y: fromY }, WallDirection.EAST);
+            if (impassable) return false;
+        } else if (dx === -1) { // Moving west
+            const [_, __, impassable] = this.hasWall({ x: toX, y: toY }, WallDirection.EAST);
+            if (impassable) return false;
+        } else if (dy === 1) { // Moving south
+            const [_, __, impassable] = this.hasWall({ x: fromX, y: fromY }, WallDirection.SOUTH);
+            if (impassable) return false;
+        } else if (dy === -1) { // Moving north
+            const [_, __, impassable] = this.hasWall({ x: toX, y: toY }, WallDirection.SOUTH);
+            if (impassable) return false;
+        }
+
+        // Check for impassable entities at destination
+        const entitiesAtDest = this.getEntitiesAt(destPoint);
+        if (entitiesAtDest.some(e => e.hasComponent('impassable'))) {
+            return false;
+        }
+
+        return true;
     }
 }
