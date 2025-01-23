@@ -622,7 +622,10 @@ export abstract class Renderer {
             if (opaqueWall) {
                 // Create overlay for this wall
                 const overlayId = this.display.createTile(
-                    x, y,
+                    // For SOUTH walls, create overlay at (x, y+1)
+                    // For EAST walls, create overlay at (x+1, y)
+                    direction === WallDirection.SOUTH ? x : direction === WallDirection.EAST ? x + 1 : x,
+                    direction === WallDirection.SOUTH ? y + 1 : direction === WallDirection.EAST ? y : y,
                     ' ',
                     '#FFFFFF00',
                     fullColor,
@@ -630,11 +633,15 @@ export abstract class Renderer {
                     { 
                         blendMode,
                         walls: [
-                            direction === WallDirection.NORTH, 
-                            direction === WallDirection.WEST
+                            // SOUTH walls become NORTH walls on the tile below
+                            // EAST walls become WEST walls on the tile to the right
+                            direction === WallDirection.NORTH || direction === WallDirection.SOUTH, 
+                            direction === WallDirection.WEST || direction === WallDirection.EAST
                         ],
                         wallOverlays: [{
-                            direction: direction === WallDirection.NORTH ? 'north' : 'west',
+                            direction: direction === WallDirection.SOUTH ? 'north' : 
+                                     direction === WallDirection.EAST ? 'west' :
+                                     direction === WallDirection.NORTH ? 'north' : 'west',
                             color: fullColor,
                             blendMode
                         }]
