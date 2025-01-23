@@ -1192,27 +1192,6 @@ export class PatternAnimationTest extends BaseTest {
             }
         );
 
-        // Add color animation for the overlays
-        this.display.addColorAnimation(animatedWallId, {
-            wallOverlays: [
-                {
-                    start: '#FFFF00AA',
-                    end: '#FF00FFAA',  // Fade to purple
-                    duration: 2.0,
-                    reverse: true,
-                    loop: true
-                },
-                {
-                    start: '#00FFFFAA',
-                    end: '#FFFF00AA',  // Fade to yellow
-                    duration: 2.0,
-                    reverse: true,
-                    loop: true
-                }
-            ]
-        });
-
-        this.animatedTiles.push(animatedWallId);
 
         // Create a small room with all walls
         const roomSize = 2;

@@ -42,6 +42,12 @@ interface LightState {
     };
 }
 
+const Z_INDEX = {
+    WALL: 200,           // Walls above everything
+    LIGHT: 100,          // Floor/general lighting
+    ENTITY: 50           // Base entities below lighting
+};
+
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
     private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
@@ -726,38 +732,29 @@ export abstract class Renderer {
 
         const position = entity.getPosition();
         
-        // Create tile for North wall if needed
-        if (wallComponent.north.properties.some(prop => prop)) {
-            const northTileId = this.display.createTile(
+        // Check if either wall exists
+        const hasNorthWall = wallComponent.north.properties.some(prop => prop);
+        const hasWestWall = wallComponent.west.properties.some(prop => prop);
+        
+        if (hasNorthWall || hasWestWall) {
+            const wallTileId = this.display.createTile(
                 position.x,
                 position.y,
                 '',
                 '#FFFFFF',
                 '#000000',
-                1,
+                Z_INDEX.WALL,
                 {
-                    walls: [true, false],  // [north, west]
-                    wallColor: wallComponent.north.color
+                    walls: [hasNorthWall, hasWestWall],  // [north, west]
+                    wallColors: [
+                        hasNorthWall ? wallComponent.north.color : null,
+                        hasWestWall ? wallComponent.west.color : null
+                    ]
                 }
             );
-            this.wallTiles.set(`${entity.getId()}_north`, northTileId);
-        }
-
-        // Create tile for West wall if needed
-        if (wallComponent.west.properties.some(prop => prop)) {
-            const westTileId = this.display.createTile(
-                position.x,
-                position.y,
-                '',
-                '#FFFFFF',
-                '#000000',
-                1,
-                {
-                    walls: [false, true],  // [north, west]
-                    wallColor: wallComponent.west.color
-                }
-            );
-            this.wallTiles.set(`${entity.getId()}_west`, westTileId);
+            
+            // Store single tile ID for both walls
+            this.wallTiles.set(entity.getId(), wallTileId);
         }
     }
 
