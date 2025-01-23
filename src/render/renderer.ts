@@ -628,7 +628,7 @@ export abstract class Renderer {
                     direction === WallDirection.SOUTH ? y + 1 : direction === WallDirection.EAST ? y : y,
                     ' ',
                     '#FFFFFF00',
-                    fullColor,
+                    '#FFFFFF00',
                     1000, // Slightly above the light tile
                     { 
                         blendMode,
