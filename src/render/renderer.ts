@@ -601,17 +601,48 @@ export abstract class Renderer {
     private createLightTile(x: number, y: number, intensity: number, color: string, newTiles: Set<string>, blendMode: BlendMode) {
         // Clamp intensity between 0 and 1
         const clampedIntensity = Math.max(0, Math.min(1, intensity));
-        
         const baseColor = color.slice(0, 7);
+        const alpha = Math.floor(clampedIntensity * 255).toString(16).padStart(2, '0');
+        const fullColor = `${baseColor}${alpha}`;
+        
+        // Create the main light tile
         const tileId = this.display.createTile(
             x, y,
             ' ',
             '#FFFFFF00',
-            `${baseColor}${Math.floor(clampedIntensity * 255).toString(16).padStart(2, '0')}`,
+            fullColor,
             100,
             { blendMode }
         );
         newTiles.add(tileId);
+
+        // Check for walls in all directions and create overlays
+        for (const direction of [WallDirection.NORTH, WallDirection.SOUTH, WallDirection.EAST, WallDirection.WEST]) {
+            const [renderWall, opaqueWall, impassableWall] = this.world.hasWall({ x, y }, direction);
+            if (opaqueWall) {
+                // Create overlay for this wall
+                const overlayId = this.display.createTile(
+                    x, y,
+                    ' ',
+                    '#FFFFFF00',
+                    fullColor,
+                    1000, // Slightly above the light tile
+                    { 
+                        blendMode,
+                        walls: [
+                            direction === WallDirection.NORTH, 
+                            direction === WallDirection.WEST
+                        ],
+                        wallOverlays: [{
+                            direction: direction === WallDirection.NORTH ? 'north' : 'west',
+                            color: fullColor,
+                            blendMode
+                        }]
+                    }
+                );
+                newTiles.add(overlayId);
+            }
+        }
     }
 
     // Helper to calculate bounds of visible tiles
