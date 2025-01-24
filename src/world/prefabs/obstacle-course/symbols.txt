@@ -1,0 +1,3 @@
+# [{type: 'symbol', char: '#', foreground: '#888888FF', background: '#666666FF', zIndex: 1}, {type: 'opacity', isOpaque: true}]
+. [{type: 'symbol', char: '.', foreground: '#333333FF', background: '#000000FF', zIndex: 1}, {type: 'opacity', isOpaque: false}]
+@ [{type: 'symbol', char: '@', foreground: '#FFD700FF', background: '#000000FF', zIndex: 5}, {type: 'player'}, {type: 'impassable'}, {type: 'vision', radius: 30}]

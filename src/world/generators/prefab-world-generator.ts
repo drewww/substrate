@@ -1,0 +1,97 @@
+import { World } from "../world";
+import { WorldGenerator } from "../world-generator";
+import { Component } from "../../entity/component";
+import { Entity } from "../../entity/entity";
+import { SymbolComponent } from "../../entity/components/symbol-component";
+import { OpacityComponent } from "../../entity/components/opacity-component";
+import { PlayerComponent } from "../../entity/components/player-component";
+import { ImpassableComponent } from "../../entity/components/impassable-component";
+import { VisionComponent } from "../../entity/components/vision-component";
+
+interface SymbolDefinition {
+    components: Component[];
+}
+
+export class PrefabWorldGenerator implements WorldGenerator {
+    constructor(
+        private readonly symbolDefinitions: string,  // Raw content of symbol definitions
+        private readonly levelData: string          // Raw content of level data
+    ) {}
+
+    generate(): World {
+        const symbols = this.parseSymbolDefinitions(this.symbolDefinitions);
+        const level = this.parseLevelData(this.levelData);
+        
+        const world = new World(level[0].length, level.length);
+        
+        for (let y = 0; y < level.length; y++) {
+            for (let x = 0; x < level[0].length; x++) {
+                const symbol = level[y][x];
+                const definition = symbols.get(symbol);
+                if (definition) {
+                    const entity = new Entity({ x, y });
+                    for (const component of definition.components) {
+                        entity.setComponent(component);
+                    }
+                    world.addEntity(entity);
+                }
+            }
+        }
+        
+        return world;
+    }
+
+    private parseSymbolDefinitions(content: string): Map<string, SymbolDefinition> {
+        const symbols = new Map<string, SymbolDefinition>();
+        
+        // Split into lines and process each line
+        const lines = content.trim().split('\n');
+        for (const line of lines) {
+            // Split into symbol and component definitions
+            const [symbol, componentDefs] = line.trim().split(/\s+(.+)/);
+            
+            try {
+                // Parse the JSON array of component definitions
+                const componentArray = JSON.parse(componentDefs);
+                const components = componentArray.map((def: any) => {
+                    switch (def.type) {
+                        case 'symbol':
+                            return new SymbolComponent(
+                                def.char,
+                                def.foreground,
+                                def.background,
+                                def.zIndex
+                            );
+                        case 'opacity':
+                            return new OpacityComponent(def.isOpaque);
+                        case 'player':
+                            return new PlayerComponent();
+                        case 'impassable':
+                            return new ImpassableComponent();
+                        case 'vision':
+                            return new VisionComponent(def.radius);
+                        default:
+                            console.error(`Unknown component type: ${def.type}`);
+                            return null;
+                    }
+                }).filter((component: Component): component is Component => component !== null);
+                
+                symbols.set(symbol, { components });
+            } catch (error) {
+                console.error(`Error parsing symbol definition for ${symbol}:`, error);
+            }
+        }
+        
+        return symbols;
+    }
+
+    private parseLevelData(content: string): string[][] {
+        return content
+            .trim()
+            .split('\n')
+            .map(line => line.split(',')
+                .map(cell => cell.trim())
+                .filter(cell => cell.length > 0)
+            );
+    }
+}
