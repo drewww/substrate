@@ -22,6 +22,7 @@ import { PlayerMovementSystem } from './systems/player-movement-system';
 import { Direction } from '../../types';
 import { BufferedMoveComponent } from './components/buffered-move.component';
 import { VisionComponent } from '../../entity/components/vision-component';
+import { PrefabWorldGenerator } from '../../world/generators/prefab-world-generator';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -34,6 +35,26 @@ a move left
 d move right
 `;
 
+const SYMBOL_DEFINITIONS = `
+#   [{"type": "symbol", "char": "#", "foreground": "#888888ff", "background": "#666666ff", "zIndex": 1}, {"type": "opacity", "isOpaque": true}, {"type": "impassable"}]
+.   [{"type": "symbol", "char": ".", "foreground": "#333333ff", "background": "#000000ff", "zIndex": 1}]
+@   [{"type": "symbol", "char": "@", "foreground": "#FFD700FF", "background": "#00000000", "zIndex": 5}, {"type": "player"}, {"type": "impassable"}, {"type": "vision", "radius": 30}]
+`.trim();
+
+const LEVEL_DATA = `
+#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,@,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#
+`.trim();
+
 export class BasicTestGame extends Game {
     private enemyMovementSystem: EnemyMovementSystem;
     private actionHandler: ActionHandler;
@@ -45,12 +66,15 @@ export class BasicTestGame extends Game {
             elementId: canvasId,
             cellWidth: 20,
             cellHeight: 20,
-            worldWidth: 120,
-            worldHeight: 120,
-            viewportWidth: 40,
-            viewportHeight: 20
+            viewportWidth: 20,
+            viewportHeight: 11,
+            worldWidth: 20,
+            worldHeight: 11
         });
-        
+    
+        (this.renderer as TestGameRenderer).updateVisibility();
+
+        // Attach render canvas to DOM for debugging
         // Attach render canvas to DOM for debugging
         const renderCanvas = this.display.getRenderCanvas();
         const existingRenderCanvas = document.getElementById('render-canvas');
@@ -132,93 +156,40 @@ export class BasicTestGame extends Game {
 
     protected createRenderer(): Renderer {
         const renderer = new TestGameRenderer(this.display, this.world);
-        // Increase vision radius by 50%
         return renderer;
     }
 
     protected initializeWorld(): void {
-        const width = this.display.getWorldWidth();
-        const height = this.display.getWorldHeight();
-        const center = { x: Math.floor(width/2), y: Math.floor(height/2) };
+        // Use PrefabWorldGenerator to create the initial world
+        const generator = new PrefabWorldGenerator(SYMBOL_DEFINITIONS, LEVEL_DATA);
+        const world = generator.generate();
+        this.world = world;
 
-        // Create and configure player at center
-        this.player = new Entity(center);
-        this.player.setComponent(new SymbolComponent(
-            '@',            
-            '#FFD700FF',     
-            '#00000000',   
-            5              
-        ));
-        this.player.setComponent(new PlayerComponent());
-        this.player.setComponent(new ImpassableComponent());
-        this.player.setComponent(new VisionComponent(30)); // Add vision component
-        this.world.addEntity(this.player);
+        // Find the player entity that was created by the generator
+        this.player = world.getEntitiesWithComponent('player')[0];
 
-        // Initialize engine
-        this.engine = new Engine({
-            mode: 'realtime',
-            worldWidth: width,
-            worldHeight: height,
-            player: this.player,
-            world: this.world
-        });
-
-        // Add border walls
-        this.createBorderWalls();
-
-        // Add distance indicator tiles
-        this.createDistanceIndicators(center);
-
-        // Add scattered obstacles (about 2% of the map)
-        const numObstacles = Math.floor(width * height * 0.02);
-        const usedPositions = new Set<string>();
-        usedPositions.add(this.pointToKey(center)); // Reserve player position
-
-        for (let i = 0; i < numObstacles; i++) {
-            const x = Math.floor(Math.random() * (width - 2)) + 1; // Keep away from borders
-            const y = Math.floor(Math.random() * (height - 2)) + 1;
-            const posKey = this.pointToKey({ x, y });
-
-            if (!usedPositions.has(posKey)) {
-                const wall = new Entity({ x, y });
-                wall.setComponent(new ImpassableComponent());
-                wall.setComponent(new OpacityComponent(true));
-                wall.setComponent(new SymbolComponent(
-                    '#',
-                    '#aaaaaaff',
-                    '#ddddddff',
-                    1,
-                    true
-                ));
-                this.world.addEntity(wall);
-                usedPositions.add(posKey);
-            }
+        if (!this.player) {
+            throw new Error('No player entity found in generated world');
         }
 
-        // Add single enemy
-        // const enemyPos = this.findRandomEmptyPosition(usedPositions);
-        // if (enemyPos) {
-        //     const enemy = new EnemyEntity(enemyPos);
-        //     enemy.setComponent(new ImpassableComponent());
-        //     enemy.setComponent(new SymbolComponent(
-        //         'E',
-        //         '#FF0000FF', // Make it red to stand out
-        //         '#00000000',
-        //         2,
-        //         false
-        //     ));
-        //     this.world.addEntity(enemy);
-        // } else {
-        //     logger.warn('Could not find empty position for enemy');
-        // }
+        // Initialize engine with the generated world
+        this.engine = new Engine({
+            mode: 'realtime',
+            worldWidth: world.getSize().x,
+            worldHeight: world.getSize().y,
+            player: this.player,
+            world: world
+        });
 
-        // Update initial visibility
-        (this.renderer as TestGameRenderer).updateVisibility();
-        this.updateViewport(false);
+        // Add distance indicator tiles
+        // this.createDistanceIndicators(this.player.getPosition());
 
         const visionComponent = this.player.getComponent('vision') as VisionComponent;
         const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
         this.world.updatePlayerVision(this.player.getPosition(), radius);
+
+        // Update initial visibility
+        this.updateViewport(false);
     }
 
     private pointToKey(point: Point): string {

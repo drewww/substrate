@@ -9,7 +9,7 @@ import { DisplayOptions } from '../display/types';
 export abstract class Game {
     protected engine!: Engine;
     protected input: InputManager;
-    protected world: World;
+    protected world!: World;
     protected player!: Entity;
     protected display: Display;
     protected renderer!: Renderer;
@@ -17,9 +17,6 @@ export abstract class Game {
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
 
     constructor(displayConfig: DisplayOptions) {
-        const width = 120;
-        const height = 120;
-
         this.display = new Display(displayConfig);
     
         // Set black background
@@ -28,18 +25,17 @@ export abstract class Game {
         //     '#00000000', // Transparent foreground
         //     '#000000FF'     // Black background
         // );
-
-        this.world = new World(width, height);
         
         // Initialize input handling
         this.input = new InputManager();
         this.input.registerCallback(this.handleInput.bind(this), 0);
 
-        // Create renderer
-        this.renderer = this.createRenderer();
 
         // Initialize the world (which will set engine and player)
         this.initializeWorld();
+
+        // Create renderer
+        this.renderer = this.createRenderer();
     }
 
     protected abstract createRenderer(): Renderer;

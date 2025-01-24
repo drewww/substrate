@@ -58,6 +58,7 @@ export class TestGameRenderer extends GameRenderer {
         const visionRadius = visionComponent.radius;
         const pos = overridePosition || player.getPosition();
         const worldSize = this.world.getSize();
+
         const mask = Array(worldSize.y).fill(0).map(() => Array(worldSize.x).fill(0));
 
         // Calculate currently visible tiles

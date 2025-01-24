@@ -123,6 +123,12 @@ export abstract class Renderer {
         this.world.on('entityModified', ({ entity, componentType }) => this.onEntityModified(entity, componentType));
         this.world.on('componentModified', ({ entity, componentType }) => this.onComponentModified(entity, componentType));
         this.world.on('componentRemoved', ({ entity, componentType, component }) => this.onComponentRemoved(entity, componentType, component));
+
+        if(this.world.getAllEntities().length > 0) {
+            for(const entity of this.world.getAllEntities()) {
+                this.onEntityAdded(entity);
+            }
+        }
     }
 
     /**
