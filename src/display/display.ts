@@ -217,7 +217,7 @@ export class Display {
                 if (values.bg) {
                     this.updateTileProperty(id, 'backgroundColor', values.bg);
                 }
-                
+
                 if(values.removeOnComplete) {
                     this.removeTile(id);
                 }
@@ -293,7 +293,7 @@ export class Display {
             offsetSymbolY: 0,
             scaleSymbolX: 1.0,
             scaleSymbolY: 1.0,
-            rotation: 0,
+            rotation: config?.rotation ?? 0,
             noClip: config?.noClip ?? false,
             blendMode: config?.blendMode ?? BlendMode.SourceOver,
             alwaysRenderIfExplored: config?.alwaysRenderIfExplored ?? false,

@@ -88,6 +88,7 @@ export interface TileConfig {
     noClip?: boolean;
     blendMode?: BlendMode;
     alwaysRenderIfExplored?: boolean;
+    rotation?: number;
     walls?: [boolean, boolean];  // [north, west]
     wallColors?: [string | null, string | null];  // [north, west]
     wallOverlays?: Array<{

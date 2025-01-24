@@ -147,9 +147,20 @@ export class TestGameRenderer extends GameRenderer {
                             removeOnComplete: true
                         }
                     });
+
+
+                    if(inertia.magnitude >= 6) {
+
+                        // Calculate direction angle based on movement
+                        const dx = to.x - from.x;
+                        const dy = to.y - from.y;
+                        const angle = Math.atan2(dy, dx);
+                        
+                        const tracksTileId = this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
+                            rotation: angle
+                        });
+                    }
                 }
-
-
             }
 
             return true;
