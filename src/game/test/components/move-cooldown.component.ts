@@ -10,6 +10,8 @@ export class MoveCooldownComponent extends Component {
         public baseTime: number = 4000      // Reset to this value after moving
     ) {
         super();
+        this.cooldown = cooldown;
+        this.baseTime = baseTime;
     }
 
     static fromJSON(data: any): MoveCooldownComponent {

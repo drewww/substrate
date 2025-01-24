@@ -43,11 +43,12 @@ export const PlayerMoveAction: ActionClass<PlayerMoveActionData> = {
 
         const result = world.moveEntity(action.entityId, action.data.to);
         
-        // Reset cooldown
+        // Reset cooldown counter but preserve baseTime
         const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
         if (cooldown) {
+            // Just reset the cooldown counter, don't create a new component
             cooldown.cooldown = cooldown.baseTime;
-            entity.setComponent(cooldown);
+            entity.setComponent(cooldown);  // Reuse existing component to preserve baseTime
         }
 
         if (result && entity.hasComponent('player')) {

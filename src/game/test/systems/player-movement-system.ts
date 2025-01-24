@@ -7,6 +7,8 @@ import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 
+export const PLAYER_MOVE_COOLDOWN = 1000;
+
 export class PlayerMovementSystem {
     constructor(
         private world: World,
@@ -19,16 +21,29 @@ export class PlayerMovementSystem {
 
         for (const player of players) {
             const cooldown = player.getComponent('moveCooldown') as MoveCooldownComponent;
-            cooldown.cooldown -= deltaTime * 1000;
-            
-            // logger.info(`Player ${player.getId()} cooldown: ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
-            
-            if (cooldown.cooldown <= 0) {
-                this.movePlayer(player);
-                cooldown.cooldown = cooldown.baseTime;
-            }
 
-            player.setComponent(cooldown);
+            if(cooldown) {
+                logger.info(`Player ${player.getId()} cooldown: ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
+                cooldown.cooldown -= deltaTime * 1000;
+                
+                // logger.info(`Player ${player.getId()} ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
+                
+                if (cooldown.cooldown <= 0) {
+                    this.movePlayer(player);
+
+                    const inertia = player.getComponent('inertia') as InertiaComponent;
+                    if(inertia) {
+                        const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude * 200);
+                        cooldown.baseTime = newBaseTime;
+                        cooldown.cooldown = newBaseTime;
+                    } else {
+                        cooldown.baseTime = PLAYER_MOVE_COOLDOWN;
+                        cooldown.cooldown = PLAYER_MOVE_COOLDOWN;
+                    }
+                }
+
+                player.setComponent(cooldown);
+            }
         }
     }
 
@@ -95,13 +110,11 @@ export class PlayerMovementSystem {
 
         // Handle inertia after the move
         const inertia = player.getComponent('inertia') as InertiaComponent;
+
         if (inertia) {
             if (inertia.direction === bufferedMove.direction) {
                 // Same direction: increase inertia (max 4)
                 player.setComponent(new InertiaComponent(inertia.direction, Math.min(4, inertia.magnitude + 1)));
-
-                // TODO change cooldowns
-
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
@@ -145,7 +158,7 @@ export class PlayerMovementSystem {
                 // }
                 // Decrease inertia by 1 after slide
                 const newMagnitude = inertia.magnitude - 1;
-                if (newMagnitude === 0) {
+                if (newMagnitude <= 0) {
                     player.removeComponent('inertia');
                 } else {
                     player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
@@ -153,12 +166,22 @@ export class PlayerMovementSystem {
             }
         } else {
             // No existing inertia: create new inertia component
-            player.setComponent(new InertiaComponent(bufferedMove.direction, 1));
+            player.setComponent(new InertiaComponent(bufferedMove.direction, 0));
         }
 
+        // Execute all queued moves first
         for (const action of actions) {
             this.actionHandler.execute(action);
         }
+
+        // Now update the cooldown based on final inertia state
+        // if (player.hasComponent('inertia')) {
+        //     const finalInertia = player.getComponent('inertia') as InertiaComponent;
+        //     const newCooldown = PLAYER_MOVE_COOLDOWN - (finalInertia.magnitude * 200);
+        //     const newCooldownComponent = new MoveCooldownComponent(newCooldown, newCooldown);
+        //     player.removeComponent('moveCooldown');
+        //     player.setComponent(newCooldownComponent);
+        // }
 
         // Remove the buffered move component
         player.removeComponent('bufferedMove');

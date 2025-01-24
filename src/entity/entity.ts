@@ -6,6 +6,7 @@ import { Point } from '../types';
 import { isTransient } from '../decorators/transient';
 import { Component } from './component';
 import { World } from '../world/world';
+import { logger } from '../util/logger';
 
 /**
  * Base entity class that manages components
@@ -65,6 +66,11 @@ export class Entity {
     this.store.set(copy);
     this.changedComponents.add(component.type);
     
+    if(component.type === 'moveCooldown') {
+        logger.warn(`setComponent ${component.type} ${JSON.stringify(component)}`);
+        console.trace();
+    }
+
     if (this.world) {
         if (isUpdate) {
             this.world.onComponentModified(this, component.type);

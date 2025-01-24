@@ -79,7 +79,7 @@ export class BasicTestGame extends Game {
         });
 
         // Add cooldown component to player
-        this.player.setComponent(new MoveCooldownComponent(0, 1000)); // 100ms cooldown
+        this.player.setComponent(new MoveCooldownComponent(1000, 3000)); // 1000ms cooldown
 
         // Add cell inspection
         this.display.onCellClick((pos) => {
@@ -188,21 +188,21 @@ export class BasicTestGame extends Game {
         }
 
         // Add single enemy
-        const enemyPos = this.findRandomEmptyPosition(usedPositions);
-        if (enemyPos) {
-            const enemy = new EnemyEntity(enemyPos);
-            enemy.setComponent(new ImpassableComponent());
-            enemy.setComponent(new SymbolComponent(
-                'E',
-                '#FF0000FF', // Make it red to stand out
-                '#00000000',
-                2,
-                false
-            ));
-            this.world.addEntity(enemy);
-        } else {
-            logger.warn('Could not find empty position for enemy');
-        }
+        // const enemyPos = this.findRandomEmptyPosition(usedPositions);
+        // if (enemyPos) {
+        //     const enemy = new EnemyEntity(enemyPos);
+        //     enemy.setComponent(new ImpassableComponent());
+        //     enemy.setComponent(new SymbolComponent(
+        //         'E',
+        //         '#FF0000FF', // Make it red to stand out
+        //         '#00000000',
+        //         2,
+        //         false
+        //     ));
+        //     this.world.addEntity(enemy);
+        // } else {
+        //     logger.warn('Could not find empty position for enemy');
+        // }
 
         // Update initial visibility
         (this.renderer as TestGameRenderer).updateVisibility();

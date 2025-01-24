@@ -82,7 +82,7 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        logger.info(`handleComponentRemoved ${entity.getId()} - ${componentType}`);
+        // logger.info(`handleComponentRemoved ${entity.getId()} - ${componentType}`);
         if (componentType === 'bufferedMove') {
             const tileId = this.bufferedMoveTiles.get(entity.getId());
             if (tileId) {
@@ -194,7 +194,7 @@ export class TestGameRenderer extends GameRenderer {
             // Store the tile ID for later removal
             this.bufferedMoveTiles.set(entity.getId(), tileId);
 
-            logger.info(`created buffered move tile ${tileId} for entity ${entity.getId()} at ${targetPos.x},${targetPos.y}`);
+            // logger.info(`created buffered move tile ${tileId} for entity ${entity.getId()} at ${targetPos.x},${targetPos.y}`);
         }
 
         // Handle bumping animation
