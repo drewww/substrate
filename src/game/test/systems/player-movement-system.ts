@@ -92,16 +92,19 @@ export class PlayerMovementSystem {
                     return;
                 }
 
-                // don't slide on 1 inertia
-                // if (inertia.magnitude < 2) {
-                //     return;
-                // }
-
                 const inertiaDir = this.directionToPoint(inertia.direction);
                 const newPos: Point = {
                     x: pos.x + inertiaDir.x,
                     y: pos.y + inertiaDir.y
                 };
+
+                // Check if we can move there
+                if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
+                    // Add stun if we hit a wall at high speed
+                    player.setComponent(new StunComponent(inertia.magnitude * 600, inertia.magnitude * 600)); // 2 second stun
+                    player.removeComponent('inertia');
+                    return;
+                }
 
                 this.actionHandler.execute({
                     type: 'playerMove',
