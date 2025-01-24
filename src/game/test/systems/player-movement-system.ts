@@ -115,6 +115,18 @@ export class PlayerMovementSystem {
             if (inertia.direction === bufferedMove.direction) {
                 // Same direction: increase inertia (max 4)
                 player.setComponent(new InertiaComponent(inertia.direction, Math.min(8, inertia.magnitude + 1)));
+
+
+                if(inertia.magnitude >= 8) {
+                    actions.push({
+                        type: 'playerMove',
+                        entityId: player.getId(),
+                        data: { to: {
+                            x: newPos.x + dir.x,
+                            y: newPos.y + dir.y
+                        }}
+                    });
+                }
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
@@ -164,7 +176,7 @@ export class PlayerMovementSystem {
                     player.removeComponent('inertia');
                 } else {
 
-                    if(newMagnitude == 2) {
+                    if(newMagnitude >= 2 && newMagnitude <= 3) {
                         player.setComponent(new InertiaComponent(bufferedMove.direction, newMagnitude));
                     } else {
                         player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
