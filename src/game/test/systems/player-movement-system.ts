@@ -23,6 +23,9 @@ export class PlayerMovementSystem {
         for (const player of players) {
             const cooldown = player.getComponent('moveCooldown') as MoveCooldownComponent;
             const stun = player.getComponent('stun') as StunComponent;
+            const inertia = player.getComponent('inertia') as InertiaComponent;
+
+            logger.info(`inertia: ${inertia?.magnitude} ${inertia?.direction}`);
 
 
             if (stun && stun.cooldown > 0) {
@@ -84,15 +87,15 @@ export class PlayerMovementSystem {
                 // slide in the direction of the inertia and decrement the inertia
                 const inertia = player.getComponent('inertia') as InertiaComponent;
 
-                if (inertia.magnitude <= 0) {
+                if (inertia.magnitude <= 1) {
                     player.removeComponent('inertia');
                     return;
                 }
 
                 // don't slide on 1 inertia
-                if (inertia.magnitude < 2) {
-                    return;
-                }
+                // if (inertia.magnitude < 2) {
+                //     return;
+                // }
 
                 const inertiaDir = this.directionToPoint(inertia.direction);
                 const newPos: Point = {
