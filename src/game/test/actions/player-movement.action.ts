@@ -4,6 +4,7 @@ import { Point } from '../../../types';
 import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../../util/logger';
+import { VisionComponent } from '../../../entity/components/vision-component';
 
 interface PlayerMoveActionData {
     to: Point;
