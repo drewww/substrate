@@ -168,7 +168,8 @@ export class TestGameRenderer extends GameRenderer {
                         const angle = Math.atan2(dy, dx);
                         
                         const tracksTileId = this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
-                            rotation: angle
+                            rotation: angle,
+                            scaleSymbolX: 2.0,
                         });
                     }
                 }

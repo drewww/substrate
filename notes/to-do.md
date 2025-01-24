@@ -121,7 +121,8 @@ NEXT
 MOVEMENT NEXT
 -------------
  - build a prefab saver and loader
- - build a penalty when you move into a wall -- visual, kill inertia, and stun
+ DONE build a penalty when you move into a wall -- visual, kill inertia, and stun
+- add the sliding component to simplify the display logic on when to put the tracks behind
  - design a world that tests different movement skills
    - thin gap
    - something moving open and closed periodically

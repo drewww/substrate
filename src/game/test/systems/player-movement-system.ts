@@ -163,6 +163,8 @@ export class PlayerMovementSystem {
                             entityId: player.getId(),
                             data: { to: {x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y} }
                         });
+
+                        // TODO add "sliding" component to trigger the trail effect
                     }
                 }
             } else {
@@ -205,6 +207,9 @@ export class PlayerMovementSystem {
                     } else {
                         player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
                     }
+
+                    // TODO add "sliding" component to trigger the trail effect
+
                 }
             }
         } else {
