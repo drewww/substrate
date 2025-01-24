@@ -2,7 +2,6 @@ import { World } from '../../../world/world';
 import { Point } from '../../../types';
 import { ActionHandler } from '../../../action/action-handler';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
-import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
 
 export class EnemyMovementSystem {

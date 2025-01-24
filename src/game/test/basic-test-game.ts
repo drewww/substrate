@@ -73,13 +73,16 @@ export class BasicTestGame extends Game {
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime);
             this.playerMovementSystem.update(deltaTime);
-
-            // UNSURE ABOUT THIS but it can't be in "tryMove" here.
-            this.updateViewport();
         });
 
         // Add cooldown component to player
         this.player.setComponent(new MoveCooldownComponent(1000, 3000)); // 1000ms cooldown
+
+        this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
+            if (data.entity.hasComponent('player')) {
+                this.updateViewport();
+            }
+        });
 
         // Add cell inspection
         this.display.onCellClick((pos) => {
@@ -323,25 +326,25 @@ export class BasicTestGame extends Game {
         // this.display.setViewport(viewportX, viewportY);
     }
 
-    private tryMove(direction: string): void {
-        const pos = this.player.getPosition();
-        let newPos: Point = { ...pos };
+    // private tryMove(direction: string): void {
+    //     const pos = this.player.getPosition();
+    //     let newPos: Point = { ...pos };
 
-        switch(direction) {
-            case 'up':    newPos.y--; break;
-            case 'down':  newPos.y++; break;
-            case 'left':  newPos.x--; break;
-            case 'right': newPos.x++; break;
-        }
+    //     switch(direction) {
+    //         case 'up':    newPos.y--; break;
+    //         case 'down':  newPos.y++; break;
+    //         case 'left':  newPos.x--; break;
+    //         case 'right': newPos.x++; break;
+    //     }
 
-        this.actionHandler.execute({
-            type: 'playerMove',
-            entityId: this.player.getId(),
-            data: { to: newPos }
-        });
+    //     this.actionHandler.execute({
+    //         type: 'playerMove',
+    //         entityId: this.player.getId(),
+    //         data: { to: newPos }
+    //     });
 
-        // Update viewport to follow player
-    }
+
+    // }
 
     protected handleInput(type: string, action: string, params: string[]): void {
         if (type === 'up') {

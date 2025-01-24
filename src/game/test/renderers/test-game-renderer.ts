@@ -18,7 +18,6 @@ export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
     private inertiaTiles: Map<string, string> = new Map(); // entityId -> tileId
-    private trailTiles: Map<string, string> = new Map(); // entityId -> tileId
 
 
 
@@ -37,13 +36,13 @@ export class TestGameRenderer extends GameRenderer {
             this.handleComponentAdded(data.entity, data.componentType);
         });
 
-        // // Subscribe to entity movement to update visibility
+        // Subscribe to entity movement to update viewport
         // this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
-        //     // if (data.entity.hasComponent('player')) {
-        //     //     // Update visibility immediately using the destination position
-        //     //     this.updateVisibility();
-        //     // }
-        //     return this.handleEntityMoved(data.entity, data.from, data.to);
+        //     if (data.entity.hasComponent('player')) {
+        //         // Update viewport to follow player
+        //         this.display.setViewportPosition(data.to.x, data.to.y);
+        //     }
+        //     // return this.handleEntityMoved(data.entity, data.from, data.to);
         // });
 
         this.world.on('playerVisionUpdated', (data: { playerPos: Point, visibleLocations: Set<string> }) => {
@@ -52,6 +51,7 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     public updateVisibility(overridePosition?: Point): void {
+        logger.info(`updateVisibility`);
         const player = this.world.getEntitiesWithComponent('player')[0];
         if (!player) return;
 
@@ -167,7 +167,7 @@ export class TestGameRenderer extends GameRenderer {
                         // Calculate direction angle based on movement
                         const angle = Math.atan2(dy, dx);
                         
-                        const tracksTileId = this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
+                        this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
                             rotation: angle,
                             scaleSymbolX: 2.0,
                         });

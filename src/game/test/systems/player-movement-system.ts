@@ -223,7 +223,11 @@ export class PlayerMovementSystem {
             // check if the space trying to move into is passable
             if(!this.world.isPassable(player.getPosition().x, player.getPosition().y, action.data.to.x, action.data.to.y)) {
                 player.removeComponent('inertia');
-                player.setComponent(new StunComponent(400*inertia.magnitude, 400*inertia.magnitude));
+
+                if(inertia) {
+                // consider non-linear. I want a speed 8 crash to HURT.
+                    player.setComponent(new StunComponent(600*inertia.magnitude, 600*inertia.magnitude));
+                }
             }
 
             this.actionHandler.execute(action);
