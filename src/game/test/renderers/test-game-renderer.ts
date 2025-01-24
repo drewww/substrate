@@ -11,6 +11,7 @@ import { Component } from '../../../entity/component';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { Direction } from '../../../types';
 import { InertiaComponent } from '../components/inertia.component';
+import { StunComponent } from '../components/stun.component';
 
 export class TestGameRenderer extends GameRenderer {
     private readonly VISION_RADIUS = 10;  // Chebyshev distance for visibility
@@ -192,14 +193,33 @@ export class TestGameRenderer extends GameRenderer {
 
                 this.display.updateTile(tileId, {
                     bg: color,
-                    bgPercent: percent
+                    bgPercent: percent,
+                    fillDirection: FillDirection.BOTTOM
                 });
             }
         }
+
         if (componentType === 'inertia') {
             // When inertia is modified, remove and re-add to update visualization
             this.handleComponentRemoved(entity, 'inertia', entity.getComponent('inertia') as Component);
             this.handleComponentAdded(entity, 'inertia');
+        }
+
+        if (componentType === 'stun') {
+            const stun = entity.getComponent('stun') as StunComponent;
+            const tileId = this.entityTiles.get(entity.getId());
+            
+            if (stun && tileId) {
+                const percent = 1 - (stun.cooldown / stun.duration);
+
+                const color = entity.hasComponent('player') ? '#770505' : '#FF0000';
+
+                this.display.updateTile(tileId, {
+                    bg: color,
+                    bgPercent: percent,
+                    fillDirection: FillDirection.TOP
+                });
+            }
         }
     }
 
