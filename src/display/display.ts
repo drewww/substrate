@@ -1,12 +1,11 @@
 import { TextParser } from './util/text-parser';
-import { Color, Tile, TileId, Viewport, TileConfig, BlendMode, TileUpdateConfig, PerformanceMetrics, DisplayOptions, FillDirection, Easing } from './types';
+import { Color, Tile, TileId, Viewport, TileConfig, BlendMode, TileUpdateConfig, PerformanceMetrics, FillDirection, Easing, DisplayOptions } from './types';
 import { logger } from '../util/logger';
-import { Point, Direction } from '../types';
+import { Point } from '../types';
 import { DirtyMask } from './dirty-mask';
 import { SymbolAnimationConfig, SymbolAnimationModule } from '../animation/symbol-animation';
 import { ColorAnimationConfig, ColorAnimationModule } from '../animation/color-animation';
 import { ValueAnimationConfig, ValueAnimationModule } from '../animation/value-animation';
-
 
 // Constants for viewport padding (percentage of viewport size)
 const VIEWPORT_PADDING_X = 0.2; // 20% padding on each side

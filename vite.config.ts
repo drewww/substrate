@@ -8,11 +8,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: 'index.html',
-        display: 'src/display/test/index.html',
-        // Add other test environments here as needed
+        game: 'src/game/test/index.html',
       }
-    }
+    },
+    outDir: 'dist',
+    assetsDir: '.',
   },
   server: {
     open: '/',

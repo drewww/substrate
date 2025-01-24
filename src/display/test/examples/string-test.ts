@@ -1,6 +1,6 @@
 import { BaseTest } from './base-test';
 import { TileId } from '../../types';
-import { StringOptions } from '../../display';
+import { StringOptions } from '../../types';
 
 interface ActiveString {
     tileIds: TileId[];
