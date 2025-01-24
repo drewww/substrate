@@ -138,13 +138,15 @@ export class PlayerMovementSystem {
         const inertia = player.getComponent('inertia') as InertiaComponent;
 
         if (inertia) {
+            const inertiaDir = this.directionToPoint(inertia.direction);
+
             if (inertia.direction === bufferedMove.direction) {
                 // Same direction: increase inertia (max 4)
                 player.setComponent(new InertiaComponent(inertia.direction, Math.min(8, inertia.magnitude + 1)));
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
-                    const newMagnitude = inertia.magnitude - 1;
+                    const newMagnitude = inertia.magnitude - 2;
                     if (newMagnitude === 0) {
                         player.removeComponent('inertia');
                     } else {
@@ -153,12 +155,20 @@ export class PlayerMovementSystem {
 
                     // remove the queued move action
                     actions.pop();
+
+                    if(inertia.magnitude > 2) {
+                        // add a slide if there's enough inertia, but it's much faster to stop than just not moving.
+                        actions.push({
+                            type: 'playerMove',
+                            entityId: player.getId(),
+                            data: { to: {x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y} }
+                        });
+                    }
                 }
             } else {
                 // Perpendicular movement: slide in direction of inertia
 
                 if (inertia.magnitude >= 2) {
-                    const inertiaDir = this.directionToPoint(inertia.direction);
 
                     const slidePos = {
                         x: newPos.x + inertiaDir.x,
