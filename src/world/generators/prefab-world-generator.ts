@@ -7,6 +7,7 @@ import { OpacityComponent } from "../../entity/components/opacity-component";
 import { PlayerComponent } from "../../entity/components/player-component";
 import { ImpassableComponent } from "../../entity/components/impassable-component";
 import { VisionComponent } from "../../entity/components/vision-component";
+import { logger } from "../../util/logger";
 
 interface SymbolDefinition {
     components: Component[];
@@ -26,14 +27,16 @@ export class PrefabWorldGenerator implements WorldGenerator {
         
         for (let y = 0; y < level.length; y++) {
             for (let x = 0; x < level[0].length; x++) {
-                const symbol = level[y][x];
-                const definition = symbols.get(symbol);
-                if (definition) {
+                logger.info(`level[y][x]: ${level[y][x]}`);
+                for(const symbol of level[y][x]) {
+                    const definition = symbols.get(symbol);
+                    if (definition) {
                     const entity = new Entity({ x, y });
                     for (const component of definition.components) {
-                        entity.setComponent(component);
+                            entity.setComponent(component);
+                        }
+                        world.addEntity(entity);
                     }
-                    world.addEntity(entity);
                 }
             }
         }
@@ -85,13 +88,14 @@ export class PrefabWorldGenerator implements WorldGenerator {
         return symbols;
     }
 
-    private parseLevelData(content: string): string[][] {
+    private parseLevelData(content: string): string[][][] {
         return content
             .trim()
             .split('\n')
             .map(line => line.split(',')
                 .map(cell => cell.trim())
                 .filter(cell => cell.length > 0)
+                .map(cell => cell.split(''))  // Split each cell into individual characters
             );
     }
 }
