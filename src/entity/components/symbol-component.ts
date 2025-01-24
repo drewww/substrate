@@ -43,7 +43,7 @@ export class SymbolComponent extends Component {
       config.foreground ?? '#FFFFFFFF',
       config.background ?? '#00000000',
       config.zIndex ?? 1,
-      config.alwaysRenderIfExplored ?? false
+      config.alwaysRenderIfExplored ?? true
     );
   }
 }
