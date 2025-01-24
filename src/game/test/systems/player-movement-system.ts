@@ -33,9 +33,16 @@ export class PlayerMovementSystem {
 
                     const inertia = player.getComponent('inertia') as InertiaComponent;
                     if(inertia) {
-                        const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude > 1? 500 : 0);
-                        cooldown.baseTime = newBaseTime;
-                        cooldown.cooldown = newBaseTime;
+
+                        if(inertia.magnitude >= 8) {
+                            cooldown.baseTime = 300;
+                            cooldown.cooldown = 300;
+                        } else {
+                            const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude > 1 ? 500 : 0);
+                            cooldown.baseTime = newBaseTime;
+                            cooldown.cooldown = newBaseTime;
+                        }
+                        
                     } else {
                         cooldown.baseTime = PLAYER_MOVE_COOLDOWN;
                         cooldown.cooldown = PLAYER_MOVE_COOLDOWN;
@@ -70,6 +77,11 @@ export class PlayerMovementSystem {
                     return;
                 }
 
+                // don't slide on 1 inertia
+                if(inertia.magnitude <  2) {
+                    return;
+                }
+
                 const inertiaDir = this.directionToPoint(inertia.direction);
                 const newPos: Point = {
                     x: pos.x + inertiaDir.x,
@@ -82,8 +94,10 @@ export class PlayerMovementSystem {
                     data: { to: newPos }
                 });
 
-                if(inertia.magnitude >= 1) {
+                if(inertia.magnitude >= 1 && inertia.magnitude < 8) {
                     player.setComponent(new InertiaComponent(inertia.direction, inertia.magnitude - 1));
+                } else if(inertia.magnitude == 8) {
+                    // do nothing, autopilot
                 } else {
                     player.removeComponent('inertia');
                 }
@@ -117,16 +131,16 @@ export class PlayerMovementSystem {
                 player.setComponent(new InertiaComponent(inertia.direction, Math.min(8, inertia.magnitude + 1)));
 
 
-                if(inertia.magnitude >= 8) {
-                    actions.push({
-                        type: 'playerMove',
-                        entityId: player.getId(),
-                        data: { to: {
-                            x: newPos.x + dir.x,
-                            y: newPos.y + dir.y
-                        }}
-                    });
-                }
+                // if(inertia.magnitude >= 8) {
+                //     actions.push({
+                //         type: 'playerMove',
+                //         entityId: player.getId(),
+                //         data: { to: {
+                //             x: newPos.x + dir.x,
+                //             y: newPos.y + dir.y
+                //         }}
+                //     });
+                // }
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
@@ -143,7 +157,9 @@ export class PlayerMovementSystem {
             } else {
                 // Perpendicular movement: slide in direction of inertia
 
+ 
 
+                if(inertia.magnitude >= 2) {
                 const inertiaDir = this.directionToPoint(inertia.direction);
                 // for (let i = 0; i < inertia.magnitude; i++) {
                 const slidePos = {
@@ -166,7 +182,7 @@ export class PlayerMovementSystem {
                 });
 
                 logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y}`);
-
+                }
                     // newPos.x = slidePos.x;
                     // newPos.y = slidePos.y;
                 // }
