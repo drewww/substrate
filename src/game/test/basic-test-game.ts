@@ -21,6 +21,7 @@ import { MoveCooldownComponent } from './components/move-cooldown.component';
 import { PlayerMovementSystem } from './systems/player-movement-system';
 import { Direction } from '../../types';
 import { BufferedMoveComponent } from './components/buffered-move.component';
+import { VisionComponent } from '../../entity/components/vision-component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -72,6 +73,9 @@ export class BasicTestGame extends Game {
         // Add system to engine update loop
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime);
+        });
+
+        this.engine.addSystem(deltaTime => {
             this.playerMovementSystem.update(deltaTime);
         });
 
@@ -147,6 +151,7 @@ export class BasicTestGame extends Game {
         ));
         this.player.setComponent(new PlayerComponent());
         this.player.setComponent(new ImpassableComponent());
+        this.player.setComponent(new VisionComponent(30)); // Add vision component
         this.world.addEntity(this.player);
 
         // Initialize engine
@@ -210,7 +215,10 @@ export class BasicTestGame extends Game {
         // Update initial visibility
         (this.renderer as TestGameRenderer).updateVisibility();
         this.updateViewport(false);
-        this.world.updatePlayerVision(this.player.getPosition());
+
+        const visionComponent = this.player.getComponent('vision') as VisionComponent;
+        const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
+        this.world.updatePlayerVision(this.player.getPosition(), radius);
     }
 
     private pointToKey(point: Point): string {
@@ -441,7 +449,9 @@ export const MoveAction: ActionClass<MoveActionData> = {
         const result = world.moveEntity(action.entityId, action.data.to);
         const entity = world.getEntity(action.entityId);
         if (result && entity?.hasComponent('player')) {
-            world.updatePlayerVision(action.data.to);
+            const visionComponent = entity.getComponent('vision') as VisionComponent;
+            const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
+            world.updatePlayerVision(action.data.to, radius);
         }
         return result;
     }

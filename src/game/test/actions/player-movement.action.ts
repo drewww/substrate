@@ -45,7 +45,9 @@ export const PlayerMoveAction: ActionClass<PlayerMoveActionData> = {
         }
 
         if (result && entity.hasComponent('player')) {
-            world.updatePlayerVision(action.data.to);
+            const visionComponent = entity.getComponent('vision') as VisionComponent;
+            const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
+            world.updatePlayerVision(action.data.to, radius);
         }
         
         return result;

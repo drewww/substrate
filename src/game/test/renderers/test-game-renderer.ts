@@ -12,14 +12,12 @@ import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { Direction } from '../../../types';
 import { InertiaComponent } from '../components/inertia.component';
 import { StunComponent } from '../components/stun.component';
+import { VisionComponent } from '../../../entity/components/vision-component';
 
 export class TestGameRenderer extends GameRenderer {
-    private readonly VISION_RADIUS = 10;  // Chebyshev distance for visibility
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
     private inertiaTiles: Map<string, string> = new Map(); // entityId -> tileId
-
-
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -54,14 +52,17 @@ export class TestGameRenderer extends GameRenderer {
         const player = this.world.getEntitiesWithComponent('player')[0];
         if (!player) return;
 
-        // Use override position if provided, otherwise use player's current position
+        const visionComponent = player.getComponent('vision') as VisionComponent;
+        if (!visionComponent) return;
+
+        const visionRadius = visionComponent.radius;
         const pos = overridePosition || player.getPosition();
         const worldSize = this.world.getSize();
         const mask = Array(worldSize.y).fill(0).map(() => Array(worldSize.x).fill(0));
 
         // Calculate currently visible tiles
-        for (let y = Math.max(0, pos.y - this.VISION_RADIUS); y <= Math.min(worldSize.y - 1, pos.y + this.VISION_RADIUS); y++) {
-            for (let x = Math.max(0, pos.x - this.VISION_RADIUS); x <= Math.min(worldSize.x - 1, pos.x + this.VISION_RADIUS); x++) {
+        for (let y = Math.max(0, pos.y - visionRadius); y <= Math.min(worldSize.y - 1, pos.y + visionRadius); y++) {
+            for (let x = Math.max(0, pos.x - visionRadius); x <= Math.min(worldSize.x - 1, pos.x + visionRadius); x++) {
                 
                 const isVisible = this.world.isLocationVisible({ x, y });
                 if (isVisible) {
