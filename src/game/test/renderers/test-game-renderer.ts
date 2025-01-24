@@ -162,7 +162,7 @@ export class TestGameRenderer extends GameRenderer {
                     if(inertia.magnitude >= 3 && inertia.magnitude < 8 && isInertiaPerpendicularToMovement) {
 
                         // Calculate direction angle based on movement
-                        const angle = Math.atan2(dy, dx);
+                        const angle = Math.atan2(dy, dx)+Math.PI/4;
                         
                         this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
                             rotation: angle,
