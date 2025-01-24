@@ -33,7 +33,7 @@ export class PlayerMovementSystem {
 
                     const inertia = player.getComponent('inertia') as InertiaComponent;
                     if(inertia) {
-                        const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude * 200);
+                        const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude > 1? 500 : 0);
                         cooldown.baseTime = newBaseTime;
                         cooldown.cooldown = newBaseTime;
                     } else {
@@ -114,7 +114,7 @@ export class PlayerMovementSystem {
         if (inertia) {
             if (inertia.direction === bufferedMove.direction) {
                 // Same direction: increase inertia (max 4)
-                player.setComponent(new InertiaComponent(inertia.direction, Math.min(4, inertia.magnitude + 1)));
+                player.setComponent(new InertiaComponent(inertia.direction, Math.min(8, inertia.magnitude + 1)));
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
@@ -130,6 +130,8 @@ export class PlayerMovementSystem {
                 }
             } else {
                 // Perpendicular movement: slide in direction of inertia
+
+
                 const inertiaDir = this.directionToPoint(inertia.direction);
                 // for (let i = 0; i < inertia.magnitude; i++) {
                 const slidePos = {
@@ -161,7 +163,12 @@ export class PlayerMovementSystem {
                 if (newMagnitude <= 0) {
                     player.removeComponent('inertia');
                 } else {
-                    player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
+
+                    if(newMagnitude == 2) {
+                        player.setComponent(new InertiaComponent(bufferedMove.direction, newMagnitude));
+                    } else {
+                        player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
+                    }
                 }
             }
         } else {
