@@ -339,10 +339,10 @@ export class TestGameRenderer extends GameRenderer {
             // Calculate target position
             let targetPos: Point;
             switch (inertia.direction) {
-                    case Direction.North: targetPos = { x: player.getPosition().x, y: player.getPosition().y - 1 }; break;
-                    case Direction.South: targetPos = { x: player.getPosition().x, y: player.getPosition().y + 1 }; break;
-                    case Direction.West:  targetPos = { x: player.getPosition().x - 1, y: player.getPosition().y }; break;
-                    case Direction.East:  targetPos = { x: player.getPosition().x + 1, y: player.getPosition().y }; break;
+                    case Direction.North: targetPos = { x: player.getPosition().x, y: player.getPosition().y - 3 }; break;
+                    case Direction.South: targetPos = { x: player.getPosition().x, y: player.getPosition().y + 3 }; break;
+                    case Direction.West:  targetPos = { x: player.getPosition().x - 3, y: player.getPosition().y }; break;
+                    case Direction.East:  targetPos = { x: player.getPosition().x + 3, y: player.getPosition().y }; break;
                 }
     
             // Create indicator tile
