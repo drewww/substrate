@@ -15,10 +15,11 @@ export const PlayerMoveAction: ActionClass<PlayerMoveActionData> = {
         if (!entity) return false;
 
         // Check cooldown
-        const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
-        if (cooldown && cooldown.cooldown > 0) {
-            return false;
-        }
+        // const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
+        // if (cooldown && cooldown.cooldown > 0) {
+        //     logger.warn(`Failed cooldown check for player ${action.entityId}`);
+        //     return false;
+        // }
 
         const from = entity.getPosition();
         const to = action.data.to;

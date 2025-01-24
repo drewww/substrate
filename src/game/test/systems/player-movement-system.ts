@@ -118,32 +118,31 @@ export class PlayerMovementSystem {
             } else {
                 // Perpendicular movement: slide in direction of inertia
                 const inertiaDir = this.directionToPoint(inertia.direction);
-                for (let i = 0; i < inertia.magnitude; i++) {
-                    const slidePos = {
-                        x: newPos.x + inertiaDir.x,
-                        y: newPos.y + inertiaDir.y
-                    };
+                // for (let i = 0; i < inertia.magnitude; i++) {
+                const slidePos = {
+                    x: newPos.x + inertiaDir.x,
+                    y: newPos.y + inertiaDir.y
+                };
 
-                    // Check if we can move there
-                    if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y)) {
-                        player.removeComponent('inertia');
+                // Check if we can move there
+                if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y)) {
+                    player.removeComponent('inertia');
 
-                        // TODO add a stun condition or something
+                    logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y} but it is not passable`);
+                    // TODO add a stun condition or something
+                }
 
-                        break;
-                    }
+                actions.push({
+                    type: 'playerMove',
+                    entityId: player.getId(),
+                    data: { to: slidePos }
+                });
 
-                    actions.push({
-                        type: 'playerMove',
-                        entityId: player.getId(),
-                        data: { to: slidePos }
-                    });
-
-                    logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y}`);
+                logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y}`);
 
                     // newPos.x = slidePos.x;
                     // newPos.y = slidePos.y;
-                }
+                // }
                 // Decrease inertia by 1 after slide
                 const newMagnitude = inertia.magnitude - 1;
                 if (newMagnitude === 0) {
