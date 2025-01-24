@@ -51,7 +51,6 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     public updateVisibility(overridePosition?: Point): void {
-        logger.info(`updateVisibility`);
         const player = this.world.getEntitiesWithComponent('player')[0];
         if (!player) return;
 
@@ -87,13 +86,13 @@ export class TestGameRenderer extends GameRenderer {
 
     protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
         // logger.info(`handleComponentRemoved ${entity.getId()} - ${componentType}`);
-        if (componentType === 'bufferedMove') {
-            const tileId = this.bufferedMoveTiles.get(entity.getId());
-            if (tileId) {
-                this.display.removeTile(tileId);
-                this.bufferedMoveTiles.delete(entity.getId());
-            }
-        }
+        // if (componentType === 'bufferedMove') {
+        //     const tileId = this.bufferedMoveTiles.get(entity.getId());
+        //     if (tileId) {
+        //         this.display.removeTile(tileId);
+        //         this.bufferedMoveTiles.delete(entity.getId());
+        //     }
+        // }
         if (componentType === 'inertia') {
             const tileId = this.inertiaTiles.get(entity.getId());
             if (tileId) {
@@ -104,7 +103,6 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
-
         // logger.info(`handleEntityMoved ${entity.getId()} from ${from.x},${from.y} to ${to.x},${to.y}`);
 
         const tileId = this.entityTiles.get(entity.getId());
@@ -129,9 +127,8 @@ export class TestGameRenderer extends GameRenderer {
                 }
             });
 
-
             if(isPlayer) {
-                // check our inertia. if it's > 2, leave behind a fading "trail" tile in its previous location
+                // check our inertia. if it's > 2, leave behind a fading "trail" tile
                 const inertia = entity.getComponent('inertia') as InertiaComponent;
                 if(inertia && inertia.magnitude >= 2) {
                     const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', '#005577AA', 999, {
@@ -172,6 +169,37 @@ export class TestGameRenderer extends GameRenderer {
                             scaleSymbolX: 2.0,
                         });
                     }
+
+                    // Move this entity's inertia indicator tile if it exists
+                    const inertiaTileId = this.inertiaTiles.get(entity.getId());
+                    if (inertiaTileId) {
+                        // Calculate new position relative to current position
+                        let newPos: Point;
+                        switch (inertia.direction) {
+                            case Direction.North: newPos = { x: to.x, y: to.y - 1 }; break;
+                            case Direction.South: newPos = { x: to.x, y: to.y + 1 }; break;
+                            case Direction.West:  newPos = { x: to.x - 1, y: to.y }; break;
+                            case Direction.East:  newPos = { x: to.x + 1, y: to.y }; break;
+                        }
+                        
+                        // Move the indicator tile with the same animation as the entity
+                        this.display.addValueAnimation(inertiaTileId, {
+                            x: {
+                                start: from.x + (newPos.x - to.x),
+                                end: newPos.x,
+                                duration: duration,
+                                easing: Easing.quadOut,
+                                loop: false
+                            },
+                            y: {
+                                start: from.y + (newPos.y - to.y),
+                                duration: duration,
+                                end: newPos.y,
+                                easing: Easing.quadOut,
+                                loop: false
+                            }
+                        });
+                    }
                 }
             }
 
@@ -201,9 +229,15 @@ export class TestGameRenderer extends GameRenderer {
         }
 
         if (componentType === 'inertia') {
-            // When inertia is modified, remove and re-add to update visualization
-            this.handleComponentRemoved(entity, 'inertia', entity.getComponent('inertia') as Component);
-            this.handleComponentAdded(entity, 'inertia');
+            // when inertia is modified, edit the tile properties directly.
+            const inertia = entity.getComponent('inertia') as InertiaComponent;
+            const tileId = this.inertiaTiles.get(entity.getId());
+            if (tileId) {
+                this.display.updateTile(tileId, {
+                    bgPercent: inertia.magnitude / 8,
+                    fillDirection: this.getOppositeDirection(inertia.direction)
+                });
+            }
         }
 
         if (componentType === 'stun') {
@@ -234,39 +268,6 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentAdded(entity: Entity, componentType: string): void {
-        if (componentType === 'bufferedMove') {
-            const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
-            const pos = entity.getPosition();
-            
-            // Calculate target position
-            let targetPos: Point;
-            switch (bufferedMove.direction) {
-                case Direction.North: targetPos = { x: pos.x, y: pos.y - 1 }; break;
-                case Direction.South: targetPos = { x: pos.x, y: pos.y + 1 }; break;
-                case Direction.West:  targetPos = { x: pos.x - 1, y: pos.y }; break;
-                case Direction.East:  targetPos = { x: pos.x + 1, y: pos.y }; break;
-            }
-
-            // Create indicator tile
-            const tileId = this.display.createTile(
-                targetPos.x,
-                targetPos.y,
-                ' ',  // no character
-                '#FFFFFFFF',  // transparent foreground
-                '#005577AA',    // background color
-                1000,           // zIndex
-                {
-                    bgPercent: 0.4,  // 40% coverage
-                    fillDirection: this.getOppositeDirection(bufferedMove.direction)
-                }
-            );
-
-            // Store the tile ID for later removal
-            this.bufferedMoveTiles.set(entity.getId(), tileId);
-
-            // logger.info(`created buffered move tile ${tileId} for entity ${entity.getId()} at ${targetPos.x},${targetPos.y}`);
-        }
-
         // Handle bumping animation
         // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
@@ -331,36 +332,35 @@ export class TestGameRenderer extends GameRenderer {
         if (componentType === 'inertia') {
             const inertia = entity.getComponent('inertia') as InertiaComponent;
             const pos = entity.getPosition();
-            
-            // Calculate target position based on inertia direction
+
+            const player = this.world.getEntitiesWithComponent('player')[0];
+            if(!player) return;
+
+            // Calculate target position
             let targetPos: Point;
             switch (inertia.direction) {
-                case Direction.North: targetPos = { x: pos.x, y: pos.y - 2 }; break;
-                case Direction.South: targetPos = { x: pos.x, y: pos.y + 2 }; break;
-                case Direction.West:  targetPos = { x: pos.x - 2, y: pos.y }; break;
-                case Direction.East:  targetPos = { x: pos.x + 2, y: pos.y }; break;
-            }
-
-            // Remove any existing inertia tile
-            const existingTileId = this.inertiaTiles.get(entity.getId());
-            if (existingTileId) {
-                this.display.removeTile(existingTileId);
-            }
-
-            // Create indicator tile with opacity based on inertia magnitude
+                    case Direction.North: targetPos = { x: player.getPosition().x, y: player.getPosition().y - 1 }; break;
+                    case Direction.South: targetPos = { x: player.getPosition().x, y: player.getPosition().y + 1 }; break;
+                    case Direction.West:  targetPos = { x: player.getPosition().x - 1, y: player.getPosition().y }; break;
+                    case Direction.East:  targetPos = { x: player.getPosition().x + 1, y: player.getPosition().y }; break;
+                }
+    
+            // Create indicator tile
             const tileId = this.display.createTile(
                 targetPos.x,
                 targetPos.y,
-                inertia.magnitude.toString(),  // Show the magnitude as a number
-                '#FFFFFF',  // white text
-                '#FF0000',  // red background
-                999,        // zIndex (below buffered move indicators)
+                ' ',  // no character
+                '#FFFFFFFF',  // transparent foreground
+                '#ff073aAA',    // background color
+                1000,           // zIndex
                 {
-                    bgPercent: 0.25 * inertia.magnitude  // 25% opacity per magnitude level
+                    bgPercent: (inertia.magnitude / 8), 
+                    fillDirection: this.getOppositeDirection(inertia.direction)
                 }
             );
-
-            this.inertiaTiles.set(entity.getId(), tileId);
+    
+                // Store the tile ID for later removal
+            this.inertiaTiles.set(entity.getId(), tileId);    
         }
     }
     
