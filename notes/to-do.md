@@ -118,7 +118,19 @@ NEXT
   - implement smashing through glass??
   - think about generation subsystems
   - 
-
+MOVEMENT NEXT
+-------------
+ - build a prefab saver and loader
+ - build a penalty when you move into a wall -- visual, kill inertia, and stun
+ - design a world that tests different movement skills
+   - thin gap
+   - something moving open and closed periodically
+   - walls that require you to be moving in a certain direction
+   - speed bumpbs??
+   - something that requires high speed (count time??)
+   - intersection with complex obstacles
+  - maybe including timing tracker when you cross a line??
+  - fix the speed visualizer, it's busted
 
 WALL TODOS
 ----------

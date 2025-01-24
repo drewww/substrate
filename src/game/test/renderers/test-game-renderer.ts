@@ -148,11 +148,22 @@ export class TestGameRenderer extends GameRenderer {
                         }
                     });
 
-                    if(inertia.magnitude >= 6) {
+                    // we want this to happen during moments of traction
+                    // traction means magnitude about 3, below 5, and perpandicular movement
+                    const dx = to.x - from.x;
+                    const dy = to.y - from.y;
+
+                    const isInertiaPerpendicularToMovement = 
+                        (inertia.direction === Direction.North && Math.abs(dx) > 0) ||
+                        (inertia.direction === Direction.South && Math.abs(dx) > 0) ||
+                        (inertia.direction === Direction.East && Math.abs(dy) > 0) ||
+                        (inertia.direction === Direction.West && Math.abs(dy) > 0);
+                    
+                        // this is close, but not quite right. once a slide is initiated, we want to show tracks continuous
+                        // not just on the "non-slide" directional moves. but it'll do for now.
+                    if(inertia.magnitude >= 3 && inertia.magnitude < 8 && isInertiaPerpendicularToMovement) {
 
                         // Calculate direction angle based on movement
-                        const dx = to.x - from.x;
-                        const dy = to.y - from.y;
                         const angle = Math.atan2(dy, dx);
                         
                         const tracksTileId = this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
