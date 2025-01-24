@@ -217,6 +217,10 @@ export class Display {
                 if (values.bg) {
                     this.updateTileProperty(id, 'backgroundColor', values.bg);
                 }
+                
+                if(values.removeOnComplete) {
+                    this.removeTile(id);
+                }
             }
         );
 

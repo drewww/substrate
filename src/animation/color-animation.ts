@@ -5,6 +5,7 @@ export interface ColorAnimationProperty extends AnimationProperty {
     start: string;  // Hex color string
     end: string;    // Hex color string
     next?: ColorAnimationProperty;
+    removeOnComplete?: boolean;
 }
 
 export interface ColorAnimationConfig extends AnimationConfig {

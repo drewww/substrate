@@ -17,6 +17,9 @@ export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
     private inertiaTiles: Map<string, string> = new Map(); // entityId -> tileId
+    private trailTiles: Map<string, string> = new Map(); // entityId -> tileId
+
+
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -124,6 +127,31 @@ export class TestGameRenderer extends GameRenderer {
                     loop: false
                 }
             });
+
+
+            if(isPlayer) {
+                // check our inertia. if it's > 2, leave behind a fading "trail" tile in its previous location
+                const inertia = entity.getComponent('inertia') as InertiaComponent;
+                if(inertia.magnitude >= 2) {
+                    const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', '#005577AA', 999, {
+                        bgPercent: 1
+                    });
+
+                    this.display.addColorAnimation(trailTileId, {
+                        bg: {
+                            start: '#005577AA',
+                            end: '#00557700',
+                            duration: 8,
+                            easing: Easing.quadOut,
+                            loop: false,
+                            removeOnComplete: true
+                        }
+                    });
+                }
+
+
+            }
+
             return true;
         }
         return false;
