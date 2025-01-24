@@ -8,7 +8,7 @@ export class InertiaComponent extends Component {
     
     constructor(
         public direction: Direction,
-        public magnitude: number  // 0-1 value representing strength of inertia
+        public magnitude: number  // 0-8? value representing strength of inertia
     ) {
         super();
     }

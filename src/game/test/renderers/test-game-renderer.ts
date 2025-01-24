@@ -132,7 +132,7 @@ export class TestGameRenderer extends GameRenderer {
             if(isPlayer) {
                 // check our inertia. if it's > 2, leave behind a fading "trail" tile in its previous location
                 const inertia = entity.getComponent('inertia') as InertiaComponent;
-                if(inertia.magnitude >= 2) {
+                if(inertia && inertia.magnitude >= 2) {
                     const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', '#005577AA', 999, {
                         bgPercent: 1
                     });
@@ -147,7 +147,6 @@ export class TestGameRenderer extends GameRenderer {
                             removeOnComplete: true
                         }
                     });
-
 
                     if(inertia.magnitude >= 6) {
 

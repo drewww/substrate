@@ -65,11 +65,6 @@ export class Entity {
     const isUpdate = this.store.has(component.type);
     this.store.set(copy);
     this.changedComponents.add(component.type);
-    
-    if(component.type === 'moveCooldown') {
-        logger.warn(`setComponent ${component.type} ${JSON.stringify(component)}`);
-        console.trace();
-    }
 
     if (this.world) {
         if (isUpdate) {
