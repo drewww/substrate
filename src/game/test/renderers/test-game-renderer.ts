@@ -215,13 +215,11 @@ export class TestGameRenderer extends GameRenderer {
         if (componentType === 'cooldown') {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
-
             
             if (cooldowns && tileId) {
                 // Handle move cooldown
             
                 const moveState = cooldowns.getCooldown('move');
-                logger.info(`moveState: ${JSON.stringify(moveState)}`);
                 if (moveState) {
                     const percent = 1 - (moveState.current / moveState.base);
                     const color = entity.hasComponent('player') ? '#005577' : '#FF0000';

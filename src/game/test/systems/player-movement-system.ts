@@ -82,9 +82,7 @@ export class PlayerMovementSystem {
                 if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
                     player.removeComponent('inertia');
                     if (inertia) {
-                        const stunDuration = 600 * inertia.magnitude;
-                        const cooldowns = player.getComponent('cooldown') as CooldownComponent;
-                        cooldowns.setCooldown('stun', stunDuration);
+                        this.stunPlayer(player, inertia.magnitude);
                     }
                     return;
                 }
@@ -169,7 +167,7 @@ export class PlayerMovementSystem {
                         player.removeComponent('inertia');
 
                         logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y} but it is not passable`);
-                        // TODO add a stun condition or something
+                        
                     }
 
                     actions.push({
@@ -214,6 +212,7 @@ export class PlayerMovementSystem {
                 if(inertia) {
                 // consider non-linear. I want a speed 8 crash to HURT.
                     player.setComponent(new InertiaComponent(inertia.direction, 0));
+                    this.stunPlayer(player, inertia.magnitude);
                 }
             }
 
@@ -222,6 +221,18 @@ export class PlayerMovementSystem {
 
         // Remove the buffered move component
         player.removeComponent('bufferedMove');
+    }
+
+    stunPlayer(player: Entity, magnitude: number) {
+
+        if(magnitude == 0) {
+            return;
+        }
+
+        const stunDuration = 600 * magnitude;
+        const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+        cooldowns.setCooldown('stun', stunDuration);
+        logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
     }
 
     private isOppositeDirection(dir1: Direction, dir2: Direction): boolean {
