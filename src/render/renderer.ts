@@ -193,7 +193,8 @@ export abstract class Renderer {
                     char: symbol.char,
                     fg: symbol.foreground,
                     bg: symbol.background,
-                    zIndex: symbol.zIndex
+                    zIndex: symbol.zIndex,
+                    alwaysRenderIfExplored: symbol.alwaysRenderIfExplored
                 });
             }
         } 

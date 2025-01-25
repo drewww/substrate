@@ -179,6 +179,7 @@ export interface TileUpdateConfig {
     fillDirection?: FillDirection;
     noClip?: boolean;
     blendMode?: BlendMode;
+    alwaysRenderIfExplored?: boolean;
 }
 
 export interface PerformanceMetrics {
