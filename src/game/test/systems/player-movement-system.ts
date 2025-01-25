@@ -153,7 +153,7 @@ export class PlayerMovementSystem {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
                     const newMagnitude = inertia.magnitude - 2;
-                    if (newMagnitude === 0) {
+                    if (newMagnitude <= 0) {
                         player.removeComponent('inertia');
                     } else {
                         player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
