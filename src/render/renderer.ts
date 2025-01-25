@@ -172,19 +172,6 @@ export abstract class Renderer {
      * Handle component addition/removal
      */
     protected onEntityModified(entity: Entity, componentType: string): void {
-        logger.info(`Renderer received entityModified event for ${entity.getId()} with component ${componentType}`);
-        if (componentType === 'symbol') {
-            const tileId = this.entityTiles.get(entity.getId());
-            const symbol = entity.getComponent('symbol') as SymbolComponent;
-            if (tileId && symbol) {
-                this.display.updateTile(tileId, {
-                    char: symbol.char,
-                    fg: symbol.foreground,
-                    bg: symbol.background,
-                    zIndex: symbol.zIndex
-                });
-            }
-        } 
         this.handleEntityModified(entity, componentType);
 
         if (componentType === 'wall') {
@@ -197,6 +184,19 @@ export abstract class Renderer {
      */
     protected onComponentModified(entity: Entity, componentType: string): void {
         this.handleComponentModified(entity, componentType);
+
+        if (componentType === 'symbol') {
+            const tileId = this.entityTiles.get(entity.getId());
+            const symbol = entity.getComponent('symbol') as SymbolComponent;
+            if (tileId && symbol) {
+                this.display.updateTile(tileId, {
+                    char: symbol.char,
+                    fg: symbol.foreground,
+                    bg: symbol.background,
+                    zIndex: symbol.zIndex
+                });
+            }
+        } 
 
         if (componentType === 'wall') {
             this.updateEntityWalls(entity);

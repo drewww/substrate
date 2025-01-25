@@ -31,7 +31,6 @@ export const PlayerMoveAction: ActionClass<PlayerMoveActionData> = {
     },
 
     execute(world: World, action: BaseAction<PlayerMoveActionData>): boolean {
-        logger.info(`executing player movement action`);
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 

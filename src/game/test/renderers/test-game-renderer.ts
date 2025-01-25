@@ -243,6 +243,16 @@ export class TestGameRenderer extends GameRenderer {
                         fillDirection: FillDirection.TOP
                     });
                 }
+
+                const toggleState = cooldowns.getCooldown('toggle');
+                if (toggleState) {
+                    const percent = 1 - (toggleState.current / toggleState.base);
+
+                    this.display.updateTile(tileId, {
+                        bgPercent: percent,
+                        fillDirection: FillDirection.BOTTOM
+                    });                
+                }
             }
         }
 

@@ -12,15 +12,20 @@ export class CooldownComponent extends Component {
     readonly type = 'cooldown';
     private cooldowns: Map<string, CooldownState> = new Map();
 
-    constructor() {
+    constructor(initialCooldowns?: Record<string, CooldownState>) {
         super();
+        if (initialCooldowns) {
+            Object.entries(initialCooldowns).forEach(([type, state]) => {
+                this.cooldowns.set(type, state);
+            });
+        }
     }
 
-    setCooldown(type: string, baseTime: number, initialCooldown?: number): void {
+    setCooldown(type: string, baseTime: number, initialCooldown?: number, ready?: boolean): void {
         this.cooldowns.set(type, {
             current: initialCooldown ?? baseTime,
             base: baseTime,
-            ready: false
+            ready: ready ?? false
         });
     }
 
@@ -33,6 +38,13 @@ export class CooldownComponent extends Component {
         if (cooldown) {
             cooldown.current = cooldown.base;
             cooldown.ready = false;
+        }
+    }
+
+    setCooldownReady(type: string, ready: boolean): void {
+        const cooldown = this.cooldowns.get(type);
+        if (cooldown) {
+            cooldown.ready = ready;
         }
     }
 

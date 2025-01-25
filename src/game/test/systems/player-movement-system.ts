@@ -27,6 +27,9 @@ export class PlayerMovementSystem {
             const stunState = cooldowns.getCooldown('stun');
             if (stunState && !stunState.ready) {
                 return;
+            } else if (stunState && stunState.ready) {
+                // cooldowns.setCooldown('stun', stunState.base, stunState.current, false);
+                cooldowns.removeCooldown('stun');
             }
 
             // Check move cooldown
@@ -46,6 +49,8 @@ export class PlayerMovementSystem {
                     cooldowns.setCooldown('move', PLAYER_MOVE_COOLDOWN);
                 }
             }
+
+            player.setComponent(cooldowns);
         }
     }
 
