@@ -120,18 +120,28 @@ NEXT
   - 
 MOVEMENT NEXT
 -------------
- - build a prefab saver and loader
+ DONE build a prefab saver and loader
+  - implement walls
+  - test enemy creation
+
  DONE build a penalty when you move into a wall -- visual, kill inertia, and stun
-- add the sliding component to simplify the display logic on when to put the tracks behind
+ DONE add the sliding component to simplify the display logic on when to put the tracks behind
  - design a world that tests different movement skills
-   - thin gap
+   - DONE thin gap
    - something moving open and closed periodically
+    - entities that bounce back and forth (use cooldown)
+    - bollards that appear/disappear (use cooldown)
+   - attacks
    - walls that require you to be moving in a certain direction
    - speed bumpbs??
    - something that requires high speed (count time??)
    - intersection with complex obstacles
   - maybe including timing tracker when you cross a line??
-  - fix the speed visualizer, it's busted
+    - start timer when you enter a zone, stop it when you leave. (visually, where would we put the timer? it's a UI overlay, I guess we use the display's string rendering?)
+    - use that to create challenge areas.
+  - create a teleporter that moves you back to the start quickly
+
+  DONE fix the speed visualizer, it's busted
 
 WALL TODOS
 ----------
