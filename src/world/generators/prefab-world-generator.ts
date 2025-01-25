@@ -64,7 +64,8 @@ export class PrefabWorldGenerator implements WorldGenerator {
                                 def.char,
                                 def.foreground,
                                 def.background,
-                                def.zIndex
+                                def.zIndex,
+                                def.alwaysRenderIfExplored
                             );
                         case 'opacity':
                             return new OpacityComponent(def.isOpaque);

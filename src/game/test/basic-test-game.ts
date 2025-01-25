@@ -274,7 +274,8 @@ export class BasicTestGame extends Game {
                 discovered: this.world.isLocationDiscovered(pos),
                 maskValue: this.display.getVisibilityMask()[pos.y][pos.x],
                 hasBody: fovMap.getBody(pos.x, pos.y),
-                hasWalls: fovMap.getWalls(pos.x, pos.y)
+                hasWalls: fovMap.getWalls(pos.x, pos.y),
+                tiles: this.display.getTilesAt(pos.x, pos.y)
             });
         });
     }
