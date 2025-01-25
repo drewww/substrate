@@ -23,6 +23,8 @@ import { Direction } from '../../types';
 import { BufferedMoveComponent } from './components/buffered-move.component';
 import { VisionComponent } from '../../entity/components/vision-component';
 import { PrefabWorldGenerator } from '../../world/generators/prefab-world-generator';
+import { CooldownSystem } from './systems/cooldown.system';
+import { CooldownComponent } from './components/cooldown.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -166,8 +168,8 @@ const LEVEL_DATA = `#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,
 export class BasicTestGame extends Game {
     private enemyMovementSystem: EnemyMovementSystem;
     private actionHandler: ActionHandler;
-    private lastBufferedDirection: string | null = null;
-    playerMovementSystem: PlayerMovementSystem;
+    private cooldownSystem: CooldownSystem;
+    private playerMovementSystem: PlayerMovementSystem;
     
     constructor(canvasId: string) {
         super({
@@ -199,10 +201,15 @@ export class BasicTestGame extends Game {
         this.input.setMode('game');
         
         // Initialize our systems
+        this.cooldownSystem = new CooldownSystem(this.world);
         this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
         this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
         
-        // Add system to engine update loop
+        // Add systems to engine update loop - cooldown system must run first
+        this.engine.addSystem(deltaTime => {
+            this.cooldownSystem.update(deltaTime);
+        });
+
         this.engine.addSystem(deltaTime => {
             this.enemyMovementSystem.update(deltaTime);
         });
@@ -212,7 +219,9 @@ export class BasicTestGame extends Game {
         });
 
         // Add cooldown component to player
-        this.player.setComponent(new MoveCooldownComponent(1000, 3000)); // 1000ms cooldown
+        const cooldowns = new CooldownComponent();
+        cooldowns.setCooldown('move', 1000); // 1000ms move cooldown
+        this.player.setComponent(cooldowns);
 
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {

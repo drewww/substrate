@@ -3,18 +3,18 @@ import { RegisterComponent } from '../../../entity/component-registry';
 
 @RegisterComponent('moveCooldown')
 export class MoveCooldownComponent extends Component {
-    type: 'moveCooldown' = 'moveCooldown';
-    
-    constructor(
-        public cooldown: number = 4000,    // Current cooldown in milliseconds
-        public baseTime: number = 4000      // Reset to this value after moving
-    ) {
+    readonly type = 'moveCooldown';
+    cooldown: number;
+    baseTime: number;
+    ready: boolean = false;
+
+    constructor(baseTime: number, initialCooldown?: number) {
         super();
-        this.cooldown = cooldown;
         this.baseTime = baseTime;
+        this.cooldown = initialCooldown ?? baseTime;
     }
 
     static fromJSON(data: any): MoveCooldownComponent {
-        return new MoveCooldownComponent(data.cooldown, data.baseTime);
+        return new MoveCooldownComponent(data.baseTime, data.cooldown);
     }
 } 

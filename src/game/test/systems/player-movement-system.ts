@@ -1,12 +1,11 @@
 import { World } from '../../../world/world';
 import { Point, Direction } from '../../../types';
 import { ActionHandler } from '../../../action/action-handler';
-import { MoveCooldownComponent } from '../components/move-cooldown.component';
+import { CooldownComponent } from '../components/cooldown.component';
 import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
-import { StunComponent } from '../components/stun.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -18,53 +17,34 @@ export class PlayerMovementSystem {
 
     update(deltaTime: number): void {
         const players = this.world.getEntities()
-            .filter(e => e.hasComponent('moveCooldown') && e.hasComponent('player'));
+            .filter(e => e.hasComponent('cooldown') && e.hasComponent('player'));
 
         for (const player of players) {
-            const cooldown = player.getComponent('moveCooldown') as MoveCooldownComponent;
-            const stun = player.getComponent('stun') as StunComponent;
+            const cooldowns = player.getComponent('cooldown') as CooldownComponent;
             const inertia = player.getComponent('inertia') as InertiaComponent;
 
-            logger.info(`inertia: ${inertia?.magnitude} ${inertia?.direction}`);
-
-
-            if (stun && stun.cooldown > 0) {
-                stun.cooldown -= deltaTime * 1000;
-
-                if(stun.cooldown <= 0) {
-                    player.removeComponent('stun');
-                } else {
-                    player.setComponent(stun);
-                }
-
+            // Check stun first
+            const stunState = cooldowns.getCooldown('stun');
+            if (stunState && !stunState.ready) {
                 return;
             }
 
-            if (cooldown) {
-                cooldown.cooldown -= deltaTime * 1000;
+            // Check move cooldown
+            const moveState = cooldowns.getCooldown('move');
+            if (moveState?.ready) {
+                this.movePlayer(player);
 
-                if (cooldown.cooldown <= 0) {
-                    this.movePlayer(player);
-
-                    const inertia = player.getComponent('inertia') as InertiaComponent;
-                    if (inertia) {
-
-                        if (inertia.magnitude >= 8) {
-                            cooldown.baseTime = 300;
-                            cooldown.cooldown = 300;
-                        } else {
-                            const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude > 1 ? 500 : 0);
-                            cooldown.baseTime = newBaseTime;
-                            cooldown.cooldown = newBaseTime;
-                        }
-
+                // Reset move cooldown based on inertia
+                if (inertia) {
+                    if (inertia.magnitude >= 8) {
+                        cooldowns.setCooldown('move', 300);
                     } else {
-                        cooldown.baseTime = PLAYER_MOVE_COOLDOWN;
-                        cooldown.cooldown = PLAYER_MOVE_COOLDOWN;
+                        const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude > 1 ? 500 : 0);
+                        cooldowns.setCooldown('move', newBaseTime);
                     }
+                } else {
+                    cooldowns.setCooldown('move', PLAYER_MOVE_COOLDOWN);
                 }
-
-                player.setComponent(cooldown);
             }
         }
     }
@@ -100,9 +80,12 @@ export class PlayerMovementSystem {
 
                 // Check if we can move there
                 if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
-                    // Add stun if we hit a wall at high speed
-                    player.setComponent(new StunComponent(inertia.magnitude * 600, inertia.magnitude * 600)); // 2 second stun
                     player.removeComponent('inertia');
+                    if (inertia) {
+                        const stunDuration = 600 * inertia.magnitude;
+                        const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+                        cooldowns.setCooldown('stun', stunDuration);
+                    }
                     return;
                 }
 
@@ -129,8 +112,6 @@ export class PlayerMovementSystem {
             x: pos.x + dir.x,
             y: pos.y + dir.y
         };
-
-
 
         const actions = [
             {
@@ -232,7 +213,7 @@ export class PlayerMovementSystem {
 
                 if(inertia) {
                 // consider non-linear. I want a speed 8 crash to HURT.
-                    player.setComponent(new StunComponent(600*inertia.magnitude, 600*inertia.magnitude));
+                    player.setComponent(new InertiaComponent(inertia.direction, 0));
                 }
             }
 

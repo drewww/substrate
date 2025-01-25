@@ -1,7 +1,7 @@
 import { World } from '../../../world/world';
 import { Point } from '../../../types';
 import { ActionHandler } from '../../../action/action-handler';
-import { MoveCooldownComponent } from '../components/move-cooldown.component';
+import { CooldownComponent } from '../components/cooldown.component';
 import { Entity } from '../../../entity/entity';
 
 export class EnemyMovementSystem {
@@ -12,20 +12,17 @@ export class EnemyMovementSystem {
 
     update(deltaTime: number): void {
         const enemies = this.world.getEntities()
-            .filter(e => e.hasComponent('moveCooldown') && !e.hasComponent('player'));
+            .filter(e => e.hasComponent('cooldown') && !e.hasComponent('player'));
 
         for (const enemy of enemies) {
-            const cooldown = enemy.getComponent('moveCooldown') as MoveCooldownComponent;
-            cooldown.cooldown -= deltaTime * 1000;
+            const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
             
-            // logger.info(`Enemy ${enemy.getId()} cooldown: ${cooldown.cooldown} and baseTime: ${cooldown.baseTime}`);
-            
-            if (cooldown.cooldown <= 0) {
+            // Check move cooldown
+            const moveState = cooldowns.getCooldown('move');
+            if (moveState?.ready) {
                 this.moveEnemy(enemy);
-                cooldown.cooldown = cooldown.baseTime;
+                cooldowns.setCooldown('move', moveState.base);
             }
-
-            enemy.setComponent(cooldown);
         }
     }
 
