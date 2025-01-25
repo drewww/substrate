@@ -63,4 +63,12 @@ export class CooldownComponent extends Component {
         });
         return component;
     }
+
+    public clone(): CooldownComponent {
+        const cooldownsCopy = new Map<string, CooldownState>();
+        for (const [key, state] of this.cooldowns.entries()) {
+            cooldownsCopy.set(key, { ...state });
+        }
+        return new CooldownComponent(Object.fromEntries(cooldownsCopy));
+    }
 } 

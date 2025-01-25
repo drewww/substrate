@@ -141,6 +141,15 @@ MOVEMENT NEXT
     - use that to create challenge areas.
   - create a teleporter that moves you back to the start quickly
 
+
+  - another low speed interia visualizer fix
+  - consider keyboard input; show the current key again
+  - cooldown is fucking boned -- we need to switch to something simpler. i'm not sure what.
+    - the ready mechanic is interesting but the data structure and all the methods feel messy
+  - implement clone() on the other components??
+  - get the level file into an actual file, not inline
+  
+
   DONE fix the speed visualizer, it's busted
 
 WALL TODOS

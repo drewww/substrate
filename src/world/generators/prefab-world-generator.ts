@@ -32,9 +32,9 @@ export class PrefabWorldGenerator implements WorldGenerator {
                 for(const symbol of level[y][x]) {
                     const definition = symbols.get(symbol);
                     if (definition) {
-                    const entity = new Entity({ x, y });
-                    for (const component of definition.components) {
-                            entity.setComponent(component);
+                        const entity = new Entity({ x, y });
+                        for (const component of definition.components) {
+                            entity.setComponent(component.clone());
                         }
                         world.addEntity(entity);
                     }

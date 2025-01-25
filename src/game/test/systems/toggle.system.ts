@@ -17,36 +17,34 @@ export class ToggleSystem {
             const toggleState = cooldowns.getCooldown('toggle');
 
             if (toggleState) {
-                logger.info(`Toggle state: ${JSON.stringify(toggleState)}`);
+                // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
+                if (toggleState.ready) {
+                    // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
 
-                if (toggleState?.ready) {
-
-                    // Reset the cooldown first
+                    // Reset the cooldown
                     cooldowns.setCooldown('toggle', toggleState.base, toggleState.base, false);
-                    entity.setComponent(cooldowns);
-
-                    // cooldowns.setCooldown('toggle', toggleState.base);
 
                     const symbol = entity.getComponent('symbol') as SymbolComponent;
-                    const isRaised = symbol.foreground === '#FFFFFFff'
-
-                    logger.info(`Is raised: ${isRaised}`);
+                    const isRaised = entity.hasComponent('impassable')
 
                     if (isRaised) {
                         // Lower the tile
+                        logger.info(`Lowering tile ${entity.getId()}`);
                         symbol.background = '#222222ff';
                         symbol.foreground = '#FFFFFF11';
                         entity.removeComponent('opacity');
                         entity.removeComponent('impassable');
                     } else {
                         // Raise the tile
+                        logger.info(`Raising tile ${entity.getId()}`);
                         symbol.background = '#222222ff';
                         symbol.foreground = '#FFFFFFff';
                         entity.setComponent(new OpacityComponent(true));
                         entity.setComponent(new ImpassableComponent());
                     }
 
-                    // Update the symbol component to trigger a re-render
+                    // Set the cooldown component after all other changes
+                    entity.setComponent(cooldowns);
                     entity.setComponent(symbol);
                 }
             }
