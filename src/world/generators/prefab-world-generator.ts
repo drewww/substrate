@@ -27,7 +27,7 @@ export class PrefabWorldGenerator implements WorldGenerator {
         
         for (let y = 0; y < level.length; y++) {
             for (let x = 0; x < level[0].length; x++) {
-                logger.info(`level[y][x]: ${level[y][x]}`);
+                logger.info(`level[y][x]: ${level[y][x]} x: ${x} y: ${y}`);
                 for(const symbol of level[y][x]) {
                     const definition = symbols.get(symbol);
                     if (definition) {
