@@ -13,6 +13,7 @@ import { Direction } from '../../../types';
 import { InertiaComponent } from '../components/inertia.component';
 import { StunComponent } from '../components/stun.component';
 import { VisionComponent } from '../../../entity/components/vision-component';
+import { CooldownComponent } from '../components/cooldown.component';
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -211,22 +212,39 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentModified(entity: Entity, componentType: string): void {
-        // Handle movement cooldown
-        // logger.info(`Component modified: ${entity.getId()} - ${componentType}`);
-        if (componentType === 'moveCooldown') {
-            const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
+        if (componentType === 'cooldown') {
+            const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
+
             
-            if (cooldown && tileId) {
-                const percent = 1 - (cooldown.cooldown / cooldown.baseTime);
+            if (cooldowns && tileId) {
+                // Handle move cooldown
+            
+                const moveState = cooldowns.getCooldown('move');
+                logger.info(`moveState: ${JSON.stringify(moveState)}`);
+                if (moveState) {
+                    const percent = 1 - (moveState.current / moveState.base);
+                    const color = entity.hasComponent('player') ? '#005577' : '#FF0000';
 
-                const color = entity.hasComponent('player') ? '#005577' : '#FF0000';
+                    this.display.updateTile(tileId, {
+                        bg: color,
+                        bgPercent: percent,
+                        fillDirection: FillDirection.BOTTOM
+                    });
+                }
 
-                this.display.updateTile(tileId, {
-                    bg: color,
-                    bgPercent: percent,
-                    fillDirection: FillDirection.BOTTOM
-                });
+                // Handle stun cooldown (takes precedence over move cooldown)
+                const stunState = cooldowns.getCooldown('stun');
+                if (stunState && stunState.current > 0) {
+                    const percent = 1 - (stunState.current / stunState.base);
+                    const color = entity.hasComponent('player') ? '#770505' : '#FF0000';
+
+                    this.display.updateTile(tileId, {
+                        bg: color,
+                        bgPercent: percent,
+                        fillDirection: FillDirection.TOP
+                    });
+                }
             }
         }
 

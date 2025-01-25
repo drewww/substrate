@@ -15,11 +15,11 @@ export class CooldownSystem {
             for (const [type, state] of cooldownComponent.getAllCooldowns()) {
                 if (state.current > 0) {
                     state.current -= deltaTime * 1000;
+                    modified = true;
 
                     if (state.current <= 0) {
                         state.current = 0;
                         state.ready = true;
-                        modified = true;
                     }
                 }
             }

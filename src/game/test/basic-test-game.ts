@@ -220,7 +220,7 @@ export class BasicTestGame extends Game {
 
         // Add cooldown component to player
         const cooldowns = new CooldownComponent();
-        cooldowns.setCooldown('move', 1000); // 1000ms move cooldown
+        cooldowns.setCooldown('move', 1000, 1000); // 1000ms move cooldown
         this.player.setComponent(cooldowns);
 
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
