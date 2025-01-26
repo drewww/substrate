@@ -68,7 +68,7 @@ export class PrefabWorldGenerator implements WorldGenerator {
                                 def.alwaysRenderIfExplored
                             );
                         case 'opacity':
-                            return new OpacityComponent(def.isOpaque);
+                            return new OpacityComponent();
                         case 'player':
                             return new PlayerComponent();
                         case 'impassable':

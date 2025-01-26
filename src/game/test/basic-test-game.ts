@@ -340,7 +340,7 @@ export class BasicTestGame extends Game {
     private createWall(pos: Point): void {
         const wall = new Entity(pos);
         wall.setComponent(new ImpassableComponent());
-        wall.setComponent(new OpacityComponent(true));
+        wall.setComponent(new OpacityComponent());
         wall.setComponent(new SymbolComponent(
             '#',
             '#888888ff', // Darker gray for border walls

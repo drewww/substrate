@@ -5,11 +5,11 @@ import { RegisterComponent } from '../component-registry';
 export class OpacityComponent extends Component {
     readonly type = 'opacity';
     
-    constructor(public readonly isOpaque: boolean = true) {
+    constructor() {
         super();
     }
 
     static fromJSON(data: any): OpacityComponent {
-        return new OpacityComponent(data.isOpaque);
+        return new OpacityComponent();
     }
 } 

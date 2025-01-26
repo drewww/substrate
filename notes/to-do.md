@@ -148,7 +148,9 @@ MOVEMENT NEXT
     - the ready mechanic is interesting but the data structure and all the methods feel messy
   - implement clone() on the other components??
   - get the level file into an actual file, not inline
-  
+  - MAKE ENTITIES THAT MOVE IN ONE DIRECTION
+  - make entities that move but turn if they're going to hit a wall (looking two spaces ahead, so it looks more natural)
+  - tune movement feel. stuff is still not quite right there.
 
   DONE fix the speed visualizer, it's busted
 

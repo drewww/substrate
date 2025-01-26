@@ -5,6 +5,7 @@ import { Component } from '../entity/component';
 import { logger } from '../util/logger';
 import { FieldOfViewMap, computeFieldOfView, CardinalDirection } from 'wally-fov';
 import { WallComponent, WallConfig, WallData, WallDirection, WallProperty } from '../entity/components/wall-component';
+import { OpacityComponent } from '../entity/components/opacity-component';
 
 interface SerializedWorld {
     width: number;
@@ -98,7 +99,7 @@ export class World {
         entitiesAtPosition.add(entityId);
 
         // Update FOV map
-        this.updateFOVForEntity(entity, position, true);
+        this.updateFOVForEntity(entity, position);
 
         this.emit('entityAdded', { entity });
     }
@@ -171,7 +172,7 @@ export class World {
         const position = entity.getPosition();
         
         // Update FOV map before removing
-        this.updateFOVForEntity(entity, position, false);
+        this.updateFOVForEntity(entity, position);
 
         const key = this.pointToKey(position);
         const entitiesAtPosition = this.spatialMap.get(key);
@@ -668,33 +669,23 @@ export class World {
     }
 
     // Update FOV for entity changes
-    private updateFOVForEntity(entity: Entity, position: Point, isAdding: boolean): void {
+    private updateFOVForEntity(entity: Entity, position: Point): void {
+        this.fovMap.removeBody(position.x, position.y);
         if (entity.hasComponent('opacity')) {
-            if (isAdding) {
                 this.fovMap.addBody(position.x, position.y);
-            } else {
-                this.fovMap.removeBody(position.x, position.y);
-            }
         }
 
         if (entity.hasComponent('wall')) {
             const wall = entity.getComponent('wall') as WallComponent;
             
             // Only check north and west walls since those are the only ones we store
+            this.fovMap.removeWall(position.x, position.y, CardinalDirection.NORTH);
             if (wall.north.properties[WallProperty.OPAQUE]) {
-                if (isAdding) {
-                    this.fovMap.addWall(position.x, position.y, CardinalDirection.NORTH);
-                } else {
-                    this.fovMap.removeWall(position.x, position.y, CardinalDirection.NORTH);
-                }
+                this.fovMap.addWall(position.x, position.y, CardinalDirection.NORTH);
             }
-            
+            this.fovMap.removeWall(position.x, position.y, CardinalDirection.WEST);
             if (wall.west.properties[WallProperty.OPAQUE]) {
-                if (isAdding) {
-                    this.fovMap.addWall(position.x, position.y, CardinalDirection.WEST);
-                } else {
-                    this.fovMap.removeWall(position.x, position.y, CardinalDirection.WEST);
-                }
+                this.fovMap.addWall(position.x, position.y, CardinalDirection.WEST);
             }
         }
     }
@@ -712,6 +703,12 @@ export class World {
             entity,
             componentType
         });
+        
+        if(componentType === 'opacity') {
+            this.updateFOVForEntity(entity, entity.getPosition());
+        } else if (componentType === 'wall') {
+            this.updateFOVForEntity(entity, entity.getPosition());
+        }
     }
 
     /**
@@ -723,6 +720,12 @@ export class World {
             componentType,
             component
         });
+
+        if(componentType === 'opacity') {
+            this.updateFOVForEntity(entity, entity.getPosition());
+        } else if (componentType === 'wall') {
+            this.updateFOVForEntity(entity, entity.getPosition());
+        }
     }
 
     /**
@@ -733,6 +736,10 @@ export class World {
             entity,
             componentType
         });
+
+       if (componentType === 'wall') {
+            this.updateFOVForEntity(entity, entity.getPosition());
+        }
     }
 
     public getFOVMap(): FieldOfViewMap {
