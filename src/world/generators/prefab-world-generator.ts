@@ -9,6 +9,7 @@ import { ImpassableComponent } from "../../entity/components/impassable-componen
 import { VisionComponent } from "../../entity/components/vision-component";
 import { logger } from "../../util/logger";
 import { CooldownComponent } from "../../game/test/components/cooldown.component";
+import { FacingComponent } from "../../entity/components/facing-component";
 
 interface SymbolDefinition {
     components: Component[];
@@ -90,6 +91,8 @@ export class PrefabWorldGenerator implements WorldGenerator {
                             return new VisionComponent(def.radius);
                         case 'cooldown':
                             return new CooldownComponent(def.cooldowns);
+                        case 'facing':
+                            return new FacingComponent(def.direction);
                         default:
                             console.error(`Unknown component type: ${def.type}`);
                             return null;

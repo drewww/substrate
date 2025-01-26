@@ -1,8 +1,10 @@
 import { World } from '../../../world/world';
-import { Point } from '../../../types';
+import { Point, Direction } from '../../../types';
 import { ActionHandler } from '../../../action/action-handler';
 import { CooldownComponent } from '../components/cooldown.component';
+import { FacingComponent } from '../../../entity/components/facing-component';
 import { Entity } from '../../../entity/entity';
+import { logger } from '../../../util/logger';
 
 export class EnemyMovementSystem {
     constructor(
@@ -12,39 +14,43 @@ export class EnemyMovementSystem {
 
     update(deltaTime: number): void {
         const enemies = this.world.getEntities()
-            .filter(e => e.hasComponent('cooldown') && !e.hasComponent('player'));
+            .filter(e => e.hasComponent('cooldown') && e.hasComponent('facing') && !e.hasComponent('player'));
 
         for (const enemy of enemies) {
             const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
+            const facing = enemy.getComponent('facing') as FacingComponent;
             
             // Check move cooldown
             const moveState = cooldowns.getCooldown('move');
             if (moveState?.ready) {
-                this.moveEnemy(enemy);
+                logger.info(`Enemy ${enemy.getId()} has move cooldown ready`);
+                this.moveEnemy(enemy, facing.direction);
                 cooldowns.setCooldown('move', moveState.base);
             }
         }
     }
 
-    private moveEnemy(enemy: Entity): void {
+    private moveEnemy(enemy: Entity, direction: Direction): void {
         const pos = enemy.getPosition();
-        const directions = [
-            { x: 0, y: -1 }, // up
-            { x: 0, y: 1 },  // down
-            { x: -1, y: 0 }, // left
-            { x: 1, y: 0 }   // right
-        ];
-        
-        // Pick a random direction
-        const dir = directions[Math.floor(Math.random() * directions.length)];
-        const newPos: Point = {
-            x: pos.x + dir.x,
-            y: pos.y + dir.y
-        };
+        const newPos: Point = { ...pos };
 
-        // Use action handler with proper data structure
+        switch (direction) {
+            case Direction.North:
+                newPos.y--;
+                break;
+            case Direction.South:
+                newPos.y++;
+                break;
+            case Direction.West:
+                newPos.x--;
+                break;
+            case Direction.East:
+                newPos.x++;
+                break;
+        }
+
         this.actionHandler.execute({
-            type: 'move',
+            type: 'playerMove',
             entityId: enemy.getId(),
             data: { to: newPos }
         });
