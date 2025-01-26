@@ -5,6 +5,8 @@ import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../../util/logger';
 import { VisionComponent } from '../../../entity/components/vision-component';
+import { FacingComponent } from '../../../entity/components/facing-component';
+import { TurnComponent } from '../../../entity/components/turn-component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -36,18 +38,26 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
         const result = world.moveEntity(action.entityId, action.data.to);
         
-        // Reset cooldown counter but preserve baseTime
-        const cooldown = entity.getComponent('moveCooldown') as MoveCooldownComponent;
-        if (cooldown) {
-            // Just reset the cooldown counter, don't create a new component
-            cooldown.cooldown = cooldown.baseTime;
-            entity.setComponent(cooldown);  // Reuse existing component to preserve baseTime
-        }
+        if (result) {
+            // Handle turning if entity has a facing component
+            if (entity.hasComponent('facing')) {
+                const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
+                const turnEntity = entitiesAtNewPos.find(e => e.hasComponent('turn'));
+                
+                if (turnEntity) {
+                    const turnComponent = turnEntity.getComponent('turn') as TurnComponent;
+                    const facingComponent = entity.getComponent('facing') as FacingComponent;
+                    facingComponent.direction = turnComponent.direction;
+                    entity.setComponent(facingComponent);
+                }
+            }
 
-        if (result && entity.hasComponent('player')) {
-            const visionComponent = entity.getComponent('vision') as VisionComponent;
-            const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
-            world.updateVision(action.data.to, radius);
+            // Handle vision updates for player
+            if (entity.hasComponent('player')) {
+                const visionComponent = entity.getComponent('vision') as VisionComponent;
+                const radius = visionComponent?.radius ?? 30;
+                world.updateVision(action.data.to, radius);
+            }
         }
         
         return result;

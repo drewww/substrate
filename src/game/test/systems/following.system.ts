@@ -55,7 +55,7 @@ export class FollowingSystem {
 
         for (const adjPos of adjacentPositions) {
             const entities = this.world.getEntitiesAt(adjPos)
-                .filter(e => e.hasComponent('followable'));
+                .filter(e => e.hasComponent('followable') && !e.hasComponent('player'));
 
             if (entities.length > 0) {
                 const followedEntity = entities[0];

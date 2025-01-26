@@ -12,6 +12,7 @@ import { CooldownComponent } from "../../game/test/components/cooldown.component
 import { FacingComponent } from "../../entity/components/facing-component";
 import { FollowableComponent } from "../../entity/components/followable-component";
 import { FollowerComponent } from "../../entity/components/follower-component";
+import { TurnComponent } from "../../entity/components/turn-component";
 
 interface SymbolDefinition {
     components: Component[];
@@ -100,6 +101,8 @@ export class PrefabWorldGenerator implements WorldGenerator {
                             return new FollowableComponent();
                         case 'follower':
                             return new FollowerComponent();
+                        case 'turn':
+                            return new TurnComponent(def.direction);
                         default:
                             console.error(`Unknown component type: ${def.type}`);
                             return null;
