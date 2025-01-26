@@ -50,7 +50,7 @@ export class EnemyMovementSystem {
         }
 
         this.actionHandler.execute({
-            type: 'playerMove',
+            type: 'entityMove',
             entityId: enemy.getId(),
             data: { to: newPos }
         });

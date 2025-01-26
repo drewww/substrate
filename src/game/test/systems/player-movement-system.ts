@@ -93,7 +93,7 @@ export class PlayerMovementSystem {
                 }
 
                 this.actionHandler.execute({
-                    type: 'playerMove',
+                    type: 'entityMove',
                     entityId: player.getId(),
                     data: { to: newPos }
                 });
@@ -118,7 +118,7 @@ export class PlayerMovementSystem {
 
         const actions = [
             {
-                type: 'playerMove',
+                type: 'entityMove',
                 entityId: player.getId(),
                 data: { to: newPos }
             }
@@ -149,7 +149,7 @@ export class PlayerMovementSystem {
                     if(inertia.magnitude > 2) {
                         // add a slide if there's enough inertia, but it's much faster to stop than just not moving.
                         actions.push({
-                            type: 'playerMove',
+                            type: 'entityMove',
                             entityId: player.getId(),
                             data: { to: {x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y} }
                         });
@@ -176,7 +176,7 @@ export class PlayerMovementSystem {
                     }
 
                     actions.push({
-                        type: 'playerMove',
+                        type: 'entityMove',
                         entityId: player.getId(),
                         data: { to: slidePos }
                     });

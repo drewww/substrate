@@ -6,12 +6,12 @@ import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../../util/logger';
 import { VisionComponent } from '../../../entity/components/vision-component';
 
-interface PlayerMoveActionData {
+interface EntityMoveActionData {
     to: Point;
 }
 
-export const PlayerMoveAction: ActionClass<PlayerMoveActionData> = {
-    canExecute(world: World, action: BaseAction<PlayerMoveActionData>): boolean {
+export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
+    canExecute(world: World, action: BaseAction<EntityMoveActionData>): boolean {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 
@@ -30,7 +30,7 @@ export const PlayerMoveAction: ActionClass<PlayerMoveActionData> = {
         return true;
     },
 
-    execute(world: World, action: BaseAction<PlayerMoveActionData>): boolean {
+    execute(world: World, action: BaseAction<EntityMoveActionData>): boolean {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 

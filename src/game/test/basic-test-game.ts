@@ -16,7 +16,7 @@ import { BumpingComponent } from '../../entity/components/bumping-component';
 import { logger } from '../../util/logger';
 import { OpacityComponent } from '../../entity/components/opacity-component';
 import { Easing } from '../../display/types';
-import { PlayerMoveAction } from '../../game/test/actions/player-movement.action';
+import { EntityMoveAction } from './actions/entity-movement.action';
 import { MoveCooldownComponent } from './components/move-cooldown.component';
 import { PlayerMovementSystem } from './systems/player-movement-system';
 import { Direction } from '../../types';
@@ -198,7 +198,7 @@ export class BasicTestGame extends Game {
         
         // Set up action handler with new PlayerMoveAction
         this.actionHandler = new ActionHandler(this.world);
-        this.actionHandler.registerAction('playerMove', PlayerMoveAction);
+        this.actionHandler.registerAction('entityMove', EntityMoveAction);
         
         // Set up input configuration
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
