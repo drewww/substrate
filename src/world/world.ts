@@ -33,7 +33,7 @@ export class World {
     private queuedEvents: Array<{ event: string, data: any }> = [];
     private batchingEvents = false;
 
-    private buildingWorld = true;
+    private buildingWorld = false;
     
     // Add event counters
     private eventCounts = new Map<keyof WorldEventMap, number>();
@@ -59,6 +59,10 @@ export class World {
         this.eventCounts.set('componentAdded', 0);
         this.eventCounts.set('componentRemoved', 0);
         this.eventCounts.set('componentModified', 0);
+    }
+
+    public unready(): void {
+        this.buildingWorld = true;
     }
 
     public ready(): void {

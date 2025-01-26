@@ -33,6 +33,7 @@ export class PrefabWorldGenerator implements WorldGenerator {
         logger.info(`Level parsing took ${levelTime - symbolsTime}ms`);
         
         const world = new World(level[0].length, level.length);
+        world.unready();
         
         for (let y = 0; y < level.length; y++) {
             for (let x = 0; x < level[0].length; x++) {
