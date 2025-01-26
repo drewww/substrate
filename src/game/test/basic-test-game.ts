@@ -26,6 +26,7 @@ import { PrefabWorldGenerator } from '../../world/generators/prefab-world-genera
 import { CooldownSystem } from './systems/cooldown.system';
 import { CooldownComponent } from './components/cooldown.component';
 import { ToggleSystem } from './systems/toggle.system';
+import { FollowingSystem } from './systems/following.system';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -44,7 +45,8 @@ const SYMBOL_DEFINITIONS = `
 @   [{"type": "symbol", "char": "@", "foreground": "#FFD700FF", "background": "#00000000", "zIndex": 5}, {"type": "player"}, {"type": "impassable"}, {"type": "vision", "radius": 30}]
 o   [{"type": "symbol", "char": "o", "foreground": "#222222ff", "background": "#101010ff", "zIndex": 1, "alwaysRenderIfExplored": false}, {"type": "cooldown", "cooldowns": {"toggle": {"base": 6000, "current": 6000, "ready": false}}}]
 x   [{"type": "symbol", "char": ".", "foreground": "#333333ff", "background": "#000000ff", "zIndex": 1, "alwaysRenderIfExplored": true}]
-E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}]
+E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}]
+V   [{"type": "symbol", "char": " ", "foreground": "#FFFFFFFF", "background": "#FF0000AA", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "follower"}]
 `.trim();
 
 const LEVEL_DATA = `#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#
@@ -54,8 +56,8 @@ const LEVEL_DATA = `#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,
 #,.,.,.,.,#,#,#,.,.,.,.,.,.,.,.,#,#,#,#,#,#,#,#,#,#,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,#,#,#,#,#,#,#,#,#,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,#,#,#,#,#,#,#,#,#,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,#,#,.,.,.,#
 #,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,#
 #,.,E.,.,E.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,#
-#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,#,#,#,#,#,#,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
-#,.,E.,.,E.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,V.,.,V.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,#,#,#,#,#,#,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
+#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
 #,.,.,.,.,.,.,.,.,.,#,#,#,#,#,.,.,#,#,#,#,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
 #,.,E.,.,E.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
 #,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,#
@@ -173,7 +175,8 @@ export class BasicTestGame extends Game {
     private actionHandler: ActionHandler;
     private cooldownSystem: CooldownSystem;
     private playerMovementSystem: PlayerMovementSystem;
-    toggleSystem: ToggleSystem;
+    private toggleSystem: ToggleSystem;
+    private followingSystem: FollowingSystem;
     
     constructor(canvasId: string) {
         super({
@@ -209,7 +212,8 @@ export class BasicTestGame extends Game {
         this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
         this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
         this.toggleSystem = new ToggleSystem(this.world);
-        
+        this.followingSystem = new FollowingSystem(this.world, this.actionHandler);
+
         // Add systems to engine update loop - cooldown system must run first
         this.engine.addSystem(deltaTime => {
             this.cooldownSystem.update(deltaTime);
@@ -225,6 +229,10 @@ export class BasicTestGame extends Game {
 
         this.engine.addSystem(deltaTime => {
             this.toggleSystem.update(deltaTime);
+        });
+
+        this.engine.addSystem(deltaTime => {
+            this.followingSystem.update(deltaTime);
         });
 
         // Add cooldown component to player
