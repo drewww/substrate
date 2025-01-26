@@ -21,14 +21,21 @@ export class PrefabWorldGenerator implements WorldGenerator {
     ) {}
 
     generate(): World {
+        const startTime = performance.now();
+        
         const symbols = this.parseSymbolDefinitions(this.symbolDefinitions);
+        const symbolsTime = performance.now();
+        logger.info(`Symbol parsing took ${symbolsTime - startTime}ms`);
+        
         const level = this.parseLevelData(this.levelData);
+        const levelTime = performance.now();
+        logger.info(`Level parsing took ${levelTime - symbolsTime}ms`);
         
         const world = new World(level[0].length, level.length);
         
         for (let y = 0; y < level.length; y++) {
             for (let x = 0; x < level[0].length; x++) {
-                logger.info(`level[y][x]: ${level[y][x]} x: ${x} y: ${y}`);
+                // logger.info(`level[y][x]: ${level[y][x]} x: ${x} y: ${y}`);
                 for(const symbol of level[y][x]) {
                     const definition = symbols.get(symbol);
                     if (definition) {
@@ -41,6 +48,12 @@ export class PrefabWorldGenerator implements WorldGenerator {
                 }
             }
         }
+        
+        const endTime = performance.now();
+        logger.info(`World generation took ${endTime - startTime}ms to place ${world.getEntities().length} entities`);
+        logger.info(`- Entity creation and placement: ${endTime - levelTime}ms`);
+
+        world.ready();
         
         return world;
     }

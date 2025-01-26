@@ -32,6 +32,8 @@ export class World {
     private eventHandlers = new Map<string, Set<WorldEventHandler<any>>>();
     private queuedEvents: Array<{ event: string, data: any }> = [];
     private batchingEvents = false;
+
+    private buildingWorld = true;
     
     // Add event counters
     private eventCounts = new Map<keyof WorldEventMap, number>();
@@ -57,6 +59,11 @@ export class World {
         this.eventCounts.set('componentAdded', 0);
         this.eventCounts.set('componentRemoved', 0);
         this.eventCounts.set('componentModified', 0);
+    }
+
+    public ready(): void {
+        this.buildingWorld = false;
+        this.rebuildFOVMap();
     }
 
     public getEventCounts(): Map<keyof WorldEventMap, number> {
@@ -681,6 +688,8 @@ export class World {
 
     // Update FOV for entity changes
     private updateFOVForEntity(entity: Entity, position: Point): void {
+        if (this.buildingWorld) return;
+
         this.fovMap.removeBody(position.x, position.y);
         if (entity.hasComponent('opacity')) {
                 this.fovMap.addBody(position.x, position.y);
