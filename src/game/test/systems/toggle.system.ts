@@ -21,7 +21,17 @@ export class ToggleSystem {
                 if (toggleState.ready) {
                     // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
 
-                    // Reset the cooldown
+                    const pos = entity.getPosition();
+                    const entitiesAtPos = this.world.getEntitiesAt(pos);
+                    const hasImpassableEntity = entitiesAtPos.some(e => e !== entity && e.hasComponent('impassable'));
+                    
+                    if (hasImpassableEntity) {
+                        // entity.setComponent(cooldowns);
+                        return;
+                    }
+
+
+                   
                     cooldowns.setCooldown('toggle', toggleState.base, toggleState.base, false);
 
                     const symbol = entity.getComponent('symbol') as SymbolComponent;
