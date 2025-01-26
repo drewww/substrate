@@ -99,7 +99,7 @@ export class PlayerMovementSystem {
                 });
 
                 if (inertia.magnitude >= 1 && inertia.magnitude < 8) {
-                    player.setComponent(new InertiaComponent(inertia.direction, inertia.magnitude - 1));
+                    // player.setComponent(new InertiaComponent(inertia.direction, inertia.magnitude - 1));
                 } else if (inertia.magnitude == 8) {
                     // do nothing, autopilot
                 } else {
@@ -136,7 +136,7 @@ export class PlayerMovementSystem {
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
-                    const newMagnitude = inertia.magnitude - 2;
+                    const newMagnitude = inertia.magnitude - 1;
                     if (newMagnitude <= 0) {
                         player.removeComponent('inertia');
                     } else {
