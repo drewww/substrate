@@ -22,18 +22,33 @@ export class EnemyMovementSystem {
             
             // Check move cooldown
             const moveState = cooldowns.getCooldown('move');
-            if (moveState?.ready) {
-                logger.info(`Enemy ${enemy.getId()} has move cooldown ready`);
+
+            logger.info(`Enemy ${enemy.getId()} has move cooldown ready: ${moveState?.ready} and canMove: ${this.canMoveInDirection(enemy, facing.direction)}`);
+
+            if (moveState?.ready && this.canMoveInDirection(enemy, facing.direction)) {
                 this.moveEnemy(enemy, facing.direction);
                 cooldowns.setCooldown('move', moveState.base);
             }
         }
     }
 
-    private moveEnemy(enemy: Entity, direction: Direction): void {
+    private canMoveInDirection(enemy: Entity, direction: Direction): boolean {
         const pos = enemy.getPosition();
-        const newPos: Point = { ...pos };
+        const oneAhead = this.getPositionInDirection(pos, direction);
+        const twoAhead = this.getPositionInDirection(oneAhead, direction);
 
+        // Check if two spaces ahead is impassable
+        const entitiesTwoAhead = this.world.getEntitiesAt(twoAhead);
+        if (entitiesTwoAhead.some(e => e.hasComponent('impassable'))) {
+            return false;
+        }
+
+        // Check if immediate next space is passable
+        return this.world.isPassable(pos.x, pos.y, oneAhead.x, oneAhead.y);
+    }
+
+    private getPositionInDirection(pos: Point, direction: Direction): Point {
+        const newPos = { ...pos };
         switch (direction) {
             case Direction.North:
                 newPos.y--;
@@ -48,6 +63,12 @@ export class EnemyMovementSystem {
                 newPos.x++;
                 break;
         }
+        return newPos;
+    }
+
+    private moveEnemy(enemy: Entity, direction: Direction): void {
+        const pos = enemy.getPosition();
+        const newPos = this.getPositionInDirection(pos, direction);
 
         this.actionHandler.execute({
             type: 'entityMove',
