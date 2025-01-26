@@ -6,6 +6,7 @@ import { logger } from '../util/logger';
 import { FieldOfViewMap, computeFieldOfView, CardinalDirection } from 'wally-fov';
 import { WallComponent, WallConfig, WallData, WallDirection, WallProperty } from '../entity/components/wall-component';
 import { OpacityComponent } from '../entity/components/opacity-component';
+import { VisionComponent } from '../entity/components/vision-component';
 
 interface SerializedWorld {
     width: number;
@@ -21,8 +22,8 @@ export type WorldEventMap = {
     'componentAdded': { entity: Entity, componentType: string };
     'componentRemoved': { entity: Entity, componentType: string };
     'componentModified': { entity: Entity, componentType: string };
+    'fovChanged': {};
 }
-
 type WorldEventHandler<T extends keyof WorldEventMap> = (data: WorldEventMap[T]) => void;
 
 export class World {
@@ -596,7 +597,17 @@ export class World {
         this.resetEventCounts();
     }
 
-    public updatePlayerVision(playerPos: Point, visionRadius: number = 8): void {
+    public updatePlayerVision(): void {
+        const player = this.getEntitiesWithComponent('player')[0];
+        if (!player) return;
+
+        const vision = player.getComponent('vision') as VisionComponent;
+        if (!vision) return;
+
+        this.updateVision(player.getPosition(), vision.radius);
+    }
+
+    public updateVision(playerPos: Point, visionRadius: number = 8): void {
         // Clear previous visible locations
         this.playerVisibleLocations.clear();
 
@@ -688,11 +699,16 @@ export class World {
                 this.fovMap.addWall(position.x, position.y, CardinalDirection.WEST);
             }
         }
+
+        this.emit('fovChanged');
+        this.updatePlayerVision();
     }
 
     // Add method to force FOV map rebuild if needed
     public rebuildFOV(): void {
         this.rebuildFOVMap();
+
+        this.emit('fovChanged');
     }
 
     /**

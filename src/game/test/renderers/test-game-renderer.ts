@@ -33,7 +33,7 @@ export class TestGameRenderer extends GameRenderer {
 
         this.world.on('componentAdded', (data: { entity: Entity, componentType: string }) => {
             this.handleComponentAdded(data.entity, data.componentType);
-        });
+    });
 
         // Subscribe to entity movement to update viewport
         // this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {

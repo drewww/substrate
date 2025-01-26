@@ -312,7 +312,7 @@ export class BasicTestGame extends Game {
 
         const visionComponent = this.player.getComponent('vision') as VisionComponent;
         const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
-        this.world.updatePlayerVision(this.player.getPosition(), radius);
+        this.world.updateVision(this.player.getPosition(), radius);
 
         // Update initial visibility
         this.updateViewport(false);
@@ -548,7 +548,7 @@ export const MoveAction: ActionClass<MoveActionData> = {
         if (result && entity?.hasComponent('player')) {
             const visionComponent = entity.getComponent('vision') as VisionComponent;
             const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
-            world.updatePlayerVision(action.data.to, radius);
+            world.updateVision(action.data.to, radius);
         }
         return result;
     }

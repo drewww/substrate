@@ -743,7 +743,7 @@ describe('World', () => {
         });
 
         it('should update visibility when player vision is updated', () => {
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             
             // Check positions within vision radius
             expect(world.isLocationVisible({ x: 5, y: 5 })).toBe(true); // Player position
@@ -761,7 +761,7 @@ describe('World', () => {
             wall.setComponent(new OpacityComponent(true));
             world.addEntity(wall);
 
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
 
             // Position behind wall should not be visible
             expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
@@ -776,19 +776,19 @@ describe('World', () => {
             wall.setComponent(new OpacityComponent(true));
             world.addEntity(wall);
 
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(false);
 
             // Move wall
             world.moveEntity(wall.getId(), { x: 6, y: 4 });
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             
             // Previously blocked position should now be visible
             expect(world.isLocationVisible({ x: 5, y: 3 })).toBe(true);
         });
 
         it('should track discovered locations', () => {
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             const pos = { x: 4, y: 4 };
             
             // Position should be both visible and discovered
@@ -797,7 +797,7 @@ describe('World', () => {
 
             // Move player away and update vision
             world.moveEntity(source.getId(), { x: 8, y: 8 });
-            world.updatePlayerVision({ x: 8, y: 8 }, 3);
+            world.updateVision({ x: 8, y: 8 }, 3);
 
             // Position should no longer be visible but should remain discovered
             expect(world.isLocationVisible(pos)).toBe(false);
@@ -809,7 +809,7 @@ describe('World', () => {
             opaqueEntity.setComponent(new OpacityComponent(true));
             world.addEntity(opaqueEntity);
 
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             
             // Position at the opaque entity should be visible
             expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(true);
@@ -827,7 +827,7 @@ describe('World', () => {
                 color: '#FFFFFF'
             });
 
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             
             // Position at the wall should be visible
             expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(true);
@@ -849,7 +849,7 @@ describe('World', () => {
                 color: '#FFFFFF'
             });
 
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             
             // North should be blocked
             expect(world.isLocationVisible({ x: 5, y: 4 })).toBe(false);
@@ -877,7 +877,7 @@ describe('World', () => {
                 });
             }
 
-            world.updatePlayerVision(source.getPosition(), 3);
+            world.updateVision(source.getPosition(), 3);
             
             // Source position should be visible
             expect(world.isLocationVisible({ x: 5, y: 5 })).toBe(true);
