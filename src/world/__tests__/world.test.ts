@@ -758,7 +758,7 @@ describe('World', () => {
         it('should handle opaque entities blocking vision', () => {
             // Create a wall between player and target
             const wall = new Entity({ x: 5, y: 4 });
-            wall.setComponent(new OpacityComponent(true));
+            wall.setComponent(new OpacityComponent());
             world.addEntity(wall);
 
             world.updateVision(source.getPosition(), 3);
@@ -773,7 +773,7 @@ describe('World', () => {
 
         it('should update FOV when opaque entities move', () => {
             const wall = new Entity({ x: 5, y: 4 });
-            wall.setComponent(new OpacityComponent(true));
+            wall.setComponent(new OpacityComponent());
             world.addEntity(wall);
 
             world.updateVision(source.getPosition(), 3);
@@ -806,7 +806,7 @@ describe('World', () => {
 
         it('should block visibility with opaque body', () => {
             const opaqueEntity = new Entity({ x: 5, y: 4 });
-            opaqueEntity.setComponent(new OpacityComponent(true));
+            opaqueEntity.setComponent(new OpacityComponent());
             world.addEntity(opaqueEntity);
 
             world.updateVision(source.getPosition(), 3);

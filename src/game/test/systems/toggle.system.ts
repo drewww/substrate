@@ -39,7 +39,7 @@ export class ToggleSystem {
                         logger.info(`Raising tile ${entity.getId()}`);
                         symbol.background = '#222222ff';
                         symbol.foreground = '#FFFFFFff';
-                        entity.setComponent(new OpacityComponent(true));
+                        entity.setComponent(new OpacityComponent());
                         entity.setComponent(new ImpassableComponent());
                     }
 

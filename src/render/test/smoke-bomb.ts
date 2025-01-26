@@ -66,7 +66,7 @@ export class SmokeCloudEntity extends Entity {
         this.lifetime = new TimerComponent(4.0, 4.0);
         this.setComponent(this.lifetime);
         this.setComponent(new FadeComponent(1.0, 0.0, 4.0));
-        this.setComponent(new OpacityComponent(true));
+        this.setComponent(new OpacityComponent());
         this.setComponent(new SymbolComponent(
             ' ',           // empty char for cloud effect
             '#FFFFFFFF',  // transparent foreground
