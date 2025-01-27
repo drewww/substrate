@@ -7,6 +7,7 @@ import { logger } from '../../../util/logger';
 import { VisionComponent } from '../../../entity/components/vision-component';
 import { FacingComponent } from '../../../entity/components/facing-component';
 import { TurnComponent } from '../../../entity/components/turn-component';
+import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -49,6 +50,13 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                     const facingComponent = entity.getComponent('facing') as FacingComponent;
                     facingComponent.direction = turnComponent.direction;
                     entity.setComponent(facingComponent);
+
+                    // Update light emitter facing
+                    const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+                    if (lightEmitter) {
+                        lightEmitter.config.facing = turnComponent.direction;
+                        entity.setComponent(lightEmitter);
+                    }
                 }
             }
 

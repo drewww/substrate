@@ -291,13 +291,13 @@ class WorldTest {
                     intensity: 0.7,
                     color: '#ffff00',
                     distanceFalloff: 'quadratic',
-                    animation: {
-                        type: 'pulse-intensity',
-                        params: {
-                            speed: 'normal',
-                            intensity: 1.0
-                        }
-                    }
+                    // animation: {
+                    //     type: 'pulse-intensity',
+                    //     params: {
+                    //         speed: 'normal',
+                    //         intensity: 1.0
+                    //     }
+                    // }
                 }));
                 
                 this.world.addEntity(light);

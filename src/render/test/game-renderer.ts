@@ -1,7 +1,7 @@
 import { Renderer } from '../renderer';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
-import { BlendMode } from '../../display/display';
+import { BlendMode } from '../../display/types';
 import { FadeComponent } from './test-components';
 import { logger } from '../../util/logger';
 import { Component } from '../../entity/component';

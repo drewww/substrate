@@ -1,4 +1,5 @@
-import { BlendMode, Display } from '../display/display';
+import { Display } from '../display/display';
+import { BlendMode } from '../display/types';
 import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
@@ -129,6 +130,23 @@ export abstract class Renderer {
                 this.onEntityAdded(entity);
             }
         }
+
+        // Set up tile moved callback
+        this.display.setTileMovedCallback((tileId: string, x: number, y: number) => {
+            // Find entity that owns this tile
+            for (const [entityId, entityTileId] of this.entityTiles) {
+                if (entityTileId === tileId) {
+                    const entity = this.world.getEntity(entityId);
+                    if (entity && entity.hasComponent('lightEmitter')) {
+                        const state = this.lightStates.get(entityId);
+                        if (state) {
+                            this.renderLightTiles(entity, state);
+                        }
+                    }
+                    break;
+                }
+            }
+        });
     }
 
     /**
@@ -284,10 +302,12 @@ export abstract class Renderer {
         }
 
         // Re-render light tiles if entity has a light emitter
+        // TBD this may not be working
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (lightEmitter) {
             const state = this.lightStates.get(entity.getId());
             if (state) {
+                // Then render the light tiles with the updated state
                 this.renderLightTiles(entity, state);
             }
         }

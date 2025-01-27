@@ -68,6 +68,8 @@ export class Display {
     private maskCtx: CanvasRenderingContext2D;
     private maskDirty: boolean = true;
 
+    private onTileMoved?: (tileId: string, x: number, y: number) => void;
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -325,6 +327,11 @@ export class Display {
             tile.x = newX;
             tile.y = newY;
             this.dirtyMask.markDirty(tile);
+            
+            // Trigger callback if set
+            if (this.onTileMoved) {
+                this.onTileMoved(tileId, newX, newY);
+            }
         }
     }
 
@@ -1306,6 +1313,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.hasChanges = true;
             tile[property] = value;
             this.dirtyMask.markDirty(tile);
+
+            // Trigger callback for x/y position changes
+            if ((property === 'x' || property === 'y') && this.onTileMoved) {
+                this.onTileMoved(tileId, tile.x, tile.y);
+            }
         }
     }
 
@@ -1322,6 +1334,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             }
         });
     }
-} 
 
-export { BlendMode };
+    // Add setter for the callback
+    public setTileMovedCallback(callback: (tileId: string, x: number, y: number) => void): void {
+        this.onTileMoved = callback;
+    }
+} 
