@@ -45,7 +45,7 @@ d move right
 const SYMBOL_DEFINITIONS = `
 #   [{"type": "symbol", "char": "#", "foreground": "#888888ff", "background": "#666666ff", "zIndex": 1, "alwaysRenderIfExplored": true}, {"type": "opacity", "isOpaque": true}, {"type": "impassable"}]
 .   [{"type": "symbol", "char": ".", "foreground": "#333333ff", "background": "#000000ff", "zIndex": 1, "alwaysRenderIfExplored": true}]
-@   [{"type": "symbol", "char": "@", "foreground": "#FFD700FF", "background": "#00000000", "zIndex": 5}, {"type": "player"}, {"type": "impassable"}, {"type": "vision", "radius": 30}, {"type": "lightEmitter", "radius": 5, "color": "#FFFFFFFF", "intensity": 1.0, "distanceFalloff": "step", "facing": 0, "width": 1.0, "mode":"fg"}]
+@   [{"type": "symbol", "char": "@", "foreground": "#FFD700FF", "background": "#00000000", "zIndex": 5}, {"type": "player"}, {"type": "impassable"}, {"type": "vision", "radius": 30}, {"type": "lightEmitter", "radius": 8, "color": "#FFFFFFFF", "intensity": 1.0, "distanceFalloff": "linear", "facing": 0, "width": 0.8, "mode":"fg"}]
 o   [{"type": "symbol", "char": "o", "foreground": "#222222ff", "background": "#101010ff", "zIndex": 2, "alwaysRenderIfExplored": false}, {"type": "cooldown", "cooldowns": {"toggle": {"base": 6000, "current": 6000, "ready": false}}}]
 x   [{"type": "symbol", "char": ".", "foreground": "#333333ff", "background": "#000000ff", "zIndex": 1, "alwaysRenderIfExplored": true}]
 E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}]
