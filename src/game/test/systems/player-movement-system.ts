@@ -8,14 +8,19 @@ import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 import { COOLDOWNS, TICK_MS } from '../constants';
+import { MovementPredictor } from './movement-predictor';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
 export class PlayerMovementSystem {
+    private movementPredictor: MovementPredictor;
+
     constructor(
         private world: World,
         private actionHandler: ActionHandler
-    ) { }
+    ) {
+        this.movementPredictor = new MovementPredictor(world);
+    }
 
     tick(): void {
         const players = this.world.getEntitiesWithComponent('cooldown')
@@ -66,169 +71,37 @@ export class PlayerMovementSystem {
     }
 
     private movePlayer(player: Entity): void {
-        const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
-        const pos = player.getPosition();
+        const prediction = this.movementPredictor.predictMove(player);
+        logger.info(`Player ${player.getId()} prediction: ${JSON.stringify(prediction)}`);
 
-        if (!bufferedMove) {
-            if (player.hasComponent('inertia')) {
-                // slide in the direction of the inertia and decrement the inertia
-                const inertia = player.getComponent('inertia') as InertiaComponent;
 
-                if (inertia.magnitude <= 1) {
-                    player.removeComponent('inertia');
-                    return;
-                }
-
-                const inertiaDir = this.directionToPoint(inertia.direction);
-                const newPos: Point = {
-                    x: pos.x + inertiaDir.x,
-                    y: pos.y + inertiaDir.y
-                };
-
-                // Check if we can move there
-                if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
-                    player.removeComponent('inertia');
-                    if (inertia) {
-                        this.stunPlayer(player, inertia.magnitude);
-                    }
-                    return;
-                }
-
-                this.actionHandler.execute({
-                    type: 'entityMove',
-                    entityId: player.getId(),
-                    data: { to: newPos }
-                });
-
-                if (inertia.magnitude >= 1 && inertia.magnitude < 8) {
-                    // player.setComponent(new InertiaComponent(inertia.direction, inertia.magnitude - 1));
-                } else if (inertia.magnitude == 8) {
-                    // do nothing, autopilot
-                } else {
-                    player.removeComponent('inertia');
-                }
+        if (prediction.willCollide) {
+            const inertia = player.getComponent('inertia') as InertiaComponent;
+            if (inertia && inertia.magnitude > 1) {
+                this.stunPlayer(player, inertia.magnitude);
             }
-
+            player.setComponent(new InertiaComponent(
+                inertia?.direction ?? Direction.South,
+                0
+            ));
             return;
-        };
-
-        const dir = this.directionToPoint(bufferedMove.direction);
-        const newPos: Point = {
-            x: pos.x + dir.x,
-            y: pos.y + dir.y
-        };
-
-        const actions = [
-            {
-                type: 'entityMove',
-                entityId: player.getId(),
-                data: { to: newPos }
-            }
-        ]
-
-
-
-        // Handle inertia after the move
-        const inertia = player.getComponent('inertia') as InertiaComponent;
-
-        if (inertia) {
-            const inertiaDir = this.directionToPoint(inertia.direction);
-
-            if (inertia.direction === bufferedMove.direction) {
-                // Same direction: increase inertia (max 8)
-                player.setComponent(new InertiaComponent(inertia.direction, Math.min(8, inertia.magnitude + 1)));
-            } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
-                // Opposite direction: decrease inertia and stay still
-                if (inertia.magnitude > 0) {
-                    const newMagnitude = Math.max(0, inertia.magnitude - 1);
-                    player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
-
-                    // remove the queued move action
-                    actions.pop();
-
-                    if (inertia.magnitude > 2) {
-                        // add a slide if there's enough inertia, but it's much faster to stop than just not moving.
-                        actions.push({
-                            type: 'entityMove',
-                            entityId: player.getId(),
-                            data: { to: { x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y } }
-                        });
-
-                        // TODO add "sliding" component to trigger the trail effect
-                    }
-                }
-            } else {
-                // Perpendicular movement: slide in direction of inertia
-
-                if (inertia.magnitude >= 2) {
-
-                    const slidePos = {
-                        x: newPos.x + inertiaDir.x,
-                        y: newPos.y + inertiaDir.y
-                    };
-
-                    // Check if we can move there
-                    if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y)) {
-
-                        player.setComponent(new InertiaComponent(inertia.direction, 0));
-
-                        logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y} but it is not passable`);
-
-                    }
-
-                    actions.push({
-                        type: 'entityMove',
-                        entityId: player.getId(),
-                        data: { to: slidePos }
-                    });
-
-                    logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y}`);
-                }
-                // newPos.x = slidePos.x;
-                // newPos.y = slidePos.y;
-                // }
-                // Decrease inertia by 1 after slide
-                const newMagnitude = Math.max(0, inertia.magnitude - 1);
-
-                if (newMagnitude >= 2 && newMagnitude <= 3) {
-                    player.setComponent(new InertiaComponent(bufferedMove.direction, newMagnitude));
-                } else {
-                    player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
-                }
-            }
-        } else {
-            // No existing inertia: create new inertia component
-            player.setComponent(new InertiaComponent(bufferedMove.direction, 0));
         }
 
-        // Execute all queued moves first
-        for (const action of actions) {
-
-            // check if the space trying to move into is passable
-            if (!this.world.isPassable(player.getPosition().x, player.getPosition().y, action.data.to.x, action.data.to.y)) {
-                // consider non-linear. I want a speed 8 crash to HURT.
-                player.setComponent(new InertiaComponent(inertia.direction, 0));
-
-                if (inertia.magnitude > 1) {
-                    this.stunPlayer(player, inertia.magnitude);
-                }
-            }
-
+        // Execute all predicted moves
+        for (const action of prediction.actions) {
             this.actionHandler.execute(action);
         }
 
+        // Update inertia with predicted final state
+        player.setComponent(new InertiaComponent(
+            prediction.finalInertia.direction,
+            prediction.finalInertia.magnitude
+        ));
 
-
+        // Update light emitter if present
         if (player.hasComponent('lightEmitter')) {
             const lightEmitter = player.getComponent('lightEmitter') as LightEmitterComponent;
-            const inertia = player.getComponent('inertia') as InertiaComponent;
-
-            // Use inertia direction if it exists, otherwise use buffered move direction
-            const facingDirection = inertia ? inertia.direction : bufferedMove.direction;
-
-            logger.info(`Player ${player.getId()} has lightEmitter, updating facing to ${facingDirection}`);
-            lightEmitter.config.facing = this.directionToRadians(facingDirection);
-
+            lightEmitter.config.facing = this.directionToRadians(prediction.finalInertia.direction);
             player.setComponent(lightEmitter);
         }
 
