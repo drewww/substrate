@@ -88,14 +88,13 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        // logger.info(`handleComponentRemoved ${entity.getId()} - ${componentType}`);
-        // if (componentType === 'bufferedMove') {
-        //     const tileId = this.bufferedMoveTiles.get(entity.getId());
-        //     if (tileId) {
-        //         this.display.removeTile(tileId);
-        //         this.bufferedMoveTiles.delete(entity.getId());
-        //     }
-        // }
+        if (componentType === 'bufferedMove') {
+            const tileId = this.bufferedMoveTiles.get(entity.getId());
+            if (tileId) {
+                this.display.removeTile(tileId);
+                this.bufferedMoveTiles.delete(entity.getId());
+            }
+        }
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
@@ -169,6 +168,21 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentModified(entity: Entity, componentType: string): void {
+        if (componentType === 'bufferedMove') {
+            const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
+            const tileId = this.bufferedMoveTiles.get(entity.getId());
+            
+            if (tileId) {
+                // Update existing tile position based on new direction
+                const pos = entity.getPosition();
+                const targetPos = this.getTargetPosition(pos, bufferedMove.direction);
+                
+                this.display.updateTile(tileId, {
+                    x: targetPos.x,
+                    y: targetPos.y
+                });
+            }
+        }
         if (componentType === 'cooldown') {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
@@ -250,6 +264,24 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentAdded(entity: Entity, componentType: string): void {
+        if (componentType === 'bufferedMove') {
+            const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
+            const pos = entity.getPosition();
+            const targetPos = this.getTargetPosition(pos, bufferedMove.direction);
+
+            // Create destination indicator tile
+            const tileId = this.display.createTile(
+                targetPos.x,
+                targetPos.y,
+                '·',  // small dot
+                '#FFFFFFFF',  // white foreground
+                '#00000000',  // transparent background
+                999           // zIndex
+            );
+
+            // Store the tile ID for later updates/removal
+            this.bufferedMoveTiles.set(entity.getId(), tileId);
+        }
         // Handle bumping animation
         // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
@@ -309,6 +341,15 @@ export class TestGameRenderer extends GameRenderer {
                     entity.removeComponent('bumping');
                 }, bump.duration * 1000);
             }
+        }
+    }
+
+    private getTargetPosition(pos: Point, direction: Direction): Point {
+        switch (direction) {
+            case Direction.North: return { x: pos.x, y: pos.y - 1 };
+            case Direction.South: return { x: pos.x, y: pos.y + 1 };
+            case Direction.West: return { x: pos.x - 1, y: pos.y };
+            case Direction.East: return { x: pos.x + 1, y: pos.y };
         }
     }
 
