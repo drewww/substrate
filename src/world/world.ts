@@ -664,6 +664,7 @@ export class World {
     }
 
     // Rebuild FOV map from scratch
+    // careful, this is EXPENSIVE. avoid if possible.
     private rebuildFOVMap(): void {
         this.fovMap = new FieldOfViewMap(this.width, this.height);
         
@@ -951,8 +952,7 @@ export class World {
             return [false, false, false];
         }
 
-        const entity = this.getEntitiesWithComponent('wall')
-            .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
+        const entity = this.getEntitiesAt(targetPos).find(e => e.hasComponent('wall'));
         const wall = entity?.getComponent('wall') as WallComponent | undefined;
         
         if (wall) {
