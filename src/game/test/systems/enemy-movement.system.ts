@@ -12,7 +12,7 @@ export class EnemyMovementSystem {
         private actionHandler: ActionHandler
     ) {}
 
-    update(deltaTime: number): void {
+    tick(): void {
         const enemies = this.world.getEntities()
             .filter(e => e.hasComponent('cooldown') && e.hasComponent('facing') && !e.hasComponent('player'));
 

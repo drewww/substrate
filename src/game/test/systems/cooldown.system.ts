@@ -4,7 +4,7 @@ import { CooldownComponent } from '../components/cooldown.component';
 export class CooldownSystem {
     constructor(private world: World) {}
 
-    update(deltaTime: number): void {
+    tick(): void {
         const entities = this.world.getEntitiesWithComponent('cooldown');
 
         for (const entity of entities) {
@@ -13,7 +13,7 @@ export class CooldownSystem {
 
             for (const [type, state] of cooldownComponent.getAllCooldowns()) {
                 if (state.current > 0) {
-                    state.current -= deltaTime * 1000;
+                    state.current -= 1;
                     modified = true;
 
                     if (state.current <= 0) {

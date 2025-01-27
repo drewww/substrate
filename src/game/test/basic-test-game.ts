@@ -28,6 +28,7 @@ import { CooldownComponent } from './components/cooldown.component';
 import { ToggleSystem } from './systems/toggle.system';
 import { FollowingSystem } from './systems/following.system';
 import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
+import { COOLDOWNS } from './constants';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -47,9 +48,9 @@ const SYMBOL_DEFINITIONS = `
 #   [{"type": "symbol", "char": "#", "foreground": "#888888ff", "background": "#666666ff", "zIndex": 1, "alwaysRenderIfExplored": true}, {"type": "opacity", "isOpaque": true}, {"type": "impassable"}]
 .   [{"type": "symbol", "char": ".", "foreground": "#333333ff", "background": "#000000ff", "zIndex": 1, "alwaysRenderIfExplored": true}]
 @   [{"type": "symbol", "char": "@", "foreground": "#FFD700FF", "background": "#00000000", "zIndex": 5}, {"type": "player"}, {"type": "impassable"}, {"type": "vision", "radius": 30}, {"type": "lightEmitter", "radius": 8, "color": "#FFFFFFFF", "intensity": 1.0, "distanceFalloff": "linear", "facing": 0, "width": 0.8, "mode":"fg"}]
-o   [{"type": "symbol", "char": "o", "foreground": "#222222ff", "background": "#101010ff", "zIndex": 2, "alwaysRenderIfExplored": false}, {"type": "cooldown", "cooldowns": {"toggle": {"base": 6000, "current": 6000, "ready": false}}}]
+o   [{"type": "symbol", "char": "o", "foreground": "#222222ff", "background": "#101010ff", "zIndex": 2, "alwaysRenderIfExplored": false}, {"type": "cooldown", "cooldowns": {"toggle": {"base": 30, "current": 30, "ready": false}}}]
 x   [{"type": "symbol", "char": ".", "foreground": "#333333ff", "background": "#000000ff", "zIndex": 1, "alwaysRenderIfExplored": true}]
-E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}]
+E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 5, "current": 5, "ready": false}}}]
 f   [{"type": "symbol", "char": " ", "foreground": "#FFFFFFFF", "background": "#aa1111ff", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "follower"}, {"type":"followable"}]
 ^   [{"type": "symbol", "char": "^", "foreground": "#444444ff", "background": "#000000ff", "zIndex": 2}, {"type": "turn", "direction": 0}]
 >   [{"type": "symbol", "char": ">", "foreground": "#444444ff", "background": "#000000ff", "zIndex": 2}, {"type": "turn", "direction": 1}]
@@ -225,33 +226,33 @@ export class BasicTestGame extends Game {
         this.cooldownCleanupSystem = new CooldownCleanupSystem(this.world);
 
         // Add systems to engine update loop - cooldown system must run first
-        this.engine.addSystem(deltaTime => {
-            this.cooldownSystem.update(deltaTime);
+        this.engine.addSystem(() => {
+            this.cooldownSystem.tick();
         });
 
-        this.engine.addSystem(deltaTime => {
-            this.enemyMovementSystem.update(deltaTime);
+        this.engine.addSystem(() => {
+            this.enemyMovementSystem.tick();
         });
 
-        this.engine.addSystem(deltaTime => {
-            this.playerMovementSystem.update(deltaTime);
+        this.engine.addSystem(() => {
+            this.playerMovementSystem.tick();
         });
 
-        this.engine.addSystem(deltaTime => {
-            this.toggleSystem.update(deltaTime);
+        this.engine.addSystem(() => {
+            this.toggleSystem.tick();
         });
 
-        this.engine.addSystem(deltaTime => {
-            this.followingSystem.update(deltaTime);
+        this.engine.addSystem(() => {
+            this.followingSystem.tick();
         });
 
-        this.engine.addSystem(deltaTime => {
-            this.cooldownCleanupSystem.update(deltaTime);
+        this.engine.addSystem(() => {
+            this.cooldownCleanupSystem.tick();
         });
 
         // Add cooldown component to player
         const cooldowns = new CooldownComponent();
-        cooldowns.setCooldown('move', 1000, 1000); // 1000ms move cooldown
+        cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE); // 1000ms move cooldown
         this.player.setComponent(cooldowns);
 
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {

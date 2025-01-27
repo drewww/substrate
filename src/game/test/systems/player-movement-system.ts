@@ -7,6 +7,7 @@ import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
+import { COOLDOWNS } from '../constants';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -16,9 +17,9 @@ export class PlayerMovementSystem {
         private actionHandler: ActionHandler
     ) { }
 
-    update(deltaTime: number): void {
-        const players = this.world.getEntities()
-            .filter(e => e.hasComponent('cooldown') && e.hasComponent('player'));
+    tick(): void {
+        const players = this.world.getEntitiesWithComponent('cooldown')
+            .filter(e => e.hasComponent('player'));
 
         for (const player of players) {
             const cooldowns = player.getComponent('cooldown') as CooldownComponent;
@@ -41,13 +42,13 @@ export class PlayerMovementSystem {
                 // Reset move cooldown based on inertia
                 if (inertia) {
                     if (inertia.magnitude >= 8) {
-                        cooldowns.setCooldown('move', 300);
+                        cooldowns.setCooldown('move', COOLDOWNS.FAST_MOVE);
                     } else {
-                        const newBaseTime = PLAYER_MOVE_COOLDOWN - (inertia.magnitude > 1 ? 500 : 0);
+                        const newBaseTime = COOLDOWNS.PLAYER_MOVE - (inertia.magnitude > 1 ? COOLDOWNS.MEDIUM_MOVE : 0);
                         cooldowns.setCooldown('move', newBaseTime);
                     }
                 } else {
-                    cooldowns.setCooldown('move', PLAYER_MOVE_COOLDOWN);
+                    cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE);
                 }
             }
 

@@ -1,16 +1,16 @@
 import { Component } from '../../../entity/component';
 import { RegisterComponent } from '../../../entity/component-registry';
+import { COOLDOWNS } from '../constants';
 
 @RegisterComponent('stun')
 export class StunComponent extends Component {
     type: 'stun' = 'stun';
     
     constructor(
-        public duration: number = 3000,    // Duration in milliseconds
-        public cooldown: number = 3000
+        public duration: number = COOLDOWNS.STUN,    // Duration in ticks
+        public cooldown: number = COOLDOWNS.STUN
     ) {
         super();
-
         this.duration = duration;
         this.cooldown = cooldown;
     }

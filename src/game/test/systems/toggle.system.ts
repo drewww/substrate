@@ -8,7 +8,7 @@ import { logger } from '../../../util/logger';
 export class ToggleSystem {
     constructor(private world: World) { }
 
-    update(deltaTime: number): void {
+    tick(): void {
         const toggleEntities = this.world.getEntities()
             .filter(e => e.hasComponent('cooldown') && e.hasComponent('symbol'));
 

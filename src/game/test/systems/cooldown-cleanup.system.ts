@@ -5,7 +5,7 @@ import { logger } from '../../../util/logger';
 export class CooldownCleanupSystem {
     constructor(private world: World) {}
 
-    update(deltaTime: number): void {
+    tick(): void {
         const entities = this.world.getEntitiesWithComponent('cooldown');
 
         for (const entity of entities) {

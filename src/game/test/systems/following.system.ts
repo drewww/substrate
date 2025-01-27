@@ -11,9 +11,8 @@ export class FollowingSystem {
         private actionHandler: ActionHandler
     ) {}
 
-    update(deltaTime: number): void {
-        const followers = this.world.getEntities()
-            .filter(e => e.hasComponent('follower'));
+    tick(): void {
+        const followers = this.world.getEntitiesWithComponent('follower');
 
         for (const follower of followers) {
             const followerComponent = follower.getComponent('follower') as FollowerComponent;
