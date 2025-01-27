@@ -39,7 +39,7 @@ export class ToggleSystem {
 
                     if (isRaised) {
                         // Lower the tile
-                        logger.info(`Lowering tile ${entity.getId()}`);
+                        // logger.info(`Lowering tile ${entity.getId()}`);
                         symbol.background = '#222222ff';
                         symbol.foreground = '#FFFFFF11';
                         entity.removeComponent('opacity');

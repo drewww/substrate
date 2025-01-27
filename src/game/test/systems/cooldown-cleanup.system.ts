@@ -17,7 +17,7 @@ export class CooldownCleanupSystem {
                     // Reset cooldown to base value and clear ready flag
                     cooldowns.setCooldown(name, state.base, state.base, false);
                     modified = true;
-                    logger.info(`Reset cooldown ${name} for entity ${entity.getId()}`);
+                    // logger.info(`Reset cooldown ${name} for entity ${entity.getId()}`);
                 }
             }
             

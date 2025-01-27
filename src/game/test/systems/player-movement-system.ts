@@ -72,7 +72,7 @@ export class PlayerMovementSystem {
 
     private movePlayer(player: Entity): void {
         const prediction = this.movementPredictor.predictMove(player);
-        logger.info(`Player ${player.getId()} prediction: ${JSON.stringify(prediction)}`);
+        logger.info(`Player ${player.getId()} prediction: ${prediction.actions.length} actions will collide: ${prediction.willCollide} finalInertia: ${prediction.finalInertia.direction}@${prediction.finalInertia.magnitude}`);
 
 
         if (prediction.willCollide) {
@@ -101,7 +101,13 @@ export class PlayerMovementSystem {
         // Update light emitter if present
         if (player.hasComponent('lightEmitter')) {
             const lightEmitter = player.getComponent('lightEmitter') as LightEmitterComponent;
-            lightEmitter.config.facing = this.directionToRadians(prediction.finalInertia.direction);
+            const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
+
+            if(bufferedMove) {
+                lightEmitter.config.facing = this.directionToRadians(bufferedMove.direction);
+            } else {
+                lightEmitter.config.facing = this.directionToRadians(prediction.finalInertia.direction);
+            }
             player.setComponent(lightEmitter);
         }
 

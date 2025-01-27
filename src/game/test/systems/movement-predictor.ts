@@ -46,14 +46,16 @@ export class MovementPredictor {
         const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
         const inertia = player.getComponent('inertia') as InertiaComponent;
         const pos = player.getPosition();
+        logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude}`);
 
         // If no buffered move and no significant inertia, no movement
         if (!bufferedMove && (!inertia || inertia.magnitude <= 1)) {
+            logger.info(`No buffered move and no significant inertia, no movement`);
             return {
                 actions: [],
                 finalInertia: {
                     direction: inertia?.direction ?? Direction.South,
-                    magnitude: inertia?.magnitude ?? 0
+                    magnitude: 0
                 },
                 willCollide: false
             };
@@ -61,6 +63,7 @@ export class MovementPredictor {
 
         // Handle pure inertia movement (no buffered move)
         if (!bufferedMove && inertia && inertia.magnitude > 1) {
+            logger.info("No buffered move, but inertia is present and greater than 1");
             const inertiaDir = this.directionToPoint(inertia.direction);
             const newPos = {
                 x: pos.x + inertiaDir.x,
@@ -68,6 +71,7 @@ export class MovementPredictor {
             };
 
             if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
+                logger.info(`Inertial movement will collide`);
                 return {
                     actions: [],
                     finalInertia: { direction: inertia.direction, magnitude: 0 },
@@ -75,6 +79,7 @@ export class MovementPredictor {
                 };
             }
 
+            logger.info(`Inertial movement will not collide, maintaining inertia moving in interia direction`);
             return {
                 actions: [{
                     type: 'entityMove',
@@ -83,7 +88,7 @@ export class MovementPredictor {
                 }],
                 finalInertia: {
                     direction: inertia.direction,
-                    magnitude: inertia.magnitude - 1
+                    magnitude: inertia.magnitude
                 },
                 willCollide: false
             };
@@ -112,11 +117,12 @@ export class MovementPredictor {
                 if (inertia.direction === bufferedMove.direction) {
                     // Same direction: increase inertia
                     finalInertia.magnitude = Math.min(8, inertia.magnitude + 1);
-                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
+                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction) && inertia.magnitude > 2) {
                     // Opposite direction: decrease inertia and potentially slide
                     actions.pop(); // Remove the buffered move
                     
                     if (inertia.magnitude > 2) {
+                        // continue moving, but drop inertia by one
                         const inertiaDir = this.directionToPoint(inertia.direction);
                         actions.push({
                             type: 'entityMove',
@@ -129,7 +135,14 @@ export class MovementPredictor {
                         direction: inertia.direction,
                         magnitude: Math.max(0, inertia.magnitude - 1)
                     };
-                } else {
+                } else if(inertia.magnitude < 2) {
+                    // if inertia is less than 2, still update the direction
+                    finalInertia = {
+                        direction: bufferedMove.direction,
+                        magnitude: 1
+                    };
+                }
+                else {
                     // Perpendicular movement
                     if (inertia.magnitude >= 2) {
                         const inertiaDir = this.directionToPoint(inertia.direction);
