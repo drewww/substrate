@@ -23,7 +23,7 @@ export class EnemyMovementSystem {
             // Check move cooldown
             const moveState = cooldowns.getCooldown('move');
 
-            logger.info(`Enemy ${enemy.getId()} has move cooldown ready: ${moveState?.ready} and canMove: ${this.canMoveInDirection(enemy, facing.direction)}`);
+            // logger.info(`Enemy ${enemy.getId()} has move cooldown ready: ${moveState?.ready} and canMove: ${this.canMoveInDirection(enemy, facing.direction)}`);
 
             if (moveState?.ready && this.canMoveInDirection(enemy, facing.direction)) {
                 this.moveEnemy(enemy, facing.direction);

@@ -70,6 +70,9 @@ export class Display {
 
     private onTileMoved?: (tileId: string, x: number, y: number) => void;
 
+    // Map of tile IDs to their move callbacks
+    private tileMoveCallbacks: Map<string, (tileId: string, x: number, y: number) => void> = new Map();
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -1304,19 +1307,18 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     private updateTileProperty<K extends keyof Tile>(tileId: TileId, property: K, value: Tile[K]): void {
-        logger.verbose(`Updating tile property ${property} to ${value} for tile ${tileId}`);
-
         const tile = this.tileMap.get(tileId);
-
-        
         if (tile && tile[property] !== value) {
             this.hasChanges = true;
             tile[property] = value;
             this.dirtyMask.markDirty(tile);
 
-            // Trigger callback for x/y position changes
-            if ((property === 'x' || property === 'y') && this.onTileMoved) {
-                this.onTileMoved(tileId, tile.x, tile.y);
+            // Only trigger callbacks for x/y changes
+            if ((property === 'x' || property === 'y') && this.tileMoveCallbacks.has(tileId)) {
+                const callback = this.tileMoveCallbacks.get(tileId);
+                if (callback) {
+                    callback(tileId, tile.x, tile.y);
+                }
             }
         }
     }
@@ -1335,8 +1337,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         });
     }
 
-    // Add setter for the callback
-    public setTileMovedCallback(callback: (tileId: string, x: number, y: number) => void): void {
-        this.onTileMoved = callback;
+    // Register callback for specific tile
+    public setTileMoveCallback(tileId: string, callback: (tileId: string, x: number, y: number) => void): void {
+        this.tileMoveCallbacks.set(tileId, callback);
+    }
+
+    public removeTileMoveCallback(tileId: string): void {
+        this.tileMoveCallbacks.delete(tileId);
     }
 } 

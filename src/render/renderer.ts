@@ -51,6 +51,7 @@ const Z_INDEX = {
 
 export abstract class Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
+    protected tileEntities: Map<string, string> = new Map(); // tileId -> entityId
     private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
     private lightValueAnimations: ValueAnimationModule;
     private lightColorAnimations: ColorAnimationModule;
@@ -132,21 +133,18 @@ export abstract class Renderer {
         }
 
         // Set up tile moved callback
-        this.display.setTileMovedCallback((tileId: string, x: number, y: number) => {
-            // Find entity that owns this tile
-            for (const [entityId, entityTileId] of this.entityTiles) {
-                if (entityTileId === tileId) {
-                    const entity = this.world.getEntity(entityId);
-                    if (entity && entity.hasComponent('lightEmitter')) {
-                        const state = this.lightStates.get(entityId);
-                        if (state) {
-                            this.renderLightTiles(entity, state);
-                        }
-                    }
-                    break;
-                }
-            }
-        });
+        // this.display.setTileMovedCallback((tileId: string, x: number, y: number) => {
+        //     const entityId = this.tileEntities.get(tileId);
+        //     if (entityId) {
+        //         const entity = this.world.getEntity(entityId);
+        //         if (entity && entity.hasComponent('lightEmitter')) {
+        //             const state = this.lightStates.get(entityId);
+        //             if (state) {
+        //                 this.renderLightTiles(entity, state);
+        //             }
+        //         }
+        //     }
+        // });
     }
 
     /**
@@ -170,6 +168,7 @@ export abstract class Renderer {
             );
             
             this.entityTiles.set(entity.getId(), tileId);
+            this.tileEntities.set(tileId, entity.getId());
             this.handleEntityAdded(entity, tileId);
         }
         
@@ -177,6 +176,16 @@ export abstract class Renderer {
         if (entity.hasComponent('lightEmitter')) {
             logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
             this.addEntityLight(entity);
+            // Register for move callbacks when light emitter is added
+            const tileId = this.entityTiles.get(entity.getId());
+            if (tileId) {
+                this.display.setTileMoveCallback(tileId, (tileId, x, y) => {
+                    const state = this.lightStates.get(entity.getId());
+                    if (state) {
+                        this.renderLightTiles(entity, state);
+                    }
+                });
+            }
         }
 
         // Handle wall component if present
@@ -231,8 +240,9 @@ export abstract class Renderer {
         
         if (tileId) {
             logger.debug(`Found tile ${tileId} for entity ${entity.getId()}, removing...`);
-            this.display.removeTile(tileId);
+            this.tileEntities.delete(tileId);
             this.entityTiles.delete(entity.getId());
+            this.display.removeTile(tileId);
         } else {
             logger.warn(`No tile found for removed entity ${entity.getId()}`);
         }
@@ -268,6 +278,12 @@ export abstract class Renderer {
         if (componentType === 'lightEmitter') {
             // If the component was removed (no longer exists on entity)
             if (!entity.hasComponent('lightEmitter')) {
+                // Remove move callback when light emitter is removed
+                const tileId = this.entityTiles.get(entity.getId());
+                if (tileId) {
+                    this.display.removeTileMoveCallback(tileId);
+                }
+                
                 // Clean up light tiles
                 const lightTiles = this.lightSourceTiles.get(entity.getId());
                 if (lightTiles) {
@@ -275,7 +291,7 @@ export abstract class Renderer {
                     this.lightSourceTiles.delete(entity.getId());
                 }
                 
-                // Clean up light state and animations
+                // Clean up light state
                 this.lightStates.delete(entity.getId());
                 this.lightValueAnimations.clear(entity.getId());
                 this.lightColorAnimations.clear(entity.getId());
