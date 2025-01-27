@@ -3,6 +3,7 @@ import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { ActionHandler } from '../action/action-handler';
 import { MoveAction } from '../game/test/basic-test-game';
+import { EngineLoop } from './engine-loop';
 
 export interface EngineOptions {
     mode: 'turn-based' | 'realtime';
@@ -16,7 +17,7 @@ export class Engine {
     private systems: ((deltaTime: number) => void)[] = [];
     private actionHandler: ActionHandler;
     private isRunning: boolean = false;
-    private lastUpdateTime: number = 0;
+    private engineLoop: EngineLoop;
     
     // Add performance metrics
     private metrics = {
@@ -37,23 +38,29 @@ export class Engine {
     constructor(private options: EngineOptions) {
         this.actionHandler = new ActionHandler(options.world);
         this.actionHandler.registerAction('move', MoveAction);
-        this.start();
+        
+        // Create engine loop with 200ms timestep (5 Hz)
+        this.engineLoop = new EngineLoop(
+            200,
+            (deltaTime: number) => this.tick(deltaTime)
+        );
     }
 
     public start(): void {
         this.isRunning = true;
-        this.lastUpdateTime = performance.now();
+        this.engineLoop.start();
     }
 
     public stop(): void {
         this.isRunning = false;
+        this.engineLoop.stop();
     }
 
     addSystem(system: (deltaTime: number) => void): void {
         this.systems.push(system);
     }
 
-    update(timestamp: number): void {
+    private tick(deltaTime: number): void {
         if (!this.isRunning) return;
 
         // Update UPS counter
@@ -66,8 +73,6 @@ export class Engine {
         }
 
         const updateStart = performance.now();
-        const deltaTime = (timestamp - this.lastUpdateTime) / 1000;
-        this.lastUpdateTime = timestamp;
 
         // Run systems first
         this.systems.forEach((system, index) => {

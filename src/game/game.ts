@@ -43,10 +43,16 @@ export abstract class Game {
     protected abstract handleInput(type: string, action: string, params: string[]): void;
 
     public start(): void {
-        this.updateInterval = window.setInterval(() => {
-            const now = performance.now();
-            this.engine.update(now);
-        }, this.targetFrameTime);
+        // Start the engine
+        this.engine.start();
+
+        // Start the render loop
+        // const animate = () => {
+        //     // Remove the engine.update call since the EngineLoop handles that now
+        //     this.display.render();
+        //     requestAnimationFrame(animate);
+        // };
+        // requestAnimationFrame(animate);
     }
 
     public stop(): void {
