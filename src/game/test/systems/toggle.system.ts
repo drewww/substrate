@@ -46,7 +46,7 @@ export class ToggleSystem {
                         entity.removeComponent('impassable');
                     } else {
                         // Raise the tile
-                        logger.info(`Raising tile ${entity.getId()}`);
+                        // logger.info(`Raising tile ${entity.getId()}`);
                         symbol.background = '#222222ff';
                         symbol.foreground = '#FFFFFFff';
                         entity.setComponent(new OpacityComponent());

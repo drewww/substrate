@@ -174,7 +174,7 @@ export abstract class Renderer {
         
         // Handle light emitter independently
         if (entity.hasComponent('lightEmitter')) {
-            logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
+            // logger.info(`Renderer received entityAdded event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
             this.addEntityLight(entity);
             // Register for move callbacks when light emitter is added
             const tileId = this.entityTiles.get(entity.getId());
@@ -234,7 +234,7 @@ export abstract class Renderer {
             const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
 
             if (state && lightEmitter) {
-                logger.info(`Renderer received componentModified event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
+                // logger.info(`Renderer received componentModified event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
 
                 // Merge in light emitter properties to state
                 state.currentProperties.radius = lightEmitter.config.radius;
@@ -387,7 +387,7 @@ export abstract class Renderer {
             const animConfig = LIGHT_ANIMATIONS[lightEmitter.config.animation.type];
             const params = lightEmitter.config.animation.params;
 
-            logger.info(`Adding value animations for ${entity.getId()}: ${JSON.stringify(animConfig)}`);
+            // logger.info(`Adding value animations for ${entity.getId()}: ${JSON.stringify(animConfig)}`);
 
             const speedMultiplier = params?.speed === 'fast' ? 0.5 : 
                                   params?.speed === 'slow' ? 2.0 : 1.0;
@@ -487,7 +487,7 @@ export abstract class Renderer {
     private renderLightTiles(entity: Entity, state: LightState): void {
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (!lightEmitter) {
-            logger.info(`No light emitter component found for ${entity.getId()}`);
+            // logger.info(`No light emitter component found for ${entity.getId()}`);
             return;
         }
 
