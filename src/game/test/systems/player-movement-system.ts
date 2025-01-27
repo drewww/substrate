@@ -7,7 +7,7 @@ import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
-import { COOLDOWNS } from '../constants';
+import { COOLDOWNS, TICK_MS } from '../constants';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -251,9 +251,9 @@ export class PlayerMovementSystem {
             return;
         }
 
-        const stunDuration = 600 * magnitude;
+        const stunDuration = magnitude*3;
         const cooldowns = player.getComponent('cooldown') as CooldownComponent;
-        cooldowns.setCooldown('stun', stunDuration);
+        cooldowns.setCooldown('stun', stunDuration, stunDuration, true);
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
     }
 

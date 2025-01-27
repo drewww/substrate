@@ -14,6 +14,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { StunComponent } from '../components/stun.component';
 import { VisionComponent } from '../../../entity/components/vision-component';
 import { CooldownComponent } from '../components/cooldown.component';
+import { TICK_MS } from '../constants';
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -22,7 +23,7 @@ export class TestGameRenderer extends GameRenderer {
 
     constructor(display: Display, world: World) {
         super(world, display);
-        
+
         // Initial visibility setup
         this.updateVisibility();
 
@@ -33,7 +34,7 @@ export class TestGameRenderer extends GameRenderer {
 
         this.world.on('componentAdded', (data: { entity: Entity, componentType: string }) => {
             this.handleComponentAdded(data.entity, data.componentType);
-    });
+        });
 
         // Subscribe to entity movement to update viewport
         // this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
@@ -65,7 +66,7 @@ export class TestGameRenderer extends GameRenderer {
         // Calculate currently visible tiles
         for (let y = Math.max(0, pos.y - visionRadius); y <= Math.min(worldSize.y - 1, pos.y + visionRadius); y++) {
             for (let x = Math.max(0, pos.x - visionRadius); x <= Math.min(worldSize.x - 1, pos.x + visionRadius); x++) {
-                
+
                 const isVisible = this.world.isLocationVisible({ x, y });
                 if (isVisible) {
                     mask[y][x] = 1;  // Fully visible
@@ -130,10 +131,10 @@ export class TestGameRenderer extends GameRenderer {
                 }
             });
 
-            if(isPlayer) {
+            if (isPlayer) {
                 // check our inertia. if it's > 2, leave behind a fading "trail" tile
                 const inertia = entity.getComponent('inertia') as InertiaComponent;
-                if(inertia && inertia.magnitude >= 2) {
+                if (inertia && inertia.magnitude >= 2) {
                     const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', '#005577AA', 999, {
                         bgPercent: 1
                     });
@@ -154,19 +155,19 @@ export class TestGameRenderer extends GameRenderer {
                     const dx = to.x - from.x;
                     const dy = to.y - from.y;
 
-                    const isInertiaPerpendicularToMovement = 
+                    const isInertiaPerpendicularToMovement =
                         (inertia.direction === Direction.North && Math.abs(dx) > 0) ||
                         (inertia.direction === Direction.South && Math.abs(dx) > 0) ||
                         (inertia.direction === Direction.East && Math.abs(dy) > 0) ||
                         (inertia.direction === Direction.West && Math.abs(dy) > 0);
-                    
-                        // this is close, but not quite right. once a slide is initiated, we want to show tracks continuous
-                        // not just on the "non-slide" directional moves. but it'll do for now.
-                    if(inertia.magnitude >= 3 && inertia.magnitude < 8 && isInertiaPerpendicularToMovement) {
+
+                    // this is close, but not quite right. once a slide is initiated, we want to show tracks continuous
+                    // not just on the "non-slide" directional moves. but it'll do for now.
+                    if (inertia.magnitude >= 3 && inertia.magnitude < 8 && isInertiaPerpendicularToMovement) {
 
                         // Calculate direction angle based on movement
-                        const angle = Math.atan2(dy, dx)+Math.PI/4;
-                        
+                        const angle = Math.atan2(dy, dx) + Math.PI / 4;
+
                         this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
                             rotation: angle,
                             scaleSymbolX: 2.0,
@@ -181,10 +182,10 @@ export class TestGameRenderer extends GameRenderer {
                         switch (inertia.direction) {
                             case Direction.North: newPos = { x: to.x, y: to.y - 1 }; break;
                             case Direction.South: newPos = { x: to.x, y: to.y + 1 }; break;
-                            case Direction.West:  newPos = { x: to.x - 1, y: to.y }; break;
-                            case Direction.East:  newPos = { x: to.x + 1, y: to.y }; break;
+                            case Direction.West: newPos = { x: to.x - 1, y: to.y }; break;
+                            case Direction.East: newPos = { x: to.x + 1, y: to.y }; break;
                         }
-                        
+
                         // Move the indicator tile with the same animation as the entity
                         this.display.addValueAnimation(inertiaTileId, {
                             x: {
@@ -215,33 +216,59 @@ export class TestGameRenderer extends GameRenderer {
         if (componentType === 'cooldown') {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
-            
+
             if (cooldowns && tileId) {
                 // Handle move cooldown
-            
+
                 const moveState = cooldowns.getCooldown('move');
                 if (moveState) {
-                    const percent = 1 - (moveState.current / moveState.base);
-                    const color = entity.hasComponent('player') ? '#005577' : '#FF0000';
 
-                    this.display.updateTile(tileId, {
-                        bg: color,
-                        bgPercent: percent,
-                        fillDirection: FillDirection.BOTTOM
-                    });
+                    if (moveState.current === moveState.base) {
+                        // this.display.addValueAnimation(tileId, {
+                        //     bgPercent: {
+                        //         start: 0.0,
+                        //         end: 1.0,
+                        //         duration: moveState.base / 1000, // Convert ms to seconds
+                        //         easing: Easing.linear,
+                        //         loop: false,
+                        //     }
+                        // });
+                    }
+
+                    // const percent = 1 - (moveState.current / moveState.base);
+                    // const color = entity.hasComponent('player') ? '#005577' : '#FF0000';
+
+                    // this.display.updateTile(tileId, {
+                    //     bg: color,
+                    //     bgPercent: percent,
+                    //     fillDirection: FillDirection.BOTTOM
+                    // });
                 }
 
                 // Handle stun cooldown (takes precedence over move cooldown)
                 const stunState = cooldowns.getCooldown('stun');
-                if (stunState && stunState.current > 0) {
-                    const percent = 1 - (stunState.current / stunState.base);
-                    const color = entity.hasComponent('player') ? '#770505' : '#FF0000';
+                if (stunState && stunState.current > 0 && stunState.ready) {
+                    logger.info(`stunState.current: ${stunState.current} base: ${stunState.base} ==? ${stunState.current === stunState.base}`);
+                    if (stunState.current === stunState.base) {
+                        this.display.updateTile(tileId, {
+                            bg: '#770505',
+                            fillDirection: FillDirection.TOP
+                        });
+                    }
 
-                    this.display.updateTile(tileId, {
-                        bg: color,
-                        bgPercent: percent,
-                        fillDirection: FillDirection.TOP
+                    this.display.addValueAnimation(tileId, {
+                        bgPercent: {
+                            start: 1.0,
+                            end: 0.0,
+                            duration: stunState.base*TICK_MS/1000, // Convert ms to seconds
+                            easing: Easing.linear,
+                            loop: false,
+                        }
                     });
+
+                    // set ready to false
+                    cooldowns.setCooldown('stun', stunState.base, stunState.current, false);
+                    entity.setComponent(cooldowns);
                 }
 
                 const toggleState = cooldowns.getCooldown('toggle');
@@ -251,7 +278,7 @@ export class TestGameRenderer extends GameRenderer {
                     this.display.updateTile(tileId, {
                         bgPercent: percent,
                         fillDirection: FillDirection.BOTTOM
-                    });                
+                    });
                 }
             }
         }
@@ -268,22 +295,22 @@ export class TestGameRenderer extends GameRenderer {
             }
         }
 
-        if (componentType === 'stun') {
-            const stun = entity.getComponent('stun') as StunComponent;
-            const tileId = this.entityTiles.get(entity.getId());
-            
-            if (stun && tileId) {
-                const percent = 1 - (stun.cooldown / stun.duration);
+        // if (componentType === 'stun') {
+        //     const stun = entity.getComponent('stun') as StunComponent;
+        //     const tileId = this.entityTiles.get(entity.getId());
 
-                const color = entity.hasComponent('player') ? '#770505' : '#FF0000';
+        //     if (stun && tileId) {
+        //         const percent = 1 - (stun.cooldown / stun.duration);
 
-                this.display.updateTile(tileId, {
-                    bg: color,
-                    bgPercent: percent,
-                    fillDirection: FillDirection.TOP
-                });
-            }
-        }
+        //         const color = entity.hasComponent('player') ? '#770505' : '#FF0000';
+
+        //         this.display.updateTile(tileId, {
+        //             bg: color,
+        //             bgPercent: percent,
+        //             fillDirection: FillDirection.TOP
+        //         });
+        //     }
+        // }
     }
 
     protected getOppositeDirection(dir: Direction): FillDirection {
@@ -301,11 +328,11 @@ export class TestGameRenderer extends GameRenderer {
         if (componentType === 'bumping') {
             const bump = entity.getComponent('bumping') as BumpingComponent;
             const tileId = this.entityTiles.get(entity.getId());
-            
+
             if (bump && tileId) {
                 const pos = entity.getPosition();
                 const bumpDistance = 0.3;
-                
+
                 const targetPos = {
                     x: pos.x + (bump.direction.x * bumpDistance),
                     y: pos.y + (bump.direction.y * bumpDistance)
@@ -362,17 +389,17 @@ export class TestGameRenderer extends GameRenderer {
             const pos = entity.getPosition();
 
             const player = this.world.getEntitiesWithComponent('player')[0];
-            if(!player) return;
+            if (!player) return;
 
             // Calculate target position
             let targetPos: Point;
             switch (inertia.direction) {
-                    case Direction.North: targetPos = { x: player.getPosition().x, y: player.getPosition().y - 3 }; break;
-                    case Direction.South: targetPos = { x: player.getPosition().x, y: player.getPosition().y + 3 }; break;
-                    case Direction.West:  targetPos = { x: player.getPosition().x - 3, y: player.getPosition().y }; break;
-                    case Direction.East:  targetPos = { x: player.getPosition().x + 3, y: player.getPosition().y }; break;
-                }
-    
+                case Direction.North: targetPos = { x: player.getPosition().x, y: player.getPosition().y - 3 }; break;
+                case Direction.South: targetPos = { x: player.getPosition().x, y: player.getPosition().y + 3 }; break;
+                case Direction.West: targetPos = { x: player.getPosition().x - 3, y: player.getPosition().y }; break;
+                case Direction.East: targetPos = { x: player.getPosition().x + 3, y: player.getPosition().y }; break;
+            }
+
             // Create indicator tile
             const tileId = this.display.createTile(
                 targetPos.x,
@@ -382,16 +409,16 @@ export class TestGameRenderer extends GameRenderer {
                 '#ff073aAA',    // background color
                 1000,           // zIndex
                 {
-                    bgPercent: (inertia.magnitude / 8), 
+                    bgPercent: (inertia.magnitude / 8),
                     fillDirection: this.getOppositeDirection(inertia.direction)
                 }
             );
-    
-                // Store the tile ID for later removal
-            this.inertiaTiles.set(entity.getId(), tileId);    
+
+            // Store the tile ID for later removal
+            this.inertiaTiles.set(entity.getId(), tileId);
         }
     }
-    
+
     public getVisibilityMask(): number[][] {
         return this.display.getVisibilityMask();
     }
