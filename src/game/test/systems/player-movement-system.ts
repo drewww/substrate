@@ -126,7 +126,7 @@ export class PlayerMovementSystem {
             }
         ]
 
-        
+
 
         // Handle inertia after the move
         const inertia = player.getComponent('inertia') as InertiaComponent;
@@ -135,27 +135,23 @@ export class PlayerMovementSystem {
             const inertiaDir = this.directionToPoint(inertia.direction);
 
             if (inertia.direction === bufferedMove.direction) {
-                // Same direction: increase inertia (max 4)
+                // Same direction: increase inertia (max 8)
                 player.setComponent(new InertiaComponent(inertia.direction, Math.min(8, inertia.magnitude + 1)));
             } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                 // Opposite direction: decrease inertia and stay still
                 if (inertia.magnitude > 0) {
-                    const newMagnitude = inertia.magnitude - 1;
-                    if (newMagnitude <= 0) {
-                        player.removeComponent('inertia');
-                    } else {
-                        player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
-                    }
+                    const newMagnitude = Math.max(0, inertia.magnitude - 1);
+                    player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
 
                     // remove the queued move action
                     actions.pop();
 
-                    if(inertia.magnitude > 2) {
+                    if (inertia.magnitude > 2) {
                         // add a slide if there's enough inertia, but it's much faster to stop than just not moving.
                         actions.push({
                             type: 'entityMove',
                             entityId: player.getId(),
-                            data: { to: {x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y} }
+                            data: { to: { x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y } }
                         });
 
                         // TODO add "sliding" component to trigger the trail effect
@@ -173,10 +169,11 @@ export class PlayerMovementSystem {
 
                     // Check if we can move there
                     if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y)) {
-                        player.removeComponent('inertia');
+
+                        player.setComponent(new InertiaComponent(inertia.direction, 0));
 
                         logger.info(`Player ${player.getId()} slid to ${slidePos.x}, ${slidePos.y} but it is not passable`);
-                        
+
                     }
 
                     actions.push({
@@ -191,19 +188,12 @@ export class PlayerMovementSystem {
                 // newPos.y = slidePos.y;
                 // }
                 // Decrease inertia by 1 after slide
-                const newMagnitude = inertia.magnitude - 1;
-                if (newMagnitude <= 0) {
-                    player.removeComponent('inertia');
+                const newMagnitude = Math.max(0, inertia.magnitude - 1);
+
+                if (newMagnitude >= 2 && newMagnitude <= 3) {
+                    player.setComponent(new InertiaComponent(bufferedMove.direction, newMagnitude));
                 } else {
-
-                    if (newMagnitude >= 2 && newMagnitude <= 3) {
-                        player.setComponent(new InertiaComponent(bufferedMove.direction, newMagnitude));
-                    } else {
-                        player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
-                    }
-
-                    // TODO add "sliding" component to trigger the trail effect
-
+                    player.setComponent(new InertiaComponent(inertia.direction, newMagnitude));
                 }
             }
         } else {
@@ -215,12 +205,11 @@ export class PlayerMovementSystem {
         for (const action of actions) {
 
             // check if the space trying to move into is passable
-            if(!this.world.isPassable(player.getPosition().x, player.getPosition().y, action.data.to.x, action.data.to.y)) {
-                player.removeComponent('inertia');
-
-                if(inertia) {
+            if (!this.world.isPassable(player.getPosition().x, player.getPosition().y, action.data.to.x, action.data.to.y)) {
                 // consider non-linear. I want a speed 8 crash to HURT.
-                    player.setComponent(new InertiaComponent(inertia.direction, 0));
+                player.setComponent(new InertiaComponent(inertia.direction, 0));
+
+                if (inertia.magnitude > 1) {
                     this.stunPlayer(player, inertia.magnitude);
                 }
             }
@@ -228,16 +217,18 @@ export class PlayerMovementSystem {
             this.actionHandler.execute(action);
         }
 
-        if(player.hasComponent('lightEmitter')) {
+
+
+        if (player.hasComponent('lightEmitter')) {
             const lightEmitter = player.getComponent('lightEmitter') as LightEmitterComponent;
             const inertia = player.getComponent('inertia') as InertiaComponent;
-            
+
             // Use inertia direction if it exists, otherwise use buffered move direction
             const facingDirection = inertia ? inertia.direction : bufferedMove.direction;
-            
+
             logger.info(`Player ${player.getId()} has lightEmitter, updating facing to ${facingDirection}`);
             lightEmitter.config.facing = this.directionToRadians(facingDirection);
-            
+
             player.setComponent(lightEmitter);
         }
 
@@ -247,11 +238,11 @@ export class PlayerMovementSystem {
 
     stunPlayer(player: Entity, magnitude: number) {
 
-        if(magnitude == 0) {
+        if (magnitude == 0) {
             return;
         }
 
-        const stunDuration = magnitude*3;
+        const stunDuration = magnitude * 3;
         const cooldowns = player.getComponent('cooldown') as CooldownComponent;
         cooldowns.setCooldown('stun', stunDuration, stunDuration, true);
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
@@ -270,9 +261,9 @@ export class PlayerMovementSystem {
     // consider making this a util function later
     private directionToRadians(direction: Direction): number {
         switch (direction) {
-            case Direction.South: return -Math.PI/2;  // Up
+            case Direction.South: return -Math.PI / 2;  // Up
             case Direction.East: return 0;           // Right
-            case Direction.North: return Math.PI/2;   // Down
+            case Direction.North: return Math.PI / 2;   // Down
             case Direction.West: return Math.PI;      // Left
         }
     }
