@@ -229,6 +229,28 @@ export abstract class Renderer {
         if (componentType === 'wall') {
             this.updateEntityWalls(entity);
         }
+        if (componentType === 'lightEmitter') {
+            const state = this.lightStates.get(entity.getId());
+            const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+
+            if (state && lightEmitter) {
+                logger.info(`Renderer received componentModified event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
+
+                // Merge in light emitter properties to state
+                state.currentProperties.radius = lightEmitter.config.radius;
+                state.currentProperties.intensity = lightEmitter.config.intensity;
+                state.currentProperties.color = lightEmitter.config.color;
+                // state.currentProperties.distanceFalloff = lightEmitter.config.distanceFalloff;
+                state.currentProperties.facing = lightEmitter.config.facing ?? 0;
+                state.currentProperties.width = lightEmitter.config.width ?? Math.PI;
+                // state.currentProperties.mode = lightEmitter.config.mode ?? 'fg';
+                state.currentProperties.xOffset = lightEmitter.config.xOffset ?? 0;
+                state.currentProperties.yOffset = lightEmitter.config.yOffset ?? 0;
+                // state.currentProperties.lightSourceTile = lightEmitter.config.lightSourceTile ?? true;
+
+                this.renderLightTiles(entity, state);
+            }
+        }
     }
 
     /**

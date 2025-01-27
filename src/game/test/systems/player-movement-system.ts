@@ -6,6 +6,7 @@ import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
+import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -124,6 +125,8 @@ export class PlayerMovementSystem {
             }
         ]
 
+        
+
         // Handle inertia after the move
         const inertia = player.getComponent('inertia') as InertiaComponent;
 
@@ -224,6 +227,19 @@ export class PlayerMovementSystem {
             this.actionHandler.execute(action);
         }
 
+        if(player.hasComponent('lightEmitter')) {
+            const lightEmitter = player.getComponent('lightEmitter') as LightEmitterComponent;
+            const inertia = player.getComponent('inertia') as InertiaComponent;
+            
+            // Use inertia direction if it exists, otherwise use buffered move direction
+            const facingDirection = inertia ? inertia.direction : bufferedMove.direction;
+            
+            logger.info(`Player ${player.getId()} has lightEmitter, updating facing to ${facingDirection}`);
+            lightEmitter.config.facing = this.directionToRadians(facingDirection);
+            
+            player.setComponent(lightEmitter);
+        }
+
         // Remove the buffered move component
         player.removeComponent('bufferedMove');
     }
@@ -247,5 +263,16 @@ export class PlayerMovementSystem {
             (dir1 === Direction.East && dir2 === Direction.West) ||
             (dir1 === Direction.West && dir2 === Direction.East)
         );
+    }
+
+    // Convert Direction enum to radians (Direction.North = 0 = up = -PI/2)
+    // consider making this a util function later
+    private directionToRadians(direction: Direction): number {
+        switch (direction) {
+            case Direction.South: return -Math.PI/2;  // Up
+            case Direction.East: return 0;           // Right
+            case Direction.North: return Math.PI/2;   // Down
+            case Direction.West: return Math.PI;      // Left
+        }
     }
 } 
