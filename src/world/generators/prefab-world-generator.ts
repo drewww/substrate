@@ -13,6 +13,7 @@ import { FacingComponent } from "../../entity/components/facing-component";
 import { FollowableComponent } from "../../entity/components/followable-component";
 import { FollowerComponent } from "../../entity/components/follower-component";
 import { TurnComponent } from "../../entity/components/turn-component";
+import { LightEmitterComponent } from "../../entity/components/light-emitter-component";
 
 interface SymbolDefinition {
     components: Component[];
@@ -103,6 +104,8 @@ export class PrefabWorldGenerator implements WorldGenerator {
                             return new FollowerComponent();
                         case 'turn':
                             return new TurnComponent(def.direction);
+                        case 'lightEmitter':
+                            return new LightEmitterComponent(def);
                         default:
                             console.error(`Unknown component type: ${def.type}`);
                             return null;
