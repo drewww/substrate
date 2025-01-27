@@ -27,6 +27,7 @@ import { CooldownSystem } from './systems/cooldown.system';
 import { CooldownComponent } from './components/cooldown.component';
 import { ToggleSystem } from './systems/toggle.system';
 import { FollowingSystem } from './systems/following.system';
+import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -184,6 +185,7 @@ export class BasicTestGame extends Game {
     private playerMovementSystem: PlayerMovementSystem;
     private toggleSystem: ToggleSystem;
     private followingSystem: FollowingSystem;
+    private cooldownCleanupSystem: CooldownCleanupSystem;
     
     constructor(canvasId: string) {
         super({
@@ -220,6 +222,7 @@ export class BasicTestGame extends Game {
         this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
         this.toggleSystem = new ToggleSystem(this.world);
         this.followingSystem = new FollowingSystem(this.world, this.actionHandler);
+        this.cooldownCleanupSystem = new CooldownCleanupSystem(this.world);
 
         // Add systems to engine update loop - cooldown system must run first
         this.engine.addSystem(deltaTime => {
@@ -240,6 +243,10 @@ export class BasicTestGame extends Game {
 
         this.engine.addSystem(deltaTime => {
             this.followingSystem.update(deltaTime);
+        });
+
+        this.engine.addSystem(deltaTime => {
+            this.cooldownCleanupSystem.update(deltaTime);
         });
 
         // Add cooldown component to player
