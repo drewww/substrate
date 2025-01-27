@@ -15,13 +15,16 @@ import { StunComponent } from '../components/stun.component';
 import { VisionComponent } from '../../../entity/components/vision-component';
 import { CooldownComponent } from '../components/cooldown.component';
 import { TICK_MS } from '../constants';
+import { MovementPredictor } from '../systems/movement-predictor';
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
+    private movementPredictor: MovementPredictor;
 
     constructor(display: Display, world: World) {
         super(world, display);
+        this.movementPredictor = new MovementPredictor(world);
 
         // Initial visibility setup
         this.updateVisibility();
@@ -168,19 +171,21 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentModified(entity: Entity, componentType: string): void {
-        if (componentType === 'bufferedMove') {
-            const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
+        if (componentType === 'bufferedMove' || componentType === 'inertia') {
+            const prediction = this.movementPredictor.predictMove(entity);
             const tileId = this.bufferedMoveTiles.get(entity.getId());
             
             if (tileId) {
-                // Update existing tile position based on new direction
-                const pos = entity.getPosition();
-                const targetPos = this.getTargetPosition(pos, bufferedMove.direction);
-                
-                this.display.updateTile(tileId, {
-                    x: targetPos.x,
-                    y: targetPos.y
-                });
+                if (prediction.actions.length > 0) {
+                    // Get the final destination from the last action
+                    const finalAction = prediction.actions[prediction.actions.length - 1];
+                    this.display.moveTile(tileId, finalAction.data.to.x, finalAction.data.to.y);
+                    
+                } else {
+                    // If no actions, remove the destination tile
+                    this.display.removeTile(tileId);
+                    this.bufferedMoveTiles.delete(entity.getId());
+                }
             }
         }
         if (componentType === 'cooldown') {
@@ -265,22 +270,25 @@ export class TestGameRenderer extends GameRenderer {
 
     protected handleComponentAdded(entity: Entity, componentType: string): void {
         if (componentType === 'bufferedMove') {
-            const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
-            const pos = entity.getPosition();
-            const targetPos = this.getTargetPosition(pos, bufferedMove.direction);
+            const prediction = this.movementPredictor.predictMove(entity);
+            
+            if (prediction.actions.length > 0) {
+                // Get the final destination from the last action
+                const finalAction = prediction.actions[prediction.actions.length - 1];
+                
+                // Create destination indicator tile
+                const tileId = this.display.createTile(
+                    finalAction.data.to.x,
+                    finalAction.data.to.y,
+                    'x',  // small dot
+                    '#FFFFFFFF',  // white foreground
+                    '#00000000',  // transparent background
+                    999           // zIndex
+                );
 
-            // Create destination indicator tile
-            const tileId = this.display.createTile(
-                targetPos.x,
-                targetPos.y,
-                '·',  // small dot
-                '#FFFFFFFF',  // white foreground
-                '#00000000',  // transparent background
-                999           // zIndex
-            );
-
-            // Store the tile ID for later updates/removal
-            this.bufferedMoveTiles.set(entity.getId(), tileId);
+                // Store the tile ID for later updates/removal
+                this.bufferedMoveTiles.set(entity.getId(), tileId);
+            }
         }
         // Handle bumping animation
         // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
