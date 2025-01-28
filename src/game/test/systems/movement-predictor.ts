@@ -50,7 +50,7 @@ export class MovementPredictor {
 
         // If no buffered move and no significant inertia, no movement
         if (!bufferedMove && (!inertia || inertia.magnitude <= 1)) {
-            logger.info(`No buffered move and no significant inertia, no movement`);
+            // logger.info(`No buffered move and no significant inertia, no movement`);
             return {
                 actions: [],
                 finalInertia: {
@@ -63,7 +63,7 @@ export class MovementPredictor {
 
         // Handle pure inertia movement (no buffered move)
         if (!bufferedMove && inertia && inertia.magnitude > 1) {
-            logger.info("No buffered move, but inertia is present and greater than 1");
+            // logger.info("No buffered move, but inertia is present and greater than 1");
             const inertiaDir = this.directionToPoint(inertia.direction);
             const newPos = {
                 x: pos.x + inertiaDir.x,
@@ -71,7 +71,7 @@ export class MovementPredictor {
             };
 
             if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
-                logger.info(`Inertial movement will collide`);
+                // logger.info(`Inertial movement will collide`);
                 return {
                     actions: [],
                     finalInertia: { direction: inertia.direction, magnitude: 0 },
@@ -79,7 +79,7 @@ export class MovementPredictor {
                 };
             }
 
-            logger.info(`Inertial movement will not collide, maintaining inertia moving in interia direction`);
+            // logger.info(`Inertial movement will not collide, maintaining inertia moving in interia direction`);
             return {
                 actions: [{
                     type: 'entityMove',

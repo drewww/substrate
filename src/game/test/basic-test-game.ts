@@ -521,7 +521,17 @@ export class BasicTestGame extends Game {
                     case 'down':  gear.gear--; break;
                 }
 
+                gear.gear = Math.max(1, Math.min(5, gear.gear));
+
                 this.player.setComponent(gear);
+
+                const cooldowns = this.player.getComponent('cooldown') as CooldownComponent;
+                if(cooldowns) {
+                    const newCooldown = 6-gear.gear;
+                    logger.info(`Setting move cooldown to ${newCooldown} ticks`);
+                    cooldowns.setCooldown('move', newCooldown, newCooldown);
+                    this.player.setComponent(cooldowns);
+                }
             }
 
         }

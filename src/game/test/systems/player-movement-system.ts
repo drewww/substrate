@@ -41,20 +41,9 @@ export class PlayerMovementSystem {
 
             // Check move cooldown
             const moveState = cooldowns.getCooldown('move');
-            logger.info(`Player ${player.getId()} moveState: ${moveState?.ready}`);
+            // logger.info(`Player ${player.getId()} moveState: ${moveState?.ready}`);
             if (moveState?.ready) {
                 this.movePlayer(player);
-
-                // Reset move cooldown based on inertia
-                if (inertia) {
-                    if (inertia.magnitude >= 8) {
-                        cooldowns.setCooldown('move', COOLDOWNS.FAST_MOVE, COOLDOWNS.FAST_MOVE, false);
-                    } else if (inertia.magnitude > 1) {
-                        cooldowns.setCooldown('move', COOLDOWNS.MEDIUM_MOVE, COOLDOWNS.MEDIUM_MOVE, false);
-                    } else {
-                        cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE, false);
-                    }
-                }
             }
 
             player.setComponent(cooldowns);
@@ -73,7 +62,6 @@ export class PlayerMovementSystem {
     private movePlayer(player: Entity): void {
         const prediction = this.movementPredictor.predictMove(player);
         logger.info(`Player ${player.getId()} prediction: ${prediction.actions.length} actions will collide: ${prediction.willCollide} finalInertia: ${prediction.finalInertia.direction}@${prediction.finalInertia.magnitude}`);
-
 
         if (prediction.willCollide) {
             const inertia = player.getComponent('inertia') as InertiaComponent;
@@ -110,6 +98,11 @@ export class PlayerMovementSystem {
             }
             player.setComponent(lightEmitter);
         }
+
+        // Reset move cooldown with base value
+        // const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+        // cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE, false);
+        // player.setComponent(cooldowns);
 
         // Remove the buffered move component
         player.removeComponent('bufferedMove');
