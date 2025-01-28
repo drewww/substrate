@@ -4,6 +4,7 @@ import { Point } from '../types';
 import { ActionHandler } from '../action/action-handler';
 import { MoveAction } from '../game/test/basic-test-game';
 import { EngineLoop } from './engine-loop';
+import { TICK_MS } from '../game/test/constants';
 
 export interface EngineOptions {
     mode: 'turn-based' | 'realtime';
@@ -41,7 +42,7 @@ export class Engine {
         
         // Create engine loop with 200ms timestep (5 Hz)
         this.engineLoop = new EngineLoop(
-            200,
+            TICK_MS,
             (deltaTime: number) => this.tick(deltaTime)
         );
     }

@@ -2,7 +2,7 @@ import { GameRenderer } from '../../../render/test/game-renderer';
 import { Entity } from '../../../entity/entity';
 import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
-import { Easing, FillDirection } from '../../../display/types';
+import { Easing, FillDirection, TileId } from '../../../display/types';
 import { BumpingComponent } from '../../../entity/components/bumping-component';
 import { logger } from '../../../util/logger';
 import { World } from '../../../world/world';
@@ -188,37 +188,18 @@ export class TestGameRenderer extends GameRenderer {
                 }
             }
         }
+
         if (componentType === 'cooldown') {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
+            const player = entity.hasComponent('player');
 
-            if (cooldowns && tileId) {
+            if(!tileId) {
+                return;
+            }
+
+            if (cooldowns) {
                 // Handle move cooldown
-
-                const moveState = cooldowns.getCooldown('move');
-                if (moveState) {
-
-                    if (moveState.current === moveState.base) {
-                        // this.display.addValueAnimation(tileId, {
-                        //     bgPercent: {
-                        //         start: 0.0,
-                        //         end: 1.0,
-                        //         duration: moveState.base / 1000, // Convert ms to seconds
-                        //         easing: Easing.linear,
-                        //         loop: false,
-                        //     }
-                        // });
-                    }
-
-                    // const percent = 1 - (moveState.current / moveState.base);
-                    // const color = entity.hasComponent('player') ? '#005577' : '#FF0000';
-
-                    // this.display.updateTile(tileId, {
-                    //     bg: color,
-                    //     bgPercent: percent,
-                    //     fillDirection: FillDirection.BOTTOM
-                    // });
-                }
 
                 // Handle stun cooldown (takes precedence over move cooldown)
                 const stunState = cooldowns.getCooldown('stun');
@@ -269,27 +250,7 @@ export class TestGameRenderer extends GameRenderer {
     }
 
     protected handleComponentAdded(entity: Entity, componentType: string): void {
-        if (componentType === 'bufferedMove') {
-            const prediction = this.movementPredictor.predictMove(entity);
-            
-            if (prediction.actions.length > 0) {
-                // Get the final destination from the last action
-                const finalAction = prediction.actions[prediction.actions.length - 1];
-                
-                // Create destination indicator tile
-                const tileId = this.display.createTile(
-                    finalAction.data.to.x,
-                    finalAction.data.to.y,
-                    'x',  // small dot
-                    '#FFFFFFFF',  // white foreground
-                    '#00000000',  // transparent background
-                    999           // zIndex
-                );
-
-                // Store the tile ID for later updates/removal
-                this.bufferedMoveTiles.set(entity.getId(), tileId);
-            }
-        }
+       
         // Handle bumping animation
         // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
@@ -363,5 +324,34 @@ export class TestGameRenderer extends GameRenderer {
 
     public getVisibilityMask(): number[][] {
         return this.display.getVisibilityMask();
+    }
+
+    private createDestinationTile(entity: Entity): TileId {
+        const prediction = this.movementPredictor.predictMove(entity);
+        const finalAction = prediction.actions[prediction.actions.length - 1];
+
+        const tileId = this.display.createTile(
+            finalAction.data.to.x,
+            finalAction.data.to.y,
+            'x',
+            '#FFFFFFFF',
+            '#222299FF',
+            999,
+            {
+                bgPercent: 0.0
+            }
+        );
+
+        this.display.addValueAnimation(tileId, {
+            bgPercent: {
+                start: 0.0,
+                end: 1.0,
+                duration: 1000,
+                easing: Easing.linear,
+                loop: false,
+            }
+        });
+
+        return tileId;
     }
 }
