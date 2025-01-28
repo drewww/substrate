@@ -31,6 +31,7 @@ import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 import { COOLDOWNS } from './constants';
 import { Renderer } from '../../render/renderer';
 import { UISpeedRenderer } from '../../render/ui-speed-renderer';
+import { GearComponent } from './components/gear.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -41,6 +42,8 @@ w move up
 s move down
 a move left
 d move right
+e shift up
+q shift down
 `;
 
 // E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}, {"type": "lightEmitter", "radius": 5, "color": "#CCCCCCFF44", "intensity": 0.3, "distanceFalloff": "quadratic", "facing": 2, "width": 1.571, "mode":"fg"}]
@@ -257,6 +260,9 @@ export class BasicTestGame extends Game {
         const cooldowns = new CooldownComponent();
         cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE); // 1000ms move cooldown
         this.player.setComponent(cooldowns);
+
+        const gear = new GearComponent(1);
+        this.player.setComponent(gear);
 
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
@@ -502,6 +508,22 @@ export class BasicTestGame extends Game {
 
             this.player.removeComponent('bufferedMove');
             this.player.setComponent(new BufferedMoveComponent(direction));
+        }
+
+        if (action === 'shift') {
+            const gear = this.player.getComponent('gear') as GearComponent;
+
+            if(gear) {
+                logger.info(`shift ${params[0]} current: ${gear.gear}`);
+
+                switch(params[0]) {
+                    case 'up':    gear.gear++; break;
+                    case 'down':  gear.gear--; break;
+                }
+
+                this.player.setComponent(gear);
+            }
+
         }
     }
     
