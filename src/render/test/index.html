@@ -57,11 +57,21 @@
         #world-debug > div:last-child {
             margin-bottom: 0;
         }
+        #display-container {
+            position: relative;
+        }
+        #ui-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <div id="display-container">
         <canvas id="display"></canvas>
+        <canvas id="ui-overlay"></canvas>
     </div>
     <div class="controls">
         <select id="entityType">

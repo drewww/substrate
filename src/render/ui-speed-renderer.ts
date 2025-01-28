@@ -7,90 +7,88 @@ import { InertiaComponent } from '../game/test/components/inertia.component';
 
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string> = new Map(); // region -> tileId
-    private readonly height: number;
-    private readonly width: number;
+    private readonly uiDisplay: Display;
 
     constructor(
-        private readonly display: Display,
         private readonly player: Entity
     ) {
-        this.height = display.getViewportHeight();
-        this.width = display.getViewportWidth();
+        // Create UI display with same cell dimensions but only 1 row
+        this.uiDisplay = new Display({
+            elementId: 'ui-overlay',
+            cellWidth: 20,
+            cellHeight: 20,
+            viewportWidth: 40,
+            viewportHeight: 1,
+            worldWidth: 40,
+            worldHeight: 1
+        });
+
+        // Position UI canvas absolutely
+        const canvas = this.uiDisplay.getRenderCanvas();
+        canvas.style.position = 'absolute';
+        canvas.style.bottom = '0';
+        canvas.style.left = '0';
+        canvas.style.pointerEvents = 'none';  // Let clicks pass through
+
         this.initializeUI();
     }
 
     private initializeUI(): void {
         // Create black background for bottom row
-        for (let x = 0; x < this.width; x++) {
-            const tileId = this.display.createTile(
+        for (let x = 0; x < this.uiDisplay.getViewportWidth(); x++) {
+            const tileId = this.uiDisplay.createTile(
                 x,
-                this.height - 1,
+                0,  // Always y=0 since we only have one row
                 ' ',
                 '#FFFFFFFF',
                 '#000000FF',
-                1000, // Above world tiles
+                1000
             );
             this.uiTiles.set(`bg_${x}`, tileId);
         }
 
         // Create speed indicator tile
-        const speedTileId = this.display.createTile(
+        const speedTileId = this.uiDisplay.createTile(
             0,
-            this.height - 1,
+            0,
             '0',
             '#FFFFFFFF',
             '#000000FF',
-            1001, // Above background
+            1001  // Above background
         );
         this.uiTiles.set('speed', speedTileId);
 
-        // Update initial speed value
         this.updateSpeedIndicator();
     }
 
     private updateSpeedIndicator(): void {
         const inertia = this.player.getComponent('inertia') as InertiaComponent;
         const speedTileId = this.uiTiles.get('speed');
-        if (speedTileId) {
+        if (speedTileId && inertia) {
             const magnitude = inertia.magnitude ?? 0;
-            this.display.updateTile(speedTileId, {
-                char: magnitude.toString(),
+            this.uiDisplay.updateTile(speedTileId, {
+                char: magnitude.toString()
             });
         }
     }
 
     update(timestamp: number): void {
-        // No animation updates needed for now
+        // this.uiDisplay.render(timestamp);
+        
     }
 
-    handleEntityAdded(entity: Entity, tileId: string): void {
-        // Only care about player for now
-    }
-
-    handleEntityModified(entity: Entity, componentType: string): void {
-        if (entity === this.player && componentType === 'inertia') {
-            this.updateSpeedIndicator();
-        }
-    }
-
+    handleEntityAdded(entity: Entity, tileId: string): void {}
+    handleEntityModified(entity: Entity, componentType: string): void {}
+    handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
+    handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {
         if (entity === this.player && componentType === 'inertia') {
             this.updateSpeedIndicator();
         }
     }
-
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
         if (entity === this.player && componentType === 'inertia') {
             this.updateSpeedIndicator();
         }
-    }
-
-    handleEntityRemoved(entity: Entity): void {
-        // Only care about player for now
-    }
-
-    handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
-        // UI doesn't need to handle movement
-        return true;
     }
 } 

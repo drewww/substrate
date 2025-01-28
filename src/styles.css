@@ -61,7 +61,7 @@ textarea {
 
 #display-container canvas {
     position: absolute;
-    top: 0;
+    top: 5;
     left: 0;
     display: block;
     image-rendering: pixelated;

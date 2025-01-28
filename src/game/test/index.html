@@ -70,12 +70,12 @@
         }
 
         #display-container {
+            position: relative;  /* For absolute positioning of children */
+            width: 800px;
+            height: 600px;
             display: flex;
             flex-direction: column;
             gap: 2rem;
-
-            width: 800px;
-            height: 600px;
         }
 
         #display-container canvas {
@@ -96,16 +96,23 @@
             display: none;
             float: left
         }
+
+        #ui-overlay {
+            position: absolute;
+            bottom: 0;  /* Position at bottom */
+            left: 0;
+            pointer-events: none;
+            width: 100%;  /* Make sure it spans full width */
+            height: auto;  /* Let height be determined by content */
+        }
     </style>
 </head>
 <body>
     <div id="display-container">
         <canvas id="display"></canvas>
+        <canvas id="ui-overlay"></canvas>
     </div>
-    <div id="render-canvas-container">
-        <canvas id="render-canvas"></canvas>
-    </div>
-
+    
     <div class="controls">
         <button id="toggleDisplayDebug">Display Debug</button>
         <button id="toggleWorldDebug">World Debug</button>

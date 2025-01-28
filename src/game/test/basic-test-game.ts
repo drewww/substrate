@@ -30,6 +30,7 @@ import { FollowingSystem } from './systems/following.system';
 import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 import { COOLDOWNS } from './constants';
 import { Renderer } from '../../render/renderer';
+import { UISpeedRenderer } from '../../render/ui-speed-renderer';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -188,6 +189,7 @@ export class BasicTestGame extends Game {
     private toggleSystem: ToggleSystem;
     private followingSystem: FollowingSystem;
     private cooldownCleanupSystem: CooldownCleanupSystem;
+    uiSpeedRenderer: UISpeedRenderer;
     
     constructor(canvasId: string) {
         super({
@@ -302,6 +304,11 @@ export class BasicTestGame extends Game {
                 hasWalls: fovMap.getWalls(pos.x, pos.y),
                 tiles: this.display.getTilesAt(pos.x, pos.y)
             });
+        });
+
+        this.uiSpeedRenderer = new UISpeedRenderer(this.player);
+        this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
+                this.uiSpeedRenderer.handleComponentModified(data.entity, data.componentType);
         });
     }
 

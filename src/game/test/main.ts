@@ -9,9 +9,9 @@ let worldDebug: WorldDebugOverlay;
 let engineDebugElement: HTMLDivElement;
 
 function init() {
-    // Initialize game
-    const canvas = document.getElementById('display') as HTMLCanvasElement;
-    game = new BasicTestGame(canvas.id);
+    // Initialize game with the canvas ID, not the container ID
+    const displayCanvas = document.getElementById('display') as HTMLCanvasElement;
+    game = new BasicTestGame(displayCanvas.id);
     
     // Set up debug overlays
     const displayDebugElement = document.getElementById('display-debug')!;
