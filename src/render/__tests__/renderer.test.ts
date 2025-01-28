@@ -1,6 +1,6 @@
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
-import { BaseRenderer } from '../renderer';
+import { BaseRenderer } from '../base-renderer';
 import { FillDirection } from '../../display/types';
 import { Tile } from '../../display/types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';

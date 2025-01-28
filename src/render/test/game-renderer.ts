@@ -1,4 +1,4 @@
-import { BaseRenderer } from '../renderer';
+import { BaseRenderer } from '../base-renderer';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { BlendMode } from '../../display/types';

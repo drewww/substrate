@@ -3,7 +3,7 @@ import { InputManager } from '../input/input';
 import { World } from '../world/world';
 import { Entity } from '../entity/entity';
 import { Display } from '../display/display';
-import { BaseRenderer } from '../render/renderer';
+import { BaseRenderer } from '../render/base-renderer';
 import { DisplayOptions } from '../display/types';
 
 export abstract class Game {
