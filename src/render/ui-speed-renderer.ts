@@ -34,7 +34,7 @@ export class UISpeedRenderer implements Renderer {
     }
 
     private initializeUI(): void {
-        // Create black background for bottom row
+        // Create black background for bottom row with top walls
         for (let x = 0; x < this.uiDisplay.getViewportWidth(); x++) {
             const tileId = this.uiDisplay.createTile(
                 x,
@@ -42,19 +42,27 @@ export class UISpeedRenderer implements Renderer {
                 ' ',
                 '#FFFFFFFF',
                 '#000000FF',
-                1000
+                1000,
+                {
+                    walls: [true, false],  // [north, west] - only north wall
+                    wallColors: ['#FFFFFF88', null]  // Semi-transparent white for north wall
+                }
             );
             this.uiTiles.set(`bg_${x}`, tileId);
         }
 
-        // Create speed indicator tile
+        // Create speed indicator tile (above background)
         const speedTileId = this.uiDisplay.createTile(
             0,
             0,
             '0',
             '#FFFFFFFF',
             '#000000FF',
-            1001  // Above background
+            1001,  // Above background
+            {
+                walls: [true, false],  // [north, west] - only north wall
+                wallColors: ['#FFFFFF88', null]  // Semi-transparent white for north wall
+            }
         );
         this.uiTiles.set('speed', speedTileId);
 

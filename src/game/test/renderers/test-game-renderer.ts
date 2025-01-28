@@ -342,28 +342,28 @@ export class TestGameRenderer extends GameRenderer {
                 }, bump.duration * 1000);
             }
         }
-        if (componentType === 'inertia') {
-            const inertia = entity.getComponent('inertia') as InertiaComponent;
-            const pos = entity.getPosition();
+        // if (componentType === 'inertia') {
+        //     const inertia = entity.getComponent('inertia') as InertiaComponent;
+        //     const pos = entity.getPosition();
 
-            // Create speed indicator tile
-            const speedTileId = this.display.createTile(
-                pos.x,
-                pos.y,
-                inertia.magnitude.toString(),
-                '#FFFFFFFF',  // White text
-                '#00000000',  // Transparent background
-                1000,         // Above most other tiles
-                {
-                    offsetSymbolX: 0.3,    // Offset to bottom right corner
-                    offsetSymbolY: 0.3,
-                    scaleSymbolX: 0.6,  // Make it smaller
-                    scaleSymbolY: 0.6
-                }
-            );
+        //     // Create speed indicator tile
+        //     const speedTileId = this.display.createTile(
+        //         pos.x,
+        //         pos.y,
+        //         inertia.magnitude.toString(),
+        //         '#FFFFFFFF',  // White text
+        //         '#00000000',  // Transparent background
+        //         1000,         // Above most other tiles
+        //         {
+        //             offsetSymbolX: 0.3,    // Offset to bottom right corner
+        //             offsetSymbolY: 0.3,
+        //             scaleSymbolX: 0.6,  // Make it smaller
+        //             scaleSymbolY: 0.6
+        //         }
+        //     );
 
-            this.speedIndicatorTiles.set(entity.getId(), speedTileId);
-        }
+        //     this.speedIndicatorTiles.set(entity.getId(), speedTileId);
+        // }
         if(componentType === 'bufferedMove') {
             const tileId = this.createDestinationTile(entity);
 

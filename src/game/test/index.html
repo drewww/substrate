@@ -65,10 +65,6 @@
             image-rendering: pixelated;  /* Makes scaled pixels crisp */
         }
 
-        #display {
-            border: 1px solid #000;
-        }
-
         #display-container {
             position: relative;  /* For absolute positioning of children */
             width: 800px;
@@ -85,7 +81,7 @@
         }
         
         #display, #render-canvas {
-            border: 1px solid #000;
+            /* border: 1px solid #000; */
             display: block;
             image-rendering: pixelated;
         }
@@ -104,6 +100,9 @@
             pointer-events: none;
             width: 100%;  /* Make sure it spans full width */
             height: auto;  /* Let height be determined by content */
+
+            /* border-top: 4px solid #fff; */
+            border: 1px solid #fff;
         }
     </style>
 </head>
