@@ -9,6 +9,8 @@ import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 import { COOLDOWNS, TICK_MS } from '../constants';
 import { MovementPredictor } from './movement-predictor';
+import { GearComponent } from '../components/gear.component';
+import { Display } from '../../../display/display';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -85,6 +87,25 @@ export class PlayerMovementSystem {
             prediction.finalInertia.direction,
             prediction.finalInertia.magnitude
         ));
+
+
+        const gear = player.getComponent('gear') as GearComponent;
+        if(gear) {
+            const queuedShift = gear.queuedShift;
+            if(queuedShift) {
+                gear.gear = Math.max(1, Math.min(5, gear.gear + queuedShift));
+                gear.queuedShift = 0;
+                player.setComponent(gear);
+            }
+
+            const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+            if(cooldowns) {
+                const newCooldown = 6-gear.gear;
+                logger.info(`Setting move cooldown to ${newCooldown} ticks`);
+                cooldowns.setCooldown('move', newCooldown, newCooldown);
+                player.setComponent(cooldowns);
+            }
+        }
 
         // Update light emitter if present
         if (player.hasComponent('lightEmitter')) {

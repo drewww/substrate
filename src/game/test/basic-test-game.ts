@@ -517,21 +517,11 @@ export class BasicTestGame extends Game {
                 logger.info(`shift ${params[0]} current: ${gear.gear}`);
 
                 switch(params[0]) {
-                    case 'up':    gear.gear++; break;
-                    case 'down':  gear.gear--; break;
+                    case 'up':    gear.queuedShift = 1; break;
+                    case 'down':  gear.queuedShift = -1; break;
                 }
-
-                gear.gear = Math.max(1, Math.min(5, gear.gear));
 
                 this.player.setComponent(gear);
-
-                const cooldowns = this.player.getComponent('cooldown') as CooldownComponent;
-                if(cooldowns) {
-                    const newCooldown = 6-gear.gear;
-                    logger.info(`Setting move cooldown to ${newCooldown} ticks`);
-                    cooldowns.setCooldown('move', newCooldown, newCooldown);
-                    this.player.setComponent(cooldowns);
-                }
             }
 
         }
