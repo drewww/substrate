@@ -311,6 +311,10 @@ export class TestGameRenderer extends GameRenderer {
                 }, bump.duration * 1000);
             }
         }
+        if(componentType === 'bufferedMove') {
+            const tileId = this.createDestinationTile(entity);
+            this.bufferedMoveTiles.set(entity.getId(), tileId);
+        }
     }
 
     private getTargetPosition(pos: Point, direction: Direction): Point {
