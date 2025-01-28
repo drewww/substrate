@@ -8,6 +8,17 @@ import { InertiaComponent } from '../game/test/components/inertia.component';
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string> = new Map(); // region -> tileId
     private readonly uiDisplay: Display;
+    private readonly MAX_SPEED = 8;  // Maximum speed to show
+    private readonly SPEED_COLORS = [
+        '#ffd70088',  // Speed 1 - light yellow
+        '#ffbb0088',  // Speed 2
+        '#ff990088',  // Speed 3
+        '#ff770088',  // Speed 4
+        '#ff550088',  // Speed 5
+        '#ff330088',  // Speed 6
+        '#ff110088',  // Speed 7
+        '#ff000088'   // Speed 8 - dark orange
+    ];
 
     constructor(
         private readonly player: Entity
@@ -49,40 +60,43 @@ export class UISpeedRenderer implements Renderer {
                 }
             );
             this.uiTiles.set(`bg_${x}`, tileId);
-        }
 
-        // Create speed indicator tile (above background)
-        const speedTileId = this.uiDisplay.createTile(
-            0,
-            0,
-            '0',
-            '#FFFFFFFF',
-            '#000000FF',
-            1001,  // Above background
-            {
-                walls: [true, false],  // [north, west] - only north wall
-                wallColors: ['#FFFFFF88', null]  // Semi-transparent white for north wall
-            }
-        );
-        this.uiTiles.set('speed', speedTileId);
+            // Create speed indicator tiles (initially hidden)
+            const speedTileId = this.uiDisplay.createTile(
+                x,
+                0,
+                ' ',
+                '#FFFFFFFF',
+                '#00000000',  // Start transparent
+                1001,
+                {
+                    walls: [true, false],
+                    wallColors: ['#FFFFFF88', null]
+                }
+            );
+            this.uiTiles.set(`speed_${x}`, speedTileId);
+        }
 
         this.updateSpeedIndicator();
     }
 
     private updateSpeedIndicator(): void {
         const inertia = this.player.getComponent('inertia') as InertiaComponent;
-        const speedTileId = this.uiTiles.get('speed');
-        if (speedTileId && inertia) {
-            const magnitude = inertia.magnitude ?? 0;
-            this.uiDisplay.updateTile(speedTileId, {
-                char: magnitude.toString()
-            });
+        const magnitude = inertia?.magnitude ?? 0;
+
+        // Update each speed tile
+        for (let i = 0; i < this.MAX_SPEED; i++) {
+            const speedTileId = this.uiTiles.get(`speed_${i}`);
+            if (speedTileId) {
+                this.uiDisplay.updateTile(speedTileId, {
+                    bg: i < magnitude ? this.SPEED_COLORS[i] : '#00000000'
+                });
+            }
         }
     }
 
     update(timestamp: number): void {
         // this.uiDisplay.render(timestamp);
-        
     }
 
     handleEntityAdded(entity: Entity, tileId: string): void {}
