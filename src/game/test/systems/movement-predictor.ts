@@ -62,14 +62,15 @@ export class MovementPredictor {
                 [Direction.East]: Direction.West
             }[inertia.direction];
 
-            let newBufferedMove = bufferedMove;
-            if(!newBufferedMove) {
-                newBufferedMove = new BufferedMoveComponent(oppositeDirection);
+            let newBufferedMove: BufferedMoveComponent | null = null;
+            if(!bufferedMove) {
+                if(inertia.magnitude > 1) {
+                    bufferedMove = new BufferedMoveComponent(oppositeDirection);
+                }
             } else {
-                newBufferedMove.direction = oppositeDirection;
+                bufferedMove.direction = oppositeDirection;
             }
 
-            bufferedMove = newBufferedMove;
         }
 
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude}`);
