@@ -45,13 +45,32 @@ export class MovementPredictor {
 
     predictMove(player: Entity): MovementPrediction {
         const actions: PredictedAction[] = [];
-        const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
+        let bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
         const inertia = player.getComponent('inertia') as InertiaComponent;
         const gear = player.getComponent('gear') as GearComponent;
         const pos = player.getPosition();
         
         // Calculate max speed based on current gear
         const maxSpeed = gear ? (gear.gear * 2) - 2 : 1;
+
+        if(gear.queuedShift==-1) {
+
+            const oppositeDirection = {
+                [Direction.North]: Direction.South,
+                [Direction.South]: Direction.North,
+                [Direction.West]: Direction.East,
+                [Direction.East]: Direction.West
+            }[inertia.direction];
+
+            let newBufferedMove = bufferedMove;
+            if(!newBufferedMove) {
+                newBufferedMove = new BufferedMoveComponent(oppositeDirection);
+            } else {
+                newBufferedMove.direction = oppositeDirection;
+            }
+
+            bufferedMove = newBufferedMove;
+        }
 
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude}`);
 

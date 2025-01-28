@@ -44,6 +44,7 @@ a move left
 d move right
 e shift up
 q shift down
+Space shift down
 `;
 
 // E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}, {"type": "lightEmitter", "radius": 5, "color": "#CCCCCCFF44", "intensity": 0.3, "distanceFalloff": "quadratic", "facing": 2, "width": 1.571, "mode":"fg"}]

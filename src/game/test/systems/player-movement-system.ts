@@ -147,7 +147,7 @@ export class PlayerMovementSystem {
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
 
         const gear = player.getComponent('gear') as GearComponent;
-        
+
         if(gear) {
             gear.queuedShift = 0;
             gear.gear = 1;
