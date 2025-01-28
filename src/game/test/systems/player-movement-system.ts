@@ -91,6 +91,12 @@ export class PlayerMovementSystem {
 
         const gear = player.getComponent('gear') as GearComponent;
         if(gear) {
+
+            // override queued shift if braking
+            if(prediction.finalInertia.brake) {
+                gear.queuedShift = -1;
+            } 
+
             const queuedShift = gear.queuedShift;
             if(queuedShift) {
                 gear.gear = Math.max(1, Math.min(5, gear.gear + queuedShift));
@@ -139,6 +145,14 @@ export class PlayerMovementSystem {
         const cooldowns = player.getComponent('cooldown') as CooldownComponent;
         cooldowns.setCooldown('stun', stunDuration, stunDuration, true);
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
+
+        const gear = player.getComponent('gear') as GearComponent;
+        
+        if(gear) {
+            gear.queuedShift = 0;
+            gear.gear = 1;
+            player.setComponent(gear);
+        }
     }
 
     // Convert Direction enum to radians (Direction.North = 0 = up = -PI/2)

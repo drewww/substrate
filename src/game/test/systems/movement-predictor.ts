@@ -17,6 +17,7 @@ export interface MovementPrediction {
     finalInertia: {
         direction: Direction;
         magnitude: number;
+        brake: boolean;
     };
     willCollide: boolean;
 }
@@ -61,7 +62,8 @@ export class MovementPredictor {
                 actions: [],
                 finalInertia: {
                     direction: inertia?.direction ?? Direction.South,
-                    magnitude: 0
+                    magnitude: 0,
+                    brake: false
                 },
                 willCollide: false
             };
@@ -80,7 +82,7 @@ export class MovementPredictor {
                 // logger.info(`Inertial movement will collide`);
                 return {
                     actions: [],
-                    finalInertia: { direction: inertia.direction, magnitude: 0 },
+                    finalInertia: { direction: inertia.direction, magnitude: 0, brake: false },
                     willCollide: true
                 };
             }
@@ -94,7 +96,8 @@ export class MovementPredictor {
                 }],
                 finalInertia: {
                     direction: inertia.direction,
-                    magnitude: Math.min(maxSpeed, inertia.magnitude)  // Cap at max speed
+                    magnitude: Math.min(maxSpeed, inertia.magnitude),  // Cap at max speed
+                    brake: false
                 },
                 willCollide: false
             };
@@ -116,7 +119,8 @@ export class MovementPredictor {
 
             let finalInertia = {
                 direction: bufferedMove.direction,
-                magnitude: 1
+                magnitude: 1,
+                brake: false
             };
 
             if (inertia) {
@@ -144,13 +148,15 @@ export class MovementPredictor {
                     
                     finalInertia = {
                         direction: inertia.direction,
-                        magnitude: Math.max(0, inertia.magnitude - 1)
+                        magnitude: Math.max(0, inertia.magnitude - 1),
+                        brake: true
                     };
                 } else if(inertia.magnitude < 2) {
                     // if inertia is less than 2, still update the direction
                     finalInertia = {
                         direction: bufferedMove.direction,
-                        magnitude: 1
+                        magnitude: 1,
+                        brake: false
                     };
                 }
                 else {
@@ -165,7 +171,8 @@ export class MovementPredictor {
                         if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y)) {
                             finalInertia = {
                                 direction: inertia.direction,
-                                magnitude: 0
+                                magnitude: 0,
+                                brake: false
                             };
                         } else {
                             actions.push({
@@ -180,7 +187,8 @@ export class MovementPredictor {
                     finalInertia = {
                         direction: newMagnitude >= 2 && newMagnitude <= 3 ? 
                             bufferedMove.direction : inertia.direction,
-                        magnitude: Math.min(maxSpeed, newMagnitude)  // Cap at max speed
+                        magnitude: Math.min(maxSpeed, newMagnitude),  // Cap at max speed
+                        brake: false
                     };
                 }
             }
@@ -191,7 +199,7 @@ export class MovementPredictor {
                 if (!this.world.isPassable(from.x, from.y, action.data.to.x, action.data.to.y)) {
                     return {
                         actions: [],
-                        finalInertia: { direction: inertia?.direction ?? bufferedMove.direction, magnitude: 0 },
+                        finalInertia: { direction: inertia?.direction ?? bufferedMove.direction, magnitude: 0, brake: false },
                         willCollide: true
                     };
                 }
@@ -200,7 +208,7 @@ export class MovementPredictor {
             return {
                 actions,
                 finalInertia,
-                willCollide: false
+                willCollide: false,
             };
         }
 
@@ -209,7 +217,8 @@ export class MovementPredictor {
             actions: [],
             finalInertia: {
                 direction: inertia?.direction ?? Direction.South,
-                magnitude: 0
+                magnitude: 0,
+                brake: false
             },
             willCollide: false
         };
