@@ -3,7 +3,7 @@ import { InputManager } from '../input/input';
 import { World } from '../world/world';
 import { Entity } from '../entity/entity';
 import { Display } from '../display/display';
-import { Renderer } from '../render/renderer';
+import { BaseRenderer } from '../render/renderer';
 import { DisplayOptions } from '../display/types';
 
 export abstract class Game {
@@ -12,7 +12,7 @@ export abstract class Game {
     protected world!: World;
     protected player!: Entity;
     protected display: Display;
-    protected renderer!: Renderer;
+    protected renderer!: BaseRenderer;
     private updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
 
@@ -38,7 +38,7 @@ export abstract class Game {
         this.renderer = this.createRenderer();
     }
 
-    protected abstract createRenderer(): Renderer;
+    protected abstract createRenderer(): BaseRenderer;
     protected abstract initializeWorld(): void;
     protected abstract handleInput(type: string, action: string, params: string[]): void;
 

@@ -5,7 +5,7 @@ import { Engine } from '../../engine/engine';
 import { EnemyMovementSystem } from './systems/enemy-movement.system';
 import { EnemyEntity } from '../../entity/enemy';
 import { TestGameRenderer } from './renderers/test-game-renderer';
-import { Renderer } from '../../render/renderer';
+import { BaseRenderer } from '../../render/renderer';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 import { PlayerComponent } from '../../entity/components/player-component';
 import { ActionHandler, BaseAction, ActionClass } from '../../action/action-handler';
@@ -29,6 +29,7 @@ import { ToggleSystem } from './systems/toggle.system';
 import { FollowingSystem } from './systems/following.system';
 import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 import { COOLDOWNS } from './constants';
+import { Renderer } from '../../render/renderer-interface';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -304,7 +305,7 @@ export class BasicTestGame extends Game {
         });
     }
 
-    protected createRenderer(): Renderer {
+    protected createRenderer(): BaseRenderer {
         const renderer = new TestGameRenderer(this.display, this.world);
         return renderer;
     }

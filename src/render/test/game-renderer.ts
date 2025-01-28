@@ -1,4 +1,4 @@
-import { Renderer } from '../renderer';
+import { BaseRenderer } from '../renderer';
 import { Entity } from '../../entity/entity';
 import { Point } from '../../types';
 import { BlendMode } from '../../display/types';
@@ -7,7 +7,7 @@ import { logger } from '../../util/logger';
 import { Component } from '../../entity/component';
 import { Easing } from '../../display/types';
 
-export class GameRenderer extends Renderer {
+export class GameRenderer extends BaseRenderer {
     protected onEntityAdded(entity: Entity): void {
         super.onEntityAdded(entity);
         
@@ -34,13 +34,13 @@ export class GameRenderer extends Renderer {
         }
     }
 
-    protected handleEntityAdded(entity: Entity, tileId: string): void {}
+    public handleEntityAdded(entity: Entity, tileId: string): void {}
 
-    protected handleEntityModified(entity: Entity, componentType: string): void {}
-    protected handleComponentModified(entity: Entity, componentType: string): void {}
-    protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
-    protected handleEntityRemoved(entity: Entity): void {}
-    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
+    public handleEntityModified(entity: Entity, componentType: string): void {}
+    public handleComponentModified(entity: Entity, componentType: string): void {}
+    public handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
+    public handleEntityRemoved(entity: Entity): void {}
+    public handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
         const tileId = this.entityTiles.get(entity.getId());
         if (!tileId) return false;
 

@@ -1,6 +1,6 @@
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
-import { Renderer } from '../renderer';
+import { BaseRenderer } from '../renderer';
 import { FillDirection } from '../../display/types';
 import { Tile } from '../../display/types';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -79,7 +79,7 @@ class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTi
 }
 
 // Concrete test implementation of Renderer
-class TestRenderer extends Renderer {
+class TestRenderer extends BaseRenderer {
     protected handleComponentModified(entity: Entity, componentType: string): void {}
     protected handleEntityAdded(entity: Entity, tileId: string): void {}
     protected handleEntityModified(entity: Entity, componentType: string): void {}

@@ -91,7 +91,7 @@ export class TestGameRenderer extends GameRenderer {
         this.display.setVisibilityMask(mask);
     }
 
-    protected handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+    public handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
         if (componentType === 'bufferedMove') {
             const tileId = this.bufferedMoveTiles.get(entity.getId());
             if (tileId) {
@@ -119,7 +119,7 @@ export class TestGameRenderer extends GameRenderer {
         }
     }
 
-    protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
+    public handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
         const tileId = this.entityTiles.get(entity.getId());
         if (tileId) {
             const isPlayer = entity.hasComponent('player');
@@ -189,7 +189,7 @@ export class TestGameRenderer extends GameRenderer {
         return false;
     }
 
-    protected handleComponentModified(entity: Entity, componentType: string): void {
+    public handleComponentModified(entity: Entity, componentType: string): void {
         if (componentType === 'bufferedMove' || componentType === 'inertia') {
             const prediction = this.movementPredictor.predictMove(entity);
             const tileId = this.bufferedMoveTiles.get(entity.getId());
@@ -280,7 +280,7 @@ export class TestGameRenderer extends GameRenderer {
         }
     }
 
-    protected handleComponentAdded(entity: Entity, componentType: string): void {
+    public handleComponentAdded(entity: Entity, componentType: string): void {
        
         // Handle bumping animation
         // logger.info(`Component added: ${entity.getId()} - ${componentType}`);

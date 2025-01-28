@@ -12,6 +12,7 @@ import { ColorAnimationModule } from '../animation/color-animation';
 import { Component } from '../entity/component';
 import { WallComponent, WallDirection } from '../entity/components/wall-component';
 import { computeFieldOfView } from 'wally-fov';
+import { Renderer } from './renderer-interface';
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -49,7 +50,7 @@ const Z_INDEX = {
     ENTITY: 50           // Base entities below lighting
 };
 
-export abstract class Renderer {
+export abstract class BaseRenderer implements Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
     protected tileEntities: Map<string, string> = new Map(); // tileId -> entityId
     private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
@@ -771,12 +772,12 @@ export abstract class Renderer {
     }
 
     // Update abstract methods
-    protected abstract handleEntityAdded(entity: Entity, tileId: string): void;
-    protected abstract handleEntityModified(entity: Entity, componentType: string): void;
-    protected abstract handleComponentModified(entity: Entity, componentType: string): void;
-    protected abstract handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;
-    protected abstract handleEntityRemoved(entity: Entity): void;
-    protected abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
+    public abstract handleEntityAdded(entity: Entity, tileId: string): void;
+    public abstract handleEntityModified(entity: Entity, componentType: string): void;
+    public abstract handleComponentModified(entity: Entity, componentType: string): void;
+    public abstract handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;
+    public abstract handleEntityRemoved(entity: Entity): void;
+    public abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
 
     private getAngleDistance(angle1: number, angle2: number): number {
         const diff = Math.abs(angle1 - angle2);
