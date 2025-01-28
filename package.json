@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "deploy": "npm run build && butler push dist/src/game/test/ drewww/substrate:web && npm run notify-discord",
-    "notify-discord": "curl -X POST -H \"Content-Type: application/json\" -d \"{\\\"content\\\":\\\"New version of Substrate deployed! Play it here: https://drewww.itch.io/substrate?secret=jd2lr925BVAg1yMjxnxLq1xJJA\\\"}\" https://discord.com/api/webhooks/1333231542213939281/GDJ0i8Yck--E_ocCpZYablID1r4HIDLLgzQSFUIx2VlCRXQUQdGftHHVzHNigPNUqSSY"
+    "notify-discord": "node scripts/notify-discord.js"
   },
   "devDependencies": {
     "typescript": "^5.2.2",

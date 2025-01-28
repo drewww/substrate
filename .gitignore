@@ -26,3 +26,5 @@ package-lock.json
 
 js/*
 *.zip
+
+config.local.json
