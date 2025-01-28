@@ -107,6 +107,16 @@ export class TestGameRenderer extends GameRenderer {
                 this.speedIndicatorTiles.delete(entity.getId());
             }
         }
+
+        if (componentType === 'stun') {
+            const tileId = this.entityTiles.get(entity.getId());
+            if (tileId) {
+                this.display.updateTile(tileId, {
+                    bgPercent: 0.0,
+                    fillDirection: FillDirection.TOP
+                });
+            }
+        }
     }
 
     protected handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {

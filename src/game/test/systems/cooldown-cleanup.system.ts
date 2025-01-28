@@ -18,6 +18,10 @@ export class CooldownCleanupSystem {
                     cooldowns.setCooldown(name, state.base, state.base, false);
                     modified = true;
                     // logger.info(`Reset cooldown ${name} for entity ${entity.getId()}`);
+
+                    if(name === 'stun' && state.current <= 0) {
+                        entity.removeComponent('stun');
+                    }
                 }
             }
             
