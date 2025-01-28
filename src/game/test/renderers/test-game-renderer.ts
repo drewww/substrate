@@ -313,7 +313,10 @@ export class TestGameRenderer extends GameRenderer {
         }
         if(componentType === 'bufferedMove') {
             const tileId = this.createDestinationTile(entity);
-            this.bufferedMoveTiles.set(entity.getId(), tileId);
+
+            if(tileId) {
+                this.bufferedMoveTiles.set(entity.getId(), tileId);
+            }
         }
     }
 
@@ -330,8 +333,13 @@ export class TestGameRenderer extends GameRenderer {
         return this.display.getVisibilityMask();
     }
 
-    private createDestinationTile(entity: Entity): TileId {
+    private createDestinationTile(entity: Entity): TileId | null {
         const prediction = this.movementPredictor.predictMove(entity);
+
+        if(prediction.actions.length === 0) {
+            return null;
+        }
+
         const finalAction = prediction.actions[prediction.actions.length - 1];
 
         // Convert direction to radians for rotation

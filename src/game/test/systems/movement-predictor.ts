@@ -114,10 +114,15 @@ export class MovementPredictor {
             };
 
             if (inertia) {
+
+                if(inertia.magnitude === 0) {
+                    inertia.direction = bufferedMove.direction;
+                }
+
                 if (inertia.direction === bufferedMove.direction) {
                     // Same direction: increase inertia
                     finalInertia.magnitude = Math.min(8, inertia.magnitude + 1);
-                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction) && inertia.magnitude > 2) {
+                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                     // Opposite direction: decrease inertia and potentially slide
                     actions.pop(); // Remove the buffered move
                     

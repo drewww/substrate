@@ -127,15 +127,6 @@ export class PlayerMovementSystem {
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
     }
 
-    private isOppositeDirection(dir1: Direction, dir2: Direction): boolean {
-        return (
-            (dir1 === Direction.North && dir2 === Direction.South) ||
-            (dir1 === Direction.South && dir2 === Direction.North) ||
-            (dir1 === Direction.East && dir2 === Direction.West) ||
-            (dir1 === Direction.West && dir2 === Direction.East)
-        );
-    }
-
     // Convert Direction enum to radians (Direction.North = 0 = up = -PI/2)
     // consider making this a util function later
     private directionToRadians(direction: Direction): number {
