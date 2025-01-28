@@ -2,10 +2,10 @@ import { Display } from '../display/display';
 import { Entity } from '../entity/entity';
 import { Component } from '../entity/component';
 import { Point } from '../types';
-import { Renderer } from './renderer-interface';
+import { Renderer } from './renderer';
 import { InertiaComponent } from '../game/test/components/inertia.component';
 
-export class UIRenderer implements Renderer {
+export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string> = new Map(); // region -> tileId
     private readonly height: number;
     private readonly width: number;
