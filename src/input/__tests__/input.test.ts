@@ -120,15 +120,15 @@ describe('InputManager', () => {
 
         it('rejects invalid modifier keys', () => {
             const config = `
-                mode: game
+                mode: test
+                ==========
                 map: default
                 ---
-                Invalid+w move-up
-                =====
+                Invalid+x move up
             `;
             inputManager.loadConfig(config);
             const errors = inputManager.getConfigErrors();
-            expect(errors.some(e => e.message.includes('Invalid modifier key'))).toBe(true);
+            expect(errors.some(e => e.message.includes('Invalid modifier'))).toBe(true);
         });
 
         it('validates action names', () => {
@@ -142,6 +142,32 @@ describe('InputManager', () => {
             inputManager.loadConfig(config);
             const errors = inputManager.getConfigErrors();
             expect(errors.some(e => e.message.includes('Invalid action name'))).toBe(true);
+        });
+
+        it('handles Space key correctly', () => {
+            const config = `
+                mode: test
+                ==========
+                map: default
+                ---
+                Space actionA
+                Shift+Space actionB
+            `;
+            inputManager.loadConfig(config);
+            
+            // Check for no errors
+            const errors = inputManager.getConfigErrors();
+            expect(errors.length).toBe(0);
+            
+            // Verify Space is mapped to ' ' internally
+            inputManager.setMode('test');
+
+            const actions = inputManager.listActions('test');
+            expect(actions).toContain('actionA');
+            expect(actions).toContain('actionB');
+
+            const keys = inputManager.listKeysForAction('test', 'actionA');
+            expect(keys).toContain(' ');
         });
     });
 

@@ -1,3 +1,5 @@
+import { logger } from "../util/logger";
+
 type ModifierState = {
     ctrl: boolean;
     shift: boolean;
@@ -297,6 +299,7 @@ export class InputManager {
 
     private parseKeyMapping(line: string, mode: string, map: string, lineNumber: number): void {
         const parts = line.split(/\s+/);
+        // logger.info(`Parsing key mapping: ${line}`);
         if (parts.length < 2) {
             this.configErrors.push({
                 type: 'error',
@@ -310,7 +313,7 @@ export class InputManager {
 
         // First part is the key list
         const keyList = parts[0].split(',').map(k => k.trim());
-        
+
         // Check for old pass syntax
         if (keyList.includes('pass')) {
             this.configErrors.push({
@@ -325,35 +328,37 @@ export class InputManager {
 
         // Validate each key in the list
         for (const key of keyList) {
-            // Split for modifier keys
-            const keyParts = key.split('+');
-            const mainKey = keyParts[keyParts.length - 1];
-            const modifiers = keyParts.slice(0, -1);
+            // Split the key into modifiers and main key
+            const parts = key.split('+');
+            const mainKey = parts[parts.length - 1];
 
             // Validate modifiers
-            for (const modifier of modifiers) {
-                if (!['Control', 'Shift', 'Alt', 'Meta'].includes(modifier)) {
-                    this.configErrors.push({
-                        type: 'error',
-                        message: `Invalid modifier key: "${modifier}" in "${key}"`,
-                        mode: mode,
-                        map: map,
-                        line: lineNumber
-                    });
-                    return;
+            if (parts.length > 1) {
+                const modifiers = parts.slice(0, -1);
+                for (const modifier of modifiers) {
+                    if (!['Control', 'Shift', 'Alt', 'Meta'].includes(modifier)) {
+                        this.configErrors.push({
+                            type: 'error',
+                            message: `Invalid modifier: "${modifier}" in "${key}"`,
+                            mode: mode,
+                            map: map,
+                            line: lineNumber
+                        });
+                        return;
+                    }
                 }
             }
 
-            // Validate main key
-            // List of valid special keys
             const specialKeys = [
                 'Enter', 'Tab', 'Space', 'Backspace', 'Delete', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
                 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Escape',
                 'Control', 'Shift', 'Alt', 'Meta'
             ];
 
-            // Check if it's a single character or special key
-            if (!(mainKey.length === 1 || specialKeys.includes(mainKey))) {
+            // Check if it's a single character OR a special key
+            if (mainKey.length === 1 || specialKeys.includes(mainKey)) {
+                // logger.info(`Valid key: ${mainKey}`);
+            } else {
                 this.configErrors.push({
                     type: 'error',
                     message: `Invalid key: "${mainKey}" in "${key}"`,
@@ -390,6 +395,8 @@ export class InputManager {
                     .map(part => this.normalizeKey(part.trim()))
                     .join('+')
                 : this.normalizeKey(key);
+
+            // logger.info(`Normalized key: ${normalizedKey}`);
 
             const keyConfig = {
                 action,
@@ -741,8 +748,12 @@ export class InputManager {
     private normalizeKey(key: string): string {
         // Don't lowercase special keys that start with uppercase
         if (key.length > 1 && key.match(/^[A-Z]/)) {
+            if (key == 'Space') {
+                return ' ';
+            }
             return key;
         }
+
         return key.toLowerCase();
     }
 
