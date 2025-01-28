@@ -1,5 +1,7 @@
 import { logger } from "../util/logger";
 
+const CHECK_INTERVAL = 50; // Check every 50ms
+
 export class EngineLoop {
     private accumulator: number = 0;
     private lastTime: number = 0;
@@ -14,7 +16,7 @@ export class EngineLoop {
     start(): void {
         this.running = true;
         this.lastTime = Date.now();
-        this.tick();
+        this.check();
     }
 
     stop(): void {
@@ -25,10 +27,9 @@ export class EngineLoop {
         }
     }
 
-    private tick(): void {
+    private check(): void {
         if (!this.running) return;
 
-        logger.info('================TICK================');
         // Get current time
         const currentTime = Date.now();
 
@@ -41,11 +42,12 @@ export class EngineLoop {
 
         // Run as many fixed updates as needed
         while (this.accumulator >= this.timestep) {
+            logger.info('================TICK================');
             this.updateFn(this.timestep / 1000); // Convert to seconds for consistency
             this.accumulator -= this.timestep;
         }
 
-        // Schedule next tick using window.setTimeout
-        this.timeout = window.setTimeout(() => this.tick(), this.timestep);
+        // Schedule next check using window.setTimeout
+        this.timeout = window.setTimeout(() => this.check(), CHECK_INTERVAL);
     }
 } 

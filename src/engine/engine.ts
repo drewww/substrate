@@ -15,7 +15,7 @@ export interface EngineOptions {
 }
 
 export class Engine {
-    private systems: ((deltaTime: number) => void)[] = [];
+    private systems: (() => void)[] = [];
     private actionHandler: ActionHandler;
     private isRunning: boolean = false;
     private engineLoop: EngineLoop;
@@ -43,7 +43,7 @@ export class Engine {
         // Create engine loop with 200ms timestep (5 Hz)
         this.engineLoop = new EngineLoop(
             TICK_MS,
-            (deltaTime: number) => this.tick(deltaTime)
+            () => this.tick()
         );
     }
 
@@ -57,11 +57,11 @@ export class Engine {
         this.engineLoop.stop();
     }
 
-    addSystem(system: (deltaTime: number) => void): void {
+    addSystem(system: () => void): void {
         this.systems.push(system);
     }
 
-    private tick(deltaTime: number): void {
+    public tick(): void {
         if (!this.isRunning) return;
 
         // Update UPS counter
@@ -78,7 +78,7 @@ export class Engine {
         // Run systems first
         this.systems.forEach((system, index) => {
             const systemStart = performance.now();
-            system(deltaTime);
+            system();
             const systemDuration = performance.now() - systemStart;
             
             // Update system metrics
@@ -95,9 +95,10 @@ export class Engine {
         const entityStart = performance.now();
         for (const entity of this.options.world.getEntities()) {
             if ('update' in entity) {
-                (entity as any).update(deltaTime);
+                (entity as any).update();
             }
         }
+        
         this.metrics.entityUpdateDuration = performance.now() - entityStart;
         this.metrics.averageEntityUpdateDuration = 
             (this.metrics.averageEntityUpdateDuration * 0.95) + (this.metrics.entityUpdateDuration * 0.05);

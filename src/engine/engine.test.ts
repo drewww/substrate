@@ -39,7 +39,7 @@ describe('Engine', () => {
         });
 
         // Process the action
-        engine.update(performance.now());
+        engine.tick();
 
         expect(player.getPosition()).toEqual(newPos);
     });
@@ -53,27 +53,11 @@ describe('Engine', () => {
             position: invalidPos
         });
 
-        engine.update(performance.now());
+        engine.tick();
 
         expect(player.getPosition()).toEqual(originalPos);
     });
 
-    test('updates entities with deltaTime', () => {
-        const mockUpdate = vi.fn();
-        const updateEntity = new Entity({ x: 0, y: 0 });
-        (updateEntity as any).update = mockUpdate;
-
-        engine.getWorld().addEntity(updateEntity);
-
-        const time1 = 1000;
-        const time2 = 1016; // 16ms later
-        
-        engine.start();
-        engine.update(time1);
-        engine.update(time2);
-
-        expect(mockUpdate).toHaveBeenCalledWith(0.016); // 16ms in seconds
-    });
 
     test('respects running state', () => {
         const startPos = player.getPosition();
@@ -84,7 +68,7 @@ describe('Engine', () => {
             position: { x: 6, y: 5 }
         });
 
-        engine.update(performance.now());
+        engine.tick();
 
         expect(player.getPosition()).toEqual(startPos);
     });
@@ -103,7 +87,7 @@ describe('Engine', () => {
             });
         });
 
-        engine.update(performance.now());
+        engine.tick();
 
         expect(player.getPosition()).toEqual(moves[moves.length - 1]);
     });
@@ -119,7 +103,7 @@ describe('Engine', () => {
             engine.handleAction({ type: 'move', position: { x: 8, y: 5 } });
             
             // Should process all moves but only emit events once at the end
-            engine.update(performance.now());
+            engine.tick();
             
             expect(events.length).toBe(3); // All events processed in one batch
             expect(player.getPosition()).toEqual({ x: 8, y: 5 });
@@ -139,7 +123,7 @@ describe('Engine', () => {
 
         test('systems receive consistent world state during update', () => {
             const systemStates: Point[] = [];
-            const testSystem = (deltaTime: number) => {
+            const testSystem = () => {
                 systemStates.push({...player.getPosition()});
             };
             
@@ -149,7 +133,7 @@ describe('Engine', () => {
             engine.handleAction({ type: 'move', position: { x: 6, y: 5 } });
             engine.handleAction({ type: 'move', position: { x: 7, y: 5 } });
             
-            engine.update(performance.now());
+            engine.tick();
             
             // System should see the final state, not intermediate states
             expect(systemStates).toEqual([{ x: 7, y: 5 }]);
