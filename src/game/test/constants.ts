@@ -6,6 +6,6 @@ export const COOLDOWNS = {
     ENEMY_MOVE: 5,     // was 1000ms
     TOGGLE: 5,         // was 1000ms
     STUN: 15,         // was 3000ms
-    FAST_MOVE: 2,      // was 300ms (for inertia)
+    FAST_MOVE: 1,      // was 300ms (for inertia)
     MEDIUM_MOVE: 3     // was 500ms (for inertia)
 } as const; 

@@ -1,3 +1,5 @@
+import { logger } from "../util/logger";
+
 export class EngineLoop {
     private accumulator: number = 0;
     private lastTime: number = 0;
@@ -26,7 +28,11 @@ export class EngineLoop {
     private tick(): void {
         if (!this.running) return;
 
+        logger.info('================TICK================');
+        // Get current time
         const currentTime = Date.now();
+
+        // Calculate frame time
         const frameTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 

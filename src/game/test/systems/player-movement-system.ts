@@ -41,19 +41,19 @@ export class PlayerMovementSystem {
 
             // Check move cooldown
             const moveState = cooldowns.getCooldown('move');
+            logger.info(`Player ${player.getId()} moveState: ${moveState?.ready}`);
             if (moveState?.ready) {
                 this.movePlayer(player);
 
                 // Reset move cooldown based on inertia
                 if (inertia) {
                     if (inertia.magnitude >= 8) {
-                        cooldowns.setCooldown('move', COOLDOWNS.FAST_MOVE);
+                        cooldowns.setCooldown('move', COOLDOWNS.FAST_MOVE, COOLDOWNS.FAST_MOVE, false);
+                    } else if (inertia.magnitude > 1) {
+                        cooldowns.setCooldown('move', COOLDOWNS.MEDIUM_MOVE, COOLDOWNS.MEDIUM_MOVE, false);
                     } else {
-                        const newBaseTime = COOLDOWNS.PLAYER_MOVE - (inertia.magnitude > 1 ? COOLDOWNS.MEDIUM_MOVE : 0);
-                        cooldowns.setCooldown('move', newBaseTime);
+                        cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE, false);
                     }
-                } else {
-                    cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE);
                 }
             }
 

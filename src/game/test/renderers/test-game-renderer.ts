@@ -21,6 +21,7 @@ export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
     private movementPredictor: MovementPredictor;
+    private speedIndicatorTiles: Map<string, string> = new Map(); // entityId -> tileId
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -96,6 +97,14 @@ export class TestGameRenderer extends GameRenderer {
             if (tileId) {
                 this.display.removeTile(tileId);
                 this.bufferedMoveTiles.delete(entity.getId());
+            }
+        }
+
+        if (componentType === 'inertia') {
+            const speedTileId = this.speedIndicatorTiles.get(entity.getId());
+            if (speedTileId) {
+                this.display.removeTile(speedTileId);
+                this.speedIndicatorTiles.delete(entity.getId());
             }
         }
     }
@@ -174,7 +183,19 @@ export class TestGameRenderer extends GameRenderer {
         if (componentType === 'bufferedMove' || componentType === 'inertia') {
             const prediction = this.movementPredictor.predictMove(entity);
             const tileId = this.bufferedMoveTiles.get(entity.getId());
+            const speedTileId = this.speedIndicatorTiles.get(entity.getId());
             
+            // Update speed indicator if it exists
+            if (speedTileId && prediction.finalInertia) {
+                const finalAction = prediction.actions[prediction.actions.length - 1];
+                const pos = finalAction?.data.to ?? entity.getPosition();
+                
+                this.display.moveTile(speedTileId, pos.x, pos.y);
+                this.display.updateTile(speedTileId, {
+                    char: prediction.finalInertia.magnitude.toString(),
+                });
+            }
+
             if (tileId) {
                 if (prediction.actions.length > 0) {
                     // Get the final destination from the last action
@@ -311,6 +332,28 @@ export class TestGameRenderer extends GameRenderer {
                 }, bump.duration * 1000);
             }
         }
+        if (componentType === 'inertia') {
+            const inertia = entity.getComponent('inertia') as InertiaComponent;
+            const pos = entity.getPosition();
+
+            // Create speed indicator tile
+            const speedTileId = this.display.createTile(
+                pos.x,
+                pos.y,
+                inertia.magnitude.toString(),
+                '#FFFFFFFF',  // White text
+                '#00000000',  // Transparent background
+                1000,         // Above most other tiles
+                {
+                    offsetSymbolX: 0.3,    // Offset to bottom right corner
+                    offsetSymbolY: 0.3,
+                    scaleSymbolX: 0.6,  // Make it smaller
+                    scaleSymbolY: 0.6
+                }
+            );
+
+            this.speedIndicatorTiles.set(entity.getId(), speedTileId);
+        }
         if(componentType === 'bufferedMove') {
             const tileId = this.createDestinationTile(entity);
 
@@ -358,7 +401,7 @@ export class TestGameRenderer extends GameRenderer {
             finalAction.data.to.x,
             finalAction.data.to.y,
             '➜',  // Unicode arrow character
-            '#FFFFFFFF',
+            '#777777FF',
             '#222299FF',
             999,
             {
