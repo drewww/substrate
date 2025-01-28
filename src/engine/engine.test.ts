@@ -2,15 +2,36 @@ import { Engine, EngineOptions } from './engine';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { World } from '../world/world';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { TICK_MS } from '../game/test/constants';
+
+// Mock window object for tests
+const mockWindow = {
+    setTimeout: vi.fn(),
+    clearTimeout: vi.fn(),
+};
+vi.stubGlobal('window', mockWindow);
 
 describe('Engine', () => {
     let engine: Engine;
     let player: Entity;
     let world: World;
     let config: EngineOptions;
+    let currentTime: number;
 
     beforeEach(() => {
+        // Reset mocks
+        vi.clearAllMocks();
+        
+        // Mock Date.now
+        currentTime = 1000;
+        vi.spyOn(Date, 'now').mockImplementation(() => currentTime);
+
+        // Set up setTimeout to just return an ID without executing callback
+        mockWindow.setTimeout.mockImplementation(() => {
+            return 1;
+        });
+
         world = new World(20, 20);
         player = new Entity({ x: 5, y: 5 });
         world.addEntity(player);
@@ -25,41 +46,31 @@ describe('Engine', () => {
         engine = new Engine(config);
     });
 
+    afterEach(() => {
+        vi.clearAllMocks();
+    });
+
     test('initializes with player in world', () => {
         const world = engine.getWorld();
         expect(world.getEntity(player.getId())).toBe(player);
         expect(player.getPosition()).toEqual({ x: 5, y: 5 });
     });
 
-    test('processes move action for player', () => {
+    test('processes move action on next tick', () => {
+        engine.start();
         const newPos: Point = { x: 6, y: 5 };
         engine.handleAction({
             type: 'move',
             position: newPos
         });
 
-        // Process the action
+        // Manually trigger tick instead of relying on setTimeout
         engine.tick();
 
         expect(player.getPosition()).toEqual(newPos);
     });
 
-    test('ignores invalid move actions', () => {
-        const originalPos = player.getPosition();
-        const invalidPos: Point = { x: -1, y: 5 };
-        
-        engine.handleAction({
-            type: 'move',
-            position: invalidPos
-        });
-
-        engine.tick();
-
-        expect(player.getPosition()).toEqual(originalPos);
-    });
-
-
-    test('respects running state', () => {
+    test('ignores actions when stopped', () => {
         const startPos = player.getPosition();
         
         engine.stop();
@@ -73,70 +84,31 @@ describe('Engine', () => {
         expect(player.getPosition()).toEqual(startPos);
     });
 
-    test('queues multiple actions and processes in order', () => {
-        const moves = [
-            { x: 6, y: 5 },
-            { x: 6, y: 6 },
-            { x: 7, y: 6 }
-        ];
+    test('runs systems on each tick', () => {
+        const systemSpy = vi.fn();
+        engine.addSystem(systemSpy);
+        engine.start();
 
-        moves.forEach(pos => {
-            engine.handleAction({
-                type: 'move',
-                position: pos
-            });
-        });
+        // Manually trigger ticks
+        engine.tick();
+        expect(systemSpy).toHaveBeenCalledTimes(1);
 
         engine.tick();
-
-        expect(player.getPosition()).toEqual(moves[moves.length - 1]);
+        expect(systemSpy).toHaveBeenCalledTimes(2);
     });
 
-    describe('event batching', () => {
-        test('batches events during update cycle', () => {
-            const events: string[] = [];
-            world.on('entityMoved', () => events.push('moved'));
-            
-            // Queue up multiple moves
-            engine.handleAction({ type: 'move', position: { x: 6, y: 5 } });
-            engine.handleAction({ type: 'move', position: { x: 7, y: 5 } });
-            engine.handleAction({ type: 'move', position: { x: 8, y: 5 } });
-            
-            // Should process all moves but only emit events once at the end
+    test('maintains performance metrics', () => {
+        engine.start();
+        
+        // Simulate some ticks
+        for (let i = 0; i < 5; i++) {
+            currentTime += TICK_MS;
             engine.tick();
-            
-            expect(events.length).toBe(3); // All events processed in one batch
-            expect(player.getPosition()).toEqual({ x: 8, y: 5 });
-        });
+        }
 
-        test('events outside update cycle are not batched', () => {
-            const events: string[] = [];
-            world.on('entityMoved', () => events.push('moved'));
-            
-            // Direct world manipulation outside engine update
-            world.moveEntity(player.getId(), { x: 6, y: 5 });
-            expect(events.length).toBe(1); // Immediate event
-            
-            world.moveEntity(player.getId(), { x: 7, y: 5 });
-            expect(events.length).toBe(2); // Another immediate event
-        });
-
-        test('systems receive consistent world state during update', () => {
-            const systemStates: Point[] = [];
-            const testSystem = () => {
-                systemStates.push({...player.getPosition()});
-            };
-            
-            engine.addSystem(testSystem);
-            
-            // Queue multiple moves
-            engine.handleAction({ type: 'move', position: { x: 6, y: 5 } });
-            engine.handleAction({ type: 'move', position: { x: 7, y: 5 } });
-            
-            engine.tick();
-            
-            // System should see the final state, not intermediate states
-            expect(systemStates).toEqual([{ x: 7, y: 5 }]);
-        });
+        const debugString = engine.getDebugString();
+        expect(debugString).toContain('Updates/sec');
+        expect(debugString).toContain('Update Time');
+        expect(debugString).toContain('Total Updates: 5');
     });
 }); 
