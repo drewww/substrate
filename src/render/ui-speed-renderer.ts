@@ -4,11 +4,14 @@ import { Component } from '../entity/component';
 import { Point } from '../types';
 import { Renderer } from './renderer';
 import { InertiaComponent } from '../game/test/components/inertia.component';
+import { GearComponent } from '../game/test/components/gear.component';
 
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string> = new Map(); // region -> tileId
     private readonly uiDisplay: Display;
     private readonly MAX_SPEED = 8;  // Maximum speed to show
+    private readonly GEAR_X = 0;  // Gear indicator position
+    private readonly SPEED_START_X = 2;  // Speed bar starts 2 tiles in
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
@@ -56,25 +59,42 @@ export class UISpeedRenderer implements Renderer {
                 1000,
                 {
                     walls: [true, false],  // [north, west] - only north wall
-                    wallColors: ['#FFFFFF88', null]  // Semi-transparent white for north wall
+                    wallColors: ['#FFFFFFFF', null]  // Semi-transparent white for north wall
                 }
             );
             this.uiTiles.set(`bg_${x}`, tileId);
+        }
 
-            // Create speed indicator tiles (initially hidden)
+        // Create gear indicator tile
+        const gearTileId = this.uiDisplay.createTile(
+            this.GEAR_X,
+            0,
+            '1',  // Initial gear
+            '#FFFFFFFF',
+            '#000000FF',
+            1001,
+            {
+                walls: [true, false],  // [north, west] - only north wall
+                wallColors: ['#FFFFFFFF', null]  // Semi-transparent white for north wall
+            }
+        );
+        this.uiTiles.set('gear', gearTileId);
+
+        // Create speed indicator tiles (shifted right)
+        for (let i = 0; i < this.MAX_SPEED; i++) {
             const speedTileId = this.uiDisplay.createTile(
-                x,
+                this.SPEED_START_X + i,
                 0,
                 ' ',
                 '#FFFFFFFF',
-                '#00000000',  // Start transparent
+                '#00000000',
                 1001,
                 {
                     walls: [true, false],
                     wallColors: ['#FFFFFF88', null]
                 }
             );
-            this.uiTiles.set(`speed_${x}`, speedTileId);
+            this.uiTiles.set(`speed_${i}`, speedTileId);
         }
 
         this.updateSpeedIndicator();
@@ -82,9 +102,18 @@ export class UISpeedRenderer implements Renderer {
 
     private updateSpeedIndicator(): void {
         const inertia = this.player.getComponent('inertia') as InertiaComponent;
+        const gear = this.player.getComponent('gear') as GearComponent;
         const magnitude = inertia?.magnitude ?? 0;
 
-        // Update each speed tile
+        // Update gear display
+        const gearTileId = this.uiTiles.get('gear');
+        if (gearTileId && gear) {
+            this.uiDisplay.updateTile(gearTileId, {
+                char: gear.gear.toString()
+            });
+        }
+
+        // Update speed tiles
         for (let i = 0; i < this.MAX_SPEED; i++) {
             const speedTileId = this.uiTiles.get(`speed_${i}`);
             if (speedTileId) {
@@ -104,7 +133,7 @@ export class UISpeedRenderer implements Renderer {
     handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {
-        if (entity === this.player && componentType === 'inertia') {
+        if (entity === this.player && (componentType === 'inertia' || componentType === 'gear')) {
             this.updateSpeedIndicator();
         }
     }
