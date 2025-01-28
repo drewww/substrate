@@ -334,27 +334,32 @@ export class TestGameRenderer extends GameRenderer {
         const prediction = this.movementPredictor.predictMove(entity);
         const finalAction = prediction.actions[prediction.actions.length - 1];
 
+        // Convert direction to radians for rotation
+        const directionToRadians = (direction: Direction): number => {
+            switch (direction) {
+                case Direction.South: return Math.PI/2;   // Down
+                case Direction.East: return 0;            // Right
+                case Direction.North: return -Math.PI/2;  // Up
+                case Direction.West: return Math.PI;      // Left
+            }
+        };
+
+        const rotation = directionToRadians(prediction.finalInertia.direction);
+
         const tileId = this.display.createTile(
             finalAction.data.to.x,
             finalAction.data.to.y,
-            'x',
+            '➜',  // Unicode arrow character
             '#FFFFFFFF',
             '#222299FF',
             999,
             {
-                bgPercent: 0.0
+                bgPercent: 0.0,
+                rotation: rotation,
+                scaleSymbolX: 1.5,
+                scaleSymbolY: 1.5,
             }
         );
-
-        this.display.addValueAnimation(tileId, {
-            bgPercent: {
-                start: 0.0,
-                end: 1.0,
-                duration: 1000,
-                easing: Easing.linear,
-                loop: false,
-            }
-        });
 
         return tileId;
     }
