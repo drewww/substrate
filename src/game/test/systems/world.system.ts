@@ -4,6 +4,7 @@ import { SymbolComponent } from '../../../entity/components/symbol-component';
 import { OpacityComponent } from '../../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../../entity/components/impassable-component';
 import { logger } from '../../../util/logger';
+import { Entity } from '../../../entity/entity';
 
 export class WorldSystem {
     constructor(private world: World) { }
@@ -60,6 +61,13 @@ export class WorldSystem {
                 }
             }
 
+            const disperseState = cooldowns.getCooldown('disperse');
+            if(disperseState) {
+                if(disperseState.ready) {
+                    this.world.removeEntity(entity.getId());
+                }
+            }
+
             const explodeEmpState = cooldowns.getCooldown('explode-emp');
             if(explodeEmpState) {
                 if(explodeEmpState.ready) {
@@ -68,6 +76,32 @@ export class WorldSystem {
                     entity.setComponent(cooldowns);
 
                     this.world.removeEntity(entity.getId());
+
+                    // now make an EMP explosion entity on everyt adjacent tile
+                    const pattern = [
+                        {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 0},
+                        {x: 0, y: 1}, {x: 0, y: -1},
+                        {x: 1, y: 1}, {x: -1, y: 1},
+                        {x: 1, y: -1}, {x: -1, y: -1}
+                    ];
+
+                    for(const offset of pattern) {
+                        const pos = {
+                            x: entity.getPosition().x + offset.x,
+                            y: entity.getPosition().y + offset.y
+                        };
+
+                        const emp = new Entity(pos);
+                        emp.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd1CC', 1500));
+                        emp.setComponent(new CooldownComponent({
+                            'disperse': {
+                                base: 12,
+                                current: 12,
+                                ready: false
+                            }
+                        }));
+                        this.world.addEntity(emp);
+                    }
                 }
             }
         }
