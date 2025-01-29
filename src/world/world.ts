@@ -608,59 +608,108 @@ export class World {
         this.resetEventCounts();
     }
 
-    public updatePlayerVision(): void {
-        const player = this.getEntitiesWithComponent('player')[0];
-        if (!player) return;
+    /**
+     * Get all tiles visible to an entity at a given radius
+     * @param entity The entity to check vision from
+     * @param radius The vision radius (defaults to entity's vision radius if they have one)
+     * @returns Set of point keys representing visible tiles
+     */
+    public getVisibleTilesForEntity(entity: Entity, radius?: number): Set<string> {
+        const position = entity.getPosition();
+        
+        // If no radius specified, try to get it from the entity's vision component
+        if (radius === undefined) {
+            const vision = entity.getComponent('vision') as VisionComponent;
+            if (!vision) {
+                throw new Error('Entity has no vision radius specified');
+            }
+            radius = vision.radius;
+        }
 
-        const vision = player.getComponent('vision') as VisionComponent;
-        if (!vision) return;
-
-        this.updateVision(player.getPosition(), vision.radius);
+        return this.getVisibleTilesFromPosition(position, radius);
     }
 
-    public updateVision(playerPos: Point, visionRadius: number = 8): void {
-        // Clear previous visible locations
-        this.playerVisibleLocations.clear();
+    /**
+     * Get all tiles visible from a position at a given radius
+     * @param position The origin position to check vision from
+     * @param radius The vision radius
+     * @returns Set of point keys representing visible tiles
+     */
+    public getVisibleTilesFromPosition(position: Point, radius: number): Set<string> {
+        const visibleTiles = new Set<string>();
+        const radiusInteger = Math.ceil(radius);
+        
+        // Calculate FOV from the position
+        const fov = computeFieldOfView(
+            this.fovMap,
+            Math.round(position.x),
+            Math.round(position.y),
+            radiusInteger
+        );
 
-        // Calculate visible points using FOV map
-        const fov = computeFieldOfView(this.fovMap, playerPos.x, playerPos.y, visionRadius);
-
-        // Iterate through cells within chebyshev radius
-        for (let dx = -visionRadius; dx <= visionRadius; dx++) {
-            for (let dy = -visionRadius; dy <= visionRadius; dy++) {
-                const x = playerPos.x + dx;
-                const y = playerPos.y + dy;
-
-                // Skip if out of bounds
+        // Check all tiles within the radius
+        for (let y = Math.floor(position.y - radiusInteger); y <= Math.ceil(position.y + radiusInteger); y++) {
+            for (let x = Math.floor(position.x - radiusInteger); x <= Math.ceil(position.x + radiusInteger); x++) {
+                // Skip out of bounds tiles
                 if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
                     continue;
                 }
 
-                const key = this.pointToKey({ x, y });
-                const isVisible = fov.getVisible(x, y);
-                
-                // Store visibility state for this location
-                this.playerVisibleLocations.set(key, isVisible);
-
-                // If visible, mark as discovered
-                if (isVisible) {
-                    this.discoveredLocations.add(key);
+                if (fov.getVisible(Math.round(x), Math.round(y))) {
+                    visibleTiles.add(this.pointToKey({ x: Math.round(x), y: Math.round(y) }));
                 }
             }
         }
 
+        return visibleTiles;
+    }
+
+    /**
+     * Check if one entity can see another
+     * @param observer The observing entity
+     * @param target The target entity
+     * @param radius Optional vision radius (defaults to observer's vision radius)
+     * @returns boolean indicating if target is visible to observer
+     */
+    public canEntitySeeEntity(observer: Entity, target: Entity, radius?: number): boolean {
+        const visibleTiles = this.getVisibleTilesForEntity(observer, radius);
+        const targetKey = this.pointToKey(target.getPosition());
+        return visibleTiles.has(targetKey);
+    }
+
+    /**
+     * Check if a specific tile is visible to an entity
+     * @param entity The observing entity
+     * @param position The position to check visibility of
+     * @param radius Optional vision radius (defaults to entity's vision radius)
+     * @returns boolean indicating if the position is visible
+     */
+    public canEntitySeePosition(entity: Entity, position: Point, radius?: number): boolean {
+        const visibleTiles = this.getVisibleTilesForEntity(entity, radius);
+        return visibleTiles.has(this.pointToKey(position));
+    }
+
+    // Update the existing updatePlayerVision to use the new methods
+    public updatePlayerVision(): void {
+        const player = this.getEntitiesWithComponent('player')[0];
+        if (!player) return;
+
+        const visibleTiles = this.getVisibleTilesForEntity(player);
+        
+        // Clear previous visible locations
+        this.playerVisibleLocations.clear();
+
+        // Update visible and discovered locations
+        for (const key of visibleTiles) {
+            this.playerVisibleLocations.set(key, true);
+            this.discoveredLocations.add(key);
+        }
+
         // Emit an event to notify renderers
-        this.emit('playerVisionUpdated', { playerPos, visibleLocations: this.playerVisibleLocations });
-    }
-
-    // Add method to check if a location is visible
-    public isLocationVisible(pos: Point): boolean {
-        return this.playerVisibleLocations.get(this.pointToKey(pos)) ?? false;
-    }
-
-    // Add method to check if a location has been discovered
-    public isLocationDiscovered(pos: Point): boolean {
-        return this.discoveredLocations.has(this.pointToKey(pos));
+        this.emit('playerVisionUpdated', { 
+            playerPos: player.getPosition(), 
+            visibleLocations: this.playerVisibleLocations 
+        });
     }
 
     // Rebuild FOV map from scratch
@@ -1016,5 +1065,41 @@ export class World {
         }
 
         return true;
+    }
+
+    /**
+     * @deprecated Use canEntitySeePosition instead
+     * Check if a location is currently visible to the player
+     */
+    public isLocationVisible(position: Point): boolean {
+        const key = this.pointToKey(position);
+        return this.playerVisibleLocations.has(key);
+    }
+
+    /**
+     * @deprecated Use getVisibleTilesFromPosition or getVisibleTilesForEntity instead
+     * Update vision from a position with a given radius
+     */
+    public updateVision(position: Point, radius: number): void {
+        const visibleTiles = this.getVisibleTilesFromPosition(position, radius);
+        
+        // Clear previous visible locations
+        this.playerVisibleLocations.clear();
+
+        // Update visible and discovered locations
+        for (const key of visibleTiles) {
+            this.playerVisibleLocations.set(key, true);
+            this.discoveredLocations.add(key);
+        }
+
+        this.emit('fovChanged', {});
+    }
+
+    /**
+     * @deprecated Use discoveredLocations.has(pointKey) directly
+     * Check if a location has been discovered by the player
+     */
+    public isLocationDiscovered(position: Point): boolean {
+        return this.discoveredLocations.has(this.pointToKey(position));
     }
 }
