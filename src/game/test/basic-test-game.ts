@@ -34,6 +34,7 @@ import { UISpeedRenderer } from '../../render/ui-speed-renderer';
 import { BrakeComponent } from './components/brake.component';
 import { TurboComponent } from './components/turbo.component';
 import { InertiaComponent } from './components/inertia.component';
+import { EnemyAISystem } from './systems/enemy-ai.system';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -197,6 +198,7 @@ export class BasicTestGame extends Game {
     private followingSystem: FollowingSystem;
     private cooldownCleanupSystem: CooldownCleanupSystem;
     uiSpeedRenderer: UISpeedRenderer;
+    enemyAISystem: EnemyAISystem;
     
     constructor(canvasId: string) {
         super({
@@ -229,6 +231,7 @@ export class BasicTestGame extends Game {
         
         // Initialize our systems
         this.cooldownSystem = new CooldownSystem(this.world);
+        this.enemyAISystem = new EnemyAISystem(this.world, this.actionHandler);
         this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
         this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
         this.toggleSystem = new ToggleSystem(this.world);
