@@ -1146,8 +1146,15 @@ export class World {
      * Find a path between two points, respecting walls and impassable entities
      */
     public findPath(start: Point, end: Point): Point[] | null {
-        // Early exit if start or end is out of bounds
-        if (!this.isValidPosition(start) || !this.isValidPosition(end)) {
+        // Early exit if start is impassable (except for the end position)
+        if (!this.isValidPosition(start) || 
+            (this.getEntitiesAt(start).some(e => e.hasComponent('impassable')) && 
+             this.pointToKey(start) !== this.pointToKey(end))) {
+            return null;
+        }
+
+        // Allow pathfinding TO out of bounds or impassable end positions
+        if (!this.isInBounds(end)) {
             return null;
         }
 
@@ -1175,7 +1182,7 @@ export class World {
             closedSet.add(current);
 
             // Check all neighbors
-            const neighbors = this.getValidNeighbors(currentPoint);
+            const neighbors = this.getValidNeighbors(currentPoint, end);
             for (const neighbor of neighbors) {
                 const neighborKey = this.pointToKey(neighbor);
                 
@@ -1183,8 +1190,9 @@ export class World {
                     continue;
                 }
 
-                // Ensure neighbor is within world bounds
-                if (!this.isValidPosition(neighbor)) {
+                // Allow path to end at impassable destination
+                if (!this.isPassable(currentPoint.x, currentPoint.y, neighbor.x, neighbor.y) 
+                    && neighborKey !== this.pointToKey(end)) {
                     continue;
                 }
 
@@ -1202,14 +1210,21 @@ export class World {
             }
         }
 
-        // No path found
         return null;
+    }
+
+    private isInBounds(pos: Point): boolean {
+        return pos.x >= 0 && pos.x < this.width && pos.y >= 0 && pos.y < this.height;
+    }
+
+    private isValidPosition(pos: Point): boolean {
+        return this.isInBounds(pos);
     }
 
     /**
      * Get valid neighboring positions that can be moved to
      */
-    private getValidNeighbors(pos: Point): Point[] {
+    private getValidNeighbors(pos: Point, end: Point): Point[] {
         const neighbors: Point[] = [];
         const directions = [
             { x: 0, y: -1 },  // North
@@ -1221,7 +1236,9 @@ export class World {
         for (const dir of directions) {
             const newPos = { x: pos.x + dir.x, y: pos.y + dir.y };
             // Check world bounds and passability
-            if (this.isValidPosition(newPos) && this.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
+            // if the destination is impassable, still allow pathfinding to it.
+            if (this.isValidPosition(newPos) && this.isPassable(pos.x, pos.y, newPos.x, newPos.y) || 
+                (newPos.x === end.x && newPos.y === end.y)) {
                 neighbors.push(newPos);
             }
         }
@@ -1245,15 +1262,6 @@ export class World {
      */
     public hasPath(start: Point, end: Point): boolean {
         return this.findPath(start, end) !== null;
-    }
-
-    private isValidPosition(pos: Point): boolean {
-        if (pos.x < 0 || pos.x >= this.width || pos.y < 0 || pos.y >= this.height) {
-            return false;
-        }
-        
-        const entitiesAtPos = this.getEntitiesAt(pos);
-        return !entitiesAtPos.some(e => e.hasComponent('impassable'));
     }
 
     private heuristic(a: Point, b: Point): number {

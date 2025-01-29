@@ -1308,5 +1308,49 @@ describe('World', () => {
             
             expect(world.hasPath(start, end)).toBe(false);
         });
+
+        it('should handle impassable start and end positions correctly', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            // Make end position impassable (like a player)
+            const endEntity = new Entity(end);
+            endEntity.setComponent(new ImpassableComponent());
+            world.addEntity(endEntity);
+            
+            // Should still find path TO the impassable end position
+            const path = world.findPath(start, end);
+            expect(path).not.toBeNull();
+            expect(path![path!.length - 1]).toEqual(end);
+
+            // Make start position impassable
+            const startEntity = new Entity(start);
+            startEntity.setComponent(new ImpassableComponent());
+            world.addEntity(startEntity);
+
+            // Should return null when start is impassable
+            expect(world.findPath(start, end)).toBeNull();
+        });
+
+        it('should allow pathfinding to but not through impassable entities', () => {
+            const start = { x: 1, y: 1 };
+            const middle = { x: 2, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            // Place impassable entity in middle
+            const obstacle = new Entity(middle);
+            obstacle.setComponent(new ImpassableComponent());
+            world.addEntity(obstacle);
+            
+            // Should find path TO the obstacle
+            const pathToObstacle = world.findPath(start, middle);
+            expect(pathToObstacle).not.toBeNull();
+            expect(pathToObstacle![pathToObstacle!.length - 1]).toEqual(middle);
+
+            // Should not find path THROUGH the obstacle
+            const pathThroughObstacle = world.findPath(start, end);
+            expect(pathThroughObstacle).not.toBeNull();
+            expect(pathThroughObstacle).not.toContainEqual(middle);
+        });
     });
 }); 
