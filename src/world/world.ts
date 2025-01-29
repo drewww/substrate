@@ -1141,4 +1141,149 @@ export class World {
     public isLocationDiscovered(position: Point): boolean {
         return this.discoveredLocations.has(this.pointToKey(position));
     }
+
+    /**
+     * Find a path between two points, respecting walls and impassable entities
+     */
+    public findPath(start: Point, end: Point): Point[] | null {
+        // Early exit if start or end is out of bounds
+        if (!this.isValidPosition(start) || !this.isValidPosition(end)) {
+            return null;
+        }
+
+        const openSet = new Set<string>();
+        const closedSet = new Set<string>();
+        const cameFrom = new Map<string, string>();
+        
+        const gScore = new Map<string, number>();
+        const fScore = new Map<string, number>();
+
+        const startKey = this.pointToKey(start);
+        openSet.add(startKey);
+        gScore.set(startKey, 0);
+        fScore.set(startKey, this.heuristic(start, end));
+
+        while (openSet.size > 0) {
+            const current = this.getLowestFScore(openSet, fScore);
+            const currentPoint = this.keyToPoint(current);
+
+            if (current === this.pointToKey(end)) {
+                return this.reconstructPath(cameFrom, current);
+            }
+
+            openSet.delete(current);
+            closedSet.add(current);
+
+            // Check all neighbors
+            const neighbors = this.getValidNeighbors(currentPoint);
+            for (const neighbor of neighbors) {
+                const neighborKey = this.pointToKey(neighbor);
+                
+                if (closedSet.has(neighborKey)) {
+                    continue;
+                }
+
+                // Ensure neighbor is within world bounds
+                if (!this.isValidPosition(neighbor)) {
+                    continue;
+                }
+
+                const tentativeGScore = gScore.get(current)! + 1;
+
+                if (!openSet.has(neighborKey)) {
+                    openSet.add(neighborKey);
+                } else if (tentativeGScore >= (gScore.get(neighborKey) ?? Infinity)) {
+                    continue;
+                }
+
+                cameFrom.set(neighborKey, current);
+                gScore.set(neighborKey, tentativeGScore);
+                fScore.set(neighborKey, tentativeGScore + this.heuristic(neighbor, end));
+            }
+        }
+
+        // No path found
+        return null;
+    }
+
+    /**
+     * Get valid neighboring positions that can be moved to
+     */
+    private getValidNeighbors(pos: Point): Point[] {
+        const neighbors: Point[] = [];
+        const directions = [
+            { x: 0, y: -1 },  // North
+            { x: 1, y: 0 },   // East
+            { x: 0, y: 1 },   // South
+            { x: -1, y: 0 }   // West
+        ];
+
+        for (const dir of directions) {
+            const newPos = { x: pos.x + dir.x, y: pos.y + dir.y };
+            // Check world bounds and passability
+            if (this.isValidPosition(newPos) && this.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
+                neighbors.push(newPos);
+            }
+        }
+
+        return neighbors;
+    }
+
+    /**
+     * Get the next move towards a destination, or null if no path exists
+     */
+    public getNextMove(start: Point, end: Point): Point | null {
+        const path = this.findPath(start, end);
+        if (!path || path.length < 2) {
+            return null;
+        }
+        return path[1]; // Return the first step after start
+    }
+
+    /**
+     * Check if a path exists between two points
+     */
+    public hasPath(start: Point, end: Point): boolean {
+        return this.findPath(start, end) !== null;
+    }
+
+    private isValidPosition(pos: Point): boolean {
+        if (pos.x < 0 || pos.x >= this.width || pos.y < 0 || pos.y >= this.height) {
+            return false;
+        }
+        
+        const entitiesAtPos = this.getEntitiesAt(pos);
+        return !entitiesAtPos.some(e => e.hasComponent('impassable'));
+    }
+
+    private heuristic(a: Point, b: Point): number {
+        // Manhattan distance
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
+    private getLowestFScore(openSet: Set<string>, fScore: Map<string, number>): string {
+        let lowest = Infinity;
+        let lowestKey = '';
+        
+        for (const key of openSet) {
+            const score = fScore.get(key) ?? Infinity;
+            if (score < lowest) {
+                lowest = score;
+                lowestKey = key;
+            }
+        }
+        
+        return lowestKey;
+    }
+
+    private reconstructPath(cameFrom: Map<string, string>, current: string): Point[] {
+        const path = [this.keyToPoint(current)];
+        
+        while (cameFrom.has(current)) {
+            current = cameFrom.get(current)!;
+            path.unshift(this.keyToPoint(current));
+        }
+        
+        return path;
+    }
 }

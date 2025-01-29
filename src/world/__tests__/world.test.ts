@@ -586,8 +586,6 @@ describe('World', () => {
     });
 
     describe('Entity Updates', () => {
-
-
         it('batch updates entity positions', () => {
             const handler = vi.fn();
             world.on('entityMoved', handler);
@@ -1198,6 +1196,117 @@ describe('World', () => {
                 world.updateVision(CENTER, 3);
                 expect(visionChangedSpy).toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('Pathfinding', () => {
+        let world: World;
+        const DEFAULT_SIZE = { x: 10, y: 10 };
+        
+        beforeEach(() => {
+            world = new World(DEFAULT_SIZE.x, DEFAULT_SIZE.y);
+        });
+
+        it('should find direct path between adjacent points', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 2, y: 1 };
+            
+            const path = world.findPath(start, end);
+            expect(path).toEqual([start, end]);
+        });
+
+        it('should find path around obstacles', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            // Place obstacle at (2,1)
+            const obstacle = new Entity({ x: 2, y: 1 });
+            obstacle.setComponent(new ImpassableComponent());
+            world.addEntity(obstacle);
+            
+            const path = world.findPath(start, end);
+            expect(path).toBeDefined();
+            expect(path![0]).toEqual(start);
+            expect(path![path!.length - 1]).toEqual(end);
+            expect(path).not.toContainEqual({ x: 2, y: 1 }); // Should not go through obstacle
+        });
+
+        it('should return null when no path exists', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            // Create wall of obstacles
+            for (let y = 0; y < DEFAULT_SIZE.y; y++) {
+                const obstacle = new Entity({ x: 2, y });
+                obstacle.setComponent(new ImpassableComponent());
+                world.addEntity(obstacle);
+            }
+            
+            const path = world.findPath(start, end);
+            expect(path).toBeNull();
+        });
+
+        it('should respect walls when pathfinding', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 1, y: 3 };
+            
+            // Add wall blocking direct path
+            world.setWall({ x: 1, y: 2 }, WallDirection.NORTH, {
+                properties: [false, false, true], // impassable
+                color: '#FFFFFF'
+            });
+            
+            const path = world.findPath(start, end);
+            expect(path).toBeDefined();
+            expect(path).not.toContainEqual({ x: 1, y: 2 }); // Should not go through wall
+        });
+
+        it('should provide next move towards destination', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            const nextMove = world.getNextMove(start, end);
+            expect(nextMove).toEqual({ x: 2, y: 1 });
+        });
+
+        it('should return null for next move when no path exists', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            // Block all possible paths
+            for (let y = 0; y < DEFAULT_SIZE.y; y++) {
+                const obstacle = new Entity({ x: 2, y });
+                obstacle.setComponent(new ImpassableComponent());
+                world.addEntity(obstacle);
+            }
+            
+            const nextMove = world.getNextMove(start, end);
+            expect(nextMove).toBeNull();
+        });
+
+        it('should efficiently check if path exists', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            expect(world.hasPath(start, end)).toBe(true);
+            
+            // Block path
+            const obstacle = new Entity({ x: 2, y: 1 });
+            obstacle.setComponent(new ImpassableComponent());
+            world.addEntity(obstacle);
+            
+            // Should find alternative path
+            expect(world.hasPath(start, end)).toBe(true);
+            
+            // Block all possible paths
+            for (let y = 0; y < DEFAULT_SIZE.y; y++) {
+                if (y === 1) continue; // Skip already placed obstacle
+                const obstacle = new Entity({ x: 2, y });
+                obstacle.setComponent(new ImpassableComponent());
+                world.addEntity(obstacle);
+            }
+            
+            expect(world.hasPath(start, end)).toBe(false);
         });
     });
 }); 
