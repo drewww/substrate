@@ -566,6 +566,11 @@ export class World {
             this.fovMap.addBody(to.x, to.y);
         }
 
+        // Update player vision if the moved entity is the player
+        if (entity.hasComponent('player')) {
+            this.updatePlayerVision();
+        }
+
         // Emit the event
         this.emit('entityMoved', {
             entity,
