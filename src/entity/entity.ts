@@ -134,13 +134,8 @@ export class Entity {
    * Set the entity's position (triggers entityMoved event)
    */
   setPosition(x: number, y: number): this {
-    const oldPos = { ...this._position };
     this._position = { x, y };
     this.positionChanged = true;
-    
-    if (this.world) {
-      this.world.onEntityMoved(this, oldPos, this._position);
-    }
     
     return this;
   }

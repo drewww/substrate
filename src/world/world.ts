@@ -196,12 +196,7 @@ export class World {
         entity.setPosition(newPosition.x, newPosition.y);
 
         // Emit move event
-        this.emit('entityMoved', { entity, from: oldPosition, to: newPosition });
-
-        // Update player vision if this is the player
-        if (entity.hasComponent('player')) {
-            this.updatePlayerVision();
-        }
+        this.onEntityMoved(entity, oldPosition, newPosition);
 
         return true;
     }
@@ -575,33 +570,19 @@ export class World {
     /**
      * Called when an entity's position changes
      */
-    public onEntityMoved(entity: Entity, from: Point, to: Point): void {
-        // Update spatial map
-        const oldKey = this.pointToKey(from);
-        const oldSet = this.spatialMap.get(oldKey);
-        oldSet?.delete(entity.getId());
-        if (oldSet?.size === 0) {
-            this.spatialMap.delete(oldKey);
-        }
-
-        const newKey = this.pointToKey(to);
-        let newSet = this.spatialMap.get(newKey);
-        if (!newSet) {
-            newSet = new Set();
-            this.spatialMap.set(newKey, newSet);
-        }
-        newSet.add(entity.getId());
-
+    private onEntityMoved(entity: Entity, from: Point, to: Point): void {
         // Update FOV map if entity affects visibility
         if (entity.hasComponent('opacity')) {
             this.fovMap.removeBody(from.x, from.y);
             this.fovMap.addBody(to.x, to.y);
+
+            // TODO may need to handle walls here too
         }
 
         // Update player vision if the moved entity is the player
-        if (entity.hasComponent('player')) {
-            this.updatePlayerVision();
-        }
+        // if (entity.hasComponent('player')) {
+        //     this.updatePlayerVision();
+        // }
 
         // Emit the event
         this.emit('entityMoved', {
@@ -1112,7 +1093,7 @@ export class World {
      */
     public isLocationVisible(position: Point): boolean {
         const key = this.pointToKey(position);
-        return this.playerVisibleLocations.has(key);
+        return Boolean(this.playerVisibleLocations.get(key));
     }
 
     /**

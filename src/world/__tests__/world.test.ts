@@ -585,25 +585,7 @@ describe('World', () => {
     });
 
     describe('Entity Updates', () => {
-        class UpdatableComponent extends Component {
-            type = 'updatable' as const;
-            value: number = 0;
 
-            update(deltaTime: number): void {
-                this.value += deltaTime;
-            }
-
-            static fromJSON(data: any): UpdatableComponent {
-                const comp = new UpdatableComponent();
-                comp.value = data.value;
-                return comp;
-            }
-        }
-
-        beforeEach(() => {
-            // Register the updatable component
-            ComponentRegistry.register('updatable', UpdatableComponent);
-        });
 
         it('batch updates entity positions', () => {
             const handler = vi.fn();
