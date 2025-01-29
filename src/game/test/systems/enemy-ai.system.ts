@@ -48,11 +48,22 @@ export class EnemyAISystem {
                     if(path) {
                         const nextPos = path[1];
                         logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} moving to ${nextPos.x}, ${nextPos.y}`);
-                        this.actionHandler.execute({
-                            type: 'entityMove',
-                            entityId: enemy.getId(),
-                            data: { to: nextPos }
-                        });
+
+
+                        const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
+                        const moveCooldown = cooldowns?.getCooldown('move');
+
+                        logger.warn(`Move cooldown: ${JSON.stringify(moveCooldown)}`);
+                        if(moveCooldown && moveCooldown.ready) {
+                            this.actionHandler.execute({
+                                type: 'entityMove',
+                                entityId: enemy.getId(),
+                                data: { to: nextPos }
+                            });
+                            // moveCooldown.ready = false;
+                        }
+
+                        // enemy.setComponent(cooldowns);
                     }
                 }
 

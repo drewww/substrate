@@ -67,7 +67,7 @@ f   [{"type": "symbol", "char": " ", "foreground": "#FFFFFFFF", "background": "#
 V   [{"type": "symbol", "char": "v", "foreground": "#444444ff", "background": "#000000ff", "zIndex": 2}, {"type": "turn", "direction": 2}]
 <   [{"type": "symbol", "char": "<", "foreground": "#444444ff", "background": "#000000ff", "zIndex": 2}, {"type": "turn", "direction": 3}]
 T   [{"type": "symbol", "char": "T", "foreground": "#999999ff", "background": "#99000044", "zIndex": 2}, {"type": "enemyAI", "aiType": "emp_turret"}, {"type": "vision", "radius": 10}]
-F   [{"type": "symbol", "char": "F", "foreground": "#999999ff", "background": "#99000044", "zIndex": 2}, {"type": "enemyAI", "aiType": "follower"}, {"type": "vision", "radius": 30}]
+F   [{"type": "symbol", "char": "F", "foreground": "#999999ff", "background": "#99000044", "zIndex": 2}, {"type": "enemyAI", "aiType": "follower"}, {"type": "vision", "radius": 30}, {"type":"cooldown", "cooldowns": {"move": {"base": 3, "current": 3, "ready": false}}}]
 `.trim();
 
 const LEVEL_DATA = `#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#
