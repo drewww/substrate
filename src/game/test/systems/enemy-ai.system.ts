@@ -4,6 +4,8 @@ import { Entity } from '../../../entity/entity';
 import { logger } from '../../../util/logger';
 import { EnemyAIComponent } from '../components/enemy-ai.component';
 import { SymbolComponent } from '../../../entity/components/symbol-component';
+import { InertiaComponent } from '../components/inertia.component';
+import { directionToPoint } from '../../../util';
 
 export class EnemyAISystem {
     constructor(
@@ -35,8 +37,17 @@ export class EnemyAISystem {
                 // fire a "projectile"
 
                 // for now let's just add an entity at the player's position
-                const projectile = new Entity(this.world.getPlayer().getPosition());
-                projectile.setComponent(new SymbolComponent('*', '#FFFFFFff', '#000000ff', 1500));
+                
+                // compute the position of the projectile based on the player's inertia.
+                const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
+
+                const playerFuturePos = {
+                    x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x*2,
+                    y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y*2
+                }
+
+                const projectile = new Entity(playerFuturePos);
+                projectile.setComponent(new SymbolComponent('*', '#FFFFFFff', '#00000000', 1500));
                 this.world.addEntity(projectile);
 
                 ai.turnsLocked = 0;

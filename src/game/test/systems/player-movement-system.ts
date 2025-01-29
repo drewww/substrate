@@ -9,6 +9,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 import { MovementPredictor } from './movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
+import { directionToRadians } from '../../../util';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -47,15 +48,6 @@ export class PlayerMovementSystem {
             }
 
             player.setComponent(cooldowns);
-        }
-    }
-
-    private directionToPoint(direction: Direction): Point {
-        switch (direction) {
-            case Direction.North: return { x: 0, y: -1 };
-            case Direction.South: return { x: 0, y: 1 };
-            case Direction.West: return { x: -1, y: 0 };
-            case Direction.East: return { x: 1, y: 0 };
         }
     }
 
@@ -119,9 +111,9 @@ export class PlayerMovementSystem {
             const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
 
             if(bufferedMove) {
-                lightEmitter.config.facing = this.directionToRadians(bufferedMove.direction);
+                lightEmitter.config.facing = directionToRadians(bufferedMove.direction);
             } else {
-                lightEmitter.config.facing = this.directionToRadians(prediction.finalInertia.direction);
+                lightEmitter.config.facing = directionToRadians(prediction.finalInertia.direction);
             }
             player.setComponent(lightEmitter);
         }
@@ -150,16 +142,5 @@ export class PlayerMovementSystem {
         const cooldowns = player.getComponent('cooldown') as CooldownComponent;
         cooldowns.setCooldown('stun', stunDuration, stunDuration, true);
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
-    }
-
-    // Convert Direction enum to radians (Direction.North = 0 = up = -PI/2)
-    // consider making this a util function later
-    private directionToRadians(direction: Direction): number {
-        switch (direction) {
-            case Direction.South: return -Math.PI / 2;  // Up
-            case Direction.East: return 0;           // Right
-            case Direction.North: return Math.PI / 2;   // Down
-            case Direction.West: return Math.PI;      // Left
-        }
     }
 } 
