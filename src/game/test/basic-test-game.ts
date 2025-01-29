@@ -492,7 +492,8 @@ export class BasicTestGame extends Game {
 
     protected handleInput(type: string, action: string, params: string[]): void {
 
-        if (action === 'move') {
+        // reject "up" events, might help with some accidental post-tick activations
+        if (action === 'move' && type !== 'up') {
             const directionStr = params[0];
             let direction: Direction;
             
@@ -520,7 +521,8 @@ export class BasicTestGame extends Game {
 
         if(action === 'turbo' && (type === 'down' || type === 'repeat')) {
             const inertia = this.player.getComponent('inertia') as InertiaComponent;
-            if(inertia && inertia.magnitude >= 6) {
+            const turbo = this.player.getComponent('turbo') as TurboComponent;
+            if(inertia && inertia.magnitude >= 6 && !turbo) {
                 this.player.setComponent(new TurboComponent());
             }
         } else if(action === 'turbo' && (type === 'up')) {

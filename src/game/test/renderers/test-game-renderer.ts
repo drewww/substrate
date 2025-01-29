@@ -289,7 +289,7 @@ export class TestGameRenderer extends GameRenderer {
     public handleComponentAdded(entity: Entity, componentType: string): void {
        
         // Handle bumping animation
-        // logger.info(`Component added: ${entity.getId()} - ${componentType}`);
+        logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
             const bump = entity.getComponent('bumping') as BumpingComponent;
             const tileId = this.entityTiles.get(entity.getId());
@@ -376,6 +376,90 @@ export class TestGameRenderer extends GameRenderer {
             if(tileId) {
                 this.bufferedMoveTiles.set(entity.getId(), tileId);
             }
+        } 
+        
+        if(componentType === 'turbo') {
+            const pos = entity.getPosition();
+            const inertia = entity.getComponent('inertia') as InertiaComponent;
+            const direction = inertia.direction;
+
+            // Calculate offset positions perpendicular to movement direction
+            let leftOffset: Point;
+            let rightOffset: Point;
+
+            let behindOffset: Point;
+            
+            switch(direction) {
+                case Direction.North:
+                    behindOffset = { x: 0, y: 1 };
+                case Direction.South:
+                    leftOffset = { x: -1, y: 0 };
+                    rightOffset = { x: 1, y: 0 };
+                    behindOffset = { x: 0, y: -1 };
+                    break;
+                case Direction.East:
+                    behindOffset = { x: -1, y: 0 };
+                case Direction.West:
+                    leftOffset = { x: 0, y: -1 };
+                    rightOffset = { x: 0, y: 1 };
+                    behindOffset = { x: 1, y: 0 };
+                    break;
+            }
+
+            // Create left smoke particle
+            const leftTileId = this.display.createTile(
+                pos.x + leftOffset.x + behindOffset.x,
+                pos.y + leftOffset.y + behindOffset.y,
+                '░',
+                '#888888FF',
+                '#00000000',
+                998,
+            );
+
+            this.display.addColorAnimation(leftTileId, {
+                bg: {
+                    start: '#888888FF',
+                    end: '#00000000',
+                    duration: 0.3,
+                    easing: Easing.linear,  
+                    loop: false,
+                    removeOnComplete: true
+                },
+                fg: {
+                    start: '#888888FF',
+                    end: '#00000000',
+                    duration: 0.6,
+                    easing: Easing.linear,
+                    loop: false,
+                }
+            });
+            // Create right smoke particle
+            const rightTileId = this.display.createTile(
+                pos.x + rightOffset.x + behindOffset.x,
+                pos.y + rightOffset.y + behindOffset.y,
+                '░',
+                '#888888FF',
+                '#00000000',
+                998,
+            );
+
+            this.display.addColorAnimation(rightTileId, {
+                bg: {
+                    start: '#888888FF',
+                    end: '#00000000',
+                    duration: 0.3,
+                    easing: Easing.linear,
+                    loop: false,
+                    removeOnComplete: true
+                }, fg: {
+                    start: '#888888FF',
+                    end: '#00000000',
+                    duration: 0.6,
+                    easing: Easing.linear,
+                    loop: false,
+                }
+            });
+
         }
     }
 
