@@ -43,6 +43,7 @@ export class World {
     private playerVisibleLocations: Map<string, boolean> = new Map();
     
     private discoveredLocations: Set<string> = new Set();
+    private player?: Entity;
     
     constructor(private readonly width: number, private readonly height: number) {
         // Initialize FOV map
@@ -624,6 +625,19 @@ export class World {
     // Add method to clear event counts
     public clearEventCounts(): void {
         this.resetEventCounts();
+    }
+
+    // TODO optimize this
+    public getPlayer(): Entity {
+        const player = this.getEntitiesWithComponent('player');
+
+        if(player.length > 0) {
+            this.player = player[0];
+        } else {
+            throw new Error('No player found');
+        }
+
+        return this.player;
     }
 
     /**
