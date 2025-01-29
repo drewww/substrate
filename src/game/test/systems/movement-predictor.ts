@@ -5,6 +5,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { logger } from '../../../util/logger';
 import { SLIDE_SPEED } from '../constants';
+import { BrakeComponent } from '../components/brake.component';
 
 export interface PredictedAction {
     type: 'entityMove';
@@ -46,6 +47,7 @@ export class MovementPredictor {
         const actions: PredictedAction[] = [];
         let bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
         const inertia = player.getComponent('inertia') as InertiaComponent;
+        const brake = player.getComponent('brake') as BrakeComponent;
         const pos = player.getPosition();
         
         // Calculate max speed based on current gear
@@ -74,10 +76,10 @@ export class MovementPredictor {
 
         // }
 
-        logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude}`);
+        logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude} brake: ${brake}`);
 
         // If no buffered move and no significant inertia, no movement
-        if (!bufferedMove && (!inertia || inertia.magnitude <= 1)) {
+        if (!bufferedMove && !brake&& (!inertia || inertia.magnitude <= 1)) {
             // logger.info(`No buffered move and no significant inertia, no movement`);
             return {
                 actions: [],
@@ -90,7 +92,7 @@ export class MovementPredictor {
         }
 
         // Handle pure inertia movement (no buffered move)
-        if (!bufferedMove && inertia && inertia.magnitude > 1) {
+        if (!bufferedMove && !brake && inertia && inertia.magnitude > 1) {
             // logger.info("No buffered move, but inertia is present and greater than 1");
             const inertiaDir = this.directionToPoint(inertia.direction);
             const newPos = {
@@ -122,6 +124,12 @@ export class MovementPredictor {
             };
         }
 
+        // I can't find a cleaner way to abstract this code path given how we're handling state around.
+        // this should ignore the buffered move in that code path.
+        if(!bufferedMove && brake) {
+            bufferedMove = new BufferedMoveComponent(Direction.North);
+        }
+
         // Handle buffered move with potential inertia
         if (bufferedMove) {
             const dir = this.directionToPoint(bufferedMove.direction);
@@ -150,7 +158,7 @@ export class MovementPredictor {
                 if (inertia.direction === bufferedMove.direction) {
                     // Same direction: increase inertia, but cap at maxSpeed
                     finalInertia.magnitude = Math.min(maxSpeed, inertia.magnitude + 1);
-                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
+                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction) || brake) {
                     // Opposite direction: decrease inertia and potentially slide
                     
                     actions.pop(); // Remove the buffered move
@@ -169,7 +177,6 @@ export class MovementPredictor {
                         direction: inertia.direction,
                         magnitude: Math.max(0, inertia.magnitude-1),
                     };
-
                 } else if(inertia.magnitude <= SLIDE_SPEED) {
                     // if inertia is less than 2, still update the direction
                     // TODO What is happening here? This case is... there is an input, it's not WITH momentum, or AGAINST momentum. 
@@ -236,6 +243,17 @@ export class MovementPredictor {
                 direction: inertia?.direction ?? Direction.South,
                 magnitude: 0,
             },
+            willCollide: false
+        };
+    }
+
+    private handleBrake(player: Entity): MovementPrediction {
+        const inertia = player.getComponent('inertia') as InertiaComponent;
+        const brake = player.getComponent('brake') as BrakeComponent;
+        
+        return {
+            actions: [],
+            finalInertia: { direction: inertia?.direction ?? Direction.South, magnitude: 0 },
             willCollide: false
         };
     }

@@ -31,6 +31,7 @@ import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 import { COOLDOWNS } from './constants';
 import { Renderer } from '../../render/renderer';
 import { UISpeedRenderer } from '../../render/ui-speed-renderer';
+import { BrakeComponent } from './components/brake.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -43,8 +44,8 @@ a move left
 d move right
 e shift up
 q shift down
-Space shift down
-Shift shift up
+Space brake
+Shift turbo
 `;
 
 // E   [{"type": "symbol", "char": "E", "foreground": "#FFFFFFFF", "background": "#FF000044", "zIndex": 5, "alwaysRenderIfExplored": false}, {"type": "impassable"}, {"type": "facing", "direction": 0}, {"type": "followable"}, {"type": "cooldown", "cooldowns": {"move": {"base": 1000, "current": 1000, "ready": false}}}, {"type": "lightEmitter", "radius": 5, "color": "#CCCCCCFF44", "intensity": 0.3, "distanceFalloff": "quadratic", "facing": 2, "width": 1.571, "mode":"fg"}]
@@ -507,12 +508,20 @@ export class BasicTestGame extends Game {
 
         // logger.info(`key: ${action} ${params[0]} ${type}`);
         // if we're shifting up, require key-up
-        if (action === 'shift' && type === 'up' && params[0] === 'up') {
+        // if (action === 'shift' && type === 'up' && params[0] === 'up') {
             
 
-        } else if(action === 'shift' && (params[0] === 'down')) {
+        // } else if(action === 'shift' && (params[0] === 'down')) {
 
 
+        // }
+
+        logger.info(`action: ${action} type: ${type}`);
+        if(action === 'brake' && (type === 'down' || type === 'repeat')) {
+            // how do we handle conflict between brake and a move? I think brake takes precedence. add it to buffered move as a boolean.           
+            this.player.setComponent(new BrakeComponent());
+        } else if(action === 'brake' && (type === "up")) {
+            this.player.removeComponent('brake');
         }
     }
     
