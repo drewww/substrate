@@ -43,21 +43,21 @@ export class EnemyAISystem {
                 const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
 
                 const playerFuturePos = {
-                    x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x*2,
-                    y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y*2
+                    x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x*4,
+                    y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y*4
                 }
 
                 const projectile = new Entity(playerFuturePos);
-                projectile.setComponent(new SymbolComponent('*', '#FFFFFFff', '#00000000', 1500));
+                projectile.setComponent(new SymbolComponent('*', '#00ffd1FF', '#00000000', 1500));
                 projectile.setComponent(new CooldownComponent({
                     'explode-emp': {
-                        base: 10,
-                        current: 10,
+                        base: 8,
+                        current: 8,
                         ready: false
                     }
                 }));
-            this.world.addEntity(projectile);
 
+            this.world.addEntity(projectile);
                 ai.turnsLocked = 0;
             }
         } else {

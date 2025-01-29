@@ -5,6 +5,9 @@ import { OpacityComponent } from '../../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../../entity/components/impassable-component';
 import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
+import { EMPComponent } from '../components/emp.component';
+import { StunComponent } from '../components/stun.component';
+import { InertiaComponent } from '../components/inertia.component';
 
 export class WorldSystem {
     constructor(private world: World) { }
@@ -68,6 +71,28 @@ export class WorldSystem {
                 }
             }
 
+            const empState = entity.getComponent('emp') as EMPComponent;
+            if(empState) {
+                // apply EMP effect
+                const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
+                for(const entity of entitiesAtPos) {
+                    if(entity.hasComponent('player')) {
+                        const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+                        const inertia = entity.getComponent('inertia') as InertiaComponent;
+                        
+                        if(!cooldowns.getCooldown('stun')) {
+                            cooldowns.setCooldown('stun', 10, 10, true);
+                            entity.setComponent(cooldowns);
+                        }
+
+                        if(inertia) {
+                            inertia.magnitude = 0;
+                            entity.setComponent(inertia);
+                        }
+                    }
+                }
+            }
+
             const explodeEmpState = cooldowns.getCooldown('explode-emp');
             if(explodeEmpState) {
                 if(explodeEmpState.ready) {
@@ -92,14 +117,16 @@ export class WorldSystem {
                         };
 
                         const emp = new Entity(pos);
-                        emp.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd1CC', 1500));
+                        emp.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd177', 1500));
                         emp.setComponent(new CooldownComponent({
                             'disperse': {
-                                base: 12,
-                                current: 12,
+                                base: 8,
+                                current: 8,
                                 ready: false
                             }
                         }));
+                        
+                        emp.setComponent(new EMPComponent());
                         this.world.addEntity(emp);
                     }
                 }
