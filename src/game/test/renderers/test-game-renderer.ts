@@ -453,7 +453,7 @@ export class TestGameRenderer extends GameRenderer {
             }
         );
 
-        this.makeSmokeTileAt(pos);
+        // this.makeSmokeTileAt(pos);
     }
 
     private makeSmokeTileAt(pos: Point): TileId {

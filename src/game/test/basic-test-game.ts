@@ -204,7 +204,7 @@ export class BasicTestGame extends Game {
             cellWidth: 20,
             cellHeight: 20,
             viewportWidth: 40,
-            viewportHeight: 30,
+            viewportHeight: 29,
             worldWidth: 120,
             worldHeight: 120
         });

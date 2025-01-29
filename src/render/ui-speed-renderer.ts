@@ -10,7 +10,7 @@ export class UISpeedRenderer implements Renderer {
     private readonly uiDisplay: Display;
     private readonly MAX_SPEED = 12;  // Updated to 12 from 8
     private readonly GEAR_X = 0;  // Gear indicator position
-    private readonly SPEED_START_X = 2;  // Speed bar starts 2 tiles in
+    private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
@@ -69,19 +69,19 @@ export class UISpeedRenderer implements Renderer {
         }
 
         // Create gear indicator tile
-        const gearTileId = this.uiDisplay.createTile(
-            this.GEAR_X,
-            0,
-            '1',  // Initial gear
-            '#FFFFFFFF',
-            '#000000FF',
-            1001,
-            {
-                walls: [true, false],  // [north, west] - only north wall
-                wallColors: ['#FFFFFFFF', null]  // Semi-transparent white for north wall
-            }
-        );
-        this.uiTiles.set('gear', gearTileId);
+        // const gearTileId = this.uiDisplay.createTile(
+        //     this.GEAR_X,
+        //     0,
+        //     '1',  // Initial gear
+        //     '#FFFFFFFF',
+        //     '#000000FF',
+        //     1001,
+        //     {
+        //         walls: [true, false],  // [north, west] - only north wall
+        //         wallColors: ['#FFFFFFFF', null]  // Semi-transparent white for north wall
+        //     }
+        // );
+        // this.uiTiles.set('gear', gearTileId);
 
         // Create speed indicator tiles (shifted right)
         for (let i = 0; i < this.MAX_SPEED; i++) {
