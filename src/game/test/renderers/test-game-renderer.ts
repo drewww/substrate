@@ -392,13 +392,19 @@ export class TestGameRenderer extends GameRenderer {
             switch(direction) {
                 case Direction.North:
                     behindOffset = { x: 0, y: 1 };
+                    leftOffset = { x: -1, y: 0 };
+                    rightOffset = { x: 1, y: 0 };
+                    break;
                 case Direction.South:
                     leftOffset = { x: -1, y: 0 };
                     rightOffset = { x: 1, y: 0 };
                     behindOffset = { x: 0, y: -1 };
                     break;
                 case Direction.East:
+                    leftOffset = { x: 0, y: -1 };
+                    rightOffset = { x: 0, y: 1 };
                     behindOffset = { x: -1, y: 0 };
+                    break;
                 case Direction.West:
                     leftOffset = { x: 0, y: -1 };
                     rightOffset = { x: 0, y: 1 };
