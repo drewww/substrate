@@ -7,10 +7,7 @@ import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
-import { COOLDOWNS, GEAR_SPEEDS, TICK_MS } from '../constants';
 import { MovementPredictor } from './movement-predictor';
-import { GearComponent } from '../components/gear.component';
-import { Display } from '../../../display/display';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -89,38 +86,19 @@ export class PlayerMovementSystem {
         ));
 
 
-        const gear = player.getComponent('gear') as GearComponent;
-        if(gear) {
+           
 
-            // override queued shift if braking
-            if(prediction.finalInertia.brake) {
-                logger.info(`braking, queuedShift: ${gear.queuedShift} gear: ${gear.gear} maxSpeedOneGearDown: ${GEAR_SPEEDS[gear.gear>1? gear.gear-1 : 1]} speed: ${inertia.magnitude}`);
-                if(inertia.magnitude <= GEAR_SPEEDS[gear.gear>1? gear.gear-1 : 1]) {
-                    gear.queuedShift = -1;
-                }
-            } 
+        // UPDATE COOLDOWNS
+        //      this will happen when speed changes from 2 to 3
+        //      and then again when turbo mode is engaged.
+            // const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+            // if(cooldowns) {
+            //     const newCooldown = 4; // then 2 and 1
+            //     logger.info(`Setting move cooldown to ${newCooldown} ticks`);
+            //     cooldowns.setCooldown('move', newCooldown, newCooldown);
+            //     player.setComponent(cooldowns);
+            // }
 
-            let queuedShift = gear.queuedShift;
-            if(queuedShift) {
-
-                // block shifts up if not at max speed for that gear
-                if(inertia.magnitude < GEAR_SPEEDS[gear.gear]) {
-                    queuedShift = 0;
-                }
-
-                gear.gear = Math.max(1, Math.min(Object.values(GEAR_SPEEDS).length, gear.gear + queuedShift));
-                gear.queuedShift = 0;
-                player.setComponent(gear);
-            }
-
-            const cooldowns = player.getComponent('cooldown') as CooldownComponent;
-            if(cooldowns) {
-                const newCooldown = (Object.values(GEAR_SPEEDS).length+1) - gear.gear;
-                logger.info(`Setting move cooldown to ${newCooldown} ticks`);
-                cooldowns.setCooldown('move', newCooldown, newCooldown);
-                player.setComponent(cooldowns);
-            }
-        }
 
         // Update light emitter if present
         if (player.hasComponent('lightEmitter')) {
@@ -154,14 +132,6 @@ export class PlayerMovementSystem {
         const cooldowns = player.getComponent('cooldown') as CooldownComponent;
         cooldowns.setCooldown('stun', stunDuration, stunDuration, true);
         logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
-
-        const gear = player.getComponent('gear') as GearComponent;
-
-        if(gear) {
-            gear.queuedShift = 0;
-            gear.gear = 1;
-            player.setComponent(gear);
-        }
     }
 
     // Convert Direction enum to radians (Direction.North = 0 = up = -PI/2)

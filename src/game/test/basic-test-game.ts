@@ -31,7 +31,6 @@ import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 import { COOLDOWNS } from './constants';
 import { Renderer } from '../../render/renderer';
 import { UISpeedRenderer } from '../../render/ui-speed-renderer';
-import { GearComponent } from './components/gear.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -262,9 +261,6 @@ export class BasicTestGame extends Game {
         const cooldowns = new CooldownComponent();
         cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE); // 1000ms move cooldown
         this.player.setComponent(cooldowns);
-
-        const gear = new GearComponent(1);
-        this.player.setComponent(gear);
 
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
@@ -512,23 +508,11 @@ export class BasicTestGame extends Game {
         // logger.info(`key: ${action} ${params[0]} ${type}`);
         // if we're shifting up, require key-up
         if (action === 'shift' && type === 'up' && params[0] === 'up') {
-            const gear = this.player.getComponent('gear') as GearComponent;
-
-            if(gear) {
-                logger.info(`shift ${params[0]} current: ${gear.gear}`);
-
-                gear.queuedShift = 1;
-                
-                this.player.setComponent(gear);
-            }
+            
 
         } else if(action === 'shift' && (params[0] === 'down')) {
-            const gear = this.player.getComponent('gear') as GearComponent;
-            if(gear) {
-                logger.info(`shift DOWN ${params[0]} current: ${gear.gear}`);
-                gear.queuedShift = -1;
-                this.player.setComponent(gear);
-            }
+
+
         }
     }
     
