@@ -17,3 +17,5 @@ export const GEAR_SPEEDS: Record<number, number> = {
     3: 6,
     4: 9
 };
+
+export const SLIDE_SPEED = 2;

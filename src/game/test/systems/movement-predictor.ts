@@ -4,6 +4,7 @@ import { Point, Direction } from '../../../types';
 import { InertiaComponent } from '../components/inertia.component';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { logger } from '../../../util/logger';
+import { SLIDE_SPEED } from '../constants';
 
 export interface PredictedAction {
     type: 'entityMove';
@@ -115,7 +116,7 @@ export class MovementPredictor {
                 }],
                 finalInertia: {
                     direction: inertia.direction,
-                    magnitude: Math.min(maxSpeed, inertia.magnitude),  // Cap at max speed
+                    magnitude: Math.min(maxSpeed, inertia.magnitude+1),  // Cap at max speed. in this model, speed up even if you're not pushing forward.
                 },
                 willCollide: false
             };
@@ -151,9 +152,10 @@ export class MovementPredictor {
                     finalInertia.magnitude = Math.min(maxSpeed, inertia.magnitude + 1);
                 } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction)) {
                     // Opposite direction: decrease inertia and potentially slide
+                    
                     actions.pop(); // Remove the buffered move
                     
-                    if (inertia.magnitude > 2) {
+                    if (inertia.magnitude >= 2) {
                         // continue moving, but drop inertia by one
                         const inertiaDir = this.directionToPoint(inertia.direction);
                         actions.push({
@@ -165,20 +167,20 @@ export class MovementPredictor {
                     
                     finalInertia = {
                         direction: inertia.direction,
-                        magnitude: Math.max(0, inertia.magnitude),
-
-                        // magnitude: Math.max(0, inertia.magnitude - 1),
+                        magnitude: Math.max(0, inertia.magnitude-1),
                     };
-                } else if(inertia.magnitude < 2) {
+
+                } else if(inertia.magnitude <= SLIDE_SPEED) {
                     // if inertia is less than 2, still update the direction
+                    // TODO What is happening here? This case is... there is an input, it's not WITH momentum, or AGAINST momentum. 
                     finalInertia = {
                         direction: bufferedMove.direction,
-                        magnitude: 1,
+                        magnitude: inertia.magnitude,
                     };
                 }
                 else {
                     // Perpendicular movement
-                    if (inertia.magnitude >= 2) {
+                    if (inertia.magnitude > SLIDE_SPEED) {
                         const inertiaDir = this.directionToPoint(inertia.direction);
                         const slidePos = {
                             x: newPos.x + inertiaDir.x,
@@ -201,7 +203,7 @@ export class MovementPredictor {
 
                     const newMagnitude = Math.max(0, inertia.magnitude - 1);
                     finalInertia = {
-                        direction: newMagnitude >= 2 && newMagnitude <= 3 ? 
+                        direction: newMagnitude >= SLIDE_SPEED && newMagnitude <= SLIDE_SPEED+1 ? 
                             bufferedMove.direction : inertia.direction,
                         magnitude: Math.min(maxSpeed, newMagnitude),  // Cap at max speed
                     };
