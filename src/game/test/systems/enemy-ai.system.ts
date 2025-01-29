@@ -8,12 +8,16 @@ import { InertiaComponent } from '../components/inertia.component';
 import { directionToPoint } from '../../../util';
 import { CooldownComponent } from '../components/cooldown.component';
 import { MoveAction } from '../basic-test-game';
+import { CreateProjectileExecutor } from '../actions/create-projectile.action';
 
 export class EnemyAISystem {
     constructor(
         private world: World,
         private actionHandler: ActionHandler
-    ) { }
+    ) {
+        // Register the new action
+        this.actionHandler.registerAction('createProjectile', new CreateProjectileExecutor());
+    }
 
     tick(): void {
         // Get all enemies (entities with enemy component and AI component)
@@ -49,7 +53,6 @@ export class EnemyAISystem {
                         const nextPos = path[1];
                         logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} moving to ${nextPos.x}, ${nextPos.y}`);
 
-
                         const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
                         const moveCooldown = cooldowns?.getCooldown('move');
 
@@ -60,10 +63,7 @@ export class EnemyAISystem {
                                 entityId: enemy.getId(),
                                 data: { to: nextPos }
                             });
-                            // moveCooldown.ready = false;
                         }
-
-                        // enemy.setComponent(cooldowns);
                     }
                 }
 
@@ -75,31 +75,32 @@ export class EnemyAISystem {
                     // logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} can see player at ${this.world.getPlayer().getPosition().x}, ${this.world.getPlayer().getPosition().y}`);
 
                     if (ai.turnsLocked > 6) {
-                        // fire a "projectile"
-
-                        // for now let's just add an entity at the player's position
-
-                        // compute the position of the projectile based on the player's inertia.
+                        // compute the position of the projectile based on the player's inertia
                         const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
                         let playerFuturePos = this.world.getPlayer().getPosition();
                         if (playerInertia && playerInertia.magnitude > 0) {
-                            const playerFuturePos = {
+                            playerFuturePos = {
                                 x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x * 4,
                                 y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y * 4
                             }
                         }
 
-                        const projectile = new Entity(playerFuturePos);
-                        projectile.setComponent(new SymbolComponent('*', '#00ffd1FF', '#00000000', 1500));
-                        projectile.setComponent(new CooldownComponent({
-                            'explode-emp': {
-                                base: 8,
-                                current: 8,
-                                ready: false
+                        this.actionHandler.execute({
+                            type: 'createProjectile',
+                            entityId: enemy.getId(),
+                            data: {
+                                position: playerFuturePos,
+                                color: '#00ffd1FF',
+                                cooldowns: {
+                                    'explode-emp': {
+                                        base: 8,
+                                        current: 8,
+                                        ready: false
+                                    }
+                                }
                             }
-                        }));
+                        });
 
-                        this.world.addEntity(projectile);
                         ai.turnsLocked = 0;
                     }
                 } else {

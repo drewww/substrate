@@ -1213,11 +1213,11 @@ export class World {
         return null;
     }
 
-    private isInBounds(pos: Point): boolean {
+    public isInBounds(pos: Point): boolean {
         return pos.x >= 0 && pos.x < this.width && pos.y >= 0 && pos.y < this.height;
     }
 
-    private isValidPosition(pos: Point): boolean {
+    public isValidPosition(pos: Point): boolean {
         return this.isInBounds(pos);
     }
 
