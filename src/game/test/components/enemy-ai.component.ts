@@ -7,10 +7,17 @@ export enum EnemyAIMode {
     FLEE = 'flee'
 }
 
+export enum EnemyAIType {
+    EMP_TURRET = 'emp_turret',
+    FOLLOWER = 'follower',
+    FAST_FOLLOWER = 'fast_follower'
+}
+
 export class EnemyAIComponent extends Component {
     public readonly type = 'enemyAI';
 
     constructor(
+        public aiType: EnemyAIType = EnemyAIType.EMP_TURRET,
         public turnsLocked: number = 0,
         public visionRadius: number = 5,
         public mode: EnemyAIMode = EnemyAIMode.IDLE
@@ -20,6 +27,7 @@ export class EnemyAIComponent extends Component {
 
     clone(): EnemyAIComponent {
         return new EnemyAIComponent(
+            this.aiType,
             this.turnsLocked,
             this.visionRadius,
             this.mode

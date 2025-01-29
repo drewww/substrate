@@ -108,7 +108,7 @@ export class PrefabWorldGenerator implements WorldGenerator {
                         case 'lightEmitter':
                             return new LightEmitterComponent(def);
                         case 'enemyAI':
-                            return new EnemyAIComponent(def.turnsLocked, def.visionRadius, def.mode);
+                            return new EnemyAIComponent(def.aiType, def.turnsLocked, def.visionRadius, def.mode);
                         default:
                             console.error(`Unknown component type: ${def.type}`);
                             return null;
