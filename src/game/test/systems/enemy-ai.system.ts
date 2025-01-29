@@ -3,20 +3,16 @@ import { ActionHandler } from '../../../action/action-handler';
 import { Entity } from '../../../entity/entity';
 import { logger } from '../../../util/logger';
 import { EnemyAIComponent, EnemyAIType } from '../components/enemy-ai.component';
-import { SymbolComponent } from '../../../entity/components/symbol-component';
 import { InertiaComponent } from '../components/inertia.component';
 import { directionToPoint } from '../../../util';
 import { CooldownComponent } from '../components/cooldown.component';
-import { MoveAction } from '../basic-test-game';
-import { CreateProjectileExecutor } from '../actions/create-projectile.action';
+
 
 export class EnemyAISystem {
     constructor(
         private world: World,
         private actionHandler: ActionHandler
     ) {
-        // Register the new action
-        this.actionHandler.registerAction('createProjectile', new CreateProjectileExecutor());
     }
 
     tick(): void {
@@ -46,17 +42,13 @@ export class EnemyAISystem {
 
                 if(ai.turnsLocked > 3) {
                     // move towards the player
-                    logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} can see player at ${this.world.getPlayer().getPosition().x}, ${this.world.getPlayer().getPosition().y}`);
                     const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition());
-                    logger.warn(`Path: ${path}`);
                     if(path) {
                         const nextPos = path[1];
-                        logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} moving to ${nextPos.x}, ${nextPos.y}`);
 
                         const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
                         const moveCooldown = cooldowns?.getCooldown('move');
 
-                        logger.warn(`Move cooldown: ${JSON.stringify(moveCooldown)}`);
                         if(moveCooldown && moveCooldown.ready) {
                             this.actionHandler.execute({
                                 type: 'entityMove',
@@ -69,6 +61,7 @@ export class EnemyAISystem {
 
                 enemy.setComponent(ai);
                 break;
+                
             case EnemyAIType.EMP_TURRET:
                 if (canSeePlayer) {
                     ai.turnsLocked += 1

@@ -1,0 +1,44 @@
+import { BaseAction, ActionClass } from '../../../action/action-handler';
+import { World } from '../../../world/world';
+import { CooldownComponent } from '../components/cooldown.component';
+import { InertiaComponent } from '../components/inertia.component';
+import { Direction } from '../../../types';
+import { logger } from '../../../util/logger';
+
+interface StunActionData {
+    duration: number;
+    resetInertia?: boolean;
+}
+
+export const StunAction: ActionClass<StunActionData> = {
+    canExecute(world: World, action: BaseAction<StunActionData>): boolean {
+        const entity = world.getEntity(action.entityId);
+        if (!entity) return false;
+
+        // Can only stun entities with cooldown components
+        if (!entity.hasComponent('cooldown')) return false;
+
+        return true;
+    },
+
+    execute(world: World, action: BaseAction<StunActionData>): boolean {
+        const entity = world.getEntity(action.entityId);
+        if (!entity) return false;
+
+        const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+        cooldowns.setCooldown('stun', action.data.duration, action.data.duration, true);
+        entity.setComponent(cooldowns);
+
+        // Reset inertia if requested
+        if (action.data.resetInertia && entity.hasComponent('inertia')) {
+            const inertia = entity.getComponent('inertia') as InertiaComponent;
+            entity.setComponent(new InertiaComponent(
+                inertia.direction ?? Direction.South,
+                0
+            ));
+        }
+
+        logger.info(`Entity ${action.entityId} stunned for ${action.data.duration} ticks`);
+        return true;
+    }
+} 

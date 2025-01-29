@@ -8,9 +8,10 @@ import { Entity } from '../../../entity/entity';
 import { EMPComponent } from '../components/emp.component';
 import { StunComponent } from '../components/stun.component';
 import { InertiaComponent } from '../components/inertia.component';
+import { ActionHandler } from '../../../action/action-handler';
 
 export class WorldSystem {
-    constructor(private world: World) { }
+    constructor(private world: World, private actionHandler: ActionHandler) { }
 
     tick(): void {
         const toggleEntities = this.world.getEntities()
@@ -19,7 +20,6 @@ export class WorldSystem {
         for (const entity of toggleEntities) {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const toggleState = cooldowns.getCooldown('toggle');
-
 
             if (toggleState) {
                 // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
@@ -77,18 +77,14 @@ export class WorldSystem {
                 const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
                 for(const entity of entitiesAtPos) {
                     if(entity.hasComponent('player')) {
-                        const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
-                        const inertia = entity.getComponent('inertia') as InertiaComponent;
-                        
-                        if(!cooldowns.getCooldown('stun')) {
-                            cooldowns.setCooldown('stun', 10, 10, true);
-                            entity.setComponent(cooldowns);
-                        }
-
-                        if(inertia) {
-                            inertia.magnitude = 0;
-                            entity.setComponent(inertia);
-                        }
+                        this.actionHandler.execute({
+                            type: 'stun',
+                            entityId: entity.getId(),
+                            data: {
+                                duration: 10,
+                                resetInertia: true
+                            }
+                        });
                     }
                 }
             }

@@ -35,6 +35,8 @@ import { BrakeComponent } from './components/brake.component';
 import { TurboComponent } from './components/turbo.component';
 import { InertiaComponent } from './components/inertia.component';
 import { EnemyAISystem } from './systems/enemy-ai.system';
+import { StunAction } from './actions/stun.action';
+import { CreateEntityAction } from './actions/create-projectile.action';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -226,6 +228,8 @@ export class BasicTestGame extends Game {
         // Set up action handler with new PlayerMoveAction
         this.actionHandler = new ActionHandler(this.world);
         this.actionHandler.registerAction('entityMove', EntityMoveAction);
+        this.actionHandler.registerAction('stun', StunAction);
+        this.actionHandler.registerAction('createProjectile', CreateEntityAction);
         
         // Set up input configuration
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
@@ -236,7 +240,7 @@ export class BasicTestGame extends Game {
         this.enemyAISystem = new EnemyAISystem(this.world, this.actionHandler);
         this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
         this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
-        this.worldSystem = new WorldSystem(this.world);
+        this.worldSystem = new WorldSystem(this.world, this.actionHandler);
         this.followingSystem = new FollowingSystem(this.world, this.actionHandler);
         this.cooldownCleanupSystem = new CooldownCleanupSystem(this.world);
 

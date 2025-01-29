@@ -5,7 +5,8 @@ import { Point } from '../../../types';
 import { SymbolComponent } from '../../../entity/components/symbol-component';
 import { CooldownComponent } from '../components/cooldown.component';
 
-interface CreateProjectileData {
+// TODO this will need component data too
+interface CreateEntityData {
     position: Point;
     color: string;
     cooldowns: {
@@ -17,17 +18,13 @@ interface CreateProjectileData {
     };
 }
 
-export interface CreateProjectileAction extends BaseAction<CreateProjectileData> {
-    type: 'createProjectile';
-}
-
-export class CreateProjectileExecutor implements ActionClass<CreateProjectileData> {
-    canExecute(world: World, action: CreateProjectileAction): boolean {
+export const CreateEntityAction: ActionClass<CreateEntityData> = {
+    canExecute(world: World, action: BaseAction<CreateEntityData>): boolean {
         const { position } = action.data;
         return world.isInBounds(position);
-    }
+    },
 
-    execute(world: World, action: CreateProjectileAction): boolean {
+    execute(world: World, action: BaseAction<CreateEntityData>): boolean {
         const { position, color, cooldowns } = action.data;
 
         const projectile = new Entity(position);

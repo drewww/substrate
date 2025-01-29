@@ -59,10 +59,7 @@ export class PlayerMovementSystem {
             if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
             }
-            player.setComponent(new InertiaComponent(
-                inertia?.direction ?? Direction.South,
-                0
-            ));
+            
             return;
         }
 
@@ -138,9 +135,13 @@ export class PlayerMovementSystem {
             return;
         }
 
-        const stunDuration = magnitude * 3;
-        const cooldowns = player.getComponent('cooldown') as CooldownComponent;
-        cooldowns.setCooldown('stun', stunDuration, stunDuration, true);
-        logger.info(`Player ${player.getId()} stunned for ${stunDuration}ms`);
+        this.actionHandler.execute({
+            type: 'stun',
+            entityId: player.getId(),
+            data: {
+                duration: magnitude * 3,
+                resetInertia: true
+            }
+        });
     }
 } 
