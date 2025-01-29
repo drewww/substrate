@@ -4,7 +4,6 @@ import { Component } from '../entity/component';
 import { Point } from '../types';
 import { Renderer } from './renderer';
 import { InertiaComponent } from '../game/test/components/inertia.component';
-import { GearComponent } from '../game/test/components/gear.component';
 
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string> = new Map(); // region -> tileId
@@ -106,16 +105,9 @@ export class UISpeedRenderer implements Renderer {
 
     private updateSpeedIndicator(): void {
         const inertia = this.player.getComponent('inertia') as InertiaComponent;
-        const gear = this.player.getComponent('gear') as GearComponent;
         const magnitude = inertia?.magnitude ?? 0;
 
         // Update gear display
-        const gearTileId = this.uiTiles.get('gear');
-        if (gearTileId && gear) {
-            this.uiDisplay.updateTile(gearTileId, {
-                char: gear.gear.toString()
-            });
-        }
 
         // Update speed tiles
         for (let i = 0; i < this.MAX_SPEED; i++) {
@@ -137,7 +129,7 @@ export class UISpeedRenderer implements Renderer {
     handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {
-        if (entity === this.player && (componentType === 'inertia' || componentType === 'gear')) {
+        if (entity === this.player && (componentType === 'inertia')) {
             this.updateSpeedIndicator();
         }
     }
