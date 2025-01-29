@@ -492,9 +492,6 @@ export class BasicTestGame extends Game {
     // }
 
     protected handleInput(type: string, action: string, params: string[]): void {
-        if (type === 'up') {
-            return;
-        }
 
         if (action === 'move') {
             const directionStr = params[0];
@@ -512,7 +509,8 @@ export class BasicTestGame extends Game {
             this.player.setComponent(new BufferedMoveComponent(direction));
         }
 
-        if (action === 'shift') {
+        logger.info(`key: ${action} ${params[0]} ${type}`);
+        if (action === 'shift' && type === 'up') {
             const gear = this.player.getComponent('gear') as GearComponent;
 
             if(gear) {
