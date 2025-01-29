@@ -15,8 +15,12 @@ export const StunAction: ActionClass<StunActionData> = {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
 
-        // Can only stun entities with cooldown components
-        if (!entity.hasComponent('cooldown')) return false;
+ 
+        const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+        if(!cooldowns) return false;
+
+        const stunState = cooldowns.getCooldown('stun');
+        if(stunState) return false;
 
         return true;
     },
@@ -26,6 +30,7 @@ export const StunAction: ActionClass<StunActionData> = {
         if (!entity) return false;
 
         const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+
         cooldowns.setCooldown('stun', action.data.duration, action.data.duration, true);
         entity.setComponent(cooldowns);
 
