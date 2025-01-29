@@ -6,6 +6,7 @@ import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { logger } from '../../../util/logger';
 import { SLIDE_SPEED } from '../constants';
 import { BrakeComponent } from '../components/brake.component';
+import { TurboComponent } from '../components/turbo.component';
 
 export interface PredictedAction {
     type: 'entityMove';
@@ -54,7 +55,10 @@ export class MovementPredictor {
         // const maxSpeed:number = GEAR_SPEEDS[gear.gear];
 
         // TODO: set this to 8 or 10 when turbo engaged.
-        const maxSpeed = 6;
+
+        const turbo = player.getComponent('turbo') as TurboComponent;
+        
+        const maxSpeed = turbo ? 10 : 6;
 
         // if(gear.queuedShift==-1) {
 

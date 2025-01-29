@@ -32,6 +32,8 @@ import { COOLDOWNS } from './constants';
 import { Renderer } from '../../render/renderer';
 import { UISpeedRenderer } from '../../render/ui-speed-renderer';
 import { BrakeComponent } from './components/brake.component';
+import { TurboComponent } from './components/turbo.component';
+import { InertiaComponent } from './components/inertia.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -515,6 +517,15 @@ export class BasicTestGame extends Game {
 
 
         // }
+
+        if(action === 'turbo' && (type === 'down' || type === 'repeat')) {
+            const inertia = this.player.getComponent('inertia') as InertiaComponent;
+            if(inertia && inertia.magnitude >= 6) {
+                this.player.setComponent(new TurboComponent());
+            }
+        } else if(action === 'turbo' && (type === 'up')) {
+            this.player.removeComponent('turbo');
+        }
 
         logger.info(`action: ${action} type: ${type}`);
         if(action === 'brake' && (type === 'down' || type === 'repeat')) {

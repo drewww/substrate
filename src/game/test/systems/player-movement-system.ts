@@ -8,6 +8,7 @@ import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 import { MovementPredictor } from './movement-predictor';
+import { TurboComponent } from '../components/turbo.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -60,7 +61,6 @@ export class PlayerMovementSystem {
 
     private movePlayer(player: Entity): void {
         const prediction = this.movementPredictor.predictMove(player);
-        // logger.info(`Player ${player.getId()} prediction: ${prediction.actions.length} actions will collide: ${prediction.willCollide} finalInertia: ${prediction.finalInertia.direction}@${prediction.finalInertia.magnitude}`);
         const inertia = player.getComponent('inertia') as InertiaComponent;
 
         if (prediction.willCollide) {
@@ -96,7 +96,11 @@ export class PlayerMovementSystem {
             const cooldowns = player.getComponent('cooldown') as CooldownComponent;
             if(cooldowns) {
                 if(prediction.finalInertia.magnitude >= 2) {
-                    const newCooldown = 2; // then 2 and 1
+
+
+                    const turbo = player.getComponent('turbo') as TurboComponent;
+                    
+                    const newCooldown = turbo ? 1 : 2; // then 2 and 1
                     logger.info(`Setting move cooldown to ${newCooldown} ticks`);
                     cooldowns.setCooldown('move', newCooldown, newCooldown);
                     player.setComponent(cooldowns);
