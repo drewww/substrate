@@ -182,10 +182,23 @@ export class TestGameRenderer extends GameRenderer {
                         // Calculate direction angle based on movement
                         const angle = Math.atan2(dy, dx) + Math.PI / 4;
 
-                        this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 1000, {
+                        this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 800, {
                             rotation: angle,
                             scaleSymbolX: 2.0,
                         });
+
+                        // Calculate smoke positions based on movement direction
+                        let smokePos1: Point, smokePos2: Point;
+                        if (Math.abs(dx) > 0) {  // Moving horizontally
+                            smokePos1 = { x: from.x+1, y: from.y - 1 }; // above
+                            smokePos2 = { x: from.x-1, y: from.y + 1 }; // below
+                        } else {  // Moving vertically
+                            smokePos1 = { x: from.x - 1, y: from.y+1 }; // left
+                            smokePos2 = { x: from.x + 1, y: from.y-1 }; // right
+                        }
+
+                        // this.makeSmokeTileAt(smokePos1);
+                        // this.makeSmokeTileAt(smokePos2);
                     }
                 }
             }
@@ -413,60 +426,53 @@ export class TestGameRenderer extends GameRenderer {
             }
 
             // Create left smoke particle
-            const leftTileId = this.display.createTile(
-                pos.x + leftOffset.x + behindOffset.x,
-                pos.y + leftOffset.y + behindOffset.y,
-                '░',
-                '#888888FF',
-                '#00000000',
-                998,
+
+            this.makeSmokeTileAt(
+                {
+                    x: pos.x + leftOffset.x + behindOffset.x,
+                    y: pos.y + leftOffset.y + behindOffset.y,
+                }
             );
 
-            this.display.addColorAnimation(leftTileId, {
-                bg: {
-                    start: '#888888FF',
-                    end: '#00000000',
-                    duration: 0.3,
-                    easing: Easing.linear,  
-                    loop: false,
-                    removeOnComplete: true
-                },
-                fg: {
-                    start: '#888888FF',
-                    end: '#00000000',
-                    duration: 0.6,
-                    easing: Easing.linear,
-                    loop: false,
+            this.makeSmokeTileAt(
+                {
+                    x: pos.x + rightOffset.x + behindOffset.x,
+                    y: pos.y + rightOffset.y + behindOffset.y,
                 }
-            });
-            // Create right smoke particle
-            const rightTileId = this.display.createTile(
-                pos.x + rightOffset.x + behindOffset.x,
-                pos.y + rightOffset.y + behindOffset.y,
-                '░',
-                '#888888FF',
-                '#00000000',
-                998,
             );
-
-            this.display.addColorAnimation(rightTileId, {
-                bg: {
-                    start: '#888888FF',
-                    end: '#00000000',
-                    duration: 0.3,
-                    easing: Easing.linear,
-                    loop: false,
-                    removeOnComplete: true
-                }, fg: {
-                    start: '#888888FF',
-                    end: '#00000000',
-                    duration: 0.6,
-                    easing: Easing.linear,
-                    loop: false,
-                }
-            });
-
         }
+    }
+
+
+    private makeSmokeTileAt(pos: Point): TileId {
+        const tileId = this.display.createTile(
+            pos.x,
+            pos.y,
+            '░',
+            '#888888FF',
+            '#00000000',
+            998,
+        );
+
+        this.display.addColorAnimation(tileId, {
+            bg: {
+                start: '#888888FF',
+                end: '#00000000',
+                duration: 0.3,
+                easing: Easing.linear,  
+                loop: false,
+                removeOnComplete: true
+            },
+            fg: {
+                start: '#888888FF',
+                end: '#00000000',
+                duration: 0.6,
+                easing: Easing.linear,
+                loop: false,
+            }
+        });
+
+        return tileId;
     }
 
     private getTargetPosition(pos: Point, direction: Direction): Point {
