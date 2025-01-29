@@ -580,9 +580,9 @@ export class World {
         }
 
         // Update player vision if the moved entity is the player
-        // if (entity.hasComponent('player')) {
-        //     this.updatePlayerVision();
-        // }
+        if (entity.hasComponent('player')) {
+            this.updatePlayerVision();
+        }
 
         // Emit the event
         this.emit('entityMoved', {

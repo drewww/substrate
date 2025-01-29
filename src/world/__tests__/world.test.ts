@@ -9,6 +9,7 @@ import { OpacityComponent } from '../../entity/components/opacity-component';
 import { WallComponent, WallDirection } from '../../entity/components/wall-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
 import { VisionComponent } from '../../entity/components/vision-component';
+import { PlayerComponent } from '../../entity/components/player-component';
 
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
@@ -1145,7 +1146,7 @@ describe('World', () => {
         describe('Player Vision', () => {
             it('should update player vision when player moves', () => {
                 const player = new Entity(CENTER);
-                player.addTag('player');
+                player.setComponent(new PlayerComponent());
                 player.setComponent(new VisionComponent(3));
                 
                 const visionUpdateSpy = vi.fn();
@@ -1159,7 +1160,7 @@ describe('World', () => {
 
             it('should track discovered locations', () => {
                 const player = new Entity(CENTER);
-                player.addTag('player');
+                player.setComponent(new PlayerComponent());
                 player.setComponent(new VisionComponent(2));
                 world.addEntity(player);
 
@@ -1179,7 +1180,7 @@ describe('World', () => {
              */
             it('should check if location is visible using legacy method', () => {
                 const player = new Entity(CENTER);
-                player.addTag('player');
+                player.setComponent(new PlayerComponent());
                 player.setComponent(new VisionComponent(3));
                 world.addEntity(player);
 
