@@ -41,10 +41,12 @@ export class EnemyAISystem {
                 
                 // compute the position of the projectile based on the player's inertia.
                 const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
-
-                const playerFuturePos = {
-                    x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x*4,
-                    y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y*4
+                let playerFuturePos = this.world.getPlayer().getPosition();
+                if(playerInertia && playerInertia.magnitude > 0) {
+                    const playerFuturePos = {
+                        x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x*4,
+                        y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y*4
+                    }
                 }
 
                 const projectile = new Entity(playerFuturePos);
