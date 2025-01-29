@@ -188,14 +188,14 @@ export class TestGameRenderer extends GameRenderer {
                         });
 
                         // Calculate smoke positions based on movement direction
-                        let smokePos1: Point, smokePos2: Point;
-                        if (Math.abs(dx) > 0) {  // Moving horizontally
-                            smokePos1 = { x: from.x+1, y: from.y - 1 }; // above
-                            smokePos2 = { x: from.x-1, y: from.y + 1 }; // below
-                        } else {  // Moving vertically
-                            smokePos1 = { x: from.x - 1, y: from.y+1 }; // left
-                            smokePos2 = { x: from.x + 1, y: from.y-1 }; // right
-                        }
+                        // let smokePos1: Point, smokePos2: Point;
+                        // if (Math.abs(dx) > 0) {  // Moving horizontally
+                        //     smokePos1 = { x: from.x+1, y: from.y - 1 }; // above
+                        //     smokePos2 = { x: from.x-1, y: from.y + 1 }; // below
+                        // } else {  // Moving vertically
+                        //     smokePos1 = { x: from.x - 1, y: from.y+1 }; // left
+                        //     smokePos2 = { x: from.x + 1, y: from.y-1 }; // right
+                        // }
 
                         // this.makeSmokeTileAt(smokePos1);
                         // this.makeSmokeTileAt(smokePos2);
@@ -236,6 +236,13 @@ export class TestGameRenderer extends GameRenderer {
                     this.display.removeTile(tileId);
                     this.bufferedMoveTiles.delete(entity.getId());
                 }
+            }
+        }
+
+        if(componentType === 'turbo') {
+            const turbo = entity.getComponent('turbo') as TurboComponent;
+            if(turbo.turnsSinceEngaged < 4 && turbo.turnsSinceEngaged > 0) {
+                this.makeTurboSmoke(entity);
             }
         }
 
@@ -391,58 +398,63 @@ export class TestGameRenderer extends GameRenderer {
             }
         } 
         
-        if(componentType === 'turbo') {
-            const pos = entity.getPosition();
-            const inertia = entity.getComponent('inertia') as InertiaComponent;
-            const direction = inertia.direction;
-
-            // Calculate offset positions perpendicular to movement direction
-            let leftOffset: Point;
-            let rightOffset: Point;
-
-            let behindOffset: Point;
-            
-            switch(direction) {
-                case Direction.North:
-                    behindOffset = { x: 0, y: 1 };
-                    leftOffset = { x: -1, y: 0 };
-                    rightOffset = { x: 1, y: 0 };
-                    break;
-                case Direction.South:
-                    leftOffset = { x: -1, y: 0 };
-                    rightOffset = { x: 1, y: 0 };
-                    behindOffset = { x: 0, y: -1 };
-                    break;
-                case Direction.East:
-                    leftOffset = { x: 0, y: -1 };
-                    rightOffset = { x: 0, y: 1 };
-                    behindOffset = { x: -1, y: 0 };
-                    break;
-                case Direction.West:
-                    leftOffset = { x: 0, y: -1 };
-                    rightOffset = { x: 0, y: 1 };
-                    behindOffset = { x: 1, y: 0 };
-                    break;
-            }
-
-            // Create left smoke particle
-
-            this.makeSmokeTileAt(
-                {
-                    x: pos.x + leftOffset.x + behindOffset.x,
-                    y: pos.y + leftOffset.y + behindOffset.y,
-                }
-            );
-
-            this.makeSmokeTileAt(
-                {
-                    x: pos.x + rightOffset.x + behindOffset.x,
-                    y: pos.y + rightOffset.y + behindOffset.y,
-                }
-            );
-        }
+        // if(componentType === 'turbo') {
+        //     this.makeTurboSmoke(entity);
+        // }
     }
 
+    private makeTurboSmoke(entity: Entity): void {
+        const pos = entity.getPosition();
+        const inertia = entity.getComponent('inertia') as InertiaComponent;
+        const direction = inertia.direction;
+
+        // Calculate offset positions perpendicular to movement direction
+        let leftOffset: Point;
+        let rightOffset: Point;
+
+        let behindOffset: Point;
+        
+        switch(direction) {
+            case Direction.North:
+                behindOffset = { x: 0, y: 1 };
+                leftOffset = { x: -1, y: 0 };
+                rightOffset = { x: 1, y: 0 };
+                break;
+            case Direction.South:
+                leftOffset = { x: -1, y: 0 };
+                rightOffset = { x: 1, y: 0 };
+                behindOffset = { x: 0, y: -1 };
+                break;
+            case Direction.East:
+                leftOffset = { x: 0, y: -1 };
+                rightOffset = { x: 0, y: 1 };
+                behindOffset = { x: -1, y: 0 };
+                break;
+            case Direction.West:
+                leftOffset = { x: 0, y: -1 };
+                rightOffset = { x: 0, y: 1 };
+                behindOffset = { x: 1, y: 0 };
+                break;
+        }
+
+        // Create left smoke particle
+
+        this.makeSmokeTileAt(
+            {
+                x: pos.x + leftOffset.x + behindOffset.x,
+                y: pos.y + leftOffset.y + behindOffset.y,
+            }
+        );
+
+        this.makeSmokeTileAt(
+            {
+                x: pos.x + rightOffset.x + behindOffset.x,
+                y: pos.y + rightOffset.y + behindOffset.y,
+            }
+        );
+
+        this.makeSmokeTileAt(pos);
+    }
 
     private makeSmokeTileAt(pos: Point): TileId {
         const tileId = this.display.createTile(

@@ -131,6 +131,11 @@ export class PlayerMovementSystem {
         // cooldowns.setCooldown('move', COOLDOWNS.PLAYER_MOVE, COOLDOWNS.PLAYER_MOVE, false);
         // player.setComponent(cooldowns);
 
+        if(turbo) {
+            turbo.turnsSinceEngaged += 1;
+            player.setComponent(turbo);
+        }
+
         // Remove the buffered move component
         player.removeComponent('bufferedMove');
     }

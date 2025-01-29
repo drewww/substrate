@@ -5,15 +5,20 @@ import { RegisterComponent } from "../../../entity/component-registry";
 export class TurboComponent extends Component {
     type: 'turbo' = 'turbo';
 
-    constructor() {
+
+    public turnsSinceEngaged: number;
+    constructor(turnsSinceEngaged: number=0) {
         super();
+        this.turnsSinceEngaged = turnsSinceEngaged;
     }
 
     static fromJSON(data: any): TurboComponent {
-        return new TurboComponent();
+        return new TurboComponent(data.turnsSinceEngaged);
     }
 
     toJSON(): any {
-        return {};
+        return {
+            turnsSinceEngaged: this.turnsSinceEngaged,
+        };
     }
 }
