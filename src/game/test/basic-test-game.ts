@@ -509,21 +509,26 @@ export class BasicTestGame extends Game {
             this.player.setComponent(new BufferedMoveComponent(direction));
         }
 
-        logger.info(`key: ${action} ${params[0]} ${type}`);
-        if (action === 'shift' && type === 'up') {
+        // logger.info(`key: ${action} ${params[0]} ${type}`);
+        // if we're shifting up, require key-up
+        if (action === 'shift' && type === 'up' && params[0] === 'up') {
             const gear = this.player.getComponent('gear') as GearComponent;
 
             if(gear) {
                 logger.info(`shift ${params[0]} current: ${gear.gear}`);
 
-                switch(params[0]) {
-                    case 'up':    gear.queuedShift = 1; break;
-                    case 'down':  gear.queuedShift = -1; break;
-                }
-
+                gear.queuedShift = 1;
+                
                 this.player.setComponent(gear);
             }
 
+        } else if(action === 'shift' && (params[0] === 'down')) {
+            const gear = this.player.getComponent('gear') as GearComponent;
+            if(gear) {
+                logger.info(`shift DOWN ${params[0]} current: ${gear.gear}`);
+                gear.queuedShift = -1;
+                this.player.setComponent(gear);
+            }
         }
     }
     

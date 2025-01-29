@@ -9,7 +9,7 @@ import { GearComponent } from '../game/test/components/gear.component';
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string> = new Map(); // region -> tileId
     private readonly uiDisplay: Display;
-    private readonly MAX_SPEED = 8;  // Maximum speed to show
+    private readonly MAX_SPEED = 12;  // Updated to 12 from 8
     private readonly GEAR_X = 0;  // Gear indicator position
     private readonly SPEED_START_X = 2;  // Speed bar starts 2 tiles in
     private readonly SPEED_COLORS = [
@@ -20,7 +20,11 @@ export class UISpeedRenderer implements Renderer {
         '#ff550088',  // Speed 5
         '#ff330088',  // Speed 6
         '#ff110088',  // Speed 7
-        '#ff000088'   // Speed 8 - dark orange
+        '#ff000088',  // Speed 8 - dark orange
+        '#dd000088',  // Speed 9 - darkening red
+        '#bb000088',  // Speed 10
+        '#990000aa',  // Speed 11
+        '#770000cc'   // Speed 12 - deep red with higher opacity
     ];
 
     constructor(

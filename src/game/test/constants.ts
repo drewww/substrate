@@ -9,3 +9,11 @@ export const COOLDOWNS = {
     FAST_MOVE: 1,      // was 300ms (for inertia)
     MEDIUM_MOVE: 3     // was 500ms (for inertia)
 } as const; 
+
+
+export const GEAR_SPEEDS: Record<number, number> = {
+    1: 1,
+    2: 3,
+    3: 6,
+    4: 9
+};

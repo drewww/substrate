@@ -5,6 +5,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { logger } from '../../../util/logger';
 import { GearComponent } from '../components/gear.component';
+import { GEAR_SPEEDS } from '../constants';
 
 export interface PredictedAction {
     type: 'entityMove';
@@ -51,27 +52,27 @@ export class MovementPredictor {
         const pos = player.getPosition();
         
         // Calculate max speed based on current gear
-        const maxSpeed = gear ? (gear.gear * 2) - 2 : 1;
+        const maxSpeed:number = GEAR_SPEEDS[gear.gear];
 
-        if(gear.queuedShift==-1) {
+        // if(gear.queuedShift==-1) {
 
-            const oppositeDirection = {
-                [Direction.North]: Direction.South,
-                [Direction.South]: Direction.North,
-                [Direction.West]: Direction.East,
-                [Direction.East]: Direction.West
-            }[inertia.direction];
+        //     const oppositeDirection = {
+        //         [Direction.North]: Direction.South,
+        //         [Direction.South]: Direction.North,
+        //         [Direction.West]: Direction.East,
+        //         [Direction.East]: Direction.West
+        //     }[inertia.direction];
 
-            // let newBufferedMove: BufferedMoveComponent | null = null;
-            // if(!bufferedMove) {
-            //     if(inertia.magnitude > 1) {
-            //         bufferedMove = new BufferedMoveComponent(oppositeDirection);
-            //     }
-            // } else {
-            //     bufferedMove.direction = oppositeDirection;
-            // }
+        //     // let newBufferedMove: BufferedMoveComponent | null = null;
+        //     // if(!bufferedMove) {
+        //     //     if(inertia.magnitude > 1) {
+        //     //         bufferedMove = new BufferedMoveComponent(oppositeDirection);
+        //     //     }
+        //     // } else {
+        //     //     bufferedMove.direction = oppositeDirection;
+        //     // }
 
-        }
+        // }
 
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude}`);
 
@@ -83,7 +84,7 @@ export class MovementPredictor {
                 finalInertia: {
                     direction: inertia?.direction ?? Direction.South,
                     magnitude: 0,
-                    brake: false
+                    brake: gear.queuedShift==-1
                 },
                 willCollide: false
             };
@@ -117,7 +118,7 @@ export class MovementPredictor {
                 finalInertia: {
                     direction: inertia.direction,
                     magnitude: Math.min(maxSpeed, inertia.magnitude),  // Cap at max speed
-                    brake: false
+                    brake: gear.queuedShift==-1
                 },
                 willCollide: false
             };
@@ -168,7 +169,9 @@ export class MovementPredictor {
                     
                     finalInertia = {
                         direction: inertia.direction,
-                        magnitude: Math.max(0, inertia.magnitude - 1),
+                        magnitude: Math.max(0, inertia.magnitude),
+
+                        // magnitude: Math.max(0, inertia.magnitude - 1),
                         brake: true
                     };
                 } else if(inertia.magnitude < 2) {

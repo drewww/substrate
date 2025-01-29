@@ -7,7 +7,7 @@ import { Entity } from '../../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
-import { COOLDOWNS, TICK_MS } from '../constants';
+import { COOLDOWNS, GEAR_SPEEDS, TICK_MS } from '../constants';
 import { MovementPredictor } from './movement-predictor';
 import { GearComponent } from '../components/gear.component';
 import { Display } from '../../../display/display';
@@ -63,10 +63,10 @@ export class PlayerMovementSystem {
 
     private movePlayer(player: Entity): void {
         const prediction = this.movementPredictor.predictMove(player);
-        logger.info(`Player ${player.getId()} prediction: ${prediction.actions.length} actions will collide: ${prediction.willCollide} finalInertia: ${prediction.finalInertia.direction}@${prediction.finalInertia.magnitude}`);
+        // logger.info(`Player ${player.getId()} prediction: ${prediction.actions.length} actions will collide: ${prediction.willCollide} finalInertia: ${prediction.finalInertia.direction}@${prediction.finalInertia.magnitude}`);
+        const inertia = player.getComponent('inertia') as InertiaComponent;
 
         if (prediction.willCollide) {
-            const inertia = player.getComponent('inertia') as InertiaComponent;
             if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
             }
@@ -94,19 +94,28 @@ export class PlayerMovementSystem {
 
             // override queued shift if braking
             if(prediction.finalInertia.brake) {
-                gear.queuedShift = -1;
+                logger.info(`braking, queuedShift: ${gear.queuedShift} gear: ${gear.gear} maxSpeedOneGearDown: ${GEAR_SPEEDS[gear.gear>1? gear.gear-1 : 1]} speed: ${inertia.magnitude}`);
+                if(inertia.magnitude <= GEAR_SPEEDS[gear.gear>1? gear.gear-1 : 1]) {
+                    gear.queuedShift = -1;
+                }
             } 
 
-            const queuedShift = gear.queuedShift;
+            let queuedShift = gear.queuedShift;
             if(queuedShift) {
-                gear.gear = Math.max(1, Math.min(5, gear.gear + queuedShift));
+
+                // block shifts up if not at max speed for that gear
+                if(inertia.magnitude < GEAR_SPEEDS[gear.gear]) {
+                    queuedShift = 0;
+                }
+
+                gear.gear = Math.max(1, Math.min(Object.values(GEAR_SPEEDS).length, gear.gear + queuedShift));
                 gear.queuedShift = 0;
                 player.setComponent(gear);
             }
 
             const cooldowns = player.getComponent('cooldown') as CooldownComponent;
             if(cooldowns) {
-                const newCooldown = 6-gear.gear;
+                const newCooldown = (Object.values(GEAR_SPEEDS).length+1) - gear.gear;
                 logger.info(`Setting move cooldown to ${newCooldown} ticks`);
                 cooldowns.setCooldown('move', newCooldown, newCooldown);
                 player.setComponent(cooldowns);
