@@ -110,8 +110,15 @@ export class World {
         }
         entitiesAtPosition.add(entityId);
 
-        // Update FOV map
-        this.updateFOVForEntity(entity, position);
+        // Update FOV map if entity affects visibility
+        if (entity.hasComponent('opacity')) {
+            this.fovMap.addBody(position.x, position.y);
+        }
+
+        // Update player vision if this is a player
+        if (entity.hasComponent('player')) {
+            this.updatePlayerVision();
+        }
 
         this.emit('entityAdded', { entity });
     }
@@ -162,6 +169,22 @@ export class World {
         }
 
         const oldPosition = entity.getPosition();
+        const oldKey = this.pointToKey(oldPosition);
+        const newKey = this.pointToKey(newPosition);
+
+        // Update spatial map
+        const oldSet = this.spatialMap.get(oldKey);
+        oldSet?.delete(entityId);
+        if (oldSet?.size === 0) {
+            this.spatialMap.delete(oldKey);
+        }
+
+        let newSet = this.spatialMap.get(newKey);
+        if (!newSet) {
+            newSet = new Set();
+            this.spatialMap.set(newKey, newSet);
+        }
+        newSet.add(entityId);
 
         // Update FOV map if needed
         if (entity.hasComponent('opacity')) {
@@ -171,6 +194,15 @@ export class World {
 
         // Let the entity update its position
         entity.setPosition(newPosition.x, newPosition.y);
+
+        // Emit move event
+        this.emit('entityMoved', { entity, from: oldPosition, to: newPosition });
+
+        // Update player vision if this is the player
+        if (entity.hasComponent('player')) {
+            this.updatePlayerVision();
+        }
+
         return true;
     }
 
@@ -636,13 +668,13 @@ export class World {
 
     /**
      * Get all tiles visible from a position at a given radius
-     * @param position The origin position to check vision from
-     * @param radius The vision radius
-     * @returns Set of point keys representing visible tiles
      */
     public getVisibleTilesFromPosition(position: Point, radius: number): Set<string> {
         const visibleTiles = new Set<string>();
         const radiusInteger = Math.ceil(radius);
+
+        // Update FOV map to ensure it's current
+        this.rebuildFOVMap();
         
         // Calculate FOV from the position
         const fov = computeFieldOfView(
@@ -660,8 +692,8 @@ export class World {
                     continue;
                 }
 
-                if (fov.getVisible(Math.round(x), Math.round(y))) {
-                    visibleTiles.add(this.pointToKey({ x: Math.round(x), y: Math.round(y) }));
+                if (fov.getVisible(x, y)) {
+                    visibleTiles.add(this.pointToKey({ x, y }));
                 }
             }
         }
@@ -710,7 +742,8 @@ export class World {
             this.discoveredLocations.add(key);
         }
 
-        // Emit an event to notify renderers
+        // Emit both events for backwards compatibility
+        this.emit('fovChanged', {});
         this.emit('playerVisionUpdated', { 
             playerPos: player.getPosition(), 
             visibleLocations: this.playerVisibleLocations 
@@ -722,24 +755,25 @@ export class World {
     private rebuildFOVMap(): void {
         this.fovMap = new FieldOfViewMap(this.width, this.height);
         
-        // Add all opaque entities to the FOV map
-        const opaqueEntities = this.getEntitiesWithComponent('opacity');
-        for (const entity of opaqueEntities) {
-            const pos = entity.getPosition();
-            this.fovMap.addBody(pos.x, pos.y);
+        // Add all opaque entities
+        for (const entity of this.entities.values()) {
+            if (entity.hasComponent('opacity')) {
+                const pos = entity.getPosition();
+                this.fovMap.addBody(pos.x, pos.y);
+            }
         }
 
-        // Add all walls to the FOV map
+        // Add all walls from entities with wall components
         const wallEntities = this.getEntitiesWithComponent('wall');
         for (const entity of wallEntities) {
             const pos = entity.getPosition();
             const wall = entity.getComponent('wall') as WallComponent;
             
-            // Check each wall direction
-            if (wall.north?.properties[WallProperty.OPAQUE]) {
+            // Only check north and west walls since those are the only ones we store
+            if (wall.north.properties[WallProperty.OPAQUE]) {
                 this.fovMap.addWall(pos.x, pos.y, CardinalDirection.NORTH);
             }
-            if (wall.west?.properties[WallProperty.OPAQUE]) {
+            if (wall.west.properties[WallProperty.OPAQUE]) {
                 this.fovMap.addWall(pos.x, pos.y, CardinalDirection.WEST);
             }
         }
@@ -1097,7 +1131,12 @@ export class World {
             this.discoveredLocations.add(key);
         }
 
+        // Emit both events for backwards compatibility
         this.emit('fovChanged', {});
+        this.emit('playerVisionUpdated', { 
+            playerPos: position, 
+            visibleLocations: this.playerVisibleLocations 
+        });
     }
 
     /**

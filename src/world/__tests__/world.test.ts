@@ -8,6 +8,7 @@ import { transient } from '../../decorators/transient';
 import { OpacityComponent } from '../../entity/components/opacity-component';
 import { WallComponent, WallDirection } from '../../entity/components/wall-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
+import { VisionComponent } from '../../entity/components/vision-component';
 
 const DEFAULT_POSITION: Point = { x: 0, y: 0 };
 
@@ -1074,6 +1075,146 @@ describe('World', () => {
             expect(world.isPassable(5, 6, 5, 5)).toBe(false);
             expect(world.isPassable(4, 5, 5, 5)).toBe(false);
             expect(world.isPassable(6, 5, 5, 5)).toBe(false);
+        });
+    });
+
+    describe('Vision System', () => {
+        let world: World;
+        const DEFAULT_SIZE = { x: 10, y: 10 };
+        const CENTER = { x: 5, y: 5 };
+
+        beforeEach(() => {
+            world = new World(DEFAULT_SIZE.x, DEFAULT_SIZE.y);
+        });
+
+        describe('Entity Vision', () => {
+            it('should get visible tiles for an entity with vision component', () => {
+                const entity = new Entity(CENTER);
+                entity.setComponent(new VisionComponent(3)); // 3 tile radius
+                world.addEntity(entity);
+
+                const visibleTiles = world.getVisibleTilesForEntity(entity);
+                expect(visibleTiles.size).toBeGreaterThan(0);
+                // Center tile should always be visible
+                expect(visibleTiles.has(world.pointToKey(CENTER))).toBe(true);
+            });
+
+            it('should throw if getting visible tiles for entity without vision component and no radius specified', () => {
+                const entity = new Entity(CENTER);
+                world.addEntity(entity);
+
+                expect(() => world.getVisibleTilesForEntity(entity))
+                    .toThrow('Entity has no vision radius specified');
+            });
+
+            it('should get visible tiles from position with explicit radius', () => {
+                const visibleTiles = world.getVisibleTilesFromPosition(CENTER, 3);
+                expect(visibleTiles.size).toBeGreaterThan(0);
+                expect(visibleTiles.has(world.pointToKey(CENTER))).toBe(true);
+            });
+
+            it('should handle vision blocked by opaque entities', () => {
+                const observer = new Entity(CENTER);
+                observer.setComponent(new VisionComponent(3));
+                
+                const opaqueEntity = new Entity({ x: CENTER.x + 1, y: CENTER.y });
+                opaqueEntity.setComponent(new OpacityComponent());
+                
+                const targetBehindOpaque = new Entity({ x: CENTER.x + 2, y: CENTER.y });
+                
+                world.addEntity(observer);
+                world.addEntity(opaqueEntity);
+                world.addEntity(targetBehindOpaque);
+
+                expect(world.canEntitySeeEntity(observer, opaqueEntity)).toBe(true);
+                expect(world.canEntitySeeEntity(observer, targetBehindOpaque)).toBe(false);
+            });
+
+            it('should handle vision blocked by walls', () => {
+                const observer = new Entity(CENTER);
+                observer.setComponent(new VisionComponent(3));
+                world.addEntity(observer);
+
+                // Add a wall east of the observer
+                world.setWall(CENTER, WallDirection.EAST, {
+                    properties: [true, true, true],
+                    color: '#FFFFFF'
+                });
+
+                const target = new Entity({ x: CENTER.x + 2, y: CENTER.y });
+                world.addEntity(target);
+
+                expect(world.canEntitySeeEntity(observer, target)).toBe(false);
+            });
+
+            it('should check if entity can see specific position', () => {
+                const observer = new Entity(CENTER);
+                observer.setComponent(new VisionComponent(3));
+                world.addEntity(observer);
+
+                const visiblePos = { x: CENTER.x + 1, y: CENTER.y };
+                const tooFarPos = { x: CENTER.x + 5, y: CENTER.y };
+
+                expect(world.canEntitySeePosition(observer, visiblePos)).toBe(true);
+                expect(world.canEntitySeePosition(observer, tooFarPos)).toBe(false);
+            });
+        });
+
+        describe('Player Vision', () => {
+            it('should update player vision when player moves', () => {
+                const player = new Entity(CENTER);
+                player.addTag('player');
+                player.setComponent(new VisionComponent(3));
+                
+                const visionUpdateSpy = vi.fn();
+                world.on('playerVisionUpdated', visionUpdateSpy);
+                
+                world.addEntity(player);
+                world.moveEntity(player.getId(), { x: CENTER.x + 1, y: CENTER.y });
+
+                expect(visionUpdateSpy).toHaveBeenCalled();
+            });
+
+            it('should track discovered locations', () => {
+                const player = new Entity(CENTER);
+                player.addTag('player');
+                player.setComponent(new VisionComponent(2));
+                world.addEntity(player);
+
+                const nearbyPos = { x: CENTER.x + 1, y: CENTER.y };
+                const farPos = { x: 0, y: 0 };
+
+                // Initial position should be discovered
+                expect(world.isLocationDiscovered(CENTER)).toBe(true);
+                expect(world.isLocationDiscovered(nearbyPos)).toBe(true);
+                expect(world.isLocationDiscovered(farPos)).toBe(false);
+            });
+        });
+
+        describe('Deprecated Vision Methods', () => {
+            /**
+             * @deprecated Use canEntitySeePosition instead
+             */
+            it('should check if location is visible using legacy method', () => {
+                const player = new Entity(CENTER);
+                player.addTag('player');
+                player.setComponent(new VisionComponent(3));
+                world.addEntity(player);
+
+                const visiblePos = { x: CENTER.x + 1, y: CENTER.y };
+                expect(world.isLocationVisible(visiblePos)).toBe(true);
+            });
+
+            /**
+             * @deprecated Use getVisibleTilesFromPosition instead
+             */
+            it('should update vision using legacy method', () => {
+                const visionChangedSpy = vi.fn();
+                world.on('fovChanged', visionChangedSpy);
+
+                world.updateVision(CENTER, 3);
+                expect(visionChangedSpy).toHaveBeenCalled();
+            });
         });
     });
 }); 
