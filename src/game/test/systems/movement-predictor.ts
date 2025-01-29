@@ -216,7 +216,7 @@ export class MovementPredictor {
                     finalInertia = {
                         direction: newMagnitude >= SLIDE_SPEED && newMagnitude <= SLIDE_SPEED+1 ? 
                             bufferedMove.direction : inertia.direction,
-                        magnitude: Math.min(maxSpeed, newMagnitude),  // Cap at max speed
+                        magnitude: Math.min(maxSpeed, !turbo ? newMagnitude : newMagnitude+1),  // Cap at max speed
                     };
                 }
             }

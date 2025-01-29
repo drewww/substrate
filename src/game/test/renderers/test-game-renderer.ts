@@ -16,6 +16,7 @@ import { VisionComponent } from '../../../entity/components/vision-component';
 import { CooldownComponent } from '../components/cooldown.component';
 import { TICK_MS } from '../constants';
 import { MovementPredictor } from '../systems/movement-predictor';
+import { TurboComponent } from '../components/turbo.component';
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -145,16 +146,21 @@ export class TestGameRenderer extends GameRenderer {
             if (isPlayer) {
                 // check our inertia. if it's > 2, leave behind a fading "trail" tile
                 const inertia = entity.getComponent('inertia') as InertiaComponent;
+                const turbo = entity.getComponent('turbo') as TurboComponent;
+                
                 if (inertia && inertia.magnitude >= 2) {
-                    const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', '#005577AA', 999, {
+
+                    const baseColor = turbo ? '#e8e7a9' : '#005577';
+
+                    const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', baseColor + 'aa', 999, {
                         bgPercent: 1
                     });
 
                     this.display.addColorAnimation(trailTileId, {
                         bg: {
-                            start: '#005577AA',
-                            end: '#00557700',
-                            duration: 8,
+                            start: baseColor + 'aa',
+                            end: baseColor + '00',
+                            duration: 6,
                             easing: Easing.quadOut,
                             loop: false,
                             removeOnComplete: true

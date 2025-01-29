@@ -62,7 +62,7 @@ export class PlayerMovementSystem {
     private movePlayer(player: Entity): void {
         const prediction = this.movementPredictor.predictMove(player);
         const inertia = player.getComponent('inertia') as InertiaComponent;
-
+        const turbo = player.getComponent('turbo') as TurboComponent;
         if (prediction.willCollide) {
             if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
@@ -72,6 +72,11 @@ export class PlayerMovementSystem {
                 0
             ));
             return;
+        }
+
+        // decay speed beyond 6 after turbo disengages
+        if(prediction.finalInertia.magnitude > 6 && !turbo) {
+            prediction.finalInertia.magnitude -= 1;
         }
 
         // Execute all predicted moves
@@ -99,7 +104,7 @@ export class PlayerMovementSystem {
 
 
                     const turbo = player.getComponent('turbo') as TurboComponent;
-                    
+
                     const newCooldown = turbo ? 1 : 2; // then 2 and 1
                     logger.info(`Setting move cooldown to ${newCooldown} ticks`);
                     cooldowns.setCooldown('move', newCooldown, newCooldown);
