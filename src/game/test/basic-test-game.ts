@@ -25,7 +25,7 @@ import { VisionComponent } from '../../entity/components/vision-component';
 import { PrefabWorldGenerator } from '../../world/generators/prefab-world-generator';
 import { CooldownSystem } from './systems/cooldown.system';
 import { CooldownComponent } from './components/cooldown.component';
-import { ToggleSystem } from './systems/toggle.system';
+import { WorldSystem } from './systems/world.system';
 import { FollowingSystem } from './systems/following.system';
 import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system';
 import { COOLDOWNS } from './constants';
@@ -195,7 +195,7 @@ export class BasicTestGame extends Game {
     private actionHandler: ActionHandler;
     private cooldownSystem: CooldownSystem;
     private playerMovementSystem: PlayerMovementSystem;
-    private toggleSystem: ToggleSystem;
+    private worldSystem: WorldSystem;
     private followingSystem: FollowingSystem;
     private cooldownCleanupSystem: CooldownCleanupSystem;
     uiSpeedRenderer: UISpeedRenderer;
@@ -235,7 +235,7 @@ export class BasicTestGame extends Game {
         this.enemyAISystem = new EnemyAISystem(this.world, this.actionHandler);
         this.enemyMovementSystem = new EnemyMovementSystem(this.world, this.actionHandler);
         this.playerMovementSystem = new PlayerMovementSystem(this.world, this.actionHandler);
-        this.toggleSystem = new ToggleSystem(this.world);
+        this.worldSystem = new WorldSystem(this.world);
         this.followingSystem = new FollowingSystem(this.world, this.actionHandler);
         this.cooldownCleanupSystem = new CooldownCleanupSystem(this.world);
 
@@ -257,7 +257,7 @@ export class BasicTestGame extends Game {
         });
 
         this.engine.addSystem(() => {
-            this.toggleSystem.tick();
+            this.worldSystem.tick();
         });
 
         this.engine.addSystem(() => {

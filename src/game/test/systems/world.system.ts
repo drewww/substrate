@@ -5,7 +5,7 @@ import { OpacityComponent } from '../../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../../entity/components/impassable-component';
 import { logger } from '../../../util/logger';
 
-export class ToggleSystem {
+export class WorldSystem {
     constructor(private world: World) { }
 
     tick(): void {
@@ -15,6 +15,7 @@ export class ToggleSystem {
         for (const entity of toggleEntities) {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const toggleState = cooldowns.getCooldown('toggle');
+
 
             if (toggleState) {
                 // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
@@ -56,6 +57,17 @@ export class ToggleSystem {
                     // Set the cooldown component after all other changes
                     entity.setComponent(cooldowns);
                     entity.setComponent(symbol);
+                }
+            }
+
+            const explodeEmpState = cooldowns.getCooldown('explode-emp');
+            if(explodeEmpState) {
+                if(explodeEmpState.ready) {
+                    explodeEmpState.current = explodeEmpState.base;
+                    explodeEmpState.ready = false;
+                    entity.setComponent(cooldowns);
+
+                    this.world.removeEntity(entity.getId());
                 }
             }
         }

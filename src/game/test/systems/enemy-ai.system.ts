@@ -6,6 +6,7 @@ import { EnemyAIComponent } from '../components/enemy-ai.component';
 import { SymbolComponent } from '../../../entity/components/symbol-component';
 import { InertiaComponent } from '../components/inertia.component';
 import { directionToPoint } from '../../../util';
+import { CooldownComponent } from '../components/cooldown.component';
 
 export class EnemyAISystem {
     constructor(
@@ -48,7 +49,14 @@ export class EnemyAISystem {
 
                 const projectile = new Entity(playerFuturePos);
                 projectile.setComponent(new SymbolComponent('*', '#FFFFFFff', '#00000000', 1500));
-                this.world.addEntity(projectile);
+                projectile.setComponent(new CooldownComponent({
+                    'explode-emp': {
+                        base: 10,
+                        current: 10,
+                        ready: false
+                    }
+                }));
+            this.world.addEntity(projectile);
 
                 ai.turnsLocked = 0;
             }
