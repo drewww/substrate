@@ -57,8 +57,8 @@ export class MovementPredictor {
         // TODO: set this to 8 or 10 when turbo engaged.
 
         const turbo = player.getComponent('turbo') as TurboComponent;
-        
-        const maxSpeed = turbo ? 10 : 6;
+
+        const maxSpeed = turbo ? 10 : Math.max(6, inertia?.magnitude ?? 6);
 
         // if(gear.queuedShift==-1) {
 
