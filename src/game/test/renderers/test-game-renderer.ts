@@ -17,6 +17,7 @@ import { CooldownComponent } from '../components/cooldown.component';
 import { TICK_MS } from '../constants';
 import { MovementPredictor } from '../systems/movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
+import { EnemyAIComponent } from '../components/enemy-ai.component';
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -244,6 +245,20 @@ export class TestGameRenderer extends GameRenderer {
             if(turbo.turnsSinceEngaged < 4 && turbo.turnsSinceEngaged > 0) {
                 this.makeTurboSmoke(entity);
             }
+        }
+
+        if(componentType === 'enemyAI') {
+            const ai = entity.getComponent('enemyAI') as EnemyAIComponent;
+            
+            if(ai.turnsLocked > 0) {
+                const tileId = this.entityTiles.get(entity.getId());
+                if(tileId) {
+                    this.display.updateTile(tileId, {
+                        bg: '#990000FF',
+                    });
+                }
+            }
+
         }
 
         if (componentType === 'cooldown') {
