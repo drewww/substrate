@@ -37,6 +37,7 @@ import { InertiaComponent } from './components/inertia.component';
 import { EnemyAISystem } from './systems/enemy-ai.system';
 import { StunAction } from './actions/stun.action';
 import { CreateEntityAction } from './actions/create-projectile.action';
+import { GameSoundRenderer } from './game-sound-renderer';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -196,6 +197,7 @@ const LEVEL_DATA = `#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,
 #,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#`.trim();
 
 export class BasicTestGame extends Game {
+   
     private enemyMovementSystem: EnemyMovementSystem;
     private actionHandler: ActionHandler;
     private cooldownSystem: CooldownSystem;
@@ -341,6 +343,11 @@ export class BasicTestGame extends Game {
     protected createRenderer(): BaseRenderer {
         const renderer = new TestGameRenderer(this.display, this.world);
         return renderer;
+    }
+
+    protected createSoundRenderer(): GameSoundRenderer {
+        const soundRenderer = new GameSoundRenderer(this.world, this.audioContext);
+        return soundRenderer;
     }
 
     protected initializeWorld(): void {

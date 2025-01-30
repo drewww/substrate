@@ -5,6 +5,7 @@ import { Entity } from '../entity/entity';
 import { Display } from '../display/display';
 import { BaseRenderer } from '../render/base-renderer';
 import { DisplayOptions } from '../display/types';
+import { GameSoundRenderer } from './test/game-sound-renderer';
 
 export abstract class Game {
     protected engine!: Engine;
@@ -13,8 +14,10 @@ export abstract class Game {
     protected player!: Entity;
     protected display: Display;
     protected renderer!: BaseRenderer;
-    private updateInterval: number | null = null;
+    protected updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
+    protected soundRenderer!: GameSoundRenderer;
+    protected audioContext: AudioContext;
 
     constructor(displayConfig: DisplayOptions) {
         this.display = new Display(displayConfig);
@@ -30,17 +33,40 @@ export abstract class Game {
         this.input = new InputManager();
         this.input.registerCallback(this.handleInput.bind(this), 0);
 
+        // Create audio context but don't initialize sound renderer yet
+        this.audioContext = new AudioContext();
+        
+        // Add click handler to start audio
+        document.addEventListener('click', () => {
+            if (this.audioContext.state === 'suspended') {
+                this.audioContext.resume().then(() => {
+                    console.log('AudioContext resumed successfully');
+                });
+            }
+        }, { once: true }); // Only need to do this once
 
         // Initialize the world (which will set engine and player)
         this.initializeWorld();
 
         // Create renderer
         this.renderer = this.createRenderer();
+
+        // Create sound renderer
+        this.soundRenderer = this.createSoundRenderer();
     }
 
     protected abstract createRenderer(): BaseRenderer;
+    protected abstract createSoundRenderer(): GameSoundRenderer;
     protected abstract initializeWorld(): void;
     protected abstract handleInput(type: string, action: string, params: string[]): void;
+
+    protected initialize(): void {
+        // Create renderer
+        this.renderer = this.createRenderer();
+
+        // Initialize sound renderer after world is created
+        this.soundRenderer = new GameSoundRenderer(this.world, this.audioContext);
+    }
 
     public start(): void {
         // Start the engine
@@ -68,5 +94,10 @@ export abstract class Game {
 
     public getEngine(): Engine {
         return this.engine;
+    }
+
+    update(timestamp: number): void {
+        // ... existing update code ...
+        this.soundRenderer.update(timestamp);
     }
 } 

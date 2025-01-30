@@ -52,6 +52,7 @@ export abstract class BaseSoundRenderer implements Renderer {
         this.world.on('entityModified', ({ entity, componentType }) => this.handleEntityModified(entity, componentType));
         this.world.on('componentModified', ({ entity, componentType }) => this.handleComponentModified(entity, componentType));
         this.world.on('componentRemoved', ({ entity, componentType, component }) => this.handleComponentRemoved(entity, componentType, component));
+        this.world.on('componentAdded', ({ entity, componentType }) => this.handleComponentAdded(entity, componentType));
 
         // Initialize existing entities
         if(this.world.getAllEntities().length > 0) {
@@ -70,7 +71,7 @@ export abstract class BaseSoundRenderer implements Renderer {
         // Let subclasses handle their specific updates
         this.handleUpdate(timestamp);
     }
-    
+
     /**
      * Clean up sounds when entity is removed
      */
@@ -205,6 +206,7 @@ export abstract class BaseSoundRenderer implements Renderer {
     public abstract handleEntityModified(entity: Entity, componentType: string): void;
     public abstract handleComponentModified(entity: Entity, componentType: string): void;
     public abstract handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;
+    public abstract handleComponentAdded(entity: Entity, componentType: string): void;
     public abstract handleEntityRemoved(entity: Entity): void;
     public abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
     public abstract handleUpdate(timestamp: number): void;
