@@ -39,17 +39,17 @@ class BasicTestGame {
         const componentPalette = document.getElementById('component-palette');
 
         // Add some test entities
-        if (entityPalette) {
-            const entities = ['Wall', 'Floor', 'Player', 'Monster'];
-            entities.forEach(entity => {
-                const button = document.createElement('button');
-                button.textContent = entity;
-                button.addEventListener('click', () => {
-                    // TODO: Handle entity selection
-                });
-                entityPalette.appendChild(button);
-            });
-        }
+        // if (entityPalette) {
+        //     const entities = ['Wall', 'Floor', 'Player', 'Monster'];
+        //     entities.forEach(entity => {
+        //         const button = document.createElement('button');
+        //         button.textContent = entity;
+        //         button.addEventListener('click', () => {
+        //             // TODO: Handle entity selection
+        //         });
+        //         entityPalette.appendChild(button);
+        //     });
+        // }
 
         // Add basic components
         if (componentPalette) {

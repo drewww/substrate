@@ -994,6 +994,16 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         });
     }
 
+    public onCellRightClick(callback: (worldPos: Point | null) => void): void {
+        this.displayCanvas.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+            const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+            if (worldPos) {
+                callback(worldPos);
+            }
+        });
+    }
+
     public updateTile(tileId: TileId, config: TileUpdateConfig): void {
         const tile = this.tileMap.get(tileId);
         if (!tile) {
