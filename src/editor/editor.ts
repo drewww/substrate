@@ -4,7 +4,9 @@ import { EditorStateManager } from './editor-state';
 import { Point } from '../types';
 import { EditorRenderer } from './editor-renderer';
 import { createWallEntity } from './templates/wall';
+import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
+import { SymbolComponent } from '../entity/components/symbol-component';
 
 
 const CANVAS_ID = 'editor-canvas';
@@ -41,6 +43,9 @@ export class Editor {
 
         // Setup palette
         this.setupPalette();
+
+        // Make editor available globally for callbacks
+        (window as any).editor = this;
     }
 
     private setupEventHandlers(): void {
@@ -82,20 +87,6 @@ export class Editor {
         entityPalette.appendChild(wallButton);
     }
 
-    // private handleClick(e: MouseEvent): void {
-    //     e.preventDefault();
-
-    //     logger.info('Click');
-
-    //     const rect = (e.target as HTMLElement).getBoundingClientRect();
-    //     const x = e.clientX - rect.left;
-    //     const y = e.clientY - rect.top;
-        
-    //     const cell = this.display.getCellAtPixel(x, y);
-    //     if (cell) {
-    //         this.handleCellClick(cell);
-    //     }
-    // }
 
     private handleRightClick(point: Point | null): void {
         if(!point) return;
@@ -110,13 +101,93 @@ export class Editor {
     private handleCellClick(point: Point | null): void {
         if(!point) return;
 
-        logger.info('Cell clicked', point);
-       
         this.state.setSelectedCell(point);
         this.renderer.highlightCell(point);
-        // TODO: Update entity panel
 
-        this.placeEntity(point);
+        // Get entities at this position
+        const entities = this.world.getEntitiesAt(point);
+        
+        // Sort by z-index (if they have symbol components)
+        const sortedEntities = entities.sort((a, b) => {
+            const symbolA = a.getComponent('symbol') as SymbolComponent;
+            const symbolB = b.getComponent('symbol') as SymbolComponent;
+            const zIndexA = symbolA ? symbolA.zIndex : 0;
+            const zIndexB = symbolB ? symbolB.zIndex : 0;
+            return zIndexB - zIndexA; // Higher z-index first
+        });
+
+        // Update entity panel
+        this.updateEntityPanel(sortedEntities);
+    }
+
+    private updateEntityPanel(entities: Entity[]): void {
+        const panel = document.getElementById('entity-details');
+        if (!panel) return;
+
+        if (entities.length === 0) {
+            panel.innerHTML = 'No entities in this cell';
+            return;
+        }
+
+        let html = '<div class="entity-list">';
+        
+        entities.forEach((entity, index) => {
+            html += `
+                <div class="entity-item">
+                    <div class="entity-header">
+                        <span>Entity ${entity.getId()}</span>
+                        <div class="entity-controls">
+                            <button onclick="window.editor.copyEntity('${entity.getId()}')">Copy</button>
+                            <button onclick="window.editor.deleteEntity('${entity.getId()}')">Delete</button>
+                        </div>
+                    </div>
+                    <div class="components">
+                        ${this.renderComponentsList(entity)}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        panel.innerHTML = html;
+    }
+
+    private renderComponentsList(entity: Entity): string {
+        let html = '<div class="component-list">';
+        
+        entity.getComponents().forEach(component => {
+            const componentData = JSON.stringify(component, null, 2);
+            html += `
+                <div class="component-item">
+                    <div class="component-header">
+                        ${component.type}
+                    </div>
+                    <pre class="component-data">${componentData}</pre>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        return html;
+    }
+
+    // public copyEntity(entityId: string): void {
+    //     const entity = this.world.getEntity(entityId);
+    //     if (entity) {
+    //         this.state.setClipboard(entity);
+    //         logger.info('Copied entity to clipboard:', entityId);
+    //     }
+    // }
+
+    public deleteEntity(entityId: string): void {
+        this.world.removeEntity(entityId);
+        
+        // Refresh the panel if we're still looking at the same cell
+        const selectedCell = this.state.getState().selectedCell;
+        if (selectedCell) {
+            const entities = this.world.getEntitiesAt(selectedCell);
+            this.updateEntityPanel(entities);
+        }
     }
 
     private placeEntity(point: Point): void {
@@ -150,5 +221,12 @@ export class Editor {
 
     public getDisplay(): EditorDisplay {
         return this.display;
+    }
+}
+
+// Make editor available to window for button callbacks
+declare global {
+    interface Window {
+        editor: Editor;
     }
 } 
