@@ -4,7 +4,7 @@ import { OpacityComponent } from '../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
 import { Point } from '../../types';
 
-export function createWallEntity(pos: Point): Entity {
+export function createWallEntity(pos: Point = { x: 0, y: 0 }): Entity {
     const wall = new Entity(pos);
     
     wall.setComponent(new SymbolComponent(

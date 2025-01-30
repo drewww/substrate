@@ -79,10 +79,12 @@ export class Editor {
         if (!entityPalette) return;
 
         // Add wall button
+        // TODO this is bad, eventually we'll need some data structure to load from that describes all available palette items
+        // in a systematic way. Ideally just render the component?? 
         const wallButton = document.createElement('button');
         wallButton.textContent = 'Wall';
         wallButton.addEventListener('click', () => {
-            this.state.setClipboard(createWallEntity);
+            this.state.setClipboard(createWallEntity());
         });
         entityPalette.appendChild(wallButton);
     }
@@ -171,13 +173,13 @@ export class Editor {
         return html;
     }
 
-    // public copyEntity(entityId: string): void {
-    //     const entity = this.world.getEntity(entityId);
-    //     if (entity) {
-    //         this.state.setClipboard(entity);
-    //         logger.info('Copied entity to clipboard:', entityId);
-    //     }
-    // }
+    public copyEntity(entityId: string): void {
+        const entity = this.world.getEntity(entityId);
+        if (entity) {
+            this.state.setClipboard(entity);
+            logger.info('Copied entity to clipboard:', entityId);
+        }
+    }
 
     public deleteEntity(entityId: string): void {
         this.world.removeEntity(entityId);
@@ -200,14 +202,13 @@ export class Editor {
         //     entity.setComponent(component);
         // });
 
-        const entity = clipboard(point);
-
-        // Set position
-        // entity.setPosition(point);
-
-        // Add to world
-        if(entity) {
+        if(clipboard instanceof Entity) {
+            // Set position
+            const entity = clipboard.clone();
+            entity.setPosition(point.x, point.y);
             this.world.addEntity(entity);
+        } else {
+            logger.warn("Component clipboard not implemented.");
         }
     }
 

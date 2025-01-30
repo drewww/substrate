@@ -1,6 +1,7 @@
 import { Point } from '../types';
 import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
+import { Component } from '../entity/component';
 
 export type EditorTool = 'pointer' | 'export';
 
@@ -8,7 +9,7 @@ export interface EditorState {
     selectedCell: Point | null;
     selectedEntityId: string | null;
     activeTool: EditorTool;
-    clipboard: ((pos: Point) => Entity) | null;
+    clipboard: Entity | Component[] | null;    // the clipboard can contain an entity or a component. (what about an array of components?? we will want to have palette options that are multiple for sure)
 }
 
 export class EditorStateManager {
@@ -35,13 +36,17 @@ export class EditorStateManager {
         this.state.activeTool = tool;
     }
 
-    public setClipboard(createMethod: (pos: Point) => Entity): void {
-        this.state.clipboard = createMethod;
+    public setClipboard(entity: Entity | Component[]): void {
+        this.state.clipboard = entity;
 
-        logger.info('Clipboard set to', createMethod);
+        logger.info('Clipboard set to', entity);
     }
 
-    public getClipboard(): ((pos: Point) => Entity) | null {
+    public clearClipboard(): void {
+        this.state.clipboard = null;
+    }
+
+    public getClipboard(): Entity | Component[] | null {
         return this.state.clipboard;
     }
 } 
