@@ -45,6 +45,15 @@ export class World {
     private discoveredLocations: Set<string> = new Set();
     private player?: Entity;
     
+    // Add tracking for component queries
+    private componentQueryStats: Map<string, {
+        count: number,
+        lastReset: number,
+        queriesPerSecond: number
+    }> = new Map();
+
+    private readonly STATS_INTERVAL = 1000; // Reset stats every second
+    
     constructor(private readonly width: number, private readonly height: number) {
         // Initialize FOV map
         this.fovMap = new FieldOfViewMap(width, height);
@@ -257,8 +266,48 @@ export class World {
      * Get all entities that have the specified component type
      */
     public getEntitiesWithComponent(componentType: string): Entity[] {
+        // Update stats for this component type
+        this.trackComponentQuery(componentType);
+
         return Array.from(this.entities.values())
             .filter(entity => entity.hasComponent(componentType));
+    }
+
+    private trackComponentQuery(componentType: string): void {
+        const now = performance.now();
+        let stats = this.componentQueryStats.get(componentType);
+        
+        if (!stats) {
+            stats = {
+                count: 0,
+                lastReset: now,
+                queriesPerSecond: 0
+            };
+            this.componentQueryStats.set(componentType, stats);
+        }
+
+        // Increment query count
+        stats.count++;
+
+        // Check if we need to reset and calculate queries per second
+        if (now - stats.lastReset >= this.STATS_INTERVAL) {
+            stats.queriesPerSecond = stats.count / ((now - stats.lastReset) / 1000);
+            stats.count = 0;
+            stats.lastReset = now;
+        }
+    }
+
+    /**
+     * Get statistics about component queries
+     */
+    public getComponentQueryStats(): Map<string, number> {
+        const stats = new Map<string, number>();
+        
+        for (const [componentType, data] of this.componentQueryStats) {
+            stats.set(componentType, data.queriesPerSecond);
+        }
+
+        return stats;
     }
 
     /**

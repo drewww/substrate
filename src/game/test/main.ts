@@ -7,6 +7,7 @@ let game: BasicTestGame;
 let displayDebug: DebugOverlay;
 let worldDebug: WorldDebugOverlay;
 let engineDebugElement: HTMLDivElement;
+let componentStatsElement: HTMLDivElement;
 
 function init() {
     // Initialize game with the canvas ID, not the container ID
@@ -23,6 +24,14 @@ function init() {
     
     // Set up engine debug updates
     setInterval(updateEngineDebug, 1000/15); // 15fps updates
+    
+    // Add component stats element
+    componentStatsElement = document.createElement('div');
+    componentStatsElement.id = 'component-stats';
+    document.querySelector('.debug-overlays')?.appendChild(componentStatsElement);
+    
+    // Set up component stats updates
+    setInterval(updateComponentStats, 1000); // Update every second
     
     // Set up controls
     setupControls();
@@ -46,6 +55,23 @@ function init() {
 function updateEngineDebug() {
     if (engineDebugElement.style.display !== 'none') {
         engineDebugElement.textContent = game.getEngine().getDebugString();
+    }
+}
+
+function updateComponentStats() {
+    if (componentStatsElement.style.display !== 'none') {
+        const stats = game.getWorld().getComponentQueryStats();
+        let statsText = 'Component Queries per Second:\n';
+        
+        // Sort by queries per second (descending)
+        const sortedStats = Array.from(stats.entries())
+            .sort(([, a], [, b]) => b - a);
+
+        for (const [componentType, queriesPerSecond] of sortedStats) {
+            statsText += `${componentType}: ${queriesPerSecond.toFixed(1)}/s\n`;
+        }
+        
+        componentStatsElement.textContent = statsText;
     }
 }
 
@@ -76,6 +102,12 @@ function setupControls() {
 
     document.getElementById('loadGame')?.addEventListener('click', () => {
         game.loadGame();
+    });
+
+    // Add toggle for component stats
+    document.getElementById('toggleComponentStats')?.addEventListener('click', () => {
+        componentStatsElement.style.display = 
+            componentStatsElement.style.display === 'none' ? 'block' : 'none';
     });
 }
 

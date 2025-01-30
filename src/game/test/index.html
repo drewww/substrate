@@ -104,6 +104,17 @@
             /* border-top: 4px solid #fff; */
             border: 1px solid #fff;
         }
+
+        #component-stats {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 4px;
+            white-space: pre;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -116,6 +127,7 @@
         <button id="toggleDisplayDebug">Display Debug</button>
         <button id="toggleWorldDebug">World Debug</button>
         <button id="toggleEngineDebug">Engine Debug</button>
+        <button id="toggleComponentStats">Component Stats</button>
         <button id="saveGame">Save Game</button>
         <button id="loadGame">Load Game</button>
         <select id="logLevel">
@@ -131,6 +143,9 @@
         <div id="mask-debug">
             <div>Visibility Mask:</div>
             <div id="mask-canvas-container"></div>
+        </div>
+        <div id="component-stats">
+            <!-- Component stats will be populated here -->
         </div>
         <div id="display-debug"></div>
         <div id="world-debug"></div>
