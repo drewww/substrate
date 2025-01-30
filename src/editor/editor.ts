@@ -40,6 +40,11 @@ export class Editor {
         
         displayElement.addEventListener('click', (e: MouseEvent) => this.handleClick(e));
         displayElement.addEventListener('contextmenu', (e: MouseEvent) => this.handleRightClick(e));
+
+        // Add hover handler
+        this.display.getDisplay().onCellHover((point: Point | null) => {
+            this.renderer.hoverCell(point);
+        });
     }
 
     private handleClick(e: MouseEvent): void {

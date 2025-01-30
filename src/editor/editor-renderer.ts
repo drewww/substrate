@@ -8,6 +8,7 @@ import { BlendMode } from '../display/types';
 
 export class EditorRenderer extends BaseRenderer {
     private highlightTileId: string | null = null;
+    private hoverTileId: string | null = null;
 
     constructor(world: World, display: Display) {
         super(world, display);
@@ -55,6 +56,27 @@ export class EditorRenderer extends BaseRenderer {
                 '#00000000',
                 '#FFFFFF44',
                 1000, // High z-index to stay on top
+                { blendMode: BlendMode.SourceOver }
+            );
+        }
+    }
+
+    public hoverCell(point: Point | null): void {
+        // Remove existing hover highlight
+        if (this.hoverTileId) {
+            this.display.removeTile(this.hoverTileId);
+            this.hoverTileId = null;
+        }
+
+        // Add new hover highlight if point provided
+        if (point) {
+            this.hoverTileId = this.display.createTile(
+                point.x,
+                point.y,
+                ' ',
+                '#00000000',
+                '#0088FF33', // Light blue with 20% opacity
+                999, // Just below selection highlight
                 { blendMode: BlendMode.SourceOver }
             );
         }
