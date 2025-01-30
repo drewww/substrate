@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level Editor</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .editor-container {
+            display: flex;
+            gap: 20px;
+        }
+        .editor-left {
+            flex: 0 0 auto;
+        }
+        .editor-right {
+            flex: 1;
+            background: #2d2d2d;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        canvas {
+            background: #000;
+            border: 1px solid #333;
+        }
+        .tools {
+            margin-bottom: 10px;
+        }
+        .palette {
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px 12px;
+            background: #3d3d3d;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            margin: 2px;
+        }
+        button:hover {
+            background: #4d4d4d;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="editor-left">
+            <div class="tools">
+                <button id="pointer-tool">Pointer</button>
+                <button id="export-tool">Export</button>
+            </div>
+            <canvas id="editor-canvas"></canvas>
+            <div class="palette">
+                <div id="entity-palette">
+                    <!-- Entity buttons will be added here -->
+                </div>
+                <div id="component-palette">
+                    <!-- Component buttons will be added here -->
+                </div>
+            </div>
+        </div>
+        <div class="editor-right" id="entity-panel">
+            <!-- Entity details will be shown here -->
+            <h3>Selected Entity</h3>
+            <div id="entity-details">
+                No entity selected
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/src/editor/main.ts"></script>
+</body>
+</html> 
