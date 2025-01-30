@@ -43,11 +43,15 @@ export class EnemyAISystem {
                 if(ai.turnsLocked > 3) {
                     // move towards the player
                     const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition());
-                    if(path) {
+                    if(path && path.length > 1) {
                         const nextPos = path[1];
 
                         const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
                         const moveCooldown = cooldowns?.getCooldown('move');
+                        
+                        if(nextPos.x === enemy.getPosition().x && nextPos.y === enemy.getPosition().y) {
+                            break;
+                        }
 
                         if(moveCooldown && moveCooldown.ready) {
                             this.actionHandler.execute({
@@ -61,7 +65,7 @@ export class EnemyAISystem {
 
                 enemy.setComponent(ai);
                 break;
-                
+
             case EnemyAIType.EMP_TURRET:
                 if (canSeePlayer) {
                     ai.turnsLocked += 1
