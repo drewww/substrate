@@ -8,6 +8,9 @@ import { VisionComponent } from '../../../entity/components/vision-component';
 import { FacingComponent } from '../../../entity/components/facing-component';
 import { TurnComponent } from '../../../entity/components/turn-component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
+import { ApplyTimestampComponent } from '../components/apply.timestamp.component';
+import { ApplyTimestampType } from '../components/apply.timestamp.component';
+import { TimestampComponent } from '../components/timestamp.component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -65,6 +68,23 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 const visionComponent = entity.getComponent('vision') as VisionComponent;
                 const radius = visionComponent?.radius ?? 30;
                 world.updateVision(action.data.to, radius);
+            }
+        }
+
+        // check to see if the tile we're entering has components that need to be checkd
+        // right now those are 
+        // EMP (currently handled elsewhere, need to migrate here)
+        // ApplyTimestamp
+
+        const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
+        for (const destinationEntity of entitiesAtNewPos) {
+            if (destinationEntity.hasComponent('applyTimestamp')) {
+                const applyTimestampComponent = destinationEntity.getComponent('applyTimestamp') as ApplyTimestampComponent;
+                if (applyTimestampComponent.apply === ApplyTimestampType.Start) {
+                    entity.setComponent(new TimestampComponent(performance.now()));
+                } else if (applyTimestampComponent.apply === ApplyTimestampType.Stop) {
+                    entity.removeComponent('timestamp');
+                }
             }
         }
         

@@ -15,6 +15,7 @@ import { FollowerComponent } from "../../entity/components/follower-component";
 import { TurnComponent } from "../../entity/components/turn-component";
 import { LightEmitterComponent } from "../../entity/components/light-emitter-component";
 import { EnemyAIComponent } from "../../game/test/components/enemy-ai.component";
+import { ApplyTimestampComponent } from "../../game/test/components/apply.timestamp.component";
 
 interface SymbolDefinition {
     components: Component[];
@@ -109,6 +110,8 @@ export class PrefabWorldGenerator implements WorldGenerator {
                             return new LightEmitterComponent(def);
                         case 'enemyAI':
                             return new EnemyAIComponent(def.aiType, def.turnsLocked, def.visionRadius, def.mode);
+                        case 'applyTimestamp':
+                            return new ApplyTimestampComponent(def.apply);
                         default:
                             console.error(`Unknown component type: ${def.type}`);
                             return null;

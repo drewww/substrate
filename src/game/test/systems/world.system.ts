@@ -3,11 +3,8 @@ import { CooldownComponent } from '../components/cooldown.component';
 import { SymbolComponent } from '../../../entity/components/symbol-component';
 import { OpacityComponent } from '../../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../../entity/components/impassable-component';
-import { logger } from '../../../util/logger';
 import { Entity } from '../../../entity/entity';
 import { EMPComponent } from '../components/emp.component';
-import { StunComponent } from '../components/stun.component';
-import { InertiaComponent } from '../components/inertia.component';
 import { ActionHandler } from '../../../action/action-handler';
 
 export class WorldSystem {
@@ -22,20 +19,15 @@ export class WorldSystem {
             const toggleState = cooldowns.getCooldown('toggle');
 
             if (toggleState) {
-                // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
                 if (toggleState.ready) {
-                    // logger.info(`entity ${entity.getId()} toggle state: ${JSON.stringify(toggleState)}`);
 
                     const pos = entity.getPosition();
                     const entitiesAtPos = this.world.getEntitiesAt(pos);
                     const hasImpassableEntity = entitiesAtPos.some(e => e !== entity && e.hasComponent('impassable'));
                     
                     if (hasImpassableEntity) {
-                        // entity.setComponent(cooldowns);
                         return;
                     }
-
-
                    
                     cooldowns.setCooldown('toggle', toggleState.base, toggleState.base, false);
 
