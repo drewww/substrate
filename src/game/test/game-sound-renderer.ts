@@ -50,14 +50,14 @@ export class GameSoundRenderer extends BaseSoundRenderer {
                         const turbo = entity.getComponent('turbo') as TurboComponent;
 
                         if(turbo.turnsSinceEngaged==0) {
-                            this.playSound('turbo', { volume: 1.0 });
+                            this.playSound('turbo', { volume: 0.3 });
                         }
                     }
                     const inertia = entity.getComponent('inertia') as InertiaComponent;
                     const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
 
                     if((inertia && inertia.magnitude > 0) || (bufferedMove && bufferedMove.direction != Direction.None)) {
-                        this.playSound('tick', { volume: 0.2 });
+                        this.playSound('tick', { volume: 0.1 });
                     }
                 }
             }
