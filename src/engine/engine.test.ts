@@ -10,7 +10,15 @@ const mockWindow = {
     setTimeout: vi.fn(),
     clearTimeout: vi.fn(),
 };
+
+// Mock document object for tests
+const mockDocument = {
+    addEventListener: vi.fn(),
+    visibilityState: 'visible',
+};
+
 vi.stubGlobal('window', mockWindow);
+vi.stubGlobal('document', mockDocument);
 
 describe('Engine', () => {
     let engine: Engine;
@@ -22,6 +30,9 @@ describe('Engine', () => {
     beforeEach(() => {
         // Reset mocks
         vi.clearAllMocks();
+        
+        // Reset document visibility state
+        mockDocument.visibilityState = 'visible';
         
         // Mock Date.now
         currentTime = 1000;
@@ -110,5 +121,28 @@ describe('Engine', () => {
         expect(debugString).toContain('Updates/sec');
         expect(debugString).toContain('Update Time');
         expect(debugString).toContain('Total Updates: 5');
+    });
+
+    test('handles tab visibility changes', () => {
+        engine.start();
+        
+        // Simulate tab becoming hidden
+        mockDocument.visibilityState = 'hidden';
+        const visibilityHandler = mockDocument.addEventListener.mock.calls
+            .find(call => call[0] === 'visibilitychange')?.[1];
+        
+        // Ensure we found the handler
+        expect(visibilityHandler).toBeDefined();
+        if (!visibilityHandler) return;
+        
+        visibilityHandler();
+
+        // Advance time significantly
+        currentTime += 5000;
+        engine.tick();
+
+        // Verify accumulator was capped
+        const debugString = engine.getDebugString();
+        expect(debugString).toContain('Total Updates: 1');
     });
 }); 

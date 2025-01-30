@@ -20,7 +20,7 @@ export type WorldEventMap = {
     'entityMoved': { entity: Entity, from: Point, to: Point };
     'entityModified': { entity: Entity, componentType: string };
     'componentAdded': { entity: Entity, componentType: string };
-    'componentRemoved': { entity: Entity, componentType: string };
+    'componentRemoved': { entity: Entity, componentType: string, component: Component };
     'componentModified': { entity: Entity, componentType: string };
     'fovChanged': {};
 }
@@ -29,6 +29,7 @@ type WorldEventHandler<T extends keyof WorldEventMap> = (data: WorldEventMap[T])
 export class World {
     private entities: Map<string, Entity> = new Map();
     private spatialMap: Map<string, Set<string>> = new Map();
+    private componentIndex: Map<string, Set<string>> = new Map();
     private eventHandlers = new Map<string, Set<WorldEventHandler<any>>>();
     private queuedEvents: Array<{ event: string, data: any }> = [];
     private batchingEvents = false;
@@ -111,6 +112,16 @@ export class World {
         const entityId = entity.getId();
         entity.setWorld(this);
         this.entities.set(entityId, entity);
+
+        // Index all components
+        entity.getComponents().forEach(component => {
+            let entities = this.componentIndex.get(component.type);
+            if (!entities) {
+                entities = new Set();
+                this.componentIndex.set(component.type, entities);
+            }
+            entities.add(entityId);
+        });
 
         const key = this.pointToKey(position);
         let entitiesAtPosition = this.spatialMap.get(key);
@@ -218,6 +229,17 @@ export class World {
             return;
         }
 
+        // Remove from component index
+        entity.getComponents().forEach(component => {
+            const entities = this.componentIndex.get(component.type);
+            if (entities) {
+                entities.delete(entityId);
+                if (entities.size === 0) {
+                    this.componentIndex.delete(component.type);
+                }
+            }
+        });
+
         const position = entity.getPosition();
         
         // Update FOV map before removing
@@ -269,8 +291,16 @@ export class World {
         // Update stats for this component type
         this.trackComponentQuery(componentType);
 
-        return Array.from(this.entities.values())
-            .filter(entity => entity.hasComponent(componentType));
+        if(componentType === 'player' && this.player) {
+            return [this.player];
+        }
+
+        const entityIds = this.componentIndex.get(componentType);
+        if (!entityIds) return [];
+
+        return Array.from(entityIds)
+            .map(id => this.entities.get(id))
+            .filter((entity): entity is Entity => entity !== undefined);
     }
 
     private trackComponentQuery(componentType: string): void {
@@ -487,6 +517,7 @@ export class World {
     public clear(): void {
         this.entities.clear();
         this.spatialMap.clear();
+        this.componentIndex.clear();
     }
 
     /**
@@ -858,9 +889,16 @@ export class World {
     }
 
     /**
-     * Called when a component is added to an entity
+     * Handle component added to an entity
      */
-    onComponentAdded(entity: Entity, componentType: string): void {
+    public onComponentAdded(entity: Entity, componentType: string): void {
+        let entities = this.componentIndex.get(componentType);
+        if (!entities) {
+            entities = new Set();
+            this.componentIndex.set(componentType, entities);
+        }
+        entities.add(entity.getId());
+
         this.emit('componentAdded', {
             entity,
             componentType
@@ -874,9 +912,17 @@ export class World {
     }
 
     /**
-     * Called when a component is removed from an entity
+     * Handle component removed from an entity
      */
-    onComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+    public onComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+        const entities = this.componentIndex.get(componentType);
+        if (entities) {
+            entities.delete(entity.getId());
+            if (entities.size === 0) {
+                this.componentIndex.delete(componentType);
+            }
+        }
+
         this.emit('componentRemoved', {
             entity,
             componentType,

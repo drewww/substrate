@@ -90,7 +90,7 @@ export class Entity {
   removeComponent(type: string): Component | undefined {
     const removed = this.store.remove(type);
     if (removed && this.world) {
-      this.world.onComponentRemoved(this, type, removed);
+        this.world.onComponentRemoved(this, type, removed);
     }
     return removed;
   }
