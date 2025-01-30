@@ -8,6 +8,10 @@ import { Component } from '../../entity/component';
 import { Easing } from '../../display/types';
 
 export class GameRenderer extends BaseRenderer {
+    
+    public handleUpdate(timestamp: number): void {
+        throw new Error('Method not implemented.');
+    }
     protected onEntityAdded(entity: Entity): void {
         super.onEntityAdded(entity);
         

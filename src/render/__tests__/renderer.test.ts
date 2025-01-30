@@ -87,6 +87,7 @@ class TestRenderer extends BaseRenderer {
     public handleEntityRemoved(entity: Entity): void {}
     public handleEntityMoved(entity: Entity, to: Point): boolean { return false; }
     public handleComponentRemoved(entity: Entity, componentType: string): void {}
+    public handleUpdate(timestamp: number): void {}
 }
 
 describe('Renderer', () => {
