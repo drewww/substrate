@@ -6,14 +6,34 @@ import { PlayerComponent } from '../../../entity/components/player-component';
 import { ImpassableComponent } from '../../../entity/components/impassable-component';
 import { VisionComponent } from '../../../entity/components/vision-component';
 import { ComponentRegistry } from '../../../entity/component-registry';
+import { CooldownComponent } from '../../../game/test/components/cooldown.component';
+import { FacingComponent } from '../../../entity/components/facing-component';
+import { FollowableComponent } from '../../../entity/components/followable-component';
+import { FollowerComponent } from '../../../entity/components/follower-component';
+import { TurnComponent } from '../../../entity/components/turn-component';
+import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
+import { EnemyAIComponent } from '../../../game/test/components/enemy-ai.component';
+import { ApplyTimestampComponent } from '../../../game/test/components/apply.timestamp.component';
 
 // Register all components used in the tests
 beforeEach(() => {
+    // Clear existing registrations to prevent test interference
+    (ComponentRegistry as any).components.clear();
+    
+    // Register ALL components that might be used in the test
     ComponentRegistry.register('symbol', SymbolComponent);
     ComponentRegistry.register('opacity', OpacityComponent);
     ComponentRegistry.register('player', PlayerComponent);
     ComponentRegistry.register('impassable', ImpassableComponent);
     ComponentRegistry.register('vision', VisionComponent);
+    ComponentRegistry.register('cooldown', CooldownComponent);
+    ComponentRegistry.register('facing', FacingComponent);
+    ComponentRegistry.register('followable', FollowableComponent);
+    ComponentRegistry.register('follower', FollowerComponent);
+    ComponentRegistry.register('turn', TurnComponent);
+    ComponentRegistry.register('lightEmitter', LightEmitterComponent);
+    ComponentRegistry.register('enemyAI', EnemyAIComponent);
+    ComponentRegistry.register('applyTimestamp', ApplyTimestampComponent);
 });
 
 describe('PrefabWorldGenerator', () => {

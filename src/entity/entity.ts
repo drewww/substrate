@@ -184,7 +184,8 @@ export class Entity {
       throw new Error('Invalid serialized data: must be an object');
     }
     if (!data.id || typeof data.id !== 'string') {
-      throw new Error('Invalid serialized data: missing or invalid id');
+      data.id = Entity.generateId();
+      // throw new Error('Invalid serialized data: missing or invalid id');
     }
     if (!data.position || typeof data.position.x !== 'number' || typeof data.position.y !== 'number') {
       throw new Error('Invalid serialized data: missing or invalid position');
@@ -348,5 +349,16 @@ export class Entity {
         this.world.onComponentModified(this, type);
       }
     }
+  }
+
+  /**
+   * Clone the entity
+   */
+  clone(): Entity {
+    const serialized = this.serialize();
+    // Remove the id so deserialize will generate a new one
+    delete serialized.id;
+
+    return Entity.deserialize(serialized);
   }
 } 

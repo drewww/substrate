@@ -315,15 +315,6 @@ describe('Entity', () => {
                 );
             });
 
-            it('throws on missing id', () => {
-                expect(() => Entity.deserialize({ 
-                    position: DEFAULT_POSITION,
-                    components: [] 
-                } as any)).toThrow(
-                    'Invalid serialized data: missing or invalid id'
-                );
-            });
-
             it('throws on missing position', () => {
                 expect(() => Entity.deserialize({ 
                     id: 'test-id',
@@ -572,6 +563,58 @@ describe('Entity', () => {
             expect(mockWorld.onComponentAdded).not.toHaveBeenCalled();
             expect(mockWorld.onComponentModified).not.toHaveBeenCalled();
             expect(mockWorld.onComponentRemoved).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Cloning', () => {
+        let entity: Entity;
+
+        beforeEach(() => {
+            entity = new Entity(DEFAULT_POSITION);
+        });
+
+        it('creates a new instance with same position', () => {
+            const pos = { x: 10, y: 20 };
+            entity.setPosition(pos.x, pos.y);
+            
+            const clone = entity.clone();
+            
+            expect(clone).toBeInstanceOf(Entity);
+            expect(clone.getId()).not.toBe(entity.getId());
+            expect(clone.getPosition()).toEqual(pos);
+        });
+
+        it('preserves all components in clone', () => {
+            entity.setComponent(new HealthComponent(100, 100));
+            entity.setComponent(new TestSymbolComponent('@', '#FF0000', '#000000'));
+            
+            const clone = entity.clone();
+            
+            expect(clone.getComponentCount()).toBe(entity.getComponentCount());
+            expect(clone.getComponentTypes()).toEqual(entity.getComponentTypes());
+            
+            // Verify component data is copied
+            const health = clone.getComponent('health') as HealthComponent;
+            expect(health.current).toBe(100);
+            expect(health.max).toBe(100);
+            
+            const symbol = clone.getComponent('symbol') as TestSymbolComponent;
+            expect(symbol.char).toBe('@');
+            expect(symbol.foreground).toBe('#FF0000');
+            expect(symbol.background).toBe('#000000');
+        });
+
+        it('creates independent copies of components', () => {
+            entity.setComponent(new HealthComponent(100, 100));
+            const clone = entity.clone();
+            
+            // Modify original
+            const originalHealth = entity.getComponent('health') as HealthComponent;
+            originalHealth.current = 50;
+            
+            // Clone should be unaffected
+            const clonedHealth = clone.getComponent('health') as HealthComponent;
+            expect(clonedHealth.current).toBe(100);
         });
     });
 }); 

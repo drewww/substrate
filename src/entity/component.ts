@@ -87,7 +87,7 @@ export interface SerializedComponent {
 }
 
 export interface SerializedEntity {
-    id: string;
+    id?: string;
     position: Point;
     components: SerializedComponent[];
     tags?: string[];
