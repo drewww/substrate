@@ -4,13 +4,16 @@ import { Component } from '../entity/component';
 import { Point } from '../types';
 import { Renderer } from './renderer';
 import { InertiaComponent } from '../game/test/components/inertia.component';
+import { TimestampComponent } from '../game/test/components/timestamp.component';
+import { logger } from '../util/logger';
 
 export class UISpeedRenderer implements Renderer {
-    private uiTiles: Map<string, string> = new Map(); // region -> tileId
+    private uiTiles: Map<string, string[]> = new Map(); // region -> tileIds[]
     private readonly uiDisplay: Display;
     private readonly MAX_SPEED = 12;  // Updated to 12 from 8
     private readonly GEAR_X = 0;  // Gear indicator position
     private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
+    private readonly TIME_X = 35;  // Position for time display
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
@@ -65,7 +68,7 @@ export class UISpeedRenderer implements Renderer {
                     wallColors: ['#FFFFFFFF', null]  // Semi-transparent white for north wall
                 }
             );
-            this.uiTiles.set(`bg_${x}`, tileId);
+            this.uiTiles.set(`bg_${x}`, [tileId]);
         }
 
         // Create gear indicator tile
@@ -97,8 +100,17 @@ export class UISpeedRenderer implements Renderer {
                     wallColors: ['#FFFFFF88', null]
                 }
             );
-            this.uiTiles.set(`speed_${i}`, speedTileId);
+            this.uiTiles.set(`speed_${i}`, [speedTileId]);
         }
+
+        // Initialize time display tiles (reserve space for "00.00s")
+        // const timeTileIds = this.uiDisplay.createString(
+        //     this.TIME_X,
+        //     0,
+        //     '     ',  // 5 spaces for "00.00"
+        //     1001
+        // );
+        // this.uiTiles.set('time', timeTileIds);
 
         this.updateSpeedIndicator();
     }
@@ -111,17 +123,71 @@ export class UISpeedRenderer implements Renderer {
 
         // Update speed tiles
         for (let i = 0; i < this.MAX_SPEED; i++) {
-            const speedTileId = this.uiTiles.get(`speed_${i}`);
-            if (speedTileId) {
-                this.uiDisplay.updateTile(speedTileId, {
-                    bg: i < magnitude ? this.SPEED_COLORS[i] : '#00000000'
-                });
+            const speedTileIds = this.uiTiles.get(`speed_${i}`);
+            if (speedTileIds) {
+                for (const speedTileId of speedTileIds) {
+                    this.uiDisplay.updateTile(speedTileId, {
+                        bg: i < magnitude ? this.SPEED_COLORS[i] : '#00000000'
+                    });
+                }
             }
         }
     }
 
+    private updateTimeDisplay(): void {
+        const timestamp = this.player.getComponent('timestamp') as TimestampComponent;
+        if (!timestamp) return;
+
+        //remove old time tiles
+        const timeTileIds = this.uiTiles.get('time');
+        if (timeTileIds) {
+            this.uiDisplay.removeTiles(timeTileIds);
+        }
+
+        const elapsed = (performance.now() - timestamp.start) / 1000;
+        // logger.warn("Time since applied: " + (performance.now() - timestamp.start));
+        // const timeTileIds = this.uiTiles.get('time');
+        // if (!timeTileIds) return;
+
+        const newTimeTileIds = this.uiDisplay.createString(this.TIME_X, 0, `${elapsed.toFixed(2)}s`, 1001,);
+        this.uiTiles.set('time', newTimeTileIds);
+
+        for(const tileId of newTimeTileIds) {
+            this.uiDisplay.updateTile(tileId, {
+                fg: '#11FF11FF',
+                bg: '#00000000'
+            });
+        }
+
+
+        // const timestamp = this.player.getComponent('timestamp') as TimestampComponent;
+        // if (timestamp) {
+        //     const secondsElapsed = ((Date.now() - timestamp.start) / 1000).toFixed(2);
+        //     // Remove old tiles
+        //     this.uiDisplay.removeTiles(timeTileIds);
+        //     // Create new tiles with updated time
+        //     const newTileIds = this.uiDisplay.createString(
+        //         this.TIME_X,
+        //         0,
+        //         `${secondsElapsed}s`,
+        //         1001
+        //     );
+        //     this.uiTiles.set('time', newTileIds);
+        // } else {
+        //     // Clear the display if no timestamp
+        //     this.uiDisplay.removeTiles(timeTileIds);
+        //     const emptyTileIds = this.uiDisplay.createString(
+        //         this.TIME_X,
+        //         0,
+        //         '     ',
+        //         1001
+        //     );
+        //     this.uiTiles.set('time', emptyTileIds);
+        // }
+    }
+
     update(timestamp: number): void {
-        // this.uiDisplay.render(timestamp);
+        this.updateTimeDisplay();
     }
 
     handleEntityAdded(entity: Entity, tileId: string): void {}
@@ -129,13 +195,21 @@ export class UISpeedRenderer implements Renderer {
     handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {
-        if (entity === this.player && (componentType === 'inertia')) {
-            this.updateSpeedIndicator();
+        if (entity === this.player) {
+            if (componentType === 'inertia') {
+                this.updateSpeedIndicator();
+            } else if (componentType === 'timestamp') {
+                // this.updateTimeDisplay();
+            }
         }
     }
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        if (entity === this.player && componentType === 'inertia') {
-            this.updateSpeedIndicator();
+        if (entity === this.player) {
+            if (componentType === 'inertia') {
+                this.updateSpeedIndicator();
+            } else if (componentType === 'timestamp') {
+                // this.updateTimeDisplay();
+            }
         }
     }
 } 

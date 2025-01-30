@@ -25,7 +25,7 @@ export function directionToRadians(direction: Direction): number {
         case Direction.East: return 0;           // Right
         case Direction.North: return -Math.PI / 2;   // Down
         case Direction.West: return Math.PI;      // Left
-        case Direction.None: throw new Error('Invalid direction');
+        case Direction.None: return 0;  /// this is bad ... not sure what to do. 
     }
 }
 

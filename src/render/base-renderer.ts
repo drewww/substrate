@@ -779,6 +779,8 @@ export abstract class BaseRenderer implements Renderer {
     public abstract handleEntityRemoved(entity: Entity): void;
     public abstract handleEntityMoved(entity: Entity, from: Point, to: Point): boolean;
 
+    public abstract handleUpdate(timestamp: number): void;
+
     private getAngleDistance(angle1: number, angle2: number): number {
         const diff = Math.abs(angle1 - angle2);
         return Math.min(diff, 2 * Math.PI - diff);

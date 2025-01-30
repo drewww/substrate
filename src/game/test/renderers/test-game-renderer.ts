@@ -532,4 +532,9 @@ export class TestGameRenderer extends GameRenderer {
 
         return tileId;
     }
+
+    public handleUpdate(timestamp: number): void {
+        throw new Error('Method not implemented.');
+    }
+
 }
