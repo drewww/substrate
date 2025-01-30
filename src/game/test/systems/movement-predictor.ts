@@ -7,6 +7,7 @@ import { logger } from '../../../util/logger';
 import { SLIDE_SPEED } from '../constants';
 import { BrakeComponent } from '../components/brake.component';
 import { TurboComponent } from '../components/turbo.component';
+import { directionToPoint, isOppositeDirection } from '../../../util';
 
 export interface PredictedAction {
     type: 'entityMove';
@@ -25,24 +26,6 @@ export interface MovementPrediction {
 
 export class MovementPredictor {
     constructor(private world: World) {}
-
-    private directionToPoint(direction: Direction): Point {
-        switch (direction) {
-            case Direction.North: return { x: 0, y: -1 };
-            case Direction.South: return { x: 0, y: 1 };
-            case Direction.West: return { x: -1, y: 0 };
-            case Direction.East: return { x: 1, y: 0 };
-        }
-    }
-
-    private isOppositeDirection(dir1: Direction, dir2: Direction): boolean {
-        return (
-            (dir1 === Direction.North && dir2 === Direction.South) ||
-            (dir1 === Direction.South && dir2 === Direction.North) ||
-            (dir1 === Direction.East && dir2 === Direction.West) ||
-            (dir1 === Direction.West && dir2 === Direction.East)
-        );
-    }
 
     predictMove(player: Entity): MovementPrediction {
         const actions: PredictedAction[] = [];
@@ -98,7 +81,7 @@ export class MovementPredictor {
         // Handle pure inertia movement (no buffered move)
         if (!bufferedMove && !brake && inertia && inertia.magnitude > 1) {
             // logger.info("No buffered move, but inertia is present and greater than 1");
-            const inertiaDir = this.directionToPoint(inertia.direction);
+            const inertiaDir = directionToPoint(inertia.direction);
             const newPos = {
                 x: pos.x + inertiaDir.x,
                 y: pos.y + inertiaDir.y
@@ -131,12 +114,12 @@ export class MovementPredictor {
         // I can't find a cleaner way to abstract this code path given how we're handling state around.
         // this should ignore the buffered move in that code path.
         if(!bufferedMove && brake) {
-            bufferedMove = new BufferedMoveComponent(Direction.North);
+            bufferedMove = new BufferedMoveComponent(Direction.None);
         }
 
         // Handle buffered move with potential inertia
         if (bufferedMove) {
-            const dir = this.directionToPoint(bufferedMove.direction);
+            const dir = directionToPoint(bufferedMove.direction);
             const newPos: Point = {
                 x: pos.x + dir.x,
                 y: pos.y + dir.y
@@ -162,14 +145,14 @@ export class MovementPredictor {
                 if (inertia.direction === bufferedMove.direction) {
                     // Same direction: increase inertia, but cap at maxSpeed
                     finalInertia.magnitude = Math.min(maxSpeed, inertia.magnitude + 1);
-                } else if (this.isOppositeDirection(bufferedMove.direction, inertia.direction) || brake) {
+                } else if (isOppositeDirection(bufferedMove.direction, inertia.direction) || brake) {
                     // Opposite direction: decrease inertia and potentially slide
                     
                     actions.pop(); // Remove the buffered move
                     
                     if (inertia.magnitude >= 2) {
                         // continue moving, but drop inertia by one
-                        const inertiaDir = this.directionToPoint(inertia.direction);
+                        const inertiaDir = directionToPoint(inertia.direction);
                         actions.push({
                             type: 'entityMove',
                             entityId: player.getId(),
@@ -192,7 +175,7 @@ export class MovementPredictor {
                 else {
                     // Perpendicular movement
                     if (inertia.magnitude > SLIDE_SPEED) {
-                        const inertiaDir = this.directionToPoint(inertia.direction);
+                        const inertiaDir = directionToPoint(inertia.direction);
                         const slidePos = {
                             x: newPos.x + inertiaDir.x,
                             y: newPos.y + inertiaDir.y

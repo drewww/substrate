@@ -7,7 +7,7 @@ export class BufferedMoveComponent extends Component {
     type: 'bufferedMove' = 'bufferedMove';
     
     constructor(
-        public direction: Direction | null = null,
+        public direction: Direction,
     ) {
         super();
     }

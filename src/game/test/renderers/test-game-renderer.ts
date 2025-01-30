@@ -1,6 +1,5 @@
 import { GameRenderer } from '../../../render/test/game-renderer';
 import { Entity } from '../../../entity/entity';
-import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { Point } from '../../../types';
 import { Easing, FillDirection, TileId } from '../../../display/types';
 import { BumpingComponent } from '../../../entity/components/bumping-component';
@@ -8,16 +7,15 @@ import { logger } from '../../../util/logger';
 import { World } from '../../../world/world';
 import { Display } from '../../../display/display';
 import { Component } from '../../../entity/component';
-import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { Direction } from '../../../types';
 import { InertiaComponent } from '../components/inertia.component';
-import { StunComponent } from '../components/stun.component';
 import { VisionComponent } from '../../../entity/components/vision-component';
 import { CooldownComponent } from '../components/cooldown.component';
 import { TICK_MS } from '../constants';
 import { MovementPredictor } from '../systems/movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
 import { EnemyAIComponent } from '../components/enemy-ai.component';
+import { directionToRadians } from '../../../util';
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -312,15 +310,6 @@ export class TestGameRenderer extends GameRenderer {
         }
     }
 
-    protected getOppositeDirection(dir: Direction): FillDirection {
-        switch (dir) {
-            case Direction.North: return FillDirection.BOTTOM;
-            case Direction.South: return FillDirection.TOP;
-            case Direction.East: return FillDirection.LEFT;
-            case Direction.West: return FillDirection.RIGHT;
-        }
-    }
-
     public handleComponentAdded(entity: Entity, componentType: string): void {
        
         // Handle bumping animation
@@ -450,6 +439,11 @@ export class TestGameRenderer extends GameRenderer {
                 rightOffset = { x: 0, y: 1 };
                 behindOffset = { x: 1, y: 0 };
                 break;
+            case Direction.None:
+                behindOffset = { x: 0, y: 0 };
+                leftOffset = { x: 0, y: 0 };
+                rightOffset = { x: 0, y: 0 };
+                break;
         }
 
         // Create left smoke particle
@@ -502,15 +496,6 @@ export class TestGameRenderer extends GameRenderer {
         return tileId;
     }
 
-    private getTargetPosition(pos: Point, direction: Direction): Point {
-        switch (direction) {
-            case Direction.North: return { x: pos.x, y: pos.y - 1 };
-            case Direction.South: return { x: pos.x, y: pos.y + 1 };
-            case Direction.West: return { x: pos.x - 1, y: pos.y };
-            case Direction.East: return { x: pos.x + 1, y: pos.y };
-        }
-    }
-
     public getVisibilityMask(): number[][] {
         return this.display.getVisibilityMask();
     }
@@ -524,15 +509,9 @@ export class TestGameRenderer extends GameRenderer {
 
         const finalAction = prediction.actions[prediction.actions.length - 1];
 
-        // Convert direction to radians for rotation
-        const directionToRadians = (direction: Direction): number => {
-            switch (direction) {
-                case Direction.South: return Math.PI/2;   // Down
-                case Direction.East: return 0;            // Right
-                case Direction.North: return -Math.PI/2;  // Up
-                case Direction.West: return Math.PI;      // Left
-            }
-        };
+        if(prediction.finalInertia.direction === Direction.None) {
+            return null;
+        }
 
         const rotation = directionToRadians(prediction.finalInertia.direction);
 
