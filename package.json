@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "deploy": "npm run build && butler push dist/src/game/test/ drewww/substrate:web && npm run notify-discord",
-    "notify-discord": "node scripts/notify-discord.js"
+    "notify-discord": "node scripts/notify-discord.js",
+    "export-prefab": "tsx src/scripts/export-prefab.ts"
   },
   "devDependencies": {
     "typescript": "^5.2.2",
@@ -20,7 +21,9 @@
     "@vitest/coverage-v8": "latest",
     "jsdom": "latest",
     "vitest": "latest",
-    "@types/uuid": "^9.0.0"
+    "@types/uuid": "^9.0.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0"
   },
   "dependencies": {
     "reflect-metadata": "^0.1.13",
