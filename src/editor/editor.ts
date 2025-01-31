@@ -86,28 +86,54 @@ export class Editor {
         const wallButton = document.createElement('button');
         wallButton.textContent = 'Wall';
         wallButton.addEventListener('click', () => {
-            this.state.setClipboard(createWallEntity());
+            this.state.setEntityClipboard(createWallEntity());
         });
         entityPalette.appendChild(wallButton);
 
         const playerButton = document.createElement('button');
         playerButton.textContent = 'Player';
         playerButton.addEventListener('click', () => {
-            this.state.setClipboard(createPlayerEntity());
+            this.state.setEntityClipboard(createPlayerEntity());
         });
         entityPalette.appendChild(playerButton);
-
-
     }
 
+    private getEntitiesSortedByZIndex(entities: Entity[]): Entity[] {
+        return entities.sort((a, b) => {
+            const symbolA = a.getComponent('symbol') as SymbolComponent;
+            const symbolB = b.getComponent('symbol') as SymbolComponent;
+            const zIndexA = symbolA ? symbolA.zIndex : 0;
+            const zIndexB = symbolB ? symbolB.zIndex : 0;
+            return zIndexB - zIndexA; // Higher z-index first
+        });
+    }
 
     private handleRightClick(point: Point | null): void {
         if(!point) return;
         
         logger.info('Right click', point);
 
-        if (this.state.getClipboard()) {
+        const clipboard = this.state.getClipboard();
+        if (clipboard.type === 'entity' && clipboard.entity) {
             this.placeEntity(point);
+        } else if (clipboard.type === 'components' && clipboard.components?.length) {
+            // Get the topmost entity at this position
+            const entities = this.world.getEntitiesAt(point);
+            if (entities.length > 0) {
+                const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+                
+                // Paste component to topmost entity
+                const topEntity = sortedEntities[0];
+                const component = clipboard.components[0].clone();
+                topEntity.setComponent(component);
+                logger.info('Pasted component:', component.type);
+
+                // Refresh panel if this cell is selected
+                const selectedCell = this.state.getState().selectedCell;
+                if (selectedCell && selectedCell.x === point.x && selectedCell.y === point.y) {
+                    this.updateEntityPanel(sortedEntities);
+                }
+            }
         }
     }
 
@@ -119,15 +145,7 @@ export class Editor {
 
         // Get entities at this position
         const entities = this.world.getEntitiesAt(point);
-        
-        // Sort by z-index (if they have symbol components)
-        const sortedEntities = entities.sort((a, b) => {
-            const symbolA = a.getComponent('symbol') as SymbolComponent;
-            const symbolB = b.getComponent('symbol') as SymbolComponent;
-            const zIndexA = symbolA ? symbolA.zIndex : 0;
-            const zIndexB = symbolB ? symbolB.zIndex : 0;
-            return zIndexB - zIndexA; // Higher z-index first
-        });
+        const sortedEntities = this.getEntitiesSortedByZIndex(entities);
 
         // Update entity panel
         this.updateEntityPanel(sortedEntities);
@@ -142,6 +160,9 @@ export class Editor {
             return;
         }
 
+        const clipboard = this.state.getClipboard();
+        const canPaste = clipboard.type === 'components' && (clipboard.components?.length ?? 0) > 0;
+
         let html = '<div class="entity-list">';
         
         entities.forEach((entity, index) => {
@@ -150,8 +171,12 @@ export class Editor {
                     <div class="entity-header">
                         <span>Entity ${entity.getId()}</span>
                         <div class="controls">
-                            <button class="icon-button" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
-                            <button class="icon-button" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
+                            <button class="icon-button" title="Copy Entity" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
+                            <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
+                            <button class="icon-button ${!canPaste ? 'disabled' : ''}" 
+                                title="${canPaste ? 'Paste Component' : 'No component to paste'}"
+                                onclick="${canPaste ? `window.editor.pasteComponent('${entity.getId()}')` : ''}"
+                            >📥</button>
                         </div>
                     </div>
                     <div class="components">
@@ -192,8 +217,8 @@ export class Editor {
                     <div class="component-header">
                         <span>${component.type}</span>
                         <div class="controls">
-                            <button class="icon-button" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
-                            <button class="icon-button" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
+                            <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
+                            <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
                             <div class="component-controls" style="display: none;">
                                 <button onclick="window.editor.saveComponent('${entity.getId()}', '${component.type}', this)">Save</button>
                                 <button onclick="window.editor.resetComponent(this)">Reset</button>
@@ -218,8 +243,8 @@ export class Editor {
                     <div class="simple-component">
                         <span>${component.type}</span>
                         <div class="controls">
-                            <button class="icon-button" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
-                            <button class="icon-button" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
+                            <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
+                            <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -234,7 +259,7 @@ export class Editor {
     public copyEntity(entityId: string): void {
         const entity = this.world.getEntity(entityId);
         if (entity) {
-            this.state.setClipboard(entity);
+            this.state.setEntityClipboard(entity);
             logger.info('Copied entity to clipboard:', entityId);
         }
     }
@@ -252,22 +277,12 @@ export class Editor {
 
     private placeEntity(point: Point): void {
         const clipboard = this.state.getClipboard();
-        if (!clipboard) return;
+        if (clipboard.type !== 'entity' || !clipboard.entity) return;
 
         // Create a new entity from the clipboard
-        // const entity = new Entity();
-        // clipboard.getComponents().forEach(component => {
-        //     entity.setComponent(component);
-        // });
-
-        if(clipboard instanceof Entity) {
-            // Set position
-            const entity = clipboard.clone();
-            entity.setPosition(point.x, point.y);
-            this.world.addEntity(entity);
-        } else {
-            logger.warn("Component clipboard not implemented.");
-        }
+        const entity = clipboard.entity.clone();
+        entity.setPosition(point.x, point.y);
+        this.world.addEntity(entity);
     }
 
     public update(timestamp: number): void {
@@ -329,7 +344,7 @@ export class Editor {
         const component = entity.getComponent(componentType);
         if (component) {
             // Store in clipboard for later pasting
-            this.state.setClipboard([component]);
+            this.state.setComponentClipboard([component]);
             logger.info('Copied component to clipboard:', componentType);
         }
     }
@@ -341,6 +356,29 @@ export class Editor {
         entity.removeComponent(componentType);
         logger.info('Removed component:', componentType);
         
+        // Refresh the panel
+        const selectedCell = this.state.getState().selectedCell;
+        if (selectedCell) {
+            const entities = this.world.getEntitiesAt(selectedCell);
+            this.updateEntityPanel(entities);
+        }
+    }
+
+    public pasteComponent(entityId: string): void {
+        const clipboard = this.state.getClipboard();
+        if (clipboard.type !== 'components' || !clipboard.components?.length) {
+            logger.warn('No component in clipboard');
+            return;
+        }
+
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        // Clone the component before pasting
+        const component = clipboard.components[0].clone();
+        entity.setComponent(component);
+        logger.info('Pasted component:', component.type);
+
         // Refresh the panel
         const selectedCell = this.state.getState().selectedCell;
         if (selectedCell) {

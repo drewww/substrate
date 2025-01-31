@@ -117,7 +117,7 @@
         .simple-component {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 4px;
             background: #444;
             padding: 0.25rem;
             border-radius: 4px;
@@ -132,11 +132,11 @@
         }
         .controls {
             display: flex;
-            gap: 0.25rem;
+            gap: 2px;
             align-items: center;
         }
         .icon-button {
-            padding: 0.25rem 0.5rem;
+            padding: 2px 4px;
             background: transparent;
             border: none;
             color: #999;
@@ -146,6 +146,14 @@
         .icon-button:hover {
             color: #fff;
             background: #444;
+        }
+        .icon-button.disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+        .icon-button.disabled:hover {
+            background: transparent;
+            color: #999;
         }
     </style>
 </head>
