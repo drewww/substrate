@@ -126,6 +126,12 @@ export class Editor {
         document.addEventListener('contextmenu', (e: Event) => {
             e.preventDefault();
         });
+
+        // Add fill button handler
+        const fillButton = document.getElementById('fill-tool');
+        if (fillButton) {
+            fillButton.addEventListener('click', () => this.handleFill());
+        }
     }
 
     private setupPalette(): void {
@@ -453,6 +459,41 @@ export class Editor {
         
         // Update entity panel to show empty state
         this.updateEntityPanel([]);
+    }
+
+    private handleFill(): void {
+        const clipboard = this.state.getClipboard();
+        
+        // Fill entire world with clipboard contents
+        for (let y = 0; y < this.world.getWorldHeight(); y++) {
+            for (let x = 0; x < this.world.getWorldWidth(); x++) {
+                const point = { x, y };
+                
+                if (clipboard.type === 'entity' && clipboard.entity) {
+                    const entity = clipboard.entity.clone();
+                    entity.setPosition(x, y);
+                    this.world.addEntity(entity);
+                } else if (clipboard.type === 'components' && clipboard.components?.length) {
+                    // Get the topmost entity at this position
+                    const entities = this.world.getEntitiesAt(point);
+                    if (entities.length > 0) {
+                        const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+                        const topEntity = sortedEntities[0];
+                        const component = clipboard.components[0].clone();
+                        topEntity.setComponent(component);
+                    }
+                }
+            }
+        }
+        
+        logger.info('Filled world with clipboard contents');
+        
+        // Update entity panel if needed
+        const selectedCell = this.state.getState().selectedCell;
+        if (selectedCell) {
+            const entities = this.world.getEntitiesAt(selectedCell);
+            this.updateEntityPanel(entities);
+        }
     }
 }
 
