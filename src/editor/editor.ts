@@ -9,6 +9,7 @@ import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { Component } from '../entity/component';
 import { ComponentRegistry } from '../entity/component-registry';
+import { MouseTransition } from '../display/display';
 
 
 const CANVAS_ID = 'editor-canvas';
@@ -20,6 +21,8 @@ export class Editor {
     private state: EditorStateManager;
     private isRightMouseDown: boolean = false;
     private lastDragCell: Point | null = null;
+    private isLeftMouseDown: boolean = false;
+    private selectedCells: Point[] = [];
 
     constructor(width: number, height: number) {
         // Create world
@@ -73,7 +76,6 @@ export class Editor {
             
             // Handle drag-paste if right mouse is down
             if (this.isRightMouseDown && point) {
-                // Only paste if we haven't pasted to this cell in this drag
                 if (!this.lastDragCell || 
                     this.lastDragCell.x !== point.x || 
                     this.lastDragCell.y !== point.y) {
@@ -81,10 +83,27 @@ export class Editor {
                     this.lastDragCell = point;
                 }
             }
+            
+            // Handle drag-select if left mouse is down
+            if (this.isLeftMouseDown && point) {
+                if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
+                    this.selectedCells.push(point);
+                    this.handleCellClick(point, true); // true for multi-select
+                }
+            }
         });
 
-        this.display.getDisplay().onCellClick((point: Point | null) => {
-            this.handleCellClick(point);
+        this.display.getDisplay().onCellClick((point: Point | null, transition: MouseTransition, event: MouseEvent) => {
+            if (transition === 'down') {
+                this.isLeftMouseDown = true;
+                if (!event.shiftKey) {  // Only clear selection if shift isn't held
+                    this.selectedCells = [];
+                }
+                if (point) this.selectedCells.push(point);
+                this.handleCellClick(point, event.shiftKey); // pass shift state for multi-select
+            } else {
+                this.isLeftMouseDown = false;
+            }
         });
 
         this.display.getDisplay().onCellRightClick((point: Point | null) => {
@@ -98,6 +117,8 @@ export class Editor {
             if (e.button === 2) { // Right mouse button
                 this.isRightMouseDown = false;
                 this.lastDragCell = null;
+            } else if (e.button === 0) { // Left mouse button
+                this.isLeftMouseDown = false;
             }
         });
 
@@ -211,18 +232,25 @@ export class Editor {
         });
     }
 
-    private handleCellClick(point: Point | null): void {
+    private handleCellClick(point: Point | null, isMultiSelect: boolean = false): void {
         if(!point) return;
 
+        if (!isMultiSelect) {
+            this.selectedCells = [point];
+        }
+
         this.state.setSelectedCell(point);
-        this.renderer.highlightCell(point);
+        this.renderer.highlightCells(this.selectedCells);
 
-        // Get entities at this position
-        const entities = this.world.getEntitiesAt(point);
-        const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+        // Get all entities from all selected cells
+        const allEntities: Entity[] = [];
+        this.selectedCells.forEach(cell => {
+            const entities = this.world.getEntitiesAt(cell);
+            allEntities.push(...entities);
+        });
 
-        // Update entity panel
-        this.updateEntityPanel(sortedEntities);
+        // Update entity panel with all selected entities
+        this.updateEntityPanel(allEntities);
     }
 
     private updateEntityPanel(entities: Entity[]): void {
@@ -230,31 +258,31 @@ export class Editor {
         if (!panel) return;
 
         if (entities.length === 0) {
-            panel.innerHTML = 'No entities in this cell';
+            panel.innerHTML = 'No entities selected';
             return;
         }
 
-        const clipboard = this.state.getClipboard();
-        const canPaste = clipboard.type === 'components' && (clipboard.components?.length ?? 0) > 0;
-
         let html = '<div class="entity-list">';
         
-        entities.forEach((entity, index) => {
+        // Add delete button for multi-select
+        if (this.selectedCells.length > 0) {
+            html += `
+                <div class="multi-select-header">
+                    <span>${entities.length} entities in ${this.selectedCells.length} cells</span>
+                    <button class="icon-button" title="Delete All Selected" onclick="window.editor.deleteSelectedEntities()">🗑️</button>
+                </div>
+            `;
+        }
+        
+        entities.forEach(entity => {
+            const components = entity.getComponents();
             html += `
                 <div class="entity-item">
                     <div class="entity-header">
                         <span>Entity ${entity.getId()}</span>
-                        <div class="controls">
-                            <button class="icon-button" title="Copy Entity" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
-                            <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
-                            <button class="icon-button ${!canPaste ? 'disabled' : ''}" 
-                                title="${canPaste ? 'Paste Component' : 'No component to paste'}"
-                                onclick="${canPaste ? `window.editor.pasteComponent('${entity.getId()}')` : ''}"
-                            >📥</button>
-                        </div>
                     </div>
-                    <div class="components">
-                        ${this.renderComponentsList(entity)}
+                    <div class="component-list">
+                        ${components.map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
                     </div>
                 </div>
             `;
@@ -262,72 +290,6 @@ export class Editor {
 
         html += '</div>';
         panel.innerHTML = html;
-    }
-
-    private renderComponentsList(entity: Entity): string {
-        const components = entity.getComponents();
-        
-        // Separate components into simple (just type) and complex (has properties)
-        const simpleComponents: Component[] = [];
-        const complexComponents: Component[] = [];
-        
-        components.forEach(component => {
-            const serialized = component.serialize();
-            // If component only has 'type' property, it's simple
-            if (Object.keys(serialized).length === 1) {
-                simpleComponents.push(component);
-            } else {
-                complexComponents.push(component);
-            }
-        });
-
-        let html = '<div class="component-list">';
-        
-        // Render complex components first
-        complexComponents.forEach(component => {
-            const componentData = JSON.stringify(component.serialize(), null, 2);
-            html += `
-                <div class="component-item">
-                    <div class="component-header">
-                        <span>${component.type}</span>
-                        <div class="controls">
-                            <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
-                            <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
-                            <div class="component-controls" style="display: none;">
-                                <button onclick="window.editor.saveComponent('${entity.getId()}', '${component.type}', this)">Save</button>
-                                <button onclick="window.editor.resetComponent(this)">Reset</button>
-                            </div>
-                        </div>
-                    </div>
-                    <textarea 
-                        class="component-data"
-                        onfocus="this.parentElement.querySelector('.component-controls').style.display = 'flex'"
-                        oninput="this.dataset.edited = 'true'"
-                        onblur="if (!this.dataset.edited) this.parentElement.querySelector('.component-controls').style.display = 'none'"
-                    >${componentData}</textarea>
-                </div>
-            `;
-        });
-
-        // Render simple components as tags
-        if (simpleComponents.length > 0) {
-            html += '<div class="simple-components">';
-            simpleComponents.forEach(component => {
-                html += `
-                    <div class="simple-component">
-                        <span>${component.type}</span>
-                        <div class="controls">
-                            <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
-                            <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-        }
-
-        html += '</div>';
-        return html;
     }
 
     public copyEntity(entityId: string): void {
@@ -464,19 +426,33 @@ export class Editor {
     private setupKeyboardHandlers(): void {
         document.addEventListener('keydown', (e: KeyboardEvent) => {
             if (e.key === 'Delete' || e.key === 'Backspace') {
-                const selectedCell = this.state.getState().selectedCell;
-                if (selectedCell) {
-                    const entities = this.world.getEntitiesAt(selectedCell);
+                // Delete all entities in all selected cells
+                this.selectedCells.forEach(cell => {
+                    const entities = this.world.getEntitiesAt(cell);
                     entities.forEach(entity => {
                         this.world.removeEntity(entity.getId());
                     });
-                    logger.info('Deleted all entities at selected cell');
-                    
-                    // Update entity panel to show empty state
-                    this.updateEntityPanel([]);
-                }
+                });
+                logger.info('Deleted all entities in selected cells');
+                
+                // Update entity panel to show empty state
+                this.updateEntityPanel([]);
             }
         });
+    }
+
+    // Add new method to handle delete button click
+    public deleteSelectedEntities(): void {
+        this.selectedCells.forEach(cell => {
+            const entities = this.world.getEntitiesAt(cell);
+            entities.forEach(entity => {
+                this.world.removeEntity(entity.getId());
+            });
+        });
+        logger.info('Deleted all entities in selected cells');
+        
+        // Update entity panel to show empty state
+        this.updateEntityPanel([]);
     }
 }
 

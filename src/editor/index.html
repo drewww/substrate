@@ -68,8 +68,8 @@
         }
         .component-list {
             display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            flex-wrap: wrap;
+            gap: 4px;
         }
         .component-item {
             background: #2a2a2a;
@@ -115,11 +115,8 @@
             margin-top: 1rem;
         }
         .simple-component {
-            display: flex;
-            align-items: center;
-            gap: 4px;
             background: #444;
-            padding: 0.25rem;
+            padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-size: 0.9em;
             color: #ccc;
@@ -154,6 +151,19 @@
         .icon-button.disabled:hover {
             background: transparent;
             color: #999;
+        }
+        .multi-select-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #333;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .multi-select-header span {
+            color: #ccc;
+            font-size: 0.9em;
         }
     </style>
 </head>

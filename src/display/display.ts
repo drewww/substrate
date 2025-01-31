@@ -11,6 +11,9 @@ import { ValueAnimationConfig, ValueAnimationModule } from '../animation/value-a
 const VIEWPORT_PADDING_X = 0.2; // 20% padding on each side
 const VIEWPORT_PADDING_Y = 0.2; // 20% padding on top/bottom
 
+// Add new type for mouse event types
+export type MouseTransition = 'down' | 'up';
+
 export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private renderCanvas: HTMLCanvasElement;
@@ -72,6 +75,9 @@ export class Display {
 
     // Map of tile IDs to their move callbacks
     private tileMoveCallbacks: Map<string, (tileId: string, x: number, y: number) => void> = new Map();
+
+    // Update callback type to include transition
+    private cellClickCallbacks: ((worldPos: Point | null, transition: MouseTransition, event: MouseEvent) => void)[] = [];
 
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
@@ -974,12 +980,23 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         return null;
     }
 
-    // Optional: Add method to register click handlers
-    public onCellClick(callback: (worldPos: Point) => void): void {
-        this.displayCanvas.addEventListener('click', (event) => {
-            const worldPos = this.viewportToWorld(event.clientX, event.clientY);
-            if (worldPos) {
-                callback(worldPos);
+    // Update callback type to include transition
+    public onCellClick(callback: (worldPos: Point | null, transition: MouseTransition, event: MouseEvent) => void): void {
+        this.cellClickCallbacks.push(callback);
+        
+        // Handle mousedown
+        this.displayCanvas.addEventListener('mousedown', (event) => {
+            if (event.button === 0) { // Left click only
+                const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+                callback(worldPos, 'down', event);
+            }
+        });
+
+        // Handle mouseup
+        this.displayCanvas.addEventListener('mouseup', (event) => {
+            if (event.button === 0) { // Left click only
+                const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+                callback(worldPos, 'up', event);
             }
         });
     }

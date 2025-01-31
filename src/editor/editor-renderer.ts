@@ -9,6 +9,7 @@ import { BlendMode } from '../display/types';
 export class EditorRenderer extends BaseRenderer {
     private highlightTileId: string | null = null;
     private hoverTileId: string | null = null;
+    private highlightedCells: Point[] = [];
 
     constructor(world: World, display: Display) {
         super(world, display);
@@ -84,5 +85,9 @@ export class EditorRenderer extends BaseRenderer {
 
     public handleUpdate(timestamp: number): void {
         // No special update logic needed for editor
+    }
+
+    public highlightCells(points: Point[]): void {
+        this.highlightedCells = points;
     }
 } 
