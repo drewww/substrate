@@ -18,6 +18,8 @@ export class Editor {
     private renderer: EditorRenderer;
     private display: EditorDisplay;
     private state: EditorStateManager;
+    private isRightMouseDown: boolean = false;
+    private lastDragCell: Point | null = null;
 
     constructor(width: number, height: number) {
         // Create world
@@ -68,6 +70,17 @@ export class Editor {
         // Add hover handler
         this.display.getDisplay().onCellHover((point: Point | null) => {
             this.renderer.hoverCell(point);
+            
+            // Handle drag-paste if right mouse is down
+            if (this.isRightMouseDown && point) {
+                // Only paste if we haven't pasted to this cell in this drag
+                if (!this.lastDragCell || 
+                    this.lastDragCell.x !== point.x || 
+                    this.lastDragCell.y !== point.y) {
+                    this.handleRightClick(point);
+                    this.lastDragCell = point;
+                }
+            }
         });
 
         this.display.getDisplay().onCellClick((point: Point | null) => {
@@ -75,7 +88,22 @@ export class Editor {
         });
 
         this.display.getDisplay().onCellRightClick((point: Point | null) => {
+            this.isRightMouseDown = true;
+            this.lastDragCell = point;
             this.handleRightClick(point);
+        });
+
+        // Add mouse up handler to window to catch releases outside the canvas
+        window.addEventListener('mouseup', (e: MouseEvent) => {
+            if (e.button === 2) { // Right mouse button
+                this.isRightMouseDown = false;
+                this.lastDragCell = null;
+            }
+        });
+
+        // Prevent context menu from appearing
+        document.addEventListener('contextmenu', (e: Event) => {
+            e.preventDefault();
         });
     }
 
