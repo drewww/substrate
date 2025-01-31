@@ -48,6 +48,9 @@ export class Editor {
 
         // Make editor available globally for callbacks
         (window as any).editor = this;
+
+        // Add keyboard handlers
+        this.setupKeyboardHandlers();
     }
 
     private setupEventHandlers(): void {
@@ -115,6 +118,21 @@ export class Editor {
 
         const clipboard = this.state.getClipboard();
         if (clipboard.type === 'entity' && clipboard.entity) {
+            // Check if there's a matching entity at this position
+            const entities = this.world.getEntitiesAt(point);
+            const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+            
+            if (sortedEntities.length > 0) {
+                const topEntity = sortedEntities[0];
+                if (this.entitiesHaveSameComponents(topEntity, clipboard.entity)) {
+                    // Remove the matching entity
+                    this.world.removeEntity(topEntity.getId());
+                    logger.info('Removed matching entity');
+                    return;
+                }
+            }
+            
+            // If no match found or no entities, place the new entity
             this.placeEntity(point);
         } else if (clipboard.type === 'components' && clipboard.components?.length) {
             // Get the topmost entity at this position
@@ -135,6 +153,34 @@ export class Editor {
                 }
             }
         }
+    }
+
+    private entitiesHaveSameComponents(entity1: Entity, entity2: Entity): boolean {
+        const components1 = entity1.getComponents();
+        const components2 = entity2.getComponents();
+
+        if (components1.length !== components2.length) {
+            return false;
+        }
+
+        // Sort components by type for consistent comparison
+        const sortedComponents1 = components1.sort((a, b) => a.type.localeCompare(b.type));
+        const sortedComponents2 = components2.sort((a, b) => a.type.localeCompare(b.type));
+
+        // Compare each component
+        return sortedComponents1.every((comp1, index) => {
+            const comp2 = sortedComponents2[index];
+            
+            // First check if types match
+            if (comp1.type !== comp2.type) {
+                return false;
+            }
+
+            // Deep compare the serialized components
+            const serial1 = comp1.serialize();
+            const serial2 = comp2.serialize();
+            return JSON.stringify(serial1) === JSON.stringify(serial2);
+        });
     }
 
     private handleCellClick(point: Point | null): void {
@@ -385,6 +431,24 @@ export class Editor {
             const entities = this.world.getEntitiesAt(selectedCell);
             this.updateEntityPanel(entities);
         }
+    }
+
+    private setupKeyboardHandlers(): void {
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                const selectedCell = this.state.getState().selectedCell;
+                if (selectedCell) {
+                    const entities = this.world.getEntitiesAt(selectedCell);
+                    entities.forEach(entity => {
+                        this.world.removeEntity(entity.getId());
+                    });
+                    logger.info('Deleted all entities at selected cell');
+                    
+                    // Update entity panel to show empty state
+                    this.updateEntityPanel([]);
+                }
+            }
+        });
     }
 }
 
