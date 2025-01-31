@@ -23,6 +23,8 @@ export class Editor {
     private lastDragCell: Point | null = null;
     private isLeftMouseDown: boolean = false;
     private selectedCells: Point[] = [];
+    private currentTool: 'pointer' | 'area' = 'pointer';
+    private areaStartCell: Point | null = null;
 
     constructor(width: number, height: number) {
         // Create world
@@ -70,11 +72,52 @@ export class Editor {
         //     });
         // }
 
+        // Add tool button handlers
+        const pointerButton = document.getElementById('pointer-tool');
+        const areaButton = document.getElementById('area-tool');
+        
+        if (pointerButton) {
+            pointerButton.addEventListener('click', () => {
+                this.currentTool = 'pointer';
+                pointerButton.classList.add('active');
+                if (areaButton) areaButton.classList.remove('active');
+                this.renderer.clearHighlights();
+                this.selectedCells = [];
+            });
+        }
+        
+        if (areaButton) {
+            areaButton.addEventListener('click', () => {
+                this.currentTool = 'area';
+                areaButton.classList.add('active');
+                if (pointerButton) pointerButton.classList.remove('active');
+                this.renderer.clearHighlights();
+                this.selectedCells = [];
+            });
+        }
+
         // Add hover handler
         this.display.getDisplay().onCellHover((point: Point | null) => {
             this.renderer.hoverCell(point);
             
-            // Handle drag-paste if right mouse is down
+            if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
+                // Calculate area selection
+                const newSelection = this.getCellsInArea(this.areaStartCell, point);
+                if (JSON.stringify(newSelection) !== JSON.stringify(this.selectedCells)) {
+                    this.selectedCells = newSelection;
+                    this.renderer.highlightCells(this.selectedCells);
+                    this.updateEntityPanel(this.getEntitiesInSelectedCells());
+                }
+            } else if (this.isLeftMouseDown && point && this.currentTool === 'pointer') {
+                // Drag-select behavior
+                if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
+                    this.selectedCells.push(point);
+                    this.renderer.highlightCells(this.selectedCells);
+                    this.updateEntityPanel(this.getEntitiesInSelectedCells());
+                }
+            }
+            
+            // Existing right-click drag behavior
             if (this.isRightMouseDown && point) {
                 if (!this.lastDragCell || 
                     this.lastDragCell.x !== point.x || 
@@ -83,26 +126,30 @@ export class Editor {
                     this.lastDragCell = point;
                 }
             }
-            
-            // Handle drag-select if left mouse is down
-            if (this.isLeftMouseDown && point) {
-                if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
-                    this.selectedCells.push(point);
-                    this.handleCellClick(point, true); // true for multi-select
-                }
-            }
         });
 
         this.display.getDisplay().onCellClick((point: Point | null, transition: MouseTransition, event: MouseEvent) => {
             if (transition === 'down') {
                 this.isLeftMouseDown = true;
-                if (!event.shiftKey) {  // Only clear selection if shift isn't held
+                if (!event.shiftKey) {
                     this.selectedCells = [];
+                    this.renderer.clearHighlights();
                 }
-                if (point) this.selectedCells.push(point);
-                this.handleCellClick(point, event.shiftKey); // pass shift state for multi-select
+                if (point) {
+                    if (this.currentTool === 'area') {
+                        this.areaStartCell = point;
+                        this.selectedCells = [point];
+                    } else {
+                        if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
+                            this.selectedCells.push(point);
+                        }
+                    }
+                    this.renderer.highlightCells(this.selectedCells);
+                    this.handleCellClick(point, event.shiftKey);
+                }
             } else {
                 this.isLeftMouseDown = false;
+                this.areaStartCell = null;
             }
         });
 
@@ -119,6 +166,7 @@ export class Editor {
                 this.lastDragCell = null;
             } else if (e.button === 0) { // Left mouse button
                 this.isLeftMouseDown = false;
+                this.areaStartCell = null;
             }
         });
 
@@ -239,24 +287,23 @@ export class Editor {
     }
 
     private handleCellClick(point: Point | null, isMultiSelect: boolean = false): void {
-        if(!point) return;
+        if (!point) return;
 
         if (!isMultiSelect) {
-            this.selectedCells = [point];
+            this.selectedCells = [];
+            this.renderer.clearHighlights();
+        }
+
+        // Add the point to selection if it's not already there
+        if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
+            this.selectedCells.push(point);
         }
 
         this.state.setSelectedCell(point);
         this.renderer.highlightCells(this.selectedCells);
 
-        // Get all entities from all selected cells
-        const allEntities: Entity[] = [];
-        this.selectedCells.forEach(cell => {
-            const entities = this.world.getEntitiesAt(cell);
-            allEntities.push(...entities);
-        });
-
         // Update entity panel with all selected entities
-        this.updateEntityPanel(allEntities);
+        this.updateEntityPanel(this.getEntitiesInSelectedCells());
     }
 
     private updateEntityPanel(entities: Entity[]): void {
@@ -457,36 +504,69 @@ export class Editor {
         });
         logger.info('Deleted all entities in selected cells');
         
+        // Clear selections after delete
+        this.renderer.clearHighlights();
+        this.selectedCells = [];
+        
         // Update entity panel to show empty state
         this.updateEntityPanel([]);
+    }
+
+    private getCellsInArea(start: Point, end: Point): Point[] {
+        const cells: Point[] = [];
+        const minX = Math.min(start.x, end.x);
+        const maxX = Math.max(start.x, end.x);
+        const minY = Math.min(start.y, end.y);
+        const maxY = Math.max(start.y, end.y);
+
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+                cells.push({ x, y });
+            }
+        }
+        return cells;
+    }
+
+    private getEntitiesInSelectedCells(): Entity[] {
+        const entities: Entity[] = [];
+        this.selectedCells.forEach(cell => {
+            entities.push(...this.world.getEntitiesAt(cell));
+        });
+        return entities;
     }
 
     private handleFill(): void {
         const clipboard = this.state.getClipboard();
         
-        // Fill entire world with clipboard contents
-        for (let y = 0; y < this.world.getWorldHeight(); y++) {
-            for (let x = 0; x < this.world.getWorldWidth(); x++) {
-                const point = { x, y };
-                
-                if (clipboard.type === 'entity' && clipboard.entity) {
-                    const entity = clipboard.entity.clone();
-                    entity.setPosition(x, y);
-                    this.world.addEntity(entity);
-                } else if (clipboard.type === 'components' && clipboard.components?.length) {
-                    // Get the topmost entity at this position
-                    const entities = this.world.getEntitiesAt(point);
-                    if (entities.length > 0) {
-                        const sortedEntities = this.getEntitiesSortedByZIndex(entities);
-                        const topEntity = sortedEntities[0];
-                        const component = clipboard.components[0].clone();
-                        topEntity.setComponent(component);
-                    }
+        // Get cells to fill (either selected cells or entire world)
+        const cellsToFill = this.selectedCells.length > 0 ? 
+            this.selectedCells : 
+            Array.from({ length: this.world.getWorldHeight() }, (_, y) => 
+                Array.from({ length: this.world.getWorldWidth() }, (_, x) => ({ x, y }))
+            ).flat();
+        
+        // Fill cells with clipboard contents
+        cellsToFill.forEach(point => {
+            if (clipboard.type === 'entity' && clipboard.entity) {
+                const entity = clipboard.entity.clone();
+                entity.setPosition(point.x, point.y);
+                this.world.addEntity(entity);
+            } else if (clipboard.type === 'components' && clipboard.components?.length) {
+                const entities = this.world.getEntitiesAt(point);
+                if (entities.length > 0) {
+                    const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+                    const topEntity = sortedEntities[0];
+                    const component = clipboard.components[0].clone();
+                    topEntity.setComponent(component);
                 }
             }
-        }
+        });
         
-        logger.info('Filled world with clipboard contents');
+        logger.info('Filled selected area with clipboard contents');
+        
+        // Clear selections after fill
+        this.renderer.clearHighlights();
+        this.selectedCells = [];
         
         // Update entity panel if needed
         const selectedCell = this.state.getState().selectedCell;

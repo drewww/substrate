@@ -165,14 +165,19 @@
             color: #ccc;
             font-size: 0.9em;
         }
+        .tools button.active {
+            background: #555;
+            border: 1px solid #666;
+        }
     </style>
 </head>
 <body>
     <div class="editor-container">
         <div class="editor-left">
             <div class="tools">
-                <button id="pointer-tool">Pointer</button>
-                <button id="fill-tool" title="Fill entire world with clipboard contents">Fill</button>
+                <button id="pointer-tool" class="active">Pointer</button>
+                <button id="area-tool">Area</button>
+                <button id="fill-tool" title="Fill selected area with clipboard contents">Fill</button>
                 <button id="export-tool">Export</button>
             </div>
             <canvas id="editor-canvas"></canvas>

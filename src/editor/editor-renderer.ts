@@ -9,10 +9,15 @@ import { BlendMode } from '../display/types';
 export class EditorRenderer extends BaseRenderer {
     private highlightTileId: string | null = null;
     private hoverTileId: string | null = null;
-    private highlightedCells: Point[] = [];
+    protected world: World;
+    protected display: Display;
+    private hoverPoint: Point | null = null;
+    private selectedCells: string[] = [];
 
     constructor(world: World, display: Display) {
         super(world, display);
+        this.world = world;
+        this.display = display;
     }
 
     public handleEntityAdded(entity: Entity, tileId: string): void {
@@ -77,7 +82,7 @@ export class EditorRenderer extends BaseRenderer {
                 ' ',
                 '#00000000',
                 '#0088FF33', // Light blue with 20% opacity
-                999, // Just below selection highlight
+                999, // High z-index but below selection
                 { blendMode: BlendMode.SourceOver }
             );
         }
@@ -88,6 +93,34 @@ export class EditorRenderer extends BaseRenderer {
     }
 
     public highlightCells(points: Point[]): void {
-        this.highlightedCells = points;
+        // Remove all existing highlight tiles first
+        this.clearHighlights();
+
+        // Create new highlights
+        points.forEach(point => {
+            const tileId = this.display.createTile(
+                point.x,
+                point.y,
+                ' ',
+                '#00000000',
+                '#0088FF3A', // Light blue with 10% opacity
+                998, // High z-index but below hover
+                { blendMode: BlendMode.SourceOver }
+            );
+
+            this.selectedCells.push(tileId);
+        });
+    }
+
+    public clearHighlights(): void {
+        // Clear all selections
+        this.selectedCells.forEach(tileId => {
+            this.display.removeTile(tileId);
+        });
+        this.selectedCells = [];
+    }
+
+    public update(timestamp: number): void {
+        // No need for update since we're managing tiles directly
     }
 } 

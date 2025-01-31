@@ -290,6 +290,7 @@ export class BasicTestGame extends Game {
 
         // Add cell inspection
         this.display.onCellClick((pos) => {
+            if(!pos) return;
             // First show tile information
             const tiles = this.display.getTilesAt(pos.x, pos.y);
             if (tiles.length > 0) {
