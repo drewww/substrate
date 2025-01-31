@@ -31,6 +31,16 @@
         }
         .tools {
             margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .tools-left {
+            display: flex;
+            gap: 2px;
+        }
+        .tools-right {
+            display: flex;
+            gap: 2px;
         }
         .palette {
             margin-top: 10px;
@@ -175,10 +185,14 @@
     <div class="editor-container">
         <div class="editor-left">
             <div class="tools">
-                <button id="pointer-tool" class="active">Pointer</button>
-                <button id="area-tool">Area</button>
-                <button id="fill-tool" title="Fill selected area with clipboard contents">Fill</button>
-                <button id="export-tool">Export</button>
+                <div class="tools-left">
+                    <button id="pointer-tool" class="active">Pointer</button>
+                    <button id="area-tool">Area</button>
+                </div>
+                <div class="tools-right">
+                    <button id="fill-tool" title="Fill selected area with clipboard contents">Fill</button>
+                    <button id="export-tool">Export</button>
+                </div>
             </div>
             <canvas id="editor-canvas"></canvas>
             <div class="palette">

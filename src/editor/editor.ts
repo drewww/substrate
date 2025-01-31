@@ -180,6 +180,13 @@ export class Editor {
         if (fillButton) {
             fillButton.addEventListener('click', () => this.handleFill());
         }
+
+        const exportButton = document.getElementById('export-tool');
+        if (exportButton) {
+            exportButton.addEventListener('click', () => {
+                this.handleExport();
+            });
+        }
     }
 
     private setupPalette(): void {
@@ -574,6 +581,42 @@ export class Editor {
             const entities = this.world.getEntitiesAt(selectedCell);
             this.updateEntityPanel(entities);
         }
+    }
+
+    private handleExport(): void {
+        // Create the export data structure
+        const exportData = {
+            version: '1.0',
+            width: this.world.getWorldWidth(),
+            height: this.world.getWorldHeight(),
+            entities: this.world.getEntities().map(entity => ({
+                id: entity.getId(),
+                position: entity.getPosition(),
+                components: Array.from(entity.getComponents()).map(component => 
+                    component.serialize()
+                )
+            }))
+        };
+
+        // Convert to JSON string with pretty printing
+        const jsonString = JSON.stringify(exportData, null, 2);
+
+        // Create blob and download link
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create and trigger download
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = 'level.json';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        
+        // Cleanup
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+        
+        logger.info('Exported level data');
     }
 }
 
