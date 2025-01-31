@@ -7,6 +7,7 @@ import { createPlayerEntity, createWallEntity } from './templates/wall';
 import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
+import { Component } from '../entity/component';
 
 
 const CANVAS_ID = 'editor-canvas';
@@ -164,10 +165,27 @@ export class Editor {
     }
 
     private renderComponentsList(entity: Entity): string {
+        const components = entity.getComponents();
+        
+        // Separate components into simple (just type) and complex (has properties)
+        const simpleComponents: Component[] = [];
+        const complexComponents: Component[] = [];
+        
+        components.forEach(component => {
+            const serialized = component.serialize();
+            // If component only has 'type' property, it's simple
+            if (Object.keys(serialized).length === 1) {
+                simpleComponents.push(component);
+            } else {
+                complexComponents.push(component);
+            }
+        });
+
         let html = '<div class="component-list">';
         
-        entity.getComponents().forEach(component => {
-            const componentData = JSON.stringify(component, null, 2);
+        // Render complex components first
+        complexComponents.forEach(component => {
+            const componentData = JSON.stringify(component.serialize(), null, 2);
             html += `
                 <div class="component-item">
                     <div class="component-header">
@@ -177,6 +195,15 @@ export class Editor {
                 </div>
             `;
         });
+
+        // Render simple components as tags
+        if (simpleComponents.length > 0) {
+            html += '<div class="simple-components">';
+            simpleComponents.forEach(component => {
+                html += `<div class="simple-component">${component.type}</div>`;
+            });
+            html += '</div>';
+        }
 
         html += '</div>';
         return html;
