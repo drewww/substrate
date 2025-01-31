@@ -1,8 +1,7 @@
 import { Component } from "./component";
 
 type ComponentConstructor = {
-    new (...args: any[]): Component;
-    fromJSON(data: any): Component;
+    new (): Component;  // Only require a no-arg constructor
 };
 
 export class ComponentRegistry {
@@ -20,7 +19,12 @@ export class ComponentRegistry {
             throw new Error(`Unknown component type: ${type}`);
         }
 
-        return ComponentClass.fromJSON(data);
+        // Create with default values
+        const component = new ComponentClass();
+        // Then deserialize the data into it
+        component.deserialize(data);
+        
+        return component;
     }
 
     public static getRegisteredComponents() {

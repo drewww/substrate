@@ -10,17 +10,7 @@ export enum ApplyTimestampType {
 export class ApplyTimestampComponent extends Component { 
     type: 'applyTimestamp' = 'applyTimestamp';
 
-    constructor(public apply: ApplyTimestampType) {
+    constructor(public apply: ApplyTimestampType = ApplyTimestampType.Start) {
         super();
-    }
-
-    static fromJSON(data: any): ApplyTimestampComponent {
-        return new ApplyTimestampComponent(data.apply);
-    }
-
-    toJSON(): any {
-        return {
-            apply: this.apply
-        };
     }
 }

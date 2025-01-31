@@ -17,7 +17,7 @@ export class SymbolComponent extends Component {
   readonly type = 'symbol';
   
   constructor(
-    public char: string,
+    public char: string = '?',
     public foreground: string = '#FFFFFFFF',
     public background: string = '#00000000',
     public zIndex: number = 1,
@@ -33,17 +33,6 @@ export class SymbolComponent extends Component {
       data.background,
       data.zIndex,
       data.alwaysRenderIfExplored
-    );
-  }
-
-  // Helper method to create from config object
-  static fromConfig(config: SymbolConfig): SymbolComponent {
-    return new SymbolComponent(
-      config.char,
-      config.foreground ?? '#FFFFFFFF',
-      config.background ?? '#00000000',
-      config.zIndex ?? 1,
-      config.alwaysRenderIfExplored ?? true
     );
   }
 }

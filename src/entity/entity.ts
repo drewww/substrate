@@ -7,6 +7,7 @@ import { isTransient } from '../decorators/transient';
 import { Component } from './component';
 import { World } from '../world/world';
 import { logger } from '../util/logger';
+import { ComponentRegistry } from './component-registry';
 
 /**
  * Base entity class that manages components
@@ -198,7 +199,7 @@ export class Entity {
         if (!component || typeof component !== 'object' || !('type' in component)) {
           throw new Error('Invalid serialized data: invalid component format');
         }
-        entity.setComponent(Component.fromJSON(component));
+        entity.setComponent(ComponentRegistry.fromJSON(component));
       }
     }
 

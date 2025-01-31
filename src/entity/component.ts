@@ -64,17 +64,18 @@ export abstract class Component {
     }
   }
 
-  static fromJSON(data: any): Component {
-    return ComponentRegistry.fromJSON(data);
-  }
+  // static fromJSON(data: any): Component {
+  //   return ComponentRegistry.fromJSON(data);
+  // }
 
   /**
    * Creates a deep copy of this component.
    * Components with mutable state should override this method.
    */
   public clone(): Component {
-    // Default implementation for immutable components
-    return this;
+    const copy = new (this.constructor as any)();
+    copy.deserialize(this.serialize());
+    return copy;
   }
 }
 

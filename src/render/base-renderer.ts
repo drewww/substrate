@@ -238,12 +238,12 @@ export abstract class BaseRenderer implements Renderer {
                 // logger.info(`Renderer received componentModified event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
 
                 // Merge in light emitter properties to state
-                state.currentProperties.radius = lightEmitter.config.radius;
-                state.currentProperties.intensity = lightEmitter.config.intensity;
-                state.currentProperties.color = lightEmitter.config.color;
+                state.currentProperties.radius = lightEmitter.config.radius ?? state.baseProperties.radius;
+                state.currentProperties.intensity = lightEmitter.config.intensity ?? state.baseProperties.intensity;
+                state.currentProperties.color = lightEmitter.config.color ?? state.baseProperties.color;
                 // state.currentProperties.distanceFalloff = lightEmitter.config.distanceFalloff;
-                state.currentProperties.facing = lightEmitter.config.facing ?? 0;
-                state.currentProperties.width = lightEmitter.config.width ?? Math.PI;
+                state.currentProperties.facing = lightEmitter.config.facing ?? state.baseProperties.facing;
+                state.currentProperties.width = lightEmitter.config.width ?? state.baseProperties.width;
                 // state.currentProperties.mode = lightEmitter.config.mode ?? 'fg';
                 state.currentProperties.xOffset = lightEmitter.config.xOffset ?? 0;
                 state.currentProperties.yOffset = lightEmitter.config.yOffset ?? 0;
@@ -361,19 +361,19 @@ export abstract class BaseRenderer implements Renderer {
         if (!state) {
             state = {
                 baseProperties: {
-                    color: lightEmitter.config.color,
-                    intensity: lightEmitter.config.intensity,
-                    radius: lightEmitter.config.radius,
-                    distanceFalloff: lightEmitter.config.distanceFalloff,
+                    color: lightEmitter.config.color ?? '#FFFFFF',
+                    intensity: lightEmitter.config.intensity ?? 1.0,
+                    radius: lightEmitter.config.radius ?? 5,
+                    distanceFalloff: lightEmitter.config.distanceFalloff ?? 'quadratic',
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,
                     width: lightEmitter.config.width ?? (2 * Math.PI)
                 },
                 currentProperties: {
-                    color: lightEmitter.config.color,
-                    intensity: lightEmitter.config.intensity,
-                    radius: lightEmitter.config.radius,
+                    color: lightEmitter.config.color ?? '#FFFFFF',
+                    intensity: lightEmitter.config.intensity ?? 1.0,
+                    radius: lightEmitter.config.radius ?? 5,
                     xOffset: lightEmitter.config.xOffset ?? 0,
                     yOffset: lightEmitter.config.yOffset ?? 0,
                     facing: lightEmitter.config.facing ?? 0,

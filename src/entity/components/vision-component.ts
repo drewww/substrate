@@ -6,7 +6,7 @@ export class VisionComponent extends Component {
     type: string = 'vision';
     public radius: number;
 
-    constructor(radius: number) {
+    constructor(radius: number = 8) {
         super();
 
         this.radius = radius;

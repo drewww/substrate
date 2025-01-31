@@ -6,17 +6,17 @@ export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step' | 'no
 export type LightMode = 'bg' | 'fg';
 
 export interface LightEmitterConfig {
-    radius: number;
-    intensity: number;
-    color: string;
-    distanceFalloff: LightFalloff;
-    facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down), if set makes this a directional light
-    width?: number;      // Width of the light beam in radians, required if facing is set
+    radius?: number;
+    intensity?: number;
+    color?: string;
+    distanceFalloff?: LightFalloff;
+    facing?: number;     // Angle in radians (0 = right, π/2 = up, π = left, 3π/2 = down)
+    width?: number;      // Width of the light beam in radians
     xOffset?: number;    // -0.5 to 0.5, relative to tile center
     yOffset?: number;    // -0.5 to 0.5, relative to tile center
     mode?: LightMode;    // Whether to affect background ('bg') or foreground ('fg') color
     removeOnComplete?: boolean;
-    lightSourceTile?: boolean;  // Whether to render a light tile at the entity's position (default: true)
+    lightSourceTile?: boolean;
     animation?: {
         type: LightAnimationType;
         params?: {
@@ -26,20 +26,32 @@ export interface LightEmitterConfig {
     };
 }
 
+const DEFAULT_CONFIG: Required<Omit<LightEmitterConfig, 'animation' | 'facing' | 'width'>> = {
+    radius: 5,
+    intensity: 1.0,
+    color: '#FFFFFF',
+    distanceFalloff: 'quadratic',
+    xOffset: 0,
+    yOffset: 0,
+    mode: 'bg',
+    removeOnComplete: false,
+    lightSourceTile: true
+};
+
 @RegisterComponent('lightEmitter')
 export class LightEmitterComponent extends Component {
     public readonly type = 'lightEmitter';
     
     constructor(
-        public config: LightEmitterConfig
+        public config: LightEmitterConfig = {}
     ) {
         super();
+        this.config = { ...DEFAULT_CONFIG, ...config };
+
         // Validate that if facing is set, width is also set
-        if (config.facing !== undefined && config.width === undefined) {
+        if (this.config.facing !== undefined && this.config.width === undefined) {
             throw new Error('Directional lights (with facing) require width to be set');
         }
-        // Set default for lightSourceTile
-        this.config.lightSourceTile = config.lightSourceTile ?? true;
     }
 
     static fromJSON(data: any): LightEmitterComponent {

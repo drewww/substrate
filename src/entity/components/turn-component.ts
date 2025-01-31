@@ -1,23 +1,14 @@
 import { Component, SerializedComponent } from '../component';
 import { Direction } from '../../types';
+import { RegisterComponent } from '../component-registry';
 
+@RegisterComponent('turn')
 export class TurnComponent extends Component {
     readonly type = 'turn';
     
     constructor(
-        public direction: Direction
+        public direction: Direction = Direction.None
     ) {
         super();
-    }
-
-    clone(): Component {
-        return new TurnComponent(this.direction);
-    }
-
-    serialize(): SerializedComponent {
-        return {
-            type: this.type,
-            direction: this.direction
-        };
     }
 } 
