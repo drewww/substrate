@@ -3,7 +3,7 @@ import { EditorDisplay } from './editor-display';
 import { EditorStateManager } from './editor-state';
 import { Point } from '../types';
 import { EditorRenderer } from './editor-renderer';
-import { createWallEntity } from './templates/wall';
+import { createPlayerEntity, createWallEntity } from './templates/wall';
 import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
@@ -87,6 +87,15 @@ export class Editor {
             this.state.setClipboard(createWallEntity());
         });
         entityPalette.appendChild(wallButton);
+
+        const playerButton = document.createElement('button');
+        playerButton.textContent = 'Player';
+        playerButton.addEventListener('click', () => {
+            this.state.setClipboard(createPlayerEntity());
+        });
+        entityPalette.appendChild(playerButton);
+
+
     }
 
 
