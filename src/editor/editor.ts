@@ -149,9 +149,9 @@ export class Editor {
                 <div class="entity-item">
                     <div class="entity-header">
                         <span>Entity ${entity.getId()}</span>
-                        <div class="entity-controls">
-                            <button onclick="window.editor.copyEntity('${entity.getId()}')">Copy</button>
-                            <button onclick="window.editor.deleteEntity('${entity.getId()}')">Delete</button>
+                        <div class="controls">
+                            <button class="icon-button" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
+                            <button class="icon-button" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
                         </div>
                     </div>
                     <div class="components">
@@ -190,10 +190,14 @@ export class Editor {
             html += `
                 <div class="component-item">
                     <div class="component-header">
-                        ${component.type}
-                        <div class="component-controls" style="display: none;">
-                            <button onclick="window.editor.saveComponent('${entity.getId()}', '${component.type}', this)">Save</button>
-                            <button onclick="window.editor.resetComponent(this)">Reset</button>
+                        <span>${component.type}</span>
+                        <div class="controls">
+                            <button class="icon-button" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
+                            <button class="icon-button" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
+                            <div class="component-controls" style="display: none;">
+                                <button onclick="window.editor.saveComponent('${entity.getId()}', '${component.type}', this)">Save</button>
+                                <button onclick="window.editor.resetComponent(this)">Reset</button>
+                            </div>
                         </div>
                     </div>
                     <textarea 
@@ -210,7 +214,15 @@ export class Editor {
         if (simpleComponents.length > 0) {
             html += '<div class="simple-components">';
             simpleComponents.forEach(component => {
-                html += `<div class="simple-component">${component.type}</div>`;
+                html += `
+                    <div class="simple-component">
+                        <span>${component.type}</span>
+                        <div class="controls">
+                            <button class="icon-button" onclick="window.editor.copyComponent('${entity.getId()}', '${component.type}')">📋</button>
+                            <button class="icon-button" onclick="window.editor.deleteComponent('${entity.getId()}', '${component.type}')">🗑️</button>
+                        </div>
+                    </div>
+                `;
             });
             html += '</div>';
         }
@@ -304,7 +316,37 @@ export class Editor {
         const originalValue = textarea.defaultValue;
         textarea.value = originalValue;
         textarea.dataset.edited = 'false';
-        button.closest('.component-controls')!.style.display = 'none';
+        const controls = button.closest('.component-controls');
+        if (controls && controls instanceof HTMLElement) {
+            controls.style.display = 'none';
+        }
+    }
+
+    public copyComponent(entityId: string, componentType: string): void {
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        const component = entity.getComponent(componentType);
+        if (component) {
+            // Store in clipboard for later pasting
+            this.state.setClipboard([component]);
+            logger.info('Copied component to clipboard:', componentType);
+        }
+    }
+
+    public deleteComponent(entityId: string, componentType: string): void {
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        entity.removeComponent(componentType);
+        logger.info('Removed component:', componentType);
+        
+        // Refresh the panel
+        const selectedCell = this.state.getState().selectedCell;
+        if (selectedCell) {
+            const entities = this.world.getEntitiesAt(selectedCell);
+            this.updateEntityPanel(entities);
+        }
     }
 }
 
