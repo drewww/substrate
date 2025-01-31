@@ -8,6 +8,7 @@ import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { Component } from '../entity/component';
+import { ComponentRegistry } from '../entity/component-registry';
 
 
 const CANVAS_ID = 'editor-canvas';
@@ -190,8 +191,17 @@ export class Editor {
                 <div class="component-item">
                     <div class="component-header">
                         ${component.type}
+                        <div class="component-controls" style="display: none;">
+                            <button onclick="window.editor.saveComponent('${entity.getId()}', '${component.type}', this)">Save</button>
+                            <button onclick="window.editor.resetComponent(this)">Reset</button>
+                        </div>
                     </div>
-                    <pre class="component-data">${componentData}</pre>
+                    <textarea 
+                        class="component-data"
+                        onfocus="this.parentElement.querySelector('.component-controls').style.display = 'flex'"
+                        oninput="this.dataset.edited = 'true'"
+                        onblur="if (!this.dataset.edited) this.parentElement.querySelector('.component-controls').style.display = 'none'"
+                    >${componentData}</textarea>
                 </div>
             `;
         });
@@ -258,6 +268,43 @@ export class Editor {
 
     public getDisplay(): EditorDisplay {
         return this.display;
+    }
+
+    public saveComponent(entityId: string, componentType: string, button: HTMLButtonElement): void {
+        logger.info("Saving component: ", entityId, componentType);
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        const textarea = button.closest('.component-item')?.querySelector('textarea');
+        if (!textarea) return;
+
+        try {
+            const data = JSON.parse(textarea.value);
+            logger.info("Updating component: ", data);
+            const component = ComponentRegistry.fromJSON(data);
+            entity.setComponent(component);
+            logger.info('Component updated:', componentType);
+            
+            // Refresh the panel
+            const selectedCell = this.state.getState().selectedCell;
+            if (selectedCell) {
+                const entities = this.world.getEntitiesAt(selectedCell);
+                this.updateEntityPanel(entities);
+            }
+        } catch (e) {
+            logger.error('Failed to parse component JSON:', e);
+            alert('Invalid JSON format');
+        }
+    }
+
+    public resetComponent(button: HTMLButtonElement): void {
+        const textarea = button.closest('.component-item')?.querySelector('textarea');
+        if (!textarea) return;
+        
+        const originalValue = textarea.defaultValue;
+        textarea.value = originalValue;
+        textarea.dataset.edited = 'false';
+        button.closest('.component-controls')!.style.display = 'none';
     }
 }
 

@@ -77,8 +77,14 @@
             padding: 0.5rem;
         }
         .component-header {
-            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 0.5rem;
+        }
+        .component-controls {
+            display: none;
+            gap: 0.5rem;
         }
         .component-data {
             font-family: monospace;
@@ -88,6 +94,15 @@
             padding: 0.5rem;
             background: #222;
             border-radius: 2px;
+            width: 100%;
+            min-height: 100px;
+            color: #fff;
+            border: 1px solid #444;
+            resize: vertical;
+        }
+        .component-data:focus {
+            outline: none;
+            border-color: #666;
         }
         .simple-components {
             display: flex;
