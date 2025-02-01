@@ -3,7 +3,7 @@ import { EditorDisplay } from './editor-display';
 import { EditorStateManager } from './editor-state';
 import { Point } from '../types';
 import { EditorRenderer } from './editor-renderer';
-import { createPlayerEntity, createWallEntity } from './templates/wall';
+import { createEnemyFollowerEntity, createFollowerEntity, createFloorEntity, createPlayerEntity, createVehicleEntity, createWallEntity } from './templates/wall';
 import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
@@ -209,6 +209,34 @@ export class Editor {
             this.state.setEntityClipboard(createPlayerEntity());
         });
         entityPalette.appendChild(playerButton);
+
+        const vehicleButton = document.createElement('button');
+        vehicleButton.textContent = 'Vehicle';
+        vehicleButton.addEventListener('click', () => {
+            this.state.setEntityClipboard(createVehicleEntity());
+        });
+        entityPalette.appendChild(vehicleButton);
+
+        const enemyFollowerButton = document.createElement('button');
+        enemyFollowerButton.textContent = 'Enemy Follower';
+        enemyFollowerButton.addEventListener('click', () => {
+            this.state.setEntityClipboard(createEnemyFollowerEntity());
+        });
+        entityPalette.appendChild(enemyFollowerButton);
+        
+        const followerButton = document.createElement('button');
+        followerButton.textContent = 'Follower';
+        followerButton.addEventListener('click', () => {
+            this.state.setEntityClipboard(createFollowerEntity());
+        });
+        entityPalette.appendChild(followerButton);
+
+        const floorButton = document.createElement('button');
+        floorButton.textContent = 'Floor';
+        floorButton.addEventListener('click', () => {
+            this.state.setEntityClipboard(createFloorEntity());
+        });
+        entityPalette.appendChild(floorButton);
     }
 
     private getEntitiesSortedByZIndex(entities: Entity[]): Entity[] {
