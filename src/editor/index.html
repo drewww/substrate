@@ -52,7 +52,8 @@
         }
 
         .palette {
-            margin-top: 10px;
+            margin-top: 20px;
+            min-height: 200px;
         }
 
         button {
@@ -264,6 +265,13 @@
             margin-top: 0.5rem;
             resize: vertical;
         }
+
+        #palette-canvas {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            margin-bottom: 10px;
+            display: block;
+        }
     </style>
 </head>
 
@@ -282,9 +290,7 @@
             </div>
             <canvas id="editor-canvas"></canvas>
             <div class="palette">
-                <div id="entity-palette">
-                    <!-- Entity buttons will be added here -->
-                </div>
+                <canvas id="palette-canvas"></canvas>
                 <div id="component-palette">
                     <!-- Component buttons will be added here -->
                 </div>

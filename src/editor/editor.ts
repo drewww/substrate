@@ -25,6 +25,8 @@ export class Editor {
     private selectedCells: Point[] = [];
     private currentTool: 'pointer' | 'area' = 'pointer';
     private areaStartCell: Point | null = null;
+    private paletteDisplay!: EditorDisplay;
+    private paletteRenderer!: EditorRenderer;
 
     constructor(width: number, height: number) {
         // Create world
@@ -190,53 +192,102 @@ export class Editor {
     }
 
     private setupPalette(): void {
-        const entityPalette = document.getElementById('entity-palette');
-        if (!entityPalette) return;
-
-        // Add wall button
-        // TODO this is bad, eventually we'll need some data structure to load from that describes all available palette items
-        // in a systematic way. Ideally just render the component?? 
-        const wallButton = document.createElement('button');
-        wallButton.textContent = 'Wall';
-        wallButton.addEventListener('click', () => {
-            this.state.setEntityClipboard(createWallEntity());
-        });
-        entityPalette.appendChild(wallButton);
-
-        const playerButton = document.createElement('button');
-        playerButton.textContent = 'Player';
-        playerButton.addEventListener('click', () => {
-            this.state.setEntityClipboard(createPlayerEntity());
-        });
-        entityPalette.appendChild(playerButton);
-
-        const vehicleButton = document.createElement('button');
-        vehicleButton.textContent = 'Vehicle';
-        vehicleButton.addEventListener('click', () => {
-            this.state.setEntityClipboard(createVehicleEntity());
-        });
-        entityPalette.appendChild(vehicleButton);
-
-        const enemyFollowerButton = document.createElement('button');
-        enemyFollowerButton.textContent = 'Enemy Follower';
-        enemyFollowerButton.addEventListener('click', () => {
-            this.state.setEntityClipboard(createEnemyFollowerEntity());
-        });
-        entityPalette.appendChild(enemyFollowerButton);
+        // Create a new display for the palette
+        const PALETTE_CELL_SIZE = 32; // Larger cells for better visibility
+        const PALETTE_WIDTH = 8; // Number of entities per row
+        const ENTITIES = [
+            { name: 'Wall', create: createWallEntity },
+            { name: 'Player', create: createPlayerEntity },
+            { name: 'Vehicle', create: createVehicleEntity },
+            { name: 'Enemy Follower', create: createEnemyFollowerEntity },
+            { name: 'Follower', create: createFollowerEntity },
+            { name: 'Floor', create: createFloorEntity }
+        ];
         
-        const followerButton = document.createElement('button');
-        followerButton.textContent = 'Follower';
-        followerButton.addEventListener('click', () => {
-            this.state.setEntityClipboard(createFollowerEntity());
-        });
-        entityPalette.appendChild(followerButton);
+        const PALETTE_HEIGHT = Math.ceil(ENTITIES.length / PALETTE_WIDTH);
 
-        const floorButton = document.createElement('button');
-        floorButton.textContent = 'Floor';
-        floorButton.addEventListener('click', () => {
-            this.state.setEntityClipboard(createFloorEntity());
+        // Create palette display with explicit dimensions
+        this.paletteDisplay = new EditorDisplay({
+            elementId: 'palette-canvas',
+            cellWidth: PALETTE_CELL_SIZE,
+            cellHeight: PALETTE_CELL_SIZE,
+            worldWidth: PALETTE_WIDTH,
+            worldHeight: PALETTE_HEIGHT,
+            viewportWidth: PALETTE_WIDTH,
+            viewportHeight: PALETTE_HEIGHT
         });
-        entityPalette.appendChild(floorButton);
+
+        // Set explicit canvas size in CSS
+        const paletteCanvas = document.getElementById('palette-canvas') as HTMLCanvasElement;
+        if (paletteCanvas) {
+            paletteCanvas.style.width = `${PALETTE_WIDTH * PALETTE_CELL_SIZE}px`;
+            paletteCanvas.style.height = `${PALETTE_HEIGHT * PALETTE_CELL_SIZE}px`;
+        }
+
+        // Create a new world for the palette
+        const paletteWorld = new World(PALETTE_WIDTH, PALETTE_HEIGHT);
+        
+        // Setup palette renderer
+        this.paletteRenderer = new EditorRenderer(paletteWorld, this.paletteDisplay.getDisplay());
+
+        // Add entities to palette
+        ENTITIES.forEach((entityDef, index) => {
+            const x = index % PALETTE_WIDTH;
+            const y = Math.floor(index / PALETTE_WIDTH);
+            
+            // Create and add entity to world
+            const entity = entityDef.create();
+            entity.setPosition(x, y);
+            paletteWorld.addEntity(entity);
+
+            // Add hover text with background for better visibility
+            // const textTileId = this.paletteDisplay.getDisplay().createTile(
+            //     x, y - 0.3,
+            //     entityDef.name,
+            //     '#FFFFFF', // White text
+            //     '#000000AA', // Semi-transparent black background
+            //     10 // Higher z-index
+            // );
+        });
+
+        // Start the render loop for the palette
+        const renderPalette = (timestamp: number) => {
+            if (this.paletteRenderer) {
+                this.paletteRenderer.update(timestamp);
+                requestAnimationFrame(renderPalette);
+            }
+        };
+
+        requestAnimationFrame(renderPalette);
+
+        // Handle clicks on palette
+        this.paletteDisplay.getDisplay().onCellClick((point: Point | null, transition: MouseTransition) => {
+            if (!point || transition !== 'down') return;
+
+            logger.info('Palette click', point);
+
+            const index = point.y * PALETTE_WIDTH + point.x;
+            if (index >= 0 && index < ENTITIES.length) {
+                const entity = ENTITIES[index].create();
+                this.state.setEntityClipboard(entity);
+                logger.info('Selected entity from palette:', ENTITIES[index].name);
+            }
+        });
+
+        // Add hover effect
+        this.paletteDisplay.getDisplay().onCellHover((point: Point | null) => {
+            if (!point && this.paletteRenderer) {
+                this.paletteRenderer.hoverCell(null);
+                return;
+            }
+            
+            if (point && this.paletteRenderer) {
+                const index = point.y * PALETTE_WIDTH + point.x;
+                if (index >= 0 && index < ENTITIES.length) {
+                    this.paletteRenderer.hoverCell(point);
+                }
+            }
+        });
     }
 
     private getEntitiesSortedByZIndex(entities: Entity[]): Entity[] {
@@ -489,6 +540,10 @@ export class Editor {
 
     public update(timestamp: number): void {
         this.renderer.update(timestamp);
+        // Update palette renderer if it exists
+        if (this.paletteRenderer) {
+            this.paletteRenderer.update(timestamp);
+        }
     }
 
     public getWorld(): World {

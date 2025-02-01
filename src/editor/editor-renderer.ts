@@ -123,4 +123,8 @@ export class EditorRenderer extends BaseRenderer {
     public update(timestamp: number): void {
         // No need for update since we're managing tiles directly
     }
+
+    public getWorld(): World {
+        return this.world;
+    }
 } 
