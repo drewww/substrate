@@ -1,4 +1,4 @@
-import { Component, SerializedComponent } from '../component';
+import { Component } from '../component';
 import { Direction } from '../../types';
 import { RegisterComponent } from '../component-registry';
 

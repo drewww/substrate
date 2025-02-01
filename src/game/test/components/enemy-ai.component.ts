@@ -1,4 +1,5 @@
 import { Component } from '../../../entity/component';
+import { RegisterComponent } from '../../../entity/component-registry';
 
 export enum EnemyAIMode {
     IDLE = 'idle',
@@ -13,6 +14,7 @@ export enum EnemyAIType {
     FAST_FOLLOWER = 'fast_follower'
 }
 
+@RegisterComponent('enemyAI')
 export class EnemyAIComponent extends Component {
     public readonly type = 'enemyAI';
 

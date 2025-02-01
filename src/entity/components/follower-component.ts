@@ -1,6 +1,7 @@
 import { Component, SerializedComponent } from '../component';
 import { Point } from '../../types';
-
+import { RegisterComponent } from '../component-registry';
+@RegisterComponent('follower')
 export class FollowerComponent extends Component {
     readonly type = 'follower';
     
