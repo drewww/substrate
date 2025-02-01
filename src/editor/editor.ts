@@ -322,34 +322,112 @@ export class Editor {
             return;
         }
 
-        let html = '<div class="entity-list">';
-        
-        // Add delete button for multi-select
-        if (this.selectedCells.length > 0) {
+        // Show detailed view for single entity
+        if (entities.length === 1) {
+            const entity = entities[0];
+            const components = entity.getComponents();
+            let html = `
+                <div class="entity-header">
+                    <span>Entity ${entity.getId()}</span>
+                    <div class="entity-controls">
+                        <button class="icon-button" title="Copy Entity" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
+                        <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
+                    </div>
+                </div>
+                <div class="component-grid">
+                    <div class="simple-components-row">
+            `;
+
+            // Add simple components first
+            components.forEach(comp => {
+                const serialized = comp.serialize();
+                const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
+                if (isSimple) {
+                    html += `
+                        <div class="simple-component-item">
+                            <div class="component-header">
+                                <span>${comp.type}</span>
+                                <div class="component-actions">
+                                    <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${comp.type}')">📋</button>
+                                    <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${comp.type}')">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += '</div>';
+
+            // Then add complex components
+            components.forEach(comp => {
+                const serialized = comp.serialize();
+                const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
+                if (!isSimple) {
+                    // Format the JSON string properly with indentation
+                    const serializedString = JSON.stringify(serialized, null, 2);
+                    html += `
+                        <div class="component-item">
+                            <div class="component-header">
+                                <span>${comp.type}</span>
+                                <div class="component-controls" style="display: none;">
+                                    <button class="icon-button" title="Save Changes" onclick="window.editor.saveComponent('${entity.getId()}', '${comp.type}', this)">💾</button>
+                                    <button class="icon-button" title="Reset Changes" onclick="window.editor.resetComponent(this)">↩️</button>
+                                </div>
+                                <div class="component-actions">
+                                    <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${comp.type}')">📋</button>
+                                    <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${comp.type}')">🗑️</button>
+                                </div>
+                            </div>
+                            <textarea
+                                class="component-editor"
+                                spellcheck="false"
+                                data-edited="false"
+                                oninput="this.dataset.edited='true';this.closest('.component-item').querySelector('.component-controls').style.display='flex'"
+                                onblur="if(this.dataset.edited==='true') window.editor.saveComponent('${entity.getId()}', '${comp.type}', this.closest('.component-item').querySelector('.component-controls button'))"
+                                rows="8"
+                            >${serializedString}</textarea>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                </div>
+                <div class="entity-footer">
+                    <button class="icon-button" title="Paste Component" onclick="window.editor.pasteComponent('${entity.getId()}')">📋 Paste Component</button>
+                </div>
+            `;
+            panel.innerHTML = html;
+        } else {
+            // Multi-select view
+            let html = '<div class="entity-list">';
+            
+            // Add delete button for multi-select
             html += `
                 <div class="multi-select-header">
                     <span>${entities.length} entities in ${this.selectedCells.length} cells</span>
                     <button class="icon-button" title="Delete All Selected" onclick="window.editor.deleteSelectedEntities()">🗑️</button>
                 </div>
             `;
-        }
-        
-        entities.forEach(entity => {
-            const components = entity.getComponents();
-            html += `
-                <div class="entity-item">
-                    <div class="entity-header">
-                        <span>Entity ${entity.getId()}</span>
+            
+            entities.forEach(entity => {
+                const components = entity.getComponents();
+                html += `
+                    <div class="entity-item">
+                        <div class="entity-header">
+                            <span>Entity ${entity.getId()}</span>
+                        </div>
+                        <div class="component-list">
+                            ${components.map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
+                        </div>
                     </div>
-                    <div class="component-list">
-                        ${components.map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
-                    </div>
-                </div>
-            `;
-        });
+                `;
+            });
 
-        html += '</div>';
-        panel.innerHTML = html;
+            html += '</div>';
+            panel.innerHTML = html;
+        }
     }
 
     public copyEntity(entityId: string): void {
@@ -485,6 +563,11 @@ export class Editor {
 
     private setupKeyboardHandlers(): void {
         document.addEventListener('keydown', (e: KeyboardEvent) => {
+            // Don't handle delete/backspace if we're in a text area or input
+            if (e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) {
+                return;
+            }
+
             if (e.key === 'Delete' || e.key === 'Backspace') {
                 // Delete all entities in all selected cells
                 this.selectedCells.forEach(cell => {
