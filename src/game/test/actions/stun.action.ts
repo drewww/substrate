@@ -4,6 +4,7 @@ import { CooldownComponent } from '../components/cooldown.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { Direction } from '../../../types';
 import { logger } from '../../../util/logger';
+import { StunComponent } from '../components/stun.component';
 
 interface StunActionData {
     duration: number;
@@ -32,6 +33,7 @@ export const StunAction: ActionClass<StunActionData> = {
         const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
 
         cooldowns.setCooldown('stun', action.data.duration, action.data.duration, true);
+        cooldowns.setCooldown('move', 4, 4, false);
         entity.setComponent(cooldowns);
 
         // Reset inertia if requested
@@ -42,6 +44,8 @@ export const StunAction: ActionClass<StunActionData> = {
                 0
             ));
         }
+
+        entity.setComponent(new StunComponent());
 
         logger.info(`Entity ${action.entityId} stunned for ${action.data.duration} ticks`);
         return true;

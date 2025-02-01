@@ -37,6 +37,7 @@ export class PlayerMovementSystem {
                 return;
             } else if (stunState && stunState.ready) {
                 // cooldowns.setCooldown('stun', stunState.base, stunState.current, false);
+                player.removeComponent('stun');
                 cooldowns.removeCooldown('stun');
             }
 

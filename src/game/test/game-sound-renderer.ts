@@ -46,6 +46,8 @@ export class GameSoundRenderer extends BaseSoundRenderer {
             if(cooldowns) {
                 const move = cooldowns.getCooldown('move');
                 if(move && move.ready) {
+                    // There's a bug here -- component modified is called more than once per cooldown in the turn, beacuse multiple
+                    // places edit it. We need to debounce somehow but I'm not sure a good way to do it.
                     if(entity.hasComponent('turbo')) {
                         const turbo = entity.getComponent('turbo') as TurboComponent;
 
@@ -62,7 +64,6 @@ export class GameSoundRenderer extends BaseSoundRenderer {
                 }
             }
         }
-
     }
 
     public handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
