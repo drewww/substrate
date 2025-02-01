@@ -1,4 +1,4 @@
-import { Component } from '../../../entity/component';
+import { Component, SerializedComponent } from '../../../entity/component';
 import { RegisterComponent } from '../../../entity/component-registry';
 
 export interface CooldownState {
@@ -56,19 +56,32 @@ export class CooldownComponent extends Component {
         return this.cooldowns;
     }
 
-    static fromJSON(data: any): CooldownComponent {
-        const component = new CooldownComponent();
-        Object.entries(data.cooldowns).forEach(([type, state]) => {
-            component.cooldowns.set(type, state as CooldownState);
-        });
-        return component;
-    }
-
     public clone(): CooldownComponent {
         const cooldownsCopy = new Map<string, CooldownState>();
         for (const [key, state] of this.cooldowns.entries()) {
             cooldownsCopy.set(key, { ...state });
         }
         return new CooldownComponent(Object.fromEntries(cooldownsCopy));
+    }
+
+
+    deserialize(data: any): void {
+        // Convert plain object back to Map
+        this.cooldowns = new Map(
+            Object.entries(data.cooldowns || {})
+        );
+    }
+
+    serialize(): SerializedComponent {
+        // Convert Map to plain object for JSON
+        const cooldownsObj: { [key: string]: CooldownState } = {};
+        this.cooldowns.forEach((value, key) => {
+            cooldownsObj[key] = value;
+        });
+
+        return {
+            type: this.type,
+            cooldowns: cooldownsObj
+        };
     }
 } 

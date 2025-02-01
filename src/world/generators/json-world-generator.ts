@@ -15,30 +15,23 @@ interface LevelData {
 }
 
 export class JsonWorldGenerator implements WorldGenerator {
-    constructor(private readonly jsonData: string) {}
+    constructor(private readonly jsonData: LevelData) {}
 
     generate(): World {
         const startTime = performance.now();
-        
-        // Parse the JSON data
-        let levelData: LevelData;
-        try {
-            levelData = JSON.parse(this.jsonData);
-        } catch (e) {
-            throw new Error(`Failed to parse level JSON: ${e}`);
-        }
+        const data = this.jsonData;
 
         // Validate version
-        if (levelData.version !== '1.0') {
-            logger.warn(`Unknown level format version: ${levelData.version}`);
+        if (data.version !== '1.0') {
+            logger.warn(`Unknown level format version: ${data.version}`);
         }
 
         // Create world with specified dimensions
-        const world = new World(levelData.width, levelData.height);
+        const world = new World(data.width, data.height);
         world.unready();
 
         // Create entities
-        for (const entityData of levelData.entities) {
+        for (const entityData of data.entities) {
             try {
                 const entity = Entity.deserialize(entityData);
                 world.addEntity(entity);
@@ -61,6 +54,6 @@ export class JsonWorldGenerator implements WorldGenerator {
             throw new Error(`Failed to load level file: ${response.statusText}`);
         }
         const jsonData = await response.text();
-        return new JsonWorldGenerator(jsonData);
+        return new JsonWorldGenerator(JSON.parse(jsonData));
     }
 } 

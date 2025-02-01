@@ -8,18 +8,20 @@ import { DisplayOptions } from '../display/types';
 import { GameSoundRenderer } from './test/game-sound-renderer';
 
 export abstract class Game {
-    protected engine!: Engine;
+    protected engine: Engine | null = null;
     protected input: InputManager;
-    protected world!: World;
-    protected player!: Entity;
+    protected world: World | null = null;
+    protected player: Entity | null = null;
     protected display: Display;
-    protected renderer!: BaseRenderer;
+    protected renderer: BaseRenderer | null = null;
     protected updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
-    protected soundRenderer!: GameSoundRenderer;
+    protected soundRenderer: GameSoundRenderer | null = null;
     protected audioContext: AudioContext;
+    private prepared = false;
 
     constructor(displayConfig: DisplayOptions) {
+        // Only do synchronous initialization here
         this.display = new Display(displayConfig);
     
         // Set black background
@@ -43,42 +45,48 @@ export abstract class Game {
                     console.log('AudioContext resumed successfully');
                 });
             }
-        }, { once: true }); // Only need to do this once
-
-        // Initialize the world (which will set engine and player)
-        this.initializeWorld();
-
-        // Create renderer
-        this.renderer = this.createRenderer();
-
-        // Create sound renderer
-        this.soundRenderer = this.createSoundRenderer();
+        }, { once: true });
     }
 
     protected abstract createRenderer(): BaseRenderer;
     protected abstract createSoundRenderer(): GameSoundRenderer;
-    protected abstract initializeWorld(): void;
+    protected abstract setup(): Promise<void>;
     protected abstract handleInput(type: string, action: string, params: string[]): void;
 
-    protected initialize(): void {
+    public async prepare(): Promise<void> {
+        if (this.prepared) return;
+
+        // Initialize the world (which will set engine and player)
+        await this.setup();
         // Create renderer
         this.renderer = this.createRenderer();
 
-        // Initialize sound renderer after world is created
-        this.soundRenderer = new GameSoundRenderer(this.world, this.audioContext);
+        if (!this.world || !this.player) {
+            throw new Error('World initialization failed');
+        }
+
+
+        // Create sound renderer
+        this.soundRenderer = this.createSoundRenderer();
+
+        this.prepared = true;
+    }
+
+    protected isReady(): boolean {
+        return this.prepared && 
+               !!this.world && 
+               !!this.player && 
+               !!this.renderer && 
+               !!this.soundRenderer;
     }
 
     public start(): void {
-        // Start the engine
-        this.engine.start();
+        if (!this.isReady()) {
+            throw new Error('Game must be prepared before starting');
+        }
 
-        // Start the render loop
-        // const animate = () => {
-        //     // Remove the engine.update call since the EngineLoop handles that now
-        //     this.display.render();
-        //     requestAnimationFrame(animate);
-        // };
-        // requestAnimationFrame(animate);
+        // Start the engine
+        this.engine?.start();
     }
 
     public stop(): void {
@@ -89,15 +97,17 @@ export abstract class Game {
     }
 
     public getWorld(): World {
+        if (!this.world) throw new Error('World not initialized');
         return this.world;
     }
 
     public getEngine(): Engine {
+        if (!this.engine) throw new Error('Engine not initialized');
         return this.engine;
     }
 
     update(timestamp: number): void {
-        // ... existing update code ...
+        if (!this.soundRenderer) throw new Error('Sound renderer not initialized');
         this.soundRenderer.update(timestamp);
     }
 } 

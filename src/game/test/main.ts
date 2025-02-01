@@ -9,10 +9,13 @@ let worldDebug: WorldDebugOverlay;
 let engineDebugElement: HTMLDivElement;
 let componentStatsElement: HTMLDivElement;
 
-function init() {
+async function init() {
     // Initialize game with the canvas ID, not the container ID
     const displayCanvas = document.getElementById('display') as HTMLCanvasElement;
     game = new BasicTestGame(displayCanvas.id);
+    
+    // Wait for game to be fully prepared
+    await game.prepare();
     
     // Set up debug overlays
     const displayDebugElement = document.getElementById('display-debug')!;
@@ -112,4 +115,8 @@ function setupControls() {
 }
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', init); 
+document.addEventListener('DOMContentLoaded', () => {
+    init().catch(error => {
+        console.error('Failed to initialize game:', error);
+    });
+}); 
