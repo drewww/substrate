@@ -73,22 +73,33 @@ export class BasicTestGame extends Game {
     private uiSpeedRenderer!: UISpeedRenderer;
     private enemyAISystem!: EnemyAISystem;
     
-    constructor(canvasId: string) {
-        super({
-            elementId: canvasId,
+    constructor(private readonly canvasId: string) {
+        super();
+    }
+
+    protected createDisplay(): Display {
+        if (!this.world) {
+            throw new Error('World must be initialized before creating display');
+        }
+
+        return new Display({
+            elementId: this.canvasId,
             cellWidth: 20,
             cellHeight: 20,
             viewportWidth: 40,
             viewportHeight: 29,
-            worldWidth: 120,
-            worldHeight: 120
+            worldWidth: this.world.getWorldWidth(),
+            worldHeight: this.world.getWorldHeight()
         });
     }
 
     protected setupRenderer(): void {
+        if (!this.display || !this.renderer) {
+            throw new Error('Display and renderer must be initialized');
+        }
+
         (this.renderer as TestGameRenderer).updateVisibility();
 
-        // Attach render canvas to DOM for debugging
         // Attach render canvas to DOM for debugging
         const renderCanvas = this.display.getRenderCanvas();
         const existingRenderCanvas = document.getElementById('render-canvas');
@@ -156,29 +167,19 @@ export class BasicTestGame extends Game {
     }
     
     protected createRenderer(): BaseRenderer {
-        if(!this.world) {
-            throw new Error('World not initialized');
+        if (!this.world || !this.display) {
+            throw new Error('World and display must be initialized');
         }
 
-        if(!this.player) {
-            throw new Error('Player not initialized');
-        }
-
-        const renderer = new TestGameRenderer(this.display, this.world);
-        return renderer;
+        return new TestGameRenderer(this.display, this.world);
     }
 
     protected createSoundRenderer(): GameSoundRenderer {
-        if(!this.world) {
-            throw new Error('World not initialized');
+        if (!this.world || !this.player) {
+            throw new Error('World and player must be initialized');
         }
 
-        if(!this.player) {
-            throw new Error('Player not initialized');
-        }
-
-        const soundRenderer = new GameSoundRenderer(this.world, this.audioContext);
-        return soundRenderer;
+        return new GameSoundRenderer(this.world, this.audioContext);
     }
 
     protected async setup(): Promise<void> {
@@ -187,14 +188,13 @@ export class BasicTestGame extends Game {
         const jsonData = await response.json();
 
         const generator = new JsonWorldGenerator(jsonData);
-
         const world = generator.generate();
         this.world = world;
-
 
         // Find the player entity that was created by the generator
         this.player = world.getEntitiesWithComponent('player')[0];
 
+        // Add components to player
         const cooldowns = new CooldownComponent();
         cooldowns.setCooldown('move', 4, 4, false);
         this.player.setComponent(cooldowns);
@@ -206,20 +206,14 @@ export class BasicTestGame extends Game {
             throw new Error('No player entity found in generated world');
         }
 
-        this.renderer = this.createRenderer();
-
-
         // Initialize engine with the generated world
         this.engine = new Engine({
             mode: 'realtime',
-            worldWidth: world.getSize().x,
-            worldHeight: world.getSize().y,
+            worldWidth: world.getWorldWidth(),
+            worldHeight: world.getWorldHeight(),
             player: this.player,
             world: world
         });
-
-        // Add distance indicator tiles
-        // this.createDistanceIndicators(this.player.getPosition());
 
         const visionComponent = this.player.getComponent('vision') as VisionComponent;
         const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
@@ -231,29 +225,36 @@ export class BasicTestGame extends Game {
         this.actionHandler.registerAction('stun', StunAction);
         this.actionHandler.registerAction('createProjectile', CreateEntityAction);
 
+        // Note: These setup calls will happen after display is created in prepare()
+        // They are moved out of setup() and will be called after prepare() creates the display
+    }
+
+    // Add a new method to handle post-display setup
+    protected setupAfterDisplay(): void {
+        if (!this.display || !this.world || !this.player) {
+            throw new Error('Required game objects not initialized');
+        }
+
         // Update initial visibility
         this.updateViewport(false);
         this.setupInput();
         this.setupRenderer();
         this.setupSystems();
-        
+        this.setupSpeedRenderer();
 
+        // Set up world event handlers
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
                 this.updateViewport();
             }
         });
-        
-        // OTHER SETUP
 
-        // Add cell inspection
+        // Set up cell inspection
         this.display.onCellClick((pos) => {
-
-            if(!this.world) return;
+            if (!this.world || !pos) return;
             
-            if(!pos) return;
             // First show tile information
-            const tiles = this.display.getTilesAt(pos.x, pos.y);
+            const tiles = this.display!.getTilesAt(pos.x, pos.y);
             if (tiles.length > 0) {
                 logger.info(`Tiles at (${pos.x}, ${pos.y}):`);
                 tiles.forEach(tile => {
@@ -285,23 +286,18 @@ export class BasicTestGame extends Game {
             logger.info('FOV Status:', {
                 visible: this.world.isLocationVisible(pos),
                 discovered: this.world.isLocationDiscovered(pos),
-                maskValue: this.display.getVisibilityMask()[pos.y][pos.x],
+                maskValue: this.display!.getVisibilityMask()[pos.y][pos.x],
                 hasBody: fovMap.getBody(pos.x, pos.y),
                 hasWalls: fovMap.getWalls(pos.x, pos.y),
-                tiles: this.display.getTilesAt(pos.x, pos.y)
+                tiles: this.display!.getTilesAt(pos.x, pos.y)
             });
         });
+    }
 
-        this.uiSpeedRenderer = new UISpeedRenderer(this.player);
-        this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
-                this.uiSpeedRenderer.handleComponentModified(data.entity, data.componentType);
-        });
-
-        this.display.addFrameCallback((display, timestamp) => {
-            this.uiSpeedRenderer.update(timestamp);
-        });
-
-
+    // Update the Game's prepare method to call setupAfterDisplay
+    public async prepare(): Promise<void> {
+        await super.prepare();
+        this.setupAfterDisplay();
     }
 
     private pointToKey(point: Point): string {
@@ -310,14 +306,9 @@ export class BasicTestGame extends Game {
 
     
     private updateViewport(animate: boolean = true): void {
-        if(!this.player) {
-            throw new Error('Player not initialized');
+        if (!this.player || !this.world || !this.display) {
+            throw new Error('Required game objects not initialized');
         }
-
-        if(!this.world) {
-            throw new Error('World not initialized');
-        }
-
 
         const pos = this.player.getPosition();
         const viewportWidth = this.display.getViewportWidth();
@@ -413,6 +404,9 @@ export class BasicTestGame extends Game {
     }
     
     public getDisplay(): Display {
+        if (!this.display) {
+            throw new Error('Display not initialized');
+        }
         return this.display;
     }
 
@@ -453,6 +447,25 @@ export class BasicTestGame extends Game {
         } catch (error) {
             console.error('Error loading game:', error);
         }
+    }
+
+    // Add the speed renderer setup method
+    private setupSpeedRenderer(): void {
+        if (!this.display || !this.world || !this.player) {
+            throw new Error('Required game objects not initialized');
+        }
+
+        this.uiSpeedRenderer = new UISpeedRenderer(this.player);
+        
+        // Listen for component modifications to update speed display
+        this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
+            this.uiSpeedRenderer.handleComponentModified(data.entity, data.componentType);
+        });
+
+        // Add frame callback to update speed renderer
+        this.display.addFrameCallback((display, timestamp) => {
+            this.uiSpeedRenderer.update(timestamp);
+        });
     }
 } 
 
@@ -496,3 +509,4 @@ export const MoveAction: ActionClass<MoveActionData> = {
         return result;
     }
 };
+

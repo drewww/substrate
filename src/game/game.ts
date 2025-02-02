@@ -12,7 +12,7 @@ export abstract class Game {
     protected input: InputManager;
     protected world: World | null = null;
     protected player: Entity | null = null;
-    protected display: Display;
+    protected display: Display | null = null;
     protected renderer: BaseRenderer | null = null;
     protected updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
@@ -20,22 +20,12 @@ export abstract class Game {
     protected audioContext: AudioContext;
     private prepared = false;
 
-    constructor(displayConfig: DisplayOptions) {
-        // Only do synchronous initialization here
-        this.display = new Display(displayConfig);
-    
-        // Set black background
-        // this.display.setBackground(
-        //     ' ',           // Empty character
-        //     '#00000000', // Transparent foreground
-        //     '#000000FF'     // Black background
-        // );
-        
-        // Initialize input handling
+    constructor() {
+        // Only do truly synchronous initialization here
         this.input = new InputManager();
         this.input.registerCallback(this.handleInput.bind(this), 0);
 
-        // Create audio context but don't initialize sound renderer yet
+        // Create audio context
         this.audioContext = new AudioContext();
         
         // Add click handler to start audio
@@ -52,19 +42,27 @@ export abstract class Game {
     protected abstract createSoundRenderer(): GameSoundRenderer;
     protected abstract setup(): Promise<void>;
     protected abstract handleInput(type: string, action: string, params: string[]): void;
+    protected abstract createDisplay(): Display;
 
     public async prepare(): Promise<void> {
         if (this.prepared) return;
 
-        // Initialize the world (which will set engine and player)
+        // Initialize the world first (which will set world and player)
         await this.setup();
-        // Create renderer
-        this.renderer = this.createRenderer();
 
-        if (!this.world || !this.player) {
+        if (!this.world) {
             throw new Error('World initialization failed');
         }
 
+        // Create display now that we know world dimensions
+        this.display = this.createDisplay();
+        
+        // Create renderer (which needs both world and display)
+        this.renderer = this.createRenderer();
+
+        if (!this.player) {
+            throw new Error('Player initialization failed');
+        }
 
         // Create sound renderer
         this.soundRenderer = this.createSoundRenderer();
