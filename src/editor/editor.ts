@@ -437,15 +437,9 @@ export class Editor {
     }
 
     private updateEntityPanel(entities: Entity[]): void {
-        const panel = document.getElementById('entity-details');
+        const panel = document.getElementById('entity-panel');
         if (!panel) return;
 
-        if (entities.length === 0) {
-            panel.innerHTML = 'No entities selected';
-            return;
-        }
-
-        // Show detailed view for single entity
         if (entities.length === 1) {
             const entity = entities[0];
             const components = entity.getComponents();
@@ -540,6 +534,7 @@ export class Editor {
                     <div class="entity-item">
                         <div class="entity-header">
                             <span>Entity ${entity.getId()}</span>
+                            <button class="icon-button" title="Edit Entity" onclick="window.editor.selectSingleEntity('${entity.getId()}')">✏️</button>
                         </div>
                         <div class="component-list">
                             ${components.map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
@@ -882,6 +877,15 @@ export class Editor {
 
         // Trigger file dialog
         fileInput.click();
+    }
+
+    // Add new method to handle single entity selection
+    public selectSingleEntity(entityId: string): void {
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        // Update the panel to show just this entity
+        this.updateEntityPanel([entity]);
     }
 }
 

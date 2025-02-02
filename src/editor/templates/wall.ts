@@ -35,7 +35,8 @@ export function createFloorEntity(pos: Point = { x: 0, y: 0 }): Entity {
         '.',
         '#FFFFFF',
         '#000000',
-        100
+        100,
+        true
     ));
     
     return floor;
