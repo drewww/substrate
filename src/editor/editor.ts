@@ -194,7 +194,8 @@ export class Editor {
     private setupPalette(): void {
         // Create a new display for the palette
         const PALETTE_CELL_SIZE = 32; // Larger cells for better visibility
-        const PALETTE_WIDTH = 8; // Number of entities per row
+        const PALETTE_WIDTH = 16; // Wider palette
+        const PALETTE_HEIGHT = 3;  // Fixed three rows
         const ENTITIES = [
             { name: 'Wall', create: createWallEntity },
             { name: 'Player', create: createPlayerEntity },
@@ -204,8 +205,6 @@ export class Editor {
             { name: 'Floor', create: createFloorEntity }
         ];
         
-        const PALETTE_HEIGHT = Math.ceil(ENTITIES.length / PALETTE_WIDTH);
-
         // Create palette display with explicit dimensions
         this.paletteDisplay = new EditorDisplay({
             elementId: 'palette-canvas',
@@ -286,6 +285,31 @@ export class Editor {
                 if (index >= 0 && index < ENTITIES.length) {
                     this.paletteRenderer.hoverCell(point);
                 }
+            }
+        });
+
+        // Add right-click handler for the palette
+        this.paletteDisplay.getDisplay().onCellRightClick((point: Point | null) => {
+            if (!point) return;
+            
+            const clipboard = this.state.getClipboard();
+            if (clipboard.type === 'entity' && clipboard.entity) {
+                // Get the world from the palette renderer
+                const paletteWorld = this.paletteRenderer?.getWorld();
+                if (!paletteWorld) return;
+
+                // Remove any existing entities at this position
+                const existingEntities = paletteWorld.getEntitiesAt(point);
+                existingEntities.forEach(entity => {
+                    paletteWorld.removeEntity(entity.getId());
+                });
+
+                // Create and place the new entity
+                const entity = clipboard.entity.clone();
+                entity.setPosition(point.x, point.y);
+                paletteWorld.addEntity(entity);
+                
+                logger.info('Pasted entity to palette at:', point);
             }
         });
     }
@@ -383,6 +407,18 @@ export class Editor {
         // Add the point to selection if it's not already there
         if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
             this.selectedCells.push(point);
+        }
+
+        // Get entities at clicked position
+        const entities = this.world.getEntitiesAt(point);
+        if (entities.length > 0) {
+            // Sort by z-index and get the topmost entity
+            const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+            const topEntity = sortedEntities[0];
+            
+            // Copy the clicked entity to clipboard
+            this.state.setEntityClipboard(topEntity);
+            logger.info('Copied entity to clipboard from world click');
         }
 
         this.state.setSelectedCell(point);
