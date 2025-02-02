@@ -10,7 +10,7 @@ import { SymbolComponent } from '../entity/components/symbol-component';
 import { Component } from '../entity/component';
 import { ComponentRegistry } from '../entity/component-registry';
 import { MouseTransition } from '../display/display';
-
+import { JsonWorldGenerator } from '../world/generators/json-world-generator';
 
 const CANVAS_ID = 'editor-canvas';
 
@@ -187,6 +187,14 @@ export class Editor {
         if (exportButton) {
             exportButton.addEventListener('click', () => {
                 this.handleExport();
+            });
+        }
+
+        // Add import button handler
+        const importButton = document.getElementById('import-tool');
+        if (importButton) {
+            importButton.addEventListener('click', () => {
+                this.handleImport();
             });
         }
     }
@@ -819,6 +827,61 @@ export class Editor {
         URL.revokeObjectURL(url);
         
         logger.info('Exported level data');
+    }
+
+    private handleImport(): void {
+        // Create a hidden file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        
+        fileInput.addEventListener('change', async (e: Event) => {
+            const target = e.target as HTMLInputElement;
+            const file = target.files?.[0];
+            if (!file) return;
+
+            try {
+                const jsonContent = await file.text();
+                const jsonData = JSON.parse(jsonContent);
+                
+                // Create new generator with the loaded data
+                const generator = new JsonWorldGenerator(jsonData);
+                
+                // Generate new world
+                const newWorld = generator.generate();
+                
+                // Store the new world
+                this.world = newWorld;
+
+                // Recreate display with new world dimensions
+                this.display = new EditorDisplay({
+                    elementId: CANVAS_ID,
+                    cellWidth: 20,
+                    cellHeight: 20,
+                    worldWidth: newWorld.getWorldWidth(),
+                    worldHeight: newWorld.getWorldHeight(),
+                    viewportWidth: newWorld.getWorldWidth(),
+                    viewportHeight: newWorld.getWorldHeight()
+                });
+
+                // Create new renderer with new world and display
+                this.renderer = new EditorRenderer(this.world, this.display.getDisplay());
+
+                // Clear any existing selections
+                this.selectedCells = [];
+                
+                logger.info('Successfully imported world:', {
+                    width: newWorld.getWorldWidth(),
+                    height: newWorld.getWorldHeight(),
+                    entities: newWorld.getEntities().length
+                });
+            } catch (error) {
+                logger.error('Failed to import world:', error);
+            }
+        });
+
+        // Trigger file dialog
+        fileInput.click();
     }
 }
 
