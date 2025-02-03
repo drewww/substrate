@@ -792,8 +792,7 @@ export class Editor {
         }
     }
 
-    private handleExport(): void {
-        // Create the export data structure
+    private async handleExport(): Promise<void> {
         const exportData = {
             version: '1.0',
             width: this.world.getWorldWidth(),
@@ -807,25 +806,45 @@ export class Editor {
             }))
         };
 
-        // Convert to JSON string with pretty printing
         const jsonString = JSON.stringify(exportData, null, 2);
 
-        // Create blob and download link
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        // Create and trigger download
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = 'level.json';
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        
-        // Cleanup
-        document.body.removeChild(downloadLink);
-        URL.revokeObjectURL(url);
-        
-        logger.info(`Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
+        // Check if the API is available
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: 'level.json',
+                    types: [{
+                        description: 'JSON Files',
+                        accept: {
+                            'application/json': ['.json'],
+                        },
+                    }],
+                });
+
+                const writable = await handle.createWritable();
+                await writable.write(jsonString);
+                await writable.close();
+
+                logger.info(`Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
+            } catch (err) {
+                if (!(err instanceof DOMException && err.name === 'AbortError')) {
+                    logger.error('Failed to export level:', err);
+                }
+            }
+        } else {
+            // Fallback to download method
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'level.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            logger.info(`Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
+        }
     }
 
     private handleImport(): void {
@@ -897,5 +916,12 @@ export class Editor {
 declare global {
     interface Window {
         editor: Editor;
+        showSaveFilePicker?: (options?: {
+            suggestedName?: string;
+            types?: Array<{
+                description: string;
+                accept: Record<string, string[]>;
+            }>;
+        }) => Promise<FileSystemFileHandle>;
     }
 } 
