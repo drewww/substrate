@@ -271,6 +271,38 @@
             border: 1px solid #444;
             margin-bottom: 10px;
             display: block;
+            float: left;
+        }
+
+        .palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .palette-header span {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        #lock-tool {
+            padding: 4px 8px;
+            background: #3d3d3d;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+            float: right;
+        }
+
+        #lock-tool:hover {
+            background: #4d4d4d;
+        }
+
+        #lock-tool.active {
+            background: #555;
+            border: 1px solid #666;
         }
     </style>
 </head>
@@ -291,6 +323,7 @@
             </div>
             <canvas id="editor-canvas"></canvas>
             <div class="palette">
+                    <button id="lock-tool" title="Lock/Unlock Palette">🔒</button>
                 <canvas id="palette-canvas"></canvas>
                 <div id="component-palette">
                     <!-- Component buttons will be added here -->

@@ -156,7 +156,7 @@
             "type": "symbol",
             "char": " ",
             "foreground": "#000000FF",
-            "background": "#441111FF",
+            "background": "#0000FFAA",
             "zIndex": 100
           },
           {
@@ -172,6 +172,110 @@
             "type": "followable"
           }
         ]
+      },
+      {
+        "id": "emp_turret",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "T",
+            "foreground": "#FFFFFFFF",
+            "background": "#441111FF",
+            "zIndex": 100
+          },
+          {
+            "type": "vision",
+            "radius": 10
+          },
+          {
+            "type": "opacity"
+          },
+          {
+            "type": "impassable"
+          },
+          {
+            "type": "enemyAI",
+            "aiType": "emp_turret"
+          }
+        ]
+      },
+
+      {
+        "id": "turn-up",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "^",
+            "foreground": "#FFFFFFFF",
+            "background": "#000000FF",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type":"turn",
+            "direction": 0
+          }
+        ]
+      },
+
+      {
+        "id": "turn-right",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": ">",
+            "foreground": "#FFFFFFFF",
+            "background": "#000000FF",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type":"turn",
+            "direction": 1
+          }
+        ]
+      },
+
+      {
+        "id": "turn-down",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "V",
+            "foreground": "#FFFFFFFF",
+            "background": "#000000FF",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type":"turn",
+            "direction": 2
+          }
+        ]
+      },
+
+      {
+        "id": "turn-left",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "<",
+            "foreground": "#FFFFFFFF",
+            "background": "#000000FF",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type":"turn",
+            "direction": 3
+          }
+        ]
       }
+
     ]
   }

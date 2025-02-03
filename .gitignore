@@ -28,3 +28,5 @@ js/*
 *.zip
 
 config.local.json
+
+assets/world/*

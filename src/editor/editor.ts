@@ -32,6 +32,7 @@ export class Editor {
     private areaStartCell: Point | null = null;
     private paletteDisplay!: EditorDisplay;
     private paletteRenderer!: EditorRenderer;
+    private isPaletteLocked: boolean = true;
 
     constructor(width: number, height: number) {
         // Create world
@@ -202,6 +203,24 @@ export class Editor {
                 this.handleImport();
             });
         }
+
+        // Add lock button handler
+        const lockButton = document.getElementById('lock-tool');
+        if (lockButton) {
+            // Set initial state
+            lockButton.classList.add('active');
+            
+            lockButton.addEventListener('click', () => {
+                this.isPaletteLocked = !this.isPaletteLocked;
+                if (this.isPaletteLocked) {
+                    lockButton.classList.add('active');
+                    logger.info('Palette locked');
+                } else {
+                    lockButton.classList.remove('active');
+                    logger.info('Palette unlocked');
+                }
+            });
+        }
     }
 
     private async setupPalette(): Promise<void> {
@@ -289,6 +308,12 @@ export class Editor {
             this.paletteDisplay.getDisplay().onCellRightClick((point: Point | null) => {
                 if (!point) return;
                 
+                // If palette is locked, ignore right clicks
+                if (this.isPaletteLocked) {
+                    logger.info('Cannot modify palette while locked');
+                    return;
+                }
+                
                 const clipboard = this.state.getClipboard();
                 if (clipboard.type === 'entity' && clipboard.entity) {
                     // Get the world from the palette renderer
@@ -337,9 +362,7 @@ export class Editor {
     }
 
     private handleRightClick(point: Point | null): void {
-        if(!point) return;
-        
-        logger.info('Right click', point);
+        if (!point) return;
 
         const clipboard = this.state.getClipboard();
         if (clipboard.type === 'entity' && clipboard.entity) {
@@ -349,10 +372,13 @@ export class Editor {
             
             if (sortedEntities.length > 0) {
                 const topEntity = sortedEntities[0];
-                if (this.entitiesHaveSameComponents(topEntity, clipboard.entity)) {
+                // Add position check to ensure we're only comparing entities at the exact position
+                if (this.entitiesHaveSameComponents(topEntity, clipboard.entity) && 
+                    topEntity.getPosition().x === point.x && 
+                    topEntity.getPosition().y === point.y) {
                     // Remove the matching entity
                     this.world.removeEntity(topEntity.getId());
-                    logger.info('Removed matching entity');
+                    logger.info('Removed matching entity at:', point);
                     return;
                 }
             }
@@ -381,30 +407,22 @@ export class Editor {
     }
 
     private entitiesHaveSameComponents(entity1: Entity, entity2: Entity): boolean {
-        const components1 = entity1.getComponents();
-        const components2 = entity2.getComponents();
+        const components1 = Array.from(entity1.getComponents());
+        const components2 = Array.from(entity2.getComponents());
 
         if (components1.length !== components2.length) {
             return false;
         }
 
-        // Sort components by type for consistent comparison
-        const sortedComponents1 = components1.sort((a, b) => a.type.localeCompare(b.type));
-        const sortedComponents2 = components2.sort((a, b) => a.type.localeCompare(b.type));
+        // Sort components by type to ensure consistent comparison
+        components1.sort((a, b) => a.type.localeCompare(b.type));
+        components2.sort((a, b) => a.type.localeCompare(b.type));
 
-        // Compare each component
-        return sortedComponents1.every((comp1, index) => {
-            const comp2 = sortedComponents2[index];
-            
-            // First check if types match
-            if (comp1.type !== comp2.type) {
-                return false;
-            }
-
-            // Deep compare the serialized components
-            const serial1 = comp1.serialize();
-            const serial2 = comp2.serialize();
-            return JSON.stringify(serial1) === JSON.stringify(serial2);
+        return components1.every((comp1, index) => {
+            const comp2 = components2[index];
+            // Compare component types and serialized data
+            return comp1.type === comp2.type && 
+                   JSON.stringify(comp1.serialize()) === JSON.stringify(comp2.serialize());
         });
     }
 
@@ -793,57 +811,109 @@ export class Editor {
     }
 
     private async handleExport(): Promise<void> {
-        const exportData = {
-            version: '1.0',
-            width: this.world.getWorldWidth(),
-            height: this.world.getWorldHeight(),
-            entities: this.world.getEntities().map(entity => ({
-                id: entity.getId(),
-                position: entity.getPosition(),
-                components: Array.from(entity.getComponents()).map(component => 
-                    component.serialize()
-                )
-            }))
-        };
+        try {
+            // Track any entities/components that fail to serialize
+            const failedEntities: string[] = [];
+            const failedComponents: {entityId: string, componentType: string}[] = [];
 
-        const jsonString = JSON.stringify(exportData, null, 2);
+            const exportData = {
+                version: '1.0',
+                width: this.world.getWorldWidth(),
+                height: this.world.getWorldHeight(),
+                entities: this.world.getEntities().map(entity => {
+                    try {
+                        const components = Array.from(entity.getComponents()).map(component => {
+                            try {
+                                return component.serialize();
+                            } catch (e) {
+                                failedComponents.push({
+                                    entityId: entity.getId(),
+                                    componentType: component.type
+                                });
+                                logger.error(`Failed to serialize component ${component.type} for entity ${entity.getId()}:`, e);
+                                return null;
+                            }
+                        }).filter(comp => comp !== null); // Remove failed components
 
-        // Check if the API is available
-        if (window.showSaveFilePicker) {
-            try {
-                const handle = await window.showSaveFilePicker({
-                    suggestedName: 'level.json',
-                    types: [{
-                        description: 'JSON Files',
-                        accept: {
-                            'application/json': ['.json'],
-                        },
-                    }],
-                });
+                        return {
+                            id: entity.getId(),
+                            position: entity.getPosition(),
+                            components
+                        };
+                    } catch (e) {
+                        failedEntities.push(entity.getId());
+                        logger.error(`Failed to serialize entity ${entity.getId()}:`, e);
+                        return null;
+                    }
+                }).filter(entity => entity !== null) // Remove failed entities
+            };
 
-                const writable = await handle.createWritable();
-                await writable.write(jsonString);
-                await writable.close();
+            // Log export statistics
+            logger.info('Export statistics:', {
+                totalEntities: this.world.getEntities().length,
+                exportedEntities: exportData.entities.length,
+                failedEntities: failedEntities.length > 0 ? failedEntities : 'none',
+                failedComponents: failedComponents.length > 0 ? failedComponents : 'none'
+            });
 
-                logger.info(`Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
-            } catch (err) {
-                if (!(err instanceof DOMException && err.name === 'AbortError')) {
-                    logger.error('Failed to export level:', err);
-                }
+            if (failedEntities.length > 0 || failedComponents.length > 0) {
+                const proceed = confirm(
+                    `Warning: Some entities or components failed to export.\n` +
+                    `Failed entities: ${failedEntities.length}\n` +
+                    `Failed components: ${failedComponents.length}\n` +
+                    `Check console for details.\n\n` +
+                    `Do you want to proceed with the export?`
+                );
+                if (!proceed) return;
             }
-        } else {
-            // Fallback to download method
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'level.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            logger.info(`Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+
+            // Check if the API is available
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: 'level.json',
+                        types: [{
+                            description: 'JSON Files',
+                            accept: {
+                                'application/json': ['.json'],
+                            },
+                        }],
+                    });
+
+                    const writable = await handle.createWritable();
+                    await writable.write(jsonString);
+                    await writable.close();
+
+                    logger.info('Export complete:', {
+                        entities: exportData.entities.length,
+                        dimensions: `${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`,
+                        fileSize: `${(jsonString.length / 1024).toFixed(2)}KB`
+                    });
+                } catch (err) {
+                    if (!(err instanceof DOMException && err.name === 'AbortError')) {
+                        logger.error('Failed to save export file:', err);
+                        alert('Failed to save file. Check console for details.');
+                    }
+                }
+            } else {
+                // Fallback to download method
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'level.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                logger.info('Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}');
+            }
+        } catch (e) {
+            logger.error('Critical export error:', e);
+            alert('Export failed. Check console for details.');
         }
     }
 
