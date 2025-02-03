@@ -90,17 +90,15 @@
             "type": "opacity"
           },
           {
-            "type": "impassable"
-          },
-          {
             "type": "vision",
-            "radius": 10
+            "radius": 30
           },
           {
             "type": "enemyAI",
             "aiType": "follower",
-            "speed": 4,
-            "range": 10
+            "turnsLocked": 0,
+            "visionRadius": 10,
+            "mode": "idle"
           },
           {
             "type": "cooldown",

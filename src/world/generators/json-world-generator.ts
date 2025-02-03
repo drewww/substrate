@@ -30,10 +30,19 @@ export class JsonWorldGenerator implements WorldGenerator {
         const world = new World(data.width, data.height);
         world.unready();
 
+        // Track component statistics
+        const componentStats: { [key: string]: number } = {};
+
         // Create entities
         for (const entityData of data.entities) {
             try {
                 const entity = Entity.deserialize(entityData);
+                
+                // Count components
+                entity.getComponents().forEach(component => {
+                    componentStats[component.type] = (componentStats[component.type] || 0) + 1;
+                });
+                
                 world.addEntity(entity);
             } catch (e) {
                 logger.error(`Failed to deserialize entity:`, entityData, e);
@@ -41,7 +50,16 @@ export class JsonWorldGenerator implements WorldGenerator {
         }
 
         const endTime = performance.now();
-        logger.info(`JSON world generation took ${endTime - startTime}ms to place ${world.getEntities().length} entities`);
+        const duration = endTime - startTime;
+        
+        // Log detailed statistics
+        logger.info('World generation complete:', {
+            dimensions: `${world.getWorldWidth()}x${world.getWorldHeight()}`,
+            entityCount: world.getEntities().length,
+            duration: `${duration.toFixed(2)}ms`,
+            componentsCreated: componentStats,
+            averageComponentsPerEntity: Object.values(componentStats).reduce((a, b) => a + b, 0) / world.getEntities().length
+        });
 
         world.ready();
         return world;

@@ -10943,6 +10943,233 @@
           }
         }
       ]
+    },
+    {
+      "id": "e0",
+      "position": {
+        "x": 5,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#000000FF",
+          "background": "#441111FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable"
+        }
+      ]
+    },
+    {
+      "id": "e1",
+      "position": {
+        "x": 12,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#000000FF",
+          "background": "#441111FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable"
+        }
+      ]
+    },
+    {
+      "id": "e2",
+      "position": {
+        "x": 20,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#000000FF",
+          "background": "#441111FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable"
+        }
+      ]
+    },
+    {
+      "id": "e3",
+      "position": {
+        "x": 5,
+        "y": 12
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#000000FF",
+          "background": "#441111FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable"
+        }
+      ]
+    },
+    {
+      "id": "e4",
+      "position": {
+        "x": 12,
+        "y": 12
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#000000FF",
+          "background": "#441111FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable"
+        }
+      ]
+    },
+    {
+      "id": "e5",
+      "position": {
+        "x": 20,
+        "y": 12
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#000000FF",
+          "background": "#441111FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable"
+        }
+      ]
+    },
+    {
+      "id": "e6",
+      "position": {
+        "x": 7,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "F",
+          "foreground": "#FF0000",
+          "background": "#000000",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "vision",
+          "radius": 10
+        },
+        {
+          "type": "enemyAI",
+          "aiType": "follower",
+          "turnsLocked": 0,
+          "visionRadius": 5,
+          "mode": "idle"
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "move": {
+              "base": 4,
+              "current": 4,
+              "ready": false
+            }
+          }
+        }
+      ]
     }
   ]
 }
