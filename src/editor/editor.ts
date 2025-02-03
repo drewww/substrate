@@ -825,7 +825,7 @@ export class Editor {
         document.body.removeChild(downloadLink);
         URL.revokeObjectURL(url);
         
-        logger.info('Exported level data');
+        logger.info(`Exported level data. entities: ${this.world.getEntities().length}, dimensions: ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
     }
 
     private handleImport(): void {

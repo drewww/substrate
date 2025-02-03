@@ -173,7 +173,7 @@ export class BasicTestGame extends Game {
 
     protected async setup(): Promise<void> {
         // Use JsonWorldGenerator to create the initial world
-        const response = await fetch('/assets/world/test-world.json');
+        const response = await fetch('/assets/world/export.json');
         const jsonData = await response.json();
 
         const generator = new JsonWorldGenerator(jsonData);

@@ -1,3 +1,4 @@
+export default {
 {
     "version": "1.0",
     "entities": [
@@ -53,7 +54,7 @@
           },
           {
             "type": "vision",
-            "radius": 20
+            "radius": 30
           },
           {
             "type": "player"
@@ -97,7 +98,7 @@
             "radius": 10
           },
           {
-            "type": "enemyAI",
+            "type": "enemy_ai",
             "aiType": "follower",
             "speed": 4,
             "range": 10
@@ -121,8 +122,8 @@
           {
             "type": "symbol",
             "char": "E",
-            "foreground": "#FFFFFF",
-            "background": "#0000FF",
+            "foreground": "#0000FF",
+            "background": "#000000",
             "zIndex": 100
           },
           {
@@ -177,3 +178,4 @@
       }
     ]
   }
+}
