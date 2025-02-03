@@ -3,14 +3,19 @@ import { EditorDisplay } from './editor-display';
 import { EditorStateManager } from './editor-state';
 import { Point } from '../types';
 import { EditorRenderer } from './editor-renderer';
-import { createEnemyFollowerEntity, createFollowerEntity, createFloorEntity, createPlayerEntity, createVehicleEntity, createWallEntity } from './templates/wall';
 import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
 import { SymbolComponent } from '../entity/components/symbol-component';
 import { Component } from '../entity/component';
 import { ComponentRegistry } from '../entity/component-registry';
 import { MouseTransition } from '../display/display';
+
+import '../entity/components/index.ts';
+import '../game/test/components/index.ts';
 import { JsonWorldGenerator } from '../world/generators/json-world-generator';
+
+import basicPalette from './templates/basic-palette.json';
+import { PaletteData } from './templates/formats';
 
 const CANVAS_ID = 'editor-canvas';
 
@@ -199,20 +204,11 @@ export class Editor {
         }
     }
 
-    private setupPalette(): void {
-        // Create a new display for the palette
-        const PALETTE_CELL_SIZE = 32; // Larger cells for better visibility
-        const PALETTE_WIDTH = 16; // Wider palette
-        const PALETTE_HEIGHT = 3;  // Fixed three rows
-        const ENTITIES = [
-            { name: 'Wall', create: createWallEntity },
-            { name: 'Player', create: createPlayerEntity },
-            { name: 'Vehicle', create: createVehicleEntity },
-            { name: 'Enemy Follower', create: createEnemyFollowerEntity },
-            { name: 'Follower', create: createFollowerEntity },
-            { name: 'Floor', create: createFloorEntity }
-        ];
-        
+    private async setupPalette(): Promise<void> {
+        const PALETTE_CELL_SIZE = 32;
+        const PALETTE_WIDTH = 16;
+        const PALETTE_HEIGHT = 3;
+
         // Create palette display with explicit dimensions
         this.paletteDisplay = new EditorDisplay({
             elementId: 'palette-canvas',
@@ -237,25 +233,87 @@ export class Editor {
         // Setup palette renderer
         this.paletteRenderer = new EditorRenderer(paletteWorld, this.paletteDisplay.getDisplay());
 
-        // Add entities to palette
-        ENTITIES.forEach((entityDef, index) => {
-            const x = index % PALETTE_WIDTH;
-            const y = Math.floor(index / PALETTE_WIDTH);
-            
-            // Create and add entity to world
-            const entity = entityDef.create();
-            entity.setPosition(x, y);
-            paletteWorld.addEntity(entity);
+        try {
+            // Use the imported JSON directly
+            const paletteData: PaletteData = basicPalette;
+            logger.info('Loaded palette data:', paletteData);
 
-            // Add hover text with background for better visibility
-            // const textTileId = this.paletteDisplay.getDisplay().createTile(
-            //     x, y - 0.3,
-            //     entityDef.name,
-            //     '#FFFFFF', // White text
-            //     '#000000AA', // Semi-transparent black background
-            //     10 // Higher z-index
-            // );
-        });
+            // Load entities from palette definition
+            paletteData.entities.forEach((entityData, index) => {
+                const x = index % PALETTE_WIDTH;
+                const y = Math.floor(index / PALETTE_WIDTH);
+                
+                try {
+                    // Create entity from template
+                    const entity = Entity.deserialize({
+                        ...entityData,
+                        position: { x, y }
+                    });
+                    paletteWorld.addEntity(entity);
+                } catch (e) {
+                    logger.error(`Failed to create palette entity:`, entityData, e);
+                }
+            });
+
+            // Handle clicks on palette
+            this.paletteDisplay.getDisplay().onCellClick((point: Point | null, transition: MouseTransition) => {
+                if (!point || transition !== 'down') return;
+    
+                const index = point.y * PALETTE_WIDTH + point.x;
+                if (index >= 0 && index < paletteData.entities.length) {
+                    const entity = Entity.deserialize({
+                        ...paletteData.entities[index],
+                        position: point
+                    });
+                    this.state.setEntityClipboard(entity);
+                    logger.info('Selected entity from palette:', paletteData.entities[index].id);
+                }
+            });
+    
+            // Add hover effect
+            this.paletteDisplay.getDisplay().onCellHover((point: Point | null) => {
+                if (!point && this.paletteRenderer) {
+                    this.paletteRenderer.hoverCell(null);
+                    return;
+                }
+                
+                if (point && this.paletteRenderer) {
+                    const index = point.y * PALETTE_WIDTH + point.x;
+                    if (index >= 0 && index < paletteData.entities.length) {
+                        this.paletteRenderer.hoverCell(point);
+                    }
+                }
+            });
+    
+            // Add right-click handler for the palette
+            this.paletteDisplay.getDisplay().onCellRightClick((point: Point | null) => {
+                if (!point) return;
+                
+                const clipboard = this.state.getClipboard();
+                if (clipboard.type === 'entity' && clipboard.entity) {
+                    // Get the world from the palette renderer
+                    const paletteWorld = this.paletteRenderer?.getWorld();
+                    if (!paletteWorld) return;
+    
+                    // Remove any existing entities at this position
+                    const existingEntities = paletteWorld.getEntitiesAt(point);
+                    existingEntities.forEach(entity => {
+                        paletteWorld.removeEntity(entity.getId());
+                    });
+    
+                    // Create and place the new entity
+                    const entity = clipboard.entity.clone();
+                    entity.setPosition(point.x, point.y);
+                    paletteWorld.addEntity(entity);
+                    
+                    logger.info('Pasted entity to palette at:', point);
+                }
+            });    
+
+        } catch (error) {
+            logger.error('Failed to load palette:', error);
+            return;
+        }
 
         // Start the render loop for the palette
         const renderPalette = (timestamp: number) => {
@@ -264,62 +322,8 @@ export class Editor {
                 requestAnimationFrame(renderPalette);
             }
         };
-
         requestAnimationFrame(renderPalette);
 
-        // Handle clicks on palette
-        this.paletteDisplay.getDisplay().onCellClick((point: Point | null, transition: MouseTransition) => {
-            if (!point || transition !== 'down') return;
-
-            logger.info('Palette click', point);
-
-            const index = point.y * PALETTE_WIDTH + point.x;
-            if (index >= 0 && index < ENTITIES.length) {
-                const entity = ENTITIES[index].create();
-                this.state.setEntityClipboard(entity);
-                logger.info('Selected entity from palette:', ENTITIES[index].name);
-            }
-        });
-
-        // Add hover effect
-        this.paletteDisplay.getDisplay().onCellHover((point: Point | null) => {
-            if (!point && this.paletteRenderer) {
-                this.paletteRenderer.hoverCell(null);
-                return;
-            }
-            
-            if (point && this.paletteRenderer) {
-                const index = point.y * PALETTE_WIDTH + point.x;
-                if (index >= 0 && index < ENTITIES.length) {
-                    this.paletteRenderer.hoverCell(point);
-                }
-            }
-        });
-
-        // Add right-click handler for the palette
-        this.paletteDisplay.getDisplay().onCellRightClick((point: Point | null) => {
-            if (!point) return;
-            
-            const clipboard = this.state.getClipboard();
-            if (clipboard.type === 'entity' && clipboard.entity) {
-                // Get the world from the palette renderer
-                const paletteWorld = this.paletteRenderer?.getWorld();
-                if (!paletteWorld) return;
-
-                // Remove any existing entities at this position
-                const existingEntities = paletteWorld.getEntitiesAt(point);
-                existingEntities.forEach(entity => {
-                    paletteWorld.removeEntity(entity.getId());
-                });
-
-                // Create and place the new entity
-                const entity = clipboard.entity.clone();
-                entity.setPosition(point.x, point.y);
-                paletteWorld.addEntity(entity);
-                
-                logger.info('Pasted entity to palette at:', point);
-            }
-        });
     }
 
     private getEntitiesSortedByZIndex(entities: Entity[]): Entity[] {
