@@ -110,6 +110,12 @@ export class World {
         }
 
         const entityId = entity.getId();
+
+        // Check if entity already exists
+        if (this.entities.has(entityId)) {
+            logger.warn('Entity ID collision:', entityId);
+        }
+
         entity.setWorld(this);
         this.entities.set(entityId, entity);
 
@@ -130,6 +136,11 @@ export class World {
             this.spatialMap.set(key, entitiesAtPosition);
         }
         entitiesAtPosition.add(entityId);
+
+        // Verify entity was added successfully
+        if (!this.entities.has(entityId)) {
+            logger.error('Failed to add entity:', entityId);
+        }
 
         // Update FOV map if entity affects visibility
         if (entity.hasComponent('opacity')) {
@@ -164,6 +175,16 @@ export class World {
             const entityId = entity.getId();
             entity.setWorld(this);
             this.entities.set(entityId, entity);
+
+            // Index all components
+            entity.getComponents().forEach(component => {
+                let entities = this.componentIndex.get(component.type);
+                if (!entities) {
+                    entities = new Set();
+                    this.componentIndex.set(component.type, entities);
+                }
+                entities.add(entityId);
+            });
 
             const key = this.pointToKey(position);
             let entitiesAtPosition = this.spatialMap.get(key);

@@ -184,6 +184,16 @@ export class Entity {
     if (!data || typeof data !== 'object') {
       throw new Error('Invalid serialized data: must be an object');
     }
+    
+    // Update nextId based on loaded entity ID
+    if (data.id && typeof data.id === 'string') {
+        const match = data.id.match(/e(\d+)/);
+        if (match) {
+            const idNum = parseInt(match[1], 10);
+            Entity.nextId = Math.max(Entity.nextId, idNum + 1);
+        }
+    }
+
     if (!data.id || typeof data.id !== 'string') {
       data.id = Entity.generateId();
       // throw new Error('Invalid serialized data: missing or invalid id');

@@ -580,7 +580,7 @@ export class Editor {
     public copyEntity(entityId: string): void {
         const entity = this.world.getEntity(entityId);
         if (entity) {
-            this.state.setEntityClipboard(entity);
+            this.state.setEntityClipboard(entity.clone());
             logger.info('Copied entity to clipboard:', entityId);
         }
     }
@@ -600,10 +600,12 @@ export class Editor {
         const clipboard = this.state.getClipboard();
         if (clipboard.type !== 'entity' || !clipboard.entity) return;
 
-        // Create a new entity from the clipboard
-        const entity = clipboard.entity.clone();
-        entity.setPosition(point.x, point.y);
-        this.world.addEntity(entity);
+        // Create and place the new entity
+        const newEntity = clipboard.entity.clone();
+        newEntity.setPosition(point.x, point.y);
+        this.world.addEntity(newEntity);
+        
+        logger.info('Placed entity at:', point);
     }
 
     public update(timestamp: number): void {
@@ -668,8 +670,8 @@ export class Editor {
 
         const component = entity.getComponent(componentType);
         if (component) {
-            // Store in clipboard for later pasting
-            this.state.setComponentClipboard([component]);
+            // Clone component before storing in clipboard
+            this.state.setComponentClipboard([component.clone()]);
             logger.info('Copied component to clipboard:', componentType);
         }
     }
