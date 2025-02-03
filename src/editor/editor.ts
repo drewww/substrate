@@ -221,6 +221,13 @@ export class Editor {
                 }
             });
         }
+
+        const reloadButton = document.getElementById('reload-tool');
+        if (reloadButton) {
+            reloadButton.addEventListener('click', () => {
+                this.handleReload();
+            });
+        }
     }
 
     private async setupPalette(): Promise<void> {
@@ -446,8 +453,8 @@ export class Editor {
             const sortedEntities = this.getEntitiesSortedByZIndex(entities);
             const topEntity = sortedEntities[0];
             
-            // Copy the clicked entity to clipboard
-            this.state.setEntityClipboard(topEntity);
+            // Clone the entity before putting it in clipboard
+            this.state.setEntityClipboard(topEntity.clone());
             logger.info('Copied entity to clipboard from world click');
         }
 
@@ -810,51 +817,120 @@ export class Editor {
         }
     }
 
+    private serializeWorld() {
+        // Track any entities/components that fail to serialize
+        const failedEntities: string[] = [];
+        const failedComponents: {entityId: string, componentType: string}[] = [];
+
+        logger.info(`World state pre-export: ${this.world.getEntities().length} entities, ${this.world.getWorldWidth()}x${this.world.getWorldHeight()}`);
+
+        // get counts of all components
+        const componentCounts = this.world.getEntities().reduce((acc, entity) => {
+            entity.getComponents().forEach(component => {
+                acc[component.type] = (acc[component.type] || 0) + 1;
+            });
+            return acc;
+        }, {} as Record<string, number>);
+
+        logger.info(`Component counts: ${JSON.stringify(componentCounts)}`);
+
+        const exportData = {
+            version: '1.0',
+            width: this.world.getWorldWidth(),
+            height: this.world.getWorldHeight(),
+            entities: this.world.getEntities().map(entity => {
+                try {
+                    const components = Array.from(entity.getComponents()).map(component => {
+                        try {
+                            return component.serialize();
+                        } catch (e) {
+                            failedComponents.push({
+                                entityId: entity.getId(),
+                                componentType: component.type
+                            });
+                            logger.error(`Failed to serialize component ${component.type} for entity ${entity.getId()}:`, e);
+                            return null;
+                        }
+                    }).filter(comp => comp !== null); // Remove failed components
+
+                    return {
+                        id: entity.getId(),
+                        position: entity.getPosition(),
+                        components
+                    };
+                } catch (e) {
+                    failedEntities.push(entity.getId());
+                    logger.error(`Failed to serialize entity ${entity.getId()}:`, e);
+                    return null;
+                }
+            }).filter(entity => entity !== null) // Remove failed entities
+        };
+
+        logger.info(`Export metadata: ${exportData.entities.length} entities, ${exportData.width}x${exportData.height}`);
+        
+        // Cross-check component counts in export data
+        const exportComponentCounts = exportData.entities.reduce((acc, entity) => {
+            entity.components.forEach(component => {
+                acc[component.type] = (acc[component.type] || 0) + 1;
+            });
+            return acc;
+        }, {} as Record<string, number>);
+
+        logger.info(`Export component counts: ${JSON.stringify(exportComponentCounts)}`);
+
+        return {
+            exportData,
+            failedEntities,
+            failedComponents
+        };
+    }
+
+    private handleReload(): void {
+        try {
+            const { exportData, failedEntities, failedComponents } = this.serializeWorld();
+
+            logger.info(`failed entities: ${failedEntities.length}`);
+            logger.info(`failed components: ${failedComponents.length}`);
+
+            // Create new generator with the exported data
+            const generator = new JsonWorldGenerator(exportData);
+            
+            // Generate new world
+            const newWorld = generator.generate();
+            
+            // Store the new world
+            this.world = newWorld;
+
+            // Recreate display with new world dimensions
+            this.display = new EditorDisplay({
+                elementId: CANVAS_ID,
+                cellWidth: 20,
+                cellHeight: 20,
+                worldWidth: newWorld.getWorldWidth(),
+                worldHeight: newWorld.getWorldHeight(),
+                viewportWidth: newWorld.getWorldWidth(),
+                viewportHeight: newWorld.getWorldHeight()
+            });
+
+            // Create new renderer with new world and display
+            this.renderer = new EditorRenderer(this.world, this.display.getDisplay());
+
+            // Clear any existing selections
+            this.selectedCells = [];
+            
+            logger.info('Successfully reloaded world:', {
+                width: newWorld.getWorldWidth(),
+                height: newWorld.getWorldHeight(),
+                entities: newWorld.getEntities().length
+            });
+        } catch (error) {
+            logger.error('Failed to reload world:', error);
+        }
+    }
+
     private async handleExport(): Promise<void> {
         try {
-            // Track any entities/components that fail to serialize
-            const failedEntities: string[] = [];
-            const failedComponents: {entityId: string, componentType: string}[] = [];
-
-            const exportData = {
-                version: '1.0',
-                width: this.world.getWorldWidth(),
-                height: this.world.getWorldHeight(),
-                entities: this.world.getEntities().map(entity => {
-                    try {
-                        const components = Array.from(entity.getComponents()).map(component => {
-                            try {
-                                return component.serialize();
-                            } catch (e) {
-                                failedComponents.push({
-                                    entityId: entity.getId(),
-                                    componentType: component.type
-                                });
-                                logger.error(`Failed to serialize component ${component.type} for entity ${entity.getId()}:`, e);
-                                return null;
-                            }
-                        }).filter(comp => comp !== null); // Remove failed components
-
-                        return {
-                            id: entity.getId(),
-                            position: entity.getPosition(),
-                            components
-                        };
-                    } catch (e) {
-                        failedEntities.push(entity.getId());
-                        logger.error(`Failed to serialize entity ${entity.getId()}:`, e);
-                        return null;
-                    }
-                }).filter(entity => entity !== null) // Remove failed entities
-            };
-
-            // Log export statistics
-            logger.info('Export statistics:', {
-                totalEntities: this.world.getEntities().length,
-                exportedEntities: exportData.entities.length,
-                failedEntities: failedEntities.length > 0 ? failedEntities : 'none',
-                failedComponents: failedComponents.length > 0 ? failedComponents : 'none'
-            });
+            const { exportData, failedEntities, failedComponents } = this.serializeWorld();
 
             if (failedEntities.length > 0 || failedComponents.length > 0) {
                 const proceed = confirm(
