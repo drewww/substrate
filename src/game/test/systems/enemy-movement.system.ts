@@ -16,6 +16,7 @@ export class EnemyMovementSystem {
         const enemies = this.world.getEntities()
             .filter(e => e.hasComponent('cooldown') && e.hasComponent('facing') && !e.hasComponent('player'));
 
+        let moved = false;
         for (const enemy of enemies) {
             const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
             const facing = enemy.getComponent('facing') as FacingComponent;
@@ -28,7 +29,12 @@ export class EnemyMovementSystem {
             if (moveState?.ready && this.canMoveInDirection(enemy, facing.direction)) {
                 this.moveEnemy(enemy, facing.direction);
                 cooldowns.setCooldown('move', moveState.base);
+                moved = true;
             }
+        }
+
+        if (moved) {
+            this.world.updatePlayerVision();
         }
     }
 
