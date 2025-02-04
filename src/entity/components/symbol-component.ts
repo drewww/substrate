@@ -21,18 +21,11 @@ export class SymbolComponent extends Component {
     public foreground: string = '#FFFFFFFF',
     public background: string = '#00000000',
     public zIndex: number = 1,
-    public alwaysRenderIfExplored: boolean = false
+    public alwaysRenderIfExplored: boolean = false,
+    public rotation: number = 0,
+    public offsetSymbolX: number = 0,
+    public offsetSymbolY: number = 0
   ) {
     super();
-  }
-
-  static fromJSON(data: any): SymbolComponent {
-    return new SymbolComponent(
-      data.char,
-      data.foreground,
-      data.background,
-      data.zIndex,
-      data.alwaysRenderIfExplored
-    );
   }
 }

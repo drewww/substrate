@@ -1,3 +1,4 @@
+
 import { Display } from '../display/display';
 import { BlendMode } from '../display/types';
 import { Entity } from '../entity/entity';
@@ -162,9 +163,12 @@ export abstract class BaseRenderer implements Renderer {
                 symbolComponent.char,
                 symbolComponent.foreground,
                 symbolComponent.background,
-                symbolComponent.zIndex,
+                symbolComponent.zIndex, 
                 {
-                    alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored
+                    alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored,
+                    rotation: (symbolComponent.rotation * Math.PI) / 180,  // Convert degrees to radians
+                    offsetSymbolX: symbolComponent.offsetSymbolX,  // Need to add this
+                    offsetSymbolY: symbolComponent.offsetSymbolY  // Need to add this
                 }
             );
             
@@ -222,7 +226,10 @@ export abstract class BaseRenderer implements Renderer {
                     fg: symbol.foreground,
                     bg: symbol.background,
                     zIndex: symbol.zIndex,
-                    alwaysRenderIfExplored: symbol.alwaysRenderIfExplored
+                    alwaysRenderIfExplored: symbol.alwaysRenderIfExplored,
+                    rotation: (symbol.rotation * Math.PI) / 180,
+                    offsetSymbolX: symbol.offsetSymbolX,
+                    offsetSymbolY: symbol.offsetSymbolY
                 });
             }
         } 

@@ -180,6 +180,9 @@ export interface TileUpdateConfig {
     noClip?: boolean;
     blendMode?: BlendMode;
     alwaysRenderIfExplored?: boolean;
+    rotation?: number;
+    offsetSymbolX?: number;
+    offsetSymbolY?: number;
 }
 
 export interface PerformanceMetrics {
