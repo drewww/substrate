@@ -670,6 +670,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     public getWorldHeight(): number {
         return this.worldHeight;
     }
+    
+    public getViewport(): { x: number, y: number, width: number, height: number } {
+        return this.viewport;
+    }
 
     public getViewportWidth(): number {
         return this.viewport.width;
@@ -967,16 +971,25 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         return this.dirtyMask.getMask();
     }
 
-    public viewportToWorld(screenX: number, screenY: number): Point | null {
-        // Convert screen coordinates to world coordinates
+    private viewportToWorld(clientX: number, clientY: number): Point | null {
         const rect = this.displayCanvas.getBoundingClientRect();
-        const x = Math.floor((screenX - rect.left) / this.cellWidthCSS) + this.viewport.x;
-        const y = Math.floor((screenY - rect.top) / this.cellHeightCSS) + this.viewport.y;
-        
-        // Check if the point is within world bounds
-        if (x >= 0 && x < this.worldWidth && y >= 0 && y < this.worldHeight) {
-            return { x, y };
+        const scaleX = this.displayCanvas.width / rect.width;
+        const scaleY = this.displayCanvas.height / rect.height;
+
+        // Get position relative to canvas
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+
+        // Convert to cell coordinates including viewport offset
+        const cellX = Math.floor(canvasX / this.cellWidthScaled) + this.viewport.x;
+        const cellY = Math.floor(canvasY / this.cellHeightScaled) + this.viewport.y;
+
+        // Check if the position is within world bounds
+        if (cellX >= 0 && cellX < this.worldWidth && 
+            cellY >= 0 && cellY < this.worldHeight) {
+            return { x: cellX, y: cellY };
         }
+
         return null;
     }
 

@@ -28,25 +28,30 @@ export class Editor {
     private lastDragCell: Point | null = null;
     private isLeftMouseDown: boolean = false;
     private selectedCells: Point[] = [];
-    private currentTool: 'pointer' | 'area' = 'pointer';
+    private currentTool: 'pointer' | 'area' | 'pan' = 'pointer';
     private areaStartCell: Point | null = null;
     private paletteDisplay!: EditorDisplay;
     private paletteRenderer!: EditorRenderer;
     private isPaletteLocked: boolean = true;
+    private isPanning: boolean = false;
+    private lastPanPoint: Point | null = null;
 
     constructor(width: number, height: number) {
         // Create world
         this.world = new World(width, height);
         
-        // Create display
+        // Create display with smaller viewport
+        const viewportWidth = Math.floor(width * 0.75);  // 25% smaller
+        const viewportHeight = Math.floor(height * 0.75);
+        
         this.display = new EditorDisplay({
             elementId: CANVAS_ID,
             cellWidth: 20,
             cellHeight: 20,
             worldWidth: width,
             worldHeight: height,
-            viewportWidth: width,
-            viewportHeight: height
+            viewportWidth: viewportWidth,
+            viewportHeight: viewportHeight
         });
 
         // Create state manager
@@ -83,22 +88,32 @@ export class Editor {
         // Add tool button handlers
         const pointerButton = document.getElementById('pointer-tool');
         const areaButton = document.getElementById('area-tool');
+        const panButton = document.getElementById('pan-tool');
         
-        if (pointerButton) {
+        if (pointerButton && areaButton && panButton) {
             pointerButton.addEventListener('click', () => {
                 this.currentTool = 'pointer';
                 pointerButton.classList.add('active');
-                if (areaButton) areaButton.classList.remove('active');
+                areaButton.classList.remove('active');
+                panButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
-        }
-        
-        if (areaButton) {
+            
             areaButton.addEventListener('click', () => {
                 this.currentTool = 'area';
                 areaButton.classList.add('active');
-                if (pointerButton) pointerButton.classList.remove('active');
+                pointerButton.classList.remove('active');
+                panButton.classList.remove('active');
+                this.renderer.clearHighlights();
+                this.selectedCells = [];
+            });
+
+            panButton.addEventListener('click', () => {
+                this.currentTool = 'pan';
+                panButton.classList.add('active');
+                pointerButton.classList.remove('active');
+                areaButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -106,6 +121,20 @@ export class Editor {
 
         // Add hover handler
         this.display.getDisplay().onCellHover((point: Point | null) => {
+            if (this.isPanning && this.lastPanPoint && point) {
+                const dx = point.x - this.lastPanPoint.x;
+                const dy = point.y - this.lastPanPoint.y;
+                
+                const viewport = this.display.getDisplay().getViewport();
+                this.display.getDisplay().setViewport(
+                    viewport.x - dx,
+                    viewport.y - dy
+                );
+                
+                this.lastPanPoint = point;
+                return;
+            }
+            
             this.renderer.hoverCell(point);
             
             if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
@@ -137,6 +166,17 @@ export class Editor {
         });
 
         this.display.getDisplay().onCellClick((point: Point | null, transition: MouseTransition, event: MouseEvent) => {
+            if (this.currentTool === 'pan') {
+                if (transition === 'down') {
+                    this.isPanning = true;
+                    this.lastPanPoint = point;
+                } else {
+                    this.isPanning = false;
+                    this.lastPanPoint = null;
+                }
+                return;
+            }
+
             if (transition === 'down') {
                 this.isLeftMouseDown = true;
                 if (!event.shiftKey) {
@@ -1032,6 +1072,8 @@ export class Editor {
                 // Store the new world
                 this.world = newWorld;
 
+                const currentViewport = this.display.getDisplay().getViewport();
+                
                 // Recreate display with new world dimensions
                 this.display = new EditorDisplay({
                     elementId: CANVAS_ID,
@@ -1039,8 +1081,8 @@ export class Editor {
                     cellHeight: 20,
                     worldWidth: newWorld.getWorldWidth(),
                     worldHeight: newWorld.getWorldHeight(),
-                    viewportWidth: newWorld.getWorldWidth(),
-                    viewportHeight: newWorld.getWorldHeight()
+                    viewportWidth: currentViewport.width,
+                    viewportHeight: currentViewport.height
                 });
 
                 // Create new renderer with new world and display
@@ -1070,34 +1112,6 @@ export class Editor {
 
         // Update the panel to show just this entity
         this.updateEntityPanel([entity]);
-    }
-
-    public addComponent(entityId: string, componentType: string): void {
-        if (!componentType) return; // Handle empty selection
-
-        const entity = this.world.getEntity(entityId);
-        if (!entity) return;
-
-        try {
-            // Create a new component with default values
-            const component = ComponentRegistry.fromJSON({ type: componentType });
-            entity.setComponent(component);
-            logger.info('Added component:', componentType);
-
-            // Reset the select element
-            const select = document.getElementById('component-type-select') as HTMLSelectElement;
-            if (select) select.value = '';
-
-            // Refresh the panel
-            const selectedCell = this.state.getState().selectedCell;
-            if (selectedCell) {
-                const entities = this.world.getEntitiesAt(selectedCell);
-                this.updateEntityPanel(entities);
-            }
-        } catch (e) {
-            logger.error('Failed to create component:', e);
-            alert(`Failed to create component: ${e}`);
-        }
     }
 }
 
