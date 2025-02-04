@@ -50,6 +50,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 
                 if (turnEntity) {
                     const turnComponent = turnEntity.getComponent('turn') as TurnComponent;
+                    const turnDirection = turnComponent.direction;
                     const facingComponent = entity.getComponent('facing') as FacingComponent;
                     facingComponent.direction = turnComponent.direction;
                     entity.setComponent(facingComponent);

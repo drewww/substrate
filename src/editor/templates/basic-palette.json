@@ -211,7 +211,8 @@
             "foreground": "#FFFFFFFF",
             "background": "#000000FF",
             "zIndex": 100,
-            "alwaysRenderIfExplored": true
+            "alwaysRenderIfExplored": true,
+            "offsetSymbolY": 0.2
           },
           {
             "type":"turn",
@@ -226,11 +227,13 @@
         "components": [
           {
             "type": "symbol",
-            "char": ">",
+            "char": "^",
             "foreground": "#FFFFFFFF",
             "background": "#000000FF",
             "zIndex": 100,
-            "alwaysRenderIfExplored": true
+            "alwaysRenderIfExplored": true,
+            "rotation": 90,
+            "offsetSymbolY": 0.2
           },
           {
             "type":"turn",
@@ -245,11 +248,13 @@
         "components": [
           {
             "type": "symbol",
-            "char": "V",
+            "char": "^",
             "foreground": "#FFFFFFFF",
             "background": "#000000FF",
             "zIndex": 100,
-            "alwaysRenderIfExplored": true
+            "alwaysRenderIfExplored": true,
+            "rotation": 180,
+            "offsetSymbolY": 0.2
           },
           {
             "type":"turn",
@@ -264,11 +269,13 @@
         "components": [
           {
             "type": "symbol",
-            "char": "<",
+            "char": "^",
             "foreground": "#FFFFFFFF",
             "background": "#000000FF",
             "zIndex": 100,
-            "alwaysRenderIfExplored": true
+            "alwaysRenderIfExplored": true,
+            "rotation": 270,
+            "offsetSymbolY": 0.2
           },
           {
             "type":"turn",
