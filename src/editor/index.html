@@ -86,11 +86,15 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.5rem;
+            background: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
         }
 
         .entity-controls {
             display: flex;
-            gap: 0.5rem;
+            gap: 8px;
+            align-items: center;
         }
 
         .component-list {
@@ -141,29 +145,6 @@
             border-color: #666;
         }
 
-        .simple-components {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .simple-component {
-            background: #444;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.9em;
-            color: #ccc;
-        }
-
-        .simple-component .controls {
-            opacity: 0.5;
-        }
-
-        .simple-component:hover .controls {
-            opacity: 1;
-        }
-
         .controls {
             display: flex;
             gap: 2px;
@@ -171,17 +152,18 @@
         }
 
         .icon-button {
-            padding: 2px 4px;
+            padding: 4px 8px;
             background: transparent;
             border: none;
             color: #999;
             cursor: pointer;
             font-size: 1em;
+            border-radius: 4px;
+            transition: background-color 0.2s;
         }
 
         .icon-button:hover {
-            color: #fff;
-            background: #444;
+            background: #555;
         }
 
         .icon-button.disabled {
@@ -304,6 +286,37 @@
             background: #555;
             border: 1px solid #666;
         }
+
+        .add-component-control {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .add-component-control select {
+            padding: 4px 8px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.9em;
+            min-width: 140px;
+        }
+
+        .add-component-control select:hover {
+            border-color: #666;
+        }
+
+        .add-component-control select:focus {
+            outline: none;
+            border-color: #888;
+        }
+
+        .add-component-control option {
+            background: #333;
+            color: #fff;
+            padding: 4px;
+        }
     </style>
 </head>
 
@@ -324,11 +337,8 @@
             </div>
             <canvas id="editor-canvas"></canvas>
             <div class="palette">
-                    <button id="lock-tool" title="Lock/Unlock Palette">🔒</button>
+                <button id="lock-tool" title="Lock/Unlock Palette">🔒</button>
                 <canvas id="palette-canvas"></canvas>
-                <div id="component-palette">
-                    <!-- Component buttons will be added here -->
-                </div>
             </div>
         </div>
         <div class="editor-right" id="entity-panel">

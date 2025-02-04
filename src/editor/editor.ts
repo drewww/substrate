@@ -472,10 +472,23 @@ export class Editor {
         if (entities.length === 1) {
             const entity = entities[0];
             const components = entity.getComponents();
+            
+            // Get all registered component types
+            const registeredComponents = Array.from(ComponentRegistry.getRegisteredComponents().keys());
+            
             let html = `
                 <div class="entity-header">
                     <span>Entity ${entity.getId()}</span>
                     <div class="entity-controls">
+                        <div class="add-component-control">
+                            <select id="component-type-select">
+                                <option value="">Add Component...</option>
+                                ${registeredComponents.map(type => `
+                                    <option value="${type}">${type}</option>
+                                `).join('')}
+                            </select>
+                            <button class="icon-button" title="Add Component" onclick="window.editor.addComponent('${entity.getId()}', document.getElementById('component-type-select').value)">➕</button>
+                        </div>
                         <button class="icon-button" title="Copy Entity" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
                         <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
                     </div>
@@ -1057,6 +1070,34 @@ export class Editor {
 
         // Update the panel to show just this entity
         this.updateEntityPanel([entity]);
+    }
+
+    public addComponent(entityId: string, componentType: string): void {
+        if (!componentType) return; // Handle empty selection
+
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        try {
+            // Create a new component with default values
+            const component = ComponentRegistry.fromJSON({ type: componentType });
+            entity.setComponent(component);
+            logger.info('Added component:', componentType);
+
+            // Reset the select element
+            const select = document.getElementById('component-type-select') as HTMLSelectElement;
+            if (select) select.value = '';
+
+            // Refresh the panel
+            const selectedCell = this.state.getState().selectedCell;
+            if (selectedCell) {
+                const entities = this.world.getEntitiesAt(selectedCell);
+                this.updateEntityPanel(entities);
+            }
+        } catch (e) {
+            logger.error('Failed to create component:', e);
+            alert(`Failed to create component: ${e}`);
+        }
     }
 }
 
