@@ -185,17 +185,18 @@ export class Editor {
 
         // Add hover handler
         this.display.onCellHover((point: Point | null) => {
-            logger.info('Hovering cell:', point);
             if (this.isPanning && this.lastPanPoint && point) {
+                const viewport = this.display.getViewport();
                 const dx = point.x - this.lastPanPoint.x;
                 const dy = point.y - this.lastPanPoint.y;
                 
-                const viewport = this.display.getViewport();
+                // Update viewport position relative to initial pan point
                 this.display.setViewport(
                     viewport.x - dx,
-                    viewport.y - dy);
+                    viewport.y - dy
+                );
                 
-                this.lastPanPoint = point;
+                // Don't update lastPanPoint - keep initial point for reference
                 return;
             }
             
