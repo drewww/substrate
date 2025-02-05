@@ -1,7 +1,7 @@
 import { World } from '../world/world';
 import { Display } from '../display/display';
 import { EditorStateManager } from './editor-state';
-import { Point } from '../types';
+import { Direction, Point } from '../types';
 import { EditorRenderer } from './editor-renderer';
 import { Entity } from '../entity/entity';
 import { logger } from '../util/logger';
@@ -16,6 +16,7 @@ import { JsonWorldGenerator } from '../world/generators/json-world-generator';
 
 import basicPalette from './templates/basic-palette.json';
 import { PaletteData } from './templates/formats';
+import { FacingComponent } from '../entity/components/facing-component.ts';
 
 const CANVAS_ID = 'editor-canvas';
 
@@ -28,7 +29,7 @@ export class Editor {
     private lastDragCell: Point | null = null;
     private isLeftMouseDown: boolean = false;
     private selectedCells: Point[] = [];
-    private currentTool: 'pointer' | 'area' | 'pan' = 'pointer';
+    private currentTool: 'pointer' | 'area' | 'pan' | 'rotate' = 'pointer';
     private areaStartCell: Point | null = null;
     private paletteDisplay!: Display;
     private paletteRenderer!: EditorRenderer;
@@ -78,18 +79,20 @@ export class Editor {
         const pointerButton = document.getElementById('pointer-tool');
         const areaButton = document.getElementById('area-tool');
         const panButton = document.getElementById('pan-tool');
+        const rotateButton = document.getElementById('rotate-tool');
         const fillButton = document.getElementById('fill-tool');
         const exportButton = document.getElementById('export-tool');
         const importButton = document.getElementById('import-tool');
         const lockButton = document.getElementById('lock-tool');
         const reloadButton = document.getElementById('reload-tool');
         
-        if (pointerButton && areaButton && panButton) {
+        if (pointerButton && areaButton && panButton && rotateButton) {
             pointerButton.addEventListener('click', () => {
                 this.currentTool = 'pointer';
                 pointerButton.classList.add('active');
                 areaButton.classList.remove('active');
                 panButton.classList.remove('active');
+                rotateButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -99,6 +102,7 @@ export class Editor {
                 areaButton.classList.add('active');
                 pointerButton.classList.remove('active');
                 panButton.classList.remove('active');
+                rotateButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -108,6 +112,17 @@ export class Editor {
                 panButton.classList.add('active');
                 pointerButton.classList.remove('active');
                 areaButton.classList.remove('active');
+                rotateButton.classList.remove('active');
+                this.renderer.clearHighlights();
+                this.selectedCells = [];
+            });
+
+            rotateButton.addEventListener('click', () => {
+                this.currentTool = 'rotate';
+                rotateButton.classList.add('active');
+                pointerButton.classList.remove('active');
+                areaButton.classList.remove('active');
+                panButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -183,21 +198,28 @@ export class Editor {
             }
         });
 
-        // Add hover handler
-        this.display.onCellHover((point: Point | null) => {
-            if (this.isPanning && this.lastPanPoint && point) {
-                const viewport = this.display.getViewport();
-                const dx = point.x - this.lastPanPoint.x;
-                const dy = point.y - this.lastPanPoint.y;
-                
-                // Update viewport position relative to initial pan point
-                this.display.setViewport(
-                    viewport.x - dx,
-                    viewport.y - dy
-                );
-                
-                // Don't update lastPanPoint - keep initial point for reference
+        // Hover handler
+        let lastClientX: number | null = null;
+        let lastClientY: number | null = null;
+
+        this.display.onCellHover((point: Point | null, event: MouseEvent) => {  // Add event parameter
+            if (this.isPanning) {
+                if (lastClientX !== null && lastClientY !== null) {
+                    const dx = (event.clientX - lastClientX) / this.display.getCellWidth();
+                    const dy = (event.clientY - lastClientY) / this.display.getCellHeight();
+                    
+                    const viewport = this.display.getViewport();
+                    this.display.setViewport(
+                        viewport.x - Math.round(dx),
+                        viewport.y - Math.round(dy)
+                    );
+                }
+                lastClientX = event.clientX;
+                lastClientY = event.clientY;
                 return;
+            } else {
+                lastClientX = null;
+                lastClientY = null;
             }
             
             this.renderer.hoverCell(point);
@@ -232,6 +254,13 @@ export class Editor {
 
         // Add right-click handler
         this.display.onCellRightClick((point: Point | null) => {
+            if (!point) return;
+
+            if (this.currentTool === 'rotate') {
+                this.handleRotation(point);
+                return;
+            }
+
             this.isRightMouseDown = true;
             this.lastDragCell = point;
             this.handleRightClick(point);
@@ -1108,6 +1137,40 @@ export class Editor {
 
         // Update the panel to show just this entity
         this.updateEntityPanel([entity]);
+    }
+
+    private handleRotation(point: Point): void {
+        const entities = this.world.getEntitiesAt(point);
+        const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+        
+        for (const entity of sortedEntities) {
+            const facingComponent = entity.getComponent('facing') as FacingComponent;
+            if (facingComponent) {
+                // Get current facing direction
+                const currentFacing = facingComponent.direction;
+                
+                // Calculate new facing direction (90 degrees clockwise)
+                const directions: Direction[] = [
+                    Direction.North,
+                    Direction.East,
+                    Direction.South,
+                    Direction.West
+                ];
+                const currentIndex = directions.indexOf(currentFacing);
+                const newIndex = (currentIndex + 1) % 4;
+                const newFacing = directions[newIndex];
+                
+                // Update facing direction
+                facingComponent.direction = newFacing;
+                logger.info(`Rotated entity ${entity.getId()} from ${currentFacing} to ${newFacing}`);
+                
+                // Update the entity panel to show the new rotation
+                this.updateEntityPanel([entity]);
+                
+                // Only rotate the first entity with a facing component
+                break;
+            }
+        }
     }
 }
 

@@ -78,7 +78,7 @@ export class Display {
 
     // Update callback type to include transition
     private cellClickCallbacks: ((worldPos: Point | null, transition: MouseTransition, event: MouseEvent) => void)[] = [];
-    private cellHoverCallbacks: ((worldPos: Point | null) => void)[] = [];
+    private cellHoverCallbacks: ((worldPos: Point | null, event: MouseEvent) => void)[] = [];
     private cellRightClickCallbacks: ((worldPos: Point | null) => void)[] = [];
     private eventListenersInitialized = false;
 
@@ -1036,14 +1036,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.addTrackedEventListener('mousemove', ((event: MouseEvent) => {
             const worldPos = this.viewportToWorld(event.clientX, event.clientY);
             this.cellHoverCallbacks.forEach(callback => {
-                callback(worldPos);
+                callback(worldPos, event);
             });
         }) as EventListener);
 
         // Single mouseleave listener
-        this.addTrackedEventListener('mouseleave', (() => {
+        this.addTrackedEventListener('mouseleave', ((event: MouseEvent) => {
             this.cellHoverCallbacks.forEach(callback => {
-                callback(null);
+                callback(null, event);
             });
         }) as EventListener);
 
@@ -1437,7 +1437,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         this.cellClickCallbacks.push(callback);
     }
 
-    public onCellHover(callback: (worldPos: Point | null) => void): void {
+    public onCellHover(callback: (worldPos: Point | null, event: MouseEvent) => void): void {
         this.initializeEventListeners();
         this.cellHoverCallbacks.push(callback);
     }
@@ -1445,5 +1445,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     public onCellRightClick(callback: (worldPos: Point | null) => void): void {
         this.initializeEventListeners();
         this.cellRightClickCallbacks.push(callback);
+    }
+
+    // Add these methods to the Display class
+    public getCellWidth(): number {
+        return this.cellWidthCSS;
+    }
+
+    public getCellHeight(): number {
+        return this.cellHeightCSS;
     }
 } 
