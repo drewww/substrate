@@ -1,5 +1,5 @@
 import { World } from '../world/world';
-import { EditorDisplay } from './editor-display';
+import { Display } from '../display/display';
 import { EditorStateManager } from './editor-state';
 import { Point } from '../types';
 import { EditorRenderer } from './editor-renderer';
@@ -22,7 +22,7 @@ const CANVAS_ID = 'editor-canvas';
 export class Editor {
     private world: World;
     private renderer: EditorRenderer;
-    private display: EditorDisplay;
+    private display: Display;
     private state: EditorStateManager;
     private isRightMouseDown: boolean = false;
     private lastDragCell: Point | null = null;
@@ -30,7 +30,7 @@ export class Editor {
     private selectedCells: Point[] = [];
     private currentTool: 'pointer' | 'area' | 'pan' = 'pointer';
     private areaStartCell: Point | null = null;
-    private paletteDisplay!: EditorDisplay;
+    private paletteDisplay!: Display;
     private paletteRenderer!: EditorRenderer;
     private isPaletteLocked: boolean = true;
     private isPanning: boolean = false;
@@ -44,7 +44,7 @@ export class Editor {
         const viewportWidth = Math.floor(width * 0.75);  // 25% smaller
         const viewportHeight = Math.floor(height * 0.75);
         
-        this.display = new EditorDisplay({
+        this.display = new Display({
             elementId: CANVAS_ID,
             cellWidth: 20,
             cellHeight: 20,
@@ -58,7 +58,7 @@ export class Editor {
         this.state = new EditorStateManager();
 
         // Setup renderer
-        this.renderer = new EditorRenderer(this.world, this.display.getDisplay());
+        this.renderer = new EditorRenderer(this.world, this.display);
 
         // Setup event handlers
         this.setupEventHandlers();
@@ -120,16 +120,16 @@ export class Editor {
         }
 
         // Add hover handler
-        this.display.getDisplay().onCellHover((point: Point | null) => {
+        this.display.onCellHover((point: Point | null) => {
+            logger.info('Hovering cell:', point);
             if (this.isPanning && this.lastPanPoint && point) {
                 const dx = point.x - this.lastPanPoint.x;
                 const dy = point.y - this.lastPanPoint.y;
                 
-                const viewport = this.display.getDisplay().getViewport();
-                this.display.getDisplay().setViewport(
+                const viewport = this.display.getViewport();
+                this.display.setViewport(
                     viewport.x - dx,
-                    viewport.y - dy
-                );
+                    viewport.y - dy);
                 
                 this.lastPanPoint = point;
                 return;
@@ -165,7 +165,7 @@ export class Editor {
             }
         });
 
-        this.display.getDisplay().onCellClick((point: Point | null, transition: MouseTransition, event: MouseEvent) => {
+        this.display.onCellClick((point: Point | null, transition: MouseTransition, event: MouseEvent) => {
             if (this.currentTool === 'pan') {
                 if (transition === 'down') {
                     this.isPanning = true;
@@ -201,7 +201,7 @@ export class Editor {
             }
         });
 
-        this.display.getDisplay().onCellRightClick((point: Point | null) => {
+        this.display.onCellRightClick((point: Point | null) => {
             this.isRightMouseDown = true;
             this.lastDragCell = point;
             this.handleRightClick(point);
@@ -276,7 +276,7 @@ export class Editor {
         const PALETTE_HEIGHT = 3;
 
         // Create palette display with explicit dimensions
-        this.paletteDisplay = new EditorDisplay({
+        this.paletteDisplay = new Display({
             elementId: 'palette-canvas',
             cellWidth: PALETTE_CELL_SIZE,
             cellHeight: PALETTE_CELL_SIZE,
@@ -297,7 +297,7 @@ export class Editor {
         const paletteWorld = new World(PALETTE_WIDTH, PALETTE_HEIGHT);
         
         // Setup palette renderer
-        this.paletteRenderer = new EditorRenderer(paletteWorld, this.paletteDisplay.getDisplay());
+        this.paletteRenderer = new EditorRenderer(paletteWorld, this.paletteDisplay);
 
         try {
             // Use the imported JSON directly
@@ -322,7 +322,7 @@ export class Editor {
             });
 
             // Handle clicks on palette
-            this.paletteDisplay.getDisplay().onCellClick((point: Point | null, transition: MouseTransition) => {
+            this.paletteDisplay.onCellClick((point: Point | null, transition: MouseTransition) => {
                 if (!point || transition !== 'down') return;
     
                 const index = point.y * PALETTE_WIDTH + point.x;
@@ -337,7 +337,7 @@ export class Editor {
             });
     
             // Add hover effect
-            this.paletteDisplay.getDisplay().onCellHover((point: Point | null) => {
+            this.paletteDisplay.onCellHover((point: Point | null) => {
                 if (!point && this.paletteRenderer) {
                     this.paletteRenderer.hoverCell(null);
                     return;
@@ -352,7 +352,7 @@ export class Editor {
             });
     
             // Add right-click handler for the palette
-            this.paletteDisplay.getDisplay().onCellRightClick((point: Point | null) => {
+            this.paletteDisplay.onCellRightClick((point: Point | null) => {
                 if (!point) return;
                 
                 // If palette is locked, ignore right clicks
@@ -673,7 +673,7 @@ export class Editor {
         return this.world;
     }
 
-    public getDisplay(): EditorDisplay {
+    public getDisplay(): Display {
         return this.display;
     }
 
@@ -957,7 +957,7 @@ export class Editor {
             this.world = newWorld;
 
             // Recreate display with new world dimensions
-            this.display = new EditorDisplay({
+            this.display = new Display({
                 elementId: CANVAS_ID,
                 cellWidth: 20,
                 cellHeight: 20,
@@ -968,7 +968,7 @@ export class Editor {
             });
 
             // Create new renderer with new world and display
-            this.renderer = new EditorRenderer(this.world, this.display.getDisplay());
+            this.renderer = new EditorRenderer(this.world, this.display);
 
             // Clear any existing selections
             this.selectedCells = [];
@@ -1072,10 +1072,10 @@ export class Editor {
                 // Store the new world
                 this.world = newWorld;
 
-                const currentViewport = this.display.getDisplay().getViewport();
+                const currentViewport = this.display.getViewport();
                 
                 // Recreate display with new world dimensions
-                this.display = new EditorDisplay({
+                this.display = new Display({
                     elementId: CANVAS_ID,
                     cellWidth: 20,
                     cellHeight: 20,
@@ -1086,7 +1086,7 @@ export class Editor {
                 });
 
                 // Create new renderer with new world and display
-                this.renderer = new EditorRenderer(this.world, this.display.getDisplay());
+                this.renderer = new EditorRenderer(this.world, this.display);
 
                 // Clear any existing selections
                 this.selectedCells = [];

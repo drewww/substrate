@@ -882,7 +882,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         } else {
             // Immediate update with clamped values
             if (this.viewport.x !== targetX || this.viewport.y !== targetY) {
-                logger.debug(`Setting viewport to (${targetX},${targetY})`);
+                logger.info(`Setting viewport to (${targetX},${targetY})`);
                 this.viewport.x = targetX;
                 this.viewport.y = targetY;
                 this.hasChanges = true;
@@ -987,6 +987,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         // Check if the position is within world bounds
         if (cellX >= 0 && cellX < this.worldWidth && 
             cellY >= 0 && cellY < this.worldHeight) {
+
+            logger.info(`Viewport to world: ${clientX},${clientY} -> ${cellX},${cellY} with viewport ${this.viewport.x},${this.viewport.y}`);
+
             return { x: cellX, y: cellY };
         }
 
