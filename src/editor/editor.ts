@@ -576,31 +576,7 @@ export class Editor {
                 const serialized = comp.serialize();
                 const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
                 if (!isSimple) {
-                    // Format the JSON string properly with indentation
-                    const serializedString = JSON.stringify(serialized, null, 2);
-                    html += `
-                        <div class="component-item">
-                            <div class="component-header">
-                                <span>${comp.type}</span>
-                                <div class="component-controls" style="display: none;">
-                                    <button class="icon-button" title="Save Changes" onclick="window.editor.saveComponent('${entity.getId()}', '${comp.type}', this)">💾</button>
-                                    <button class="icon-button" title="Reset Changes" onclick="window.editor.resetComponent(this)">↩️</button>
-                                </div>
-                                <div class="component-actions">
-                                    <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${comp.type}')">📋</button>
-                                    <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${comp.type}')">🗑️</button>
-                                </div>
-                            </div>
-                            <textarea
-                                class="component-editor"
-                                spellcheck="false"
-                                data-edited="false"
-                                oninput="this.dataset.edited='true';this.closest('.component-item').querySelector('.component-controls').style.display='flex'"
-                                onblur="if(this.dataset.edited==='true') window.editor.saveComponent('${entity.getId()}', '${comp.type}', this.closest('.component-item').querySelector('.component-controls button'))"
-                                rows="8"
-                            >${serializedString}</textarea>
-                        </div>
-                    `;
+                    html += this.createComponentEditor(entity, comp);
                 }
             });
 
@@ -641,6 +617,55 @@ export class Editor {
             html += '</div>';
             panel.innerHTML = html;
         }
+    }
+
+    private createComponentEditor(entity: Entity, component: Component): string {
+        const componentData = JSON.stringify(component.serialize(), null, 2);
+        const data = JSON.parse(componentData);
+        
+        // Helper to detect if a value looks like a hex color
+        const isHexColor = (value: string) => /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(value);
+        
+        // Find all color fields in the component data
+        const colorFields = Object.entries(data)
+            .filter(([key, value]) => typeof value === 'string' && isHexColor(value))
+            .map(([key, value]) => ({ key, value }));
+
+        // Debug log to verify color fields are being detected
+        logger.info('Color fields found:', colorFields);
+
+        return `
+            <div class="component-item">
+                <div class="component-header">
+                    <span>${component.type}</span>
+                    <div class="component-controls">
+                        <button onclick="editor.resetComponent(this)">Reset</button>
+                        <button onclick="editor.saveComponent('${entity.getId()}', '${component.type}', this)">Save</button>
+                    </div>
+                </div>
+                <div class="component-editor-container">
+                    <div class="color-pickers">
+                        ${colorFields.map((field, index) => `
+                            <div class="color-field">
+                                <span class="color-label">${field.key}:</span>
+                                <div class="color-preview" style="background-color: ${field.value}" data-field="${field.key}"></div>
+                                <input type="color" 
+                                    class="color-picker" 
+                                    value="${field.value}"
+                                    data-field="${field.key}"
+                                    onchange="editor.updateColorPreview(this)"
+                                />
+                            </div>
+                        `).join('')}
+                    </div>
+                    <textarea
+                        class="component-data"
+                        data-edited="false"
+                        oninput="editor.handleComponentEdit(this)"
+                    >${componentData}</textarea>
+                </div>
+            </div>
+        `;
     }
 
     public copyEntity(entityId: string): void {
@@ -1170,6 +1195,52 @@ export class Editor {
                 // Only rotate the first entity with a facing component
                 break;
             }
+        }
+    }
+
+    // Update the color preview handler to handle multiple color fields
+    public updateColorPreview(input: HTMLInputElement): void {
+        const textarea = input.closest('.component-editor-container')?.querySelector('textarea');
+        if (!textarea) return;
+
+        try {
+            const data = JSON.parse(textarea.value);
+            const field = input.dataset.field;
+            if (field) {
+                data[field] = input.value;
+                textarea.value = JSON.stringify(data, null, 2);
+                textarea.dataset.edited = 'true';
+                
+                // Update the preview div
+                const preview = input.closest('.component-editor-container')
+                    ?.querySelector(`.color-preview[data-field="${field}"]`) as HTMLElement;
+                if (preview) {
+                    preview.style.backgroundColor = input.value;
+                }
+                
+                // Show the save/reset controls
+                const controls = input.closest('.component-item')?.querySelector('.component-controls');
+                if (controls && controls instanceof HTMLElement) {
+                    controls.style.display = 'flex';
+                }
+
+                // Auto-save the component
+                const componentItem = input.closest('.component-item');
+                if (componentItem) {
+                    const saveButton = componentItem.querySelector('.component-controls button:last-child') as HTMLButtonElement;
+                    if (saveButton) {
+                        // Extract entity ID and component type from the save button's onclick handler
+                        const onclickAttr = saveButton.getAttribute('onclick') || '';
+                        const match = onclickAttr.match(/editor\.saveComponent\('([^']+)',\s*'([^']+)'/);
+                        if (match) {
+                            const [_, entityId, componentType] = match;
+                            this.saveComponent(entityId, componentType, saveButton);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            logger.error('Failed to update color preview:', e);
         }
     }
 }

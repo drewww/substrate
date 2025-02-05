@@ -996,7 +996,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         if (cellX >= 0 && cellX < this.worldWidth && 
             cellY >= 0 && cellY < this.worldHeight) {
 
-            logger.info(`Viewport to world: ${clientX},${clientY} -> ${cellX},${cellY} with viewport ${this.viewport.x},${this.viewport.y}`);
+            // logger.info(`Viewport to world: ${clientX},${clientY} -> ${cellX},${cellY} with viewport ${this.viewport.x},${this.viewport.y}`);
 
             return { x: cellX, y: cellY };
         }
