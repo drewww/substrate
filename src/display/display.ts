@@ -78,6 +78,14 @@ export class Display {
 
     // Update callback type to include transition
     private cellClickCallbacks: ((worldPos: Point | null, transition: MouseTransition, event: MouseEvent) => void)[] = [];
+    private cellHoverCallbacks: ((worldPos: Point | null) => void)[] = [];
+    private cellRightClickCallbacks: ((worldPos: Point | null) => void)[] = [];
+    private eventListenersInitialized = false;
+
+    private eventListeners: Array<{
+        type: string;
+        listener: EventListener;
+    }> = [];
 
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
@@ -996,45 +1004,79 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         return null;
     }
 
-    // Update callback type to include transition
-    public onCellClick(callback: (worldPos: Point | null, transition: MouseTransition, event: MouseEvent) => void): void {
-        this.cellClickCallbacks.push(callback);
-        
-        // Handle mousedown
-        this.displayCanvas.addEventListener('mousedown', (event) => {
-            if (event.button === 0) { // Left click only
-                const worldPos = this.viewportToWorld(event.clientX, event.clientY);
-                callback(worldPos, 'down', event);
-            }
-        });
-
-        // Handle mouseup
-        this.displayCanvas.addEventListener('mouseup', (event) => {
-            if (event.button === 0) { // Left click only
-                const worldPos = this.viewportToWorld(event.clientX, event.clientY);
-                callback(worldPos, 'up', event);
-            }
-        });
+    private addTrackedEventListener(type: string, listener: EventListener): void {
+        this.eventListeners.push({ type, listener });
+        this.displayCanvas.addEventListener(type, listener);
     }
 
-    public onCellHover(callback: (worldPos: Point | null) => void): void {
-        this.displayCanvas.addEventListener('mousemove', (event) => {
+    private initializeEventListeners(): void {
+        if (this.eventListenersInitialized) return;
+
+        // Single mousedown listener
+        this.addTrackedEventListener('mousedown', ((event: MouseEvent) => {
+            if (event.button === 0) { // Left click only
+                const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+                this.cellClickCallbacks.forEach(callback => {
+                    callback(worldPos, 'down', event);
+                });
+            }
+        }) as EventListener);
+
+        // Single mouseup listener
+        this.addTrackedEventListener('mouseup', ((event: MouseEvent) => {
+            if (event.button === 0) { // Left click only
+                const worldPos = this.viewportToWorld(event.clientX, event.clientY);
+                this.cellClickCallbacks.forEach(callback => {
+                    callback(worldPos, 'up', event);
+                });
+            }
+        }) as EventListener);
+
+        // Single mousemove listener
+        this.addTrackedEventListener('mousemove', ((event: MouseEvent) => {
             const worldPos = this.viewportToWorld(event.clientX, event.clientY);
-            callback(worldPos);
-        });
-        this.displayCanvas.addEventListener('mouseleave', () => {
-            callback(null);
-        });
-    }
+            this.cellHoverCallbacks.forEach(callback => {
+                callback(worldPos);
+            });
+        }) as EventListener);
 
-    public onCellRightClick(callback: (worldPos: Point | null) => void): void {
-        this.displayCanvas.addEventListener('contextmenu', (event) => {
+        // Single mouseleave listener
+        this.addTrackedEventListener('mouseleave', (() => {
+            this.cellHoverCallbacks.forEach(callback => {
+                callback(null);
+            });
+        }) as EventListener);
+
+        // Single contextmenu listener
+        this.addTrackedEventListener('contextmenu', ((event: MouseEvent) => {
             event.preventDefault();
             const worldPos = this.viewportToWorld(event.clientX, event.clientY);
             if (worldPos) {
-                callback(worldPos);
+                this.cellRightClickCallbacks.forEach(callback => {
+                    callback(worldPos);
+                });
             }
+        }) as EventListener);
+
+        this.eventListenersInitialized = true;
+    }
+
+    public removeAllEventListeners(): void {
+        // Remove all event listeners from canvas
+        this.eventListeners.forEach(({ type, listener }) => {
+            this.displayCanvas.removeEventListener(type, listener);
         });
+        
+        // Clear event listener tracking array
+        this.eventListeners = [];
+        
+        // Clear callback arrays
+        this.cellClickCallbacks = [];
+        this.cellHoverCallbacks = [];
+        this.cellRightClickCallbacks = [];
+        
+        // Reset initialization flag
+        this.eventListenersInitialized = false;
     }
 
     public updateTile(tileId: TileId, config: TileUpdateConfig): void {
@@ -1387,5 +1429,21 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public removeTileMoveCallback(tileId: string): void {
         this.tileMoveCallbacks.delete(tileId);
+    }
+
+    // Add these public methods to the Display class
+    public onCellClick(callback: (worldPos: Point | null, transition: MouseTransition, event: MouseEvent) => void): void {
+        this.initializeEventListeners();
+        this.cellClickCallbacks.push(callback);
+    }
+
+    public onCellHover(callback: (worldPos: Point | null) => void): void {
+        this.initializeEventListeners();
+        this.cellHoverCallbacks.push(callback);
+    }
+
+    public onCellRightClick(callback: (worldPos: Point | null) => void): void {
+        this.initializeEventListeners();
+        this.cellRightClickCallbacks.push(callback);
     }
 } 

@@ -61,7 +61,7 @@ export class Editor {
         this.renderer = new EditorRenderer(this.world, this.display);
 
         // Setup event handlers
-        this.setupEventHandlers();
+        this.setupDisplayCallbacks();
 
         // Setup palette
         this.setupPalette();
@@ -73,22 +73,16 @@ export class Editor {
         this.setupKeyboardHandlers();
     }
 
-    private setupEventHandlers(): void {
-        // const displayElement = this.display.getDisplay().getRenderCanvas();
-        // const displayElement = document.getElementById(CANVAS_ID);
-
-        // if(displayElement) {
-        //     displayElement.addEventListener('click', (e: MouseEvent) => this.handleClick(e));
-        //     displayElement.addEventListener('contextmenu', (e: MouseEvent) => {
-        //         e.preventDefault(); // Prevent context menu immediately
-        //         this.handleRightClick(e);
-        //     });
-        // }
-
-        // Add tool button handlers
+    private setupDisplayCallbacks(): void {
+        // Add tool button handlers first
         const pointerButton = document.getElementById('pointer-tool');
         const areaButton = document.getElementById('area-tool');
         const panButton = document.getElementById('pan-tool');
+        const fillButton = document.getElementById('fill-tool');
+        const exportButton = document.getElementById('export-tool');
+        const importButton = document.getElementById('import-tool');
+        const lockButton = document.getElementById('lock-tool');
+        const reloadButton = document.getElementById('reload-tool');
         
         if (pointerButton && areaButton && panButton) {
             pointerButton.addEventListener('click', () => {
@@ -119,52 +113,40 @@ export class Editor {
             });
         }
 
-        // Add hover handler
-        this.display.onCellHover((point: Point | null) => {
-            logger.info('Hovering cell:', point);
-            if (this.isPanning && this.lastPanPoint && point) {
-                const dx = point.x - this.lastPanPoint.x;
-                const dy = point.y - this.lastPanPoint.y;
-                
-                const viewport = this.display.getViewport();
-                this.display.setViewport(
-                    viewport.x - dx,
-                    viewport.y - dy);
-                
-                this.lastPanPoint = point;
-                return;
-            }
-            
-            this.renderer.hoverCell(point);
-            
-            if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
-                // Calculate area selection
-                const newSelection = this.getCellsInArea(this.areaStartCell, point);
-                if (JSON.stringify(newSelection) !== JSON.stringify(this.selectedCells)) {
-                    this.selectedCells = newSelection;
-                    this.renderer.highlightCells(this.selectedCells);
-                    this.updateEntityPanel(this.getEntitiesInSelectedCells());
-                }
-            } else if (this.isLeftMouseDown && point && this.currentTool === 'pointer') {
-                // Drag-select behavior
-                if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
-                    this.selectedCells.push(point);
-                    this.renderer.highlightCells(this.selectedCells);
-                    this.updateEntityPanel(this.getEntitiesInSelectedCells());
-                }
-            }
-            
-            // Existing right-click drag behavior
-            if (this.isRightMouseDown && point) {
-                if (!this.lastDragCell || 
-                    this.lastDragCell.x !== point.x || 
-                    this.lastDragCell.y !== point.y) {
-                    this.handleRightClick(point);
-                    this.lastDragCell = point;
-                }
-            }
-        });
+        // Add other tool button handlers
+        if (fillButton) {
+            fillButton.addEventListener('click', () => this.handleFill());
+        }
 
+        if (exportButton) {
+            exportButton.addEventListener('click', () => this.handleExport());
+        }
+
+        if (importButton) {
+            importButton.addEventListener('click', () => this.handleImport());
+        }
+
+        if (lockButton) {
+            // Set initial state
+            lockButton.classList.add('active');
+            
+            lockButton.addEventListener('click', () => {
+                this.isPaletteLocked = !this.isPaletteLocked;
+                if (this.isPaletteLocked) {
+                    lockButton.classList.add('active');
+                    logger.info('Palette locked');
+                } else {
+                    lockButton.classList.remove('active');
+                    logger.info('Palette unlocked');
+                }
+            });
+        }
+
+        if (reloadButton) {
+            reloadButton.addEventListener('click', () => this.handleReload());
+        }
+
+        // Add cell click handler
         this.display.onCellClick((point: Point | null, transition: MouseTransition, event: MouseEvent) => {
             if (this.currentTool === 'pan') {
                 if (transition === 'down') {
@@ -201,6 +183,53 @@ export class Editor {
             }
         });
 
+        // Add hover handler
+        this.display.onCellHover((point: Point | null) => {
+            logger.info('Hovering cell:', point);
+            if (this.isPanning && this.lastPanPoint && point) {
+                const dx = point.x - this.lastPanPoint.x;
+                const dy = point.y - this.lastPanPoint.y;
+                
+                const viewport = this.display.getViewport();
+                this.display.setViewport(
+                    viewport.x - dx,
+                    viewport.y - dy);
+                
+                this.lastPanPoint = point;
+                return;
+            }
+            
+            this.renderer.hoverCell(point);
+            
+            if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
+                // Calculate area selection
+                const newSelection = this.getCellsInArea(this.areaStartCell, point);
+                if (JSON.stringify(newSelection) !== JSON.stringify(this.selectedCells)) {
+                    this.selectedCells = newSelection;
+                    this.renderer.highlightCells(this.selectedCells);
+                    this.updateEntityPanel(this.getEntitiesInSelectedCells());
+                }
+            } else if (this.isLeftMouseDown && point && this.currentTool === 'pointer') {
+                // Drag-select behavior
+                if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
+                    this.selectedCells.push(point);
+                    this.renderer.highlightCells(this.selectedCells);
+                    this.updateEntityPanel(this.getEntitiesInSelectedCells());
+                }
+            }
+            
+            // Right-click drag behavior
+            if (this.isRightMouseDown && point) {
+                if (!this.lastDragCell || 
+                    this.lastDragCell.x !== point.x || 
+                    this.lastDragCell.y !== point.y) {
+                    this.handleRightClick(point);
+                    this.lastDragCell = point;
+                }
+            }
+        });
+
+        // Add right-click handler
         this.display.onCellRightClick((point: Point | null) => {
             this.isRightMouseDown = true;
             this.lastDragCell = point;
@@ -222,52 +251,6 @@ export class Editor {
         document.addEventListener('contextmenu', (e: Event) => {
             e.preventDefault();
         });
-
-        // Add fill button handler
-        const fillButton = document.getElementById('fill-tool');
-        if (fillButton) {
-            fillButton.addEventListener('click', () => this.handleFill());
-        }
-
-        const exportButton = document.getElementById('export-tool');
-        if (exportButton) {
-            exportButton.addEventListener('click', () => {
-                this.handleExport();
-            });
-        }
-
-        // Add import button handler
-        const importButton = document.getElementById('import-tool');
-        if (importButton) {
-            importButton.addEventListener('click', () => {
-                this.handleImport();
-            });
-        }
-
-        // Add lock button handler
-        const lockButton = document.getElementById('lock-tool');
-        if (lockButton) {
-            // Set initial state
-            lockButton.classList.add('active');
-            
-            lockButton.addEventListener('click', () => {
-                this.isPaletteLocked = !this.isPaletteLocked;
-                if (this.isPaletteLocked) {
-                    lockButton.classList.add('active');
-                    logger.info('Palette locked');
-                } else {
-                    lockButton.classList.remove('active');
-                    logger.info('Palette unlocked');
-                }
-            });
-        }
-
-        const reloadButton = document.getElementById('reload-tool');
-        if (reloadButton) {
-            reloadButton.addEventListener('click', () => {
-                this.handleReload();
-            });
-        }
     }
 
     private async setupPalette(): Promise<void> {
