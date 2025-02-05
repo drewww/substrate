@@ -1031,6 +1031,12 @@ export class Editor {
         }
     }
 
+    private cleanupDisplay(): void {
+        if (this.display) {
+            this.display.removeAllEventListeners();
+        }
+    }
+
     private handleImport(): void {
         // Create a hidden file input
         const fileInput = document.createElement('input');
@@ -1057,6 +1063,9 @@ export class Editor {
 
                 const currentViewport = this.display.getViewport();
                 
+                // Clean up old display
+                this.cleanupDisplay();
+                
                 // Recreate display with new world dimensions
                 this.display = new Display({
                     elementId: CANVAS_ID,
@@ -1073,6 +1082,9 @@ export class Editor {
 
                 // Clear any existing selections
                 this.selectedCells = [];
+
+                // Re-setup display callbacks
+                this.setupDisplayCallbacks();
                 
                 logger.info('Successfully imported world:', {
                     width: newWorld.getWorldWidth(),
