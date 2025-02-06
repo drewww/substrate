@@ -626,13 +626,20 @@ export class Editor {
         // Helper to detect if a value looks like a hex color
         const isHexColor = (value: string) => /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(value);
         
+        // Convert 8-digit hex to 6-digit hex for the color input
+        const convertToHex6 = (hex8: string) => hex8.length === 9 ? hex8.substring(0, 7) : hex8;
+        
         // Find all color fields in the component data
         const colorFields = Object.entries(data)
-            .filter(([key, value]) => typeof value === 'string' && isHexColor(value))
-            .map(([key, value]) => ({ key, value }));
-
-        // Debug log to verify color fields are being detected
-        logger.info('Color fields found:', colorFields);
+            .filter((entry): entry is [string, string] => {
+                const [_, value] = entry;
+                return typeof value === 'string' && isHexColor(value);
+            })
+            .map(([key, value]) => ({ 
+                key, 
+                value,
+                hex6: convertToHex6(value)
+            }));
 
         return `
             <div class="component-item">
@@ -651,8 +658,9 @@ export class Editor {
                                 <div class="color-preview" style="background-color: ${field.value}" data-field="${field.key}"></div>
                                 <input type="color" 
                                     class="color-picker" 
-                                    value="${field.value}"
+                                    value="${field.hex6}"
                                     data-field="${field.key}"
+                                    data-original="${field.value}"
                                     onchange="editor.updateColorPreview(this)"
                                 />
                             </div>
@@ -1207,7 +1215,11 @@ export class Editor {
             const data = JSON.parse(textarea.value);
             const field = input.dataset.field;
             if (field) {
-                data[field] = input.value;
+                // Preserve alpha channel if it existed in original color
+                const originalColor = input.dataset.original || '';
+                const newColor = input.value + (originalColor.length === 9 ? originalColor.slice(-2) : '');
+                
+                data[field] = newColor;
                 textarea.value = JSON.stringify(data, null, 2);
                 textarea.dataset.edited = 'true';
                 
@@ -1215,7 +1227,7 @@ export class Editor {
                 const preview = input.closest('.component-editor-container')
                     ?.querySelector(`.color-preview[data-field="${field}"]`) as HTMLElement;
                 if (preview) {
-                    preview.style.backgroundColor = input.value;
+                    preview.style.backgroundColor = newColor;
                 }
                 
                 // Show the save/reset controls
@@ -1229,7 +1241,6 @@ export class Editor {
                 if (componentItem) {
                     const saveButton = componentItem.querySelector('.component-controls button:last-child') as HTMLButtonElement;
                     if (saveButton) {
-                        // Extract entity ID and component type from the save button's onclick handler
                         const onclickAttr = saveButton.getAttribute('onclick') || '';
                         const match = onclickAttr.match(/editor\.saveComponent\('([^']+)',\s*'([^']+)'/);
                         if (match) {
