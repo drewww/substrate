@@ -198,30 +198,23 @@ export class Editor {
             }
         });
 
-        // Hover handler
-        let lastClientX: number | null = null;
-        let lastClientY: number | null = null;
-
-        this.display.onCellHover((point: Point | null, event: MouseEvent) => {  // Add event parameter
-            if (this.isPanning) {
-                if (lastClientX !== null && lastClientY !== null) {
-                    const dx = (event.clientX - lastClientX) / this.display.getCellWidth();
-                    const dy = (event.clientY - lastClientY) / this.display.getCellHeight();
-                    
-                    const viewport = this.display.getViewport();
-                    this.display.setViewport(
-                        viewport.x - Math.round(dx),
-                        viewport.y - Math.round(dy)
-                    );
-                }
-                lastClientX = event.clientX;
-                lastClientY = event.clientY;
+        // Add hover handler
+        this.display.onCellHover((point: Point | null, event: MouseEvent) => {
+            if (this.isPanning && this.lastPanPoint && point) {
+                const viewport = this.display.getViewport();
+                const dx = point.x - this.lastPanPoint.x;
+                const dy = point.y - this.lastPanPoint.y;
+                
+                // Update viewport position relative to initial pan point
+                this.display.setViewport(
+                    viewport.x - dx,
+                    viewport.y - dy
+                );
+                
+                // Don't update lastPanPoint - keep initial point for reference
                 return;
-            } else {
-                lastClientX = null;
-                lastClientY = null;
             }
-            
+
             this.renderer.hoverCell(point);
             
             if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
