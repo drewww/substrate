@@ -370,6 +370,42 @@
             border: none;
             border-radius: 4px;
         }
+
+        #wall-color {
+            border: 1px solid #444;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #2d2d2d;
+        }
+
+        #wall-color::-webkit-color-swatch-wrapper {
+            padding: 2px;
+        }
+
+        #wall-color::-webkit-color-swatch {
+            border-radius: 2px;
+            border: none;
+        }
+
+        #wall-params {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #wall-params label {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            color: #ccc;
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        #wall-params input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -383,6 +419,12 @@
                     <button id="pan-tool">Pan</button>
                     <button id="rotate-tool">Rotate</button>
                     <button id="wall-tool">Wall</button>
+                    <input type="color" id="wall-color" value="#888888" style="display: none; width: 32px; height: 32px; padding: 0; margin-left: 4px; vertical-align: middle;" title="Wall Color">
+                    <div id="wall-params" style="display: none; margin-left: 8px;">
+                        <label title="Render wall"><input type="checkbox" id="wall-render" checked> R</label>
+                        <label title="Impassable"><input type="checkbox" id="wall-impassable" checked> I</label>
+                        <label title="Opaque"><input type="checkbox" id="wall-opaque"> O</label>
+                    </div>
                 </div>
                 <div class="tools-right">
                     <button id="fill-tool" title="Fill selected area with clipboard contents">Fill</button>

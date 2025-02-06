@@ -38,6 +38,12 @@ export class Editor {
     private isPanning: boolean = false;
     private lastPanPoint: Point | null = null;
     private keyStates: Set<string> = new Set();
+    private wallColor: string = '#888888';  // Default wall color
+    private wallParams = {
+        render: true,
+        impassable: true,
+        opaque: false
+    };
 
     constructor(width: number, height: number) {
         // Create world
@@ -103,6 +109,11 @@ export class Editor {
         const lockButton = document.getElementById('lock-tool');
         const reloadButton = document.getElementById('reload-tool');
         const wallButton = document.getElementById('wall-tool');
+        const wallColorPicker = document.getElementById('wall-color') as HTMLInputElement;
+        const wallParamsDiv = document.getElementById('wall-params');
+        const wallRender = document.getElementById('wall-render') as HTMLInputElement;
+        const wallImpassable = document.getElementById('wall-impassable') as HTMLInputElement;
+        const wallOpaque = document.getElementById('wall-opaque') as HTMLInputElement;
         
         if (pointerButton && areaButton && panButton && rotateButton && wallButton) {
             pointerButton.addEventListener('click', () => {
@@ -121,7 +132,7 @@ export class Editor {
                 areaButton.classList.add('active');
                 pointerButton.classList.remove('active');
                 panButton.classList.remove('active');
-                rotateButton.classList.remove('active');
+                rotateButton.classList('active');
                 wallButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
@@ -156,8 +167,36 @@ export class Editor {
                 areaButton.classList.remove('active');
                 panButton.classList.remove('active');
                 rotateButton.classList.remove('active');
+                wallColorPicker.style.display = 'inline-block';  // Show color picker
+                wallParamsDiv!.style.display = 'inline-flex';  // Show parameters
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
+            });
+
+            // Hide color picker and parameters when other tools are selected
+            [pointerButton, areaButton, panButton, rotateButton].forEach(button => {
+                button?.addEventListener('click', () => {
+                    wallColorPicker.style.display = 'none';
+                    wallParamsDiv!.style.display = 'none';
+                });
+            });
+
+            // Update wall color and parameters when picker changes
+            wallColorPicker.addEventListener('input', (e) => {
+                this.wallColor = (e.target as HTMLInputElement).value;
+            });
+
+            // Update wall parameters when checkboxes change
+            wallRender.addEventListener('change', () => {
+                this.wallParams.render = wallRender.checked;
+            });
+            
+            wallImpassable.addEventListener('change', () => {
+                this.wallParams.impassable = wallImpassable.checked;
+            });
+            
+            wallOpaque.addEventListener('change', () => {
+                this.wallParams.opaque = wallOpaque.checked;
             });
         }
 
@@ -1302,8 +1341,12 @@ export class Editor {
             if (this.keyStates.has(key)) {
                 const currentProperties = this.world.hasWall(this.lastDragCell, direction);
                 this.world.setWall(this.lastDragCell, direction, {
-                    properties: [!currentProperties[0], !currentProperties[1], false],
-                    color: '#888888'
+                    properties: [
+                        this.wallParams.render,
+                        this.wallParams.impassable,
+                        this.wallParams.opaque
+                    ],
+                    color: this.wallColor
                 });
             }
         }
