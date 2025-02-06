@@ -9,6 +9,7 @@ import { SymbolComponent } from '../entity/components/symbol-component';
 import { Component } from '../entity/component';
 import { ComponentRegistry } from '../entity/component-registry';
 import { MouseTransition } from '../display/display';
+import { WallDirection } from '../entity/components/wall-component';
 
 import '../entity/components/index.ts';
 import '../game/test/components/index.ts';
@@ -29,13 +30,14 @@ export class Editor {
     private lastDragCell: Point | null = null;
     private isLeftMouseDown: boolean = false;
     private selectedCells: Point[] = [];
-    private currentTool: 'pointer' | 'area' | 'pan' | 'rotate' = 'pointer';
+    private currentTool: 'pointer' | 'area' | 'pan' | 'rotate' | 'wall' = 'pointer';
     private areaStartCell: Point | null = null;
     private paletteDisplay!: Display;
     private paletteRenderer!: EditorRenderer;
     private isPaletteLocked: boolean = true;
     private isPanning: boolean = false;
     private lastPanPoint: Point | null = null;
+    private keyStates: Set<string> = new Set();
 
     constructor(width: number, height: number) {
         // Create world
@@ -72,6 +74,21 @@ export class Editor {
 
         // Add keyboard handlers
         this.setupKeyboardHandlers();
+
+        // Add keyboard state tracking for wall tool
+        window.addEventListener('keydown', (e) => {
+            if (['KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(e.code)) {
+                e.preventDefault();
+                this.keyStates.add(e.code);
+                if (this.currentTool === 'wall' && this.isRightMouseDown) {
+                    this.handleWallPlacement();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            this.keyStates.delete(e.code);
+        });
     }
 
     private setupDisplayCallbacks(): void {
@@ -85,14 +102,16 @@ export class Editor {
         const importButton = document.getElementById('import-tool');
         const lockButton = document.getElementById('lock-tool');
         const reloadButton = document.getElementById('reload-tool');
+        const wallButton = document.getElementById('wall-tool');
         
-        if (pointerButton && areaButton && panButton && rotateButton) {
+        if (pointerButton && areaButton && panButton && rotateButton && wallButton) {
             pointerButton.addEventListener('click', () => {
                 this.currentTool = 'pointer';
                 pointerButton.classList.add('active');
                 areaButton.classList.remove('active');
                 panButton.classList.remove('active');
                 rotateButton.classList.remove('active');
+                wallButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -103,6 +122,7 @@ export class Editor {
                 pointerButton.classList.remove('active');
                 panButton.classList.remove('active');
                 rotateButton.classList.remove('active');
+                wallButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -113,6 +133,7 @@ export class Editor {
                 pointerButton.classList.remove('active');
                 areaButton.classList.remove('active');
                 rotateButton.classList.remove('active');
+                wallButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -123,6 +144,18 @@ export class Editor {
                 pointerButton.classList.remove('active');
                 areaButton.classList.remove('active');
                 panButton.classList.remove('active');
+                wallButton.classList.remove('active');
+                this.renderer.clearHighlights();
+                this.selectedCells = [];
+            });
+
+            wallButton.addEventListener('click', () => {
+                this.currentTool = 'wall';
+                wallButton.classList.add('active');
+                pointerButton.classList.remove('active');
+                areaButton.classList.remove('active');
+                panButton.classList.remove('active');
+                rotateButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
             });
@@ -249,13 +282,19 @@ export class Editor {
         this.display.onCellRightClick((point: Point | null) => {
             if (!point) return;
 
+            this.isRightMouseDown = true;
+            this.lastDragCell = point;
+
             if (this.currentTool === 'rotate') {
                 this.handleRotation(point);
                 return;
             }
 
-            this.isRightMouseDown = true;
-            this.lastDragCell = point;
+            if (this.currentTool === 'wall') {
+                this.handleWallPlacement();
+                return;
+            }
+
             this.handleRightClick(point);
         });
 
@@ -1245,6 +1284,28 @@ export class Editor {
             }
         } catch (e) {
             logger.error('Failed to update color preview:', e);
+        }
+    }
+
+    private handleWallPlacement(): void {
+        if (!this.lastDragCell) return;
+
+        const keyToDirection = {
+            'KeyW': WallDirection.NORTH,
+            'KeyS': WallDirection.SOUTH,
+            'KeyA': WallDirection.WEST,
+            'KeyD': WallDirection.EAST
+        } as const;
+
+        // Check which WASD keys are pressed
+        for (const [key, direction] of Object.entries(keyToDirection)) {
+            if (this.keyStates.has(key)) {
+                const currentProperties = this.world.hasWall(this.lastDragCell, direction);
+                this.world.setWall(this.lastDragCell, direction, {
+                    properties: [!currentProperties[0], !currentProperties[1], false],
+                    color: '#888888'
+                });
+            }
         }
     }
 }
