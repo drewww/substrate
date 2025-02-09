@@ -78,10 +78,12 @@ class WorldTest {
 
         // Add click handler
         this.display.onCellClick((worldPos) => {
+            if (!worldPos) return;  // Early return if no position
+            
             const entityType = (document.getElementById('entityType') as HTMLSelectElement).value;
             
             if (entityType === 'wall') {
-                this.handleWallPlacement(worldPos);
+                this.handleWallPlacement(worldPos);  // Pass the non-null position
                 return;
             }
 
@@ -241,7 +243,7 @@ class WorldTest {
             }
 
             // Create new cursor tile at new position
-            if (worldPos) {
+            if (worldPos) {  // Only create new tile if we have a position
                 const cursorEntity = new Entity(worldPos);
                 cursorEntity.setComponent(new SymbolComponent(
                     ' ',           // Empty character
