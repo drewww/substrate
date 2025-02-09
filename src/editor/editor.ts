@@ -95,6 +95,41 @@ export class Editor {
         window.addEventListener('keyup', (e) => {
             this.keyStates.delete(e.code);
         });
+
+        // Set up entity panel event delegation
+        const panel = document.getElementById('entity-panel');
+        logger.info('Setting up entity panel event delegation');
+        if (panel) {
+            panel.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                logger.info('Panel clicked:', target);
+                if (!target.classList.contains('icon-button')) {
+                    logger.info('Not an icon button');
+                    return;
+                }
+                
+                const entityItem = target.closest('.entity-item');
+                logger.info('Found entity item:', entityItem);
+                if (!entityItem) return;
+                
+                const entityId = entityItem.getAttribute('data-entity-id');
+                logger.info('Found entity ID:', entityId);
+                if (!entityId) return;
+
+                if (target.classList.contains('edit')) {
+                    logger.info('Edit button clicked for entity:', entityId);
+                    this.selectSingleEntity(entityId);
+                } else if (target.classList.contains('move-up')) {
+                    this.moveEntityUp(entityId);
+                } else if (target.classList.contains('move-down')) {
+                    this.moveEntityDown(entityId);
+                } else if (target.classList.contains('delete')) {
+                    this.deleteEntity(entityId);
+                }
+            });
+        } else {
+            logger.error('Could not find entity panel element');
+        }
     }
 
     private setupDisplayCallbacks(): void {
@@ -495,6 +530,11 @@ export class Editor {
     private handleRightClick(point: Point | null): void {
         if (!point) return;
 
+        // If we're in single-entity view, clear it first
+        if (this.state.getState().selectedEntityId) {
+            this.clearSelectedEntity();
+        }
+
         const clipboard = this.state.getClipboard();
         if (clipboard.type === 'entity' && clipboard.entity) {
             // Check if there's a matching entity at this position
@@ -560,6 +600,11 @@ export class Editor {
     private handleCellClick(point: Point | null, isMultiSelect: boolean = false): void {
         if (!point) return;
 
+        // If we're in single-entity view, clear it first
+        if (this.state.getState().selectedEntityId) {
+            this.clearSelectedEntity();
+        }
+
         if (!isMultiSelect) {
             this.selectedCells = [];
             this.renderer.clearHighlights();
@@ -593,7 +638,31 @@ export class Editor {
         const panel = document.getElementById('entity-panel');
         if (!panel) return;
 
-        if (this.selectedCells.length === 1) {  // Single cell selected
+        // Get the currently selected entity ID from state
+        const selectedEntityId = this.state.getState().selectedEntityId;
+        
+        if (this.selectedCells.length === 1 && selectedEntityId) {  // Single cell AND entity selected
+            const selectedEntity = this.world.getEntity(selectedEntityId);
+            if (!selectedEntity) return;
+
+            // Show full component editor for selected entity
+            let html = '<div class="entity-list">';
+            html += `
+                <div class="entity-item" data-entity-id="${selectedEntity.getId()}">
+                    <div class="entity-header">
+                        <span>Entity ${selectedEntity.getId()}</span>
+                        <div class="entity-controls">
+                            <button class="icon-button" title="Back to Cell View" onclick="window.editor.clearSelectedEntity()">⬅️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            selectedEntity.getComponents().forEach(component => {
+                html += this.createComponentEditor(selectedEntity, component);
+            });
+            html += '</div>';
+            panel.innerHTML = html;
+        } else if (this.selectedCells.length === 1) {  // Single cell, no entity selected
             // Sort entities by z-index
             const sortedEntities = this.getEntitiesSortedByZIndex(entities);
             
@@ -603,40 +672,28 @@ export class Editor {
                 const zIndex = symbolComp?.zIndex ?? 0;
                 
                 html += `
-                    <div class="entity-item">
+                    <div class="entity-item" data-entity-id="${entity.getId()}">
                         <div class="entity-header">
                             <span>Entity ${entity.getId()} (z: ${zIndex})</span>
                             <div class="entity-controls">
                                 ${index > 0 ? 
-                                    `<button class="icon-button" title="Move Up" onclick="window.editor.moveEntityUp('${entity.getId()}')">⬆️</button>` 
+                                    `<button class="icon-button move-up" title="Move Up">⬆️</button>` 
                                     : ''
                                 }
                                 ${index < sortedEntities.length - 1 ? 
-                                    `<button class="icon-button" title="Move Down" onclick="window.editor.moveEntityDown('${entity.getId()}')">⬇️</button>`
+                                    `<button class="icon-button move-down" title="Move Down">⬇️</button>`
                                     : ''
                                 }
-                                <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
+                                <button class="icon-button edit" title="Edit Entity">✏️</button>
+                                <button class="icon-button delete" title="Delete Entity">🗑️</button>
                             </div>
                         </div>
                         <div class="component-list">
+                            ${entity.getComponents().map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
+                        </div>
+                    </div>
                 `;
-
-                const components = entity.getComponents();
-                components.forEach(comp => {
-                    const serialized = comp.serialize();
-                    const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
-                    if (isSimple) {
-                        html += `
-                            <div class="simple-component">
-                                ${comp.type}
-                            </div>
-                        `;
-                    }
-                });
-
-                html += '</div>';
             });
-            
             html += '</div>';
             panel.innerHTML = html;
         } else {
@@ -651,16 +708,24 @@ export class Editor {
                 </div>
             `;
             
-            entities.forEach(entity => {
-                const components = entity.getComponents();
+            // Sort entities by z-index within each cell
+            const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+            
+            sortedEntities.forEach(entity => {
+                const symbolComp = entity.getComponent('symbol') as SymbolComponent;
+                const zIndex = symbolComp?.zIndex ?? 0;
+                
                 html += `
-                    <div class="entity-item">
+                    <div class="entity-item" data-entity-id="${entity.getId()}">
                         <div class="entity-header">
-                            <span>Entity ${entity.getId()}</span>
-                            <button class="icon-button" title="Edit Entity" onclick="window.editor.selectSingleEntity('${entity.getId()}')">✏️</button>
+                            <span>Entity ${entity.getId()} (z: ${zIndex})</span>
+                            <div class="entity-controls">
+                                <button class="icon-button edit" title="Edit Entity">✏️</button>
+                                <button class="icon-button delete" title="Delete Entity">🗑️</button>
+                            </div>
                         </div>
                         <div class="component-list">
-                            ${components.map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
+                            ${entity.getComponents().map(comp => `<div class="simple-component">${comp.type}</div>`).join('')}
                         </div>
                     </div>
                 `;
@@ -1220,8 +1285,21 @@ export class Editor {
         const entity = this.world.getEntity(entityId);
         if (!entity) return;
 
-        // Update the panel to show just this entity
-        this.updateEntityPanel([entity]);
+        // Clear current selection
+        this.selectedCells = [];
+        this.renderer.clearHighlights();
+
+        // Select only the cell containing this entity
+        const pos = entity.getPosition();
+        this.selectedCells = [pos];
+        this.renderer.highlightCells(this.selectedCells);
+
+        // Update state and panel
+        this.state.setSelectedCell(pos);
+        this.state.setSelectedEntity(entity.getId());
+        
+        const entities = this.world.getEntitiesAt(pos);
+        this.updateEntityPanel(entities);
     }
 
     private handleRotation(point: Point): void {
@@ -1391,6 +1469,16 @@ export class Editor {
             
             // Update the panel
             this.updateEntityPanel(sortedEntities);
+        }
+    }
+
+    // Add this method to clear entity selection
+    public clearSelectedEntity(): void {
+        this.state.setSelectedEntity(null);
+        if (this.selectedCells.length === 1) {
+            const pos = this.selectedCells[0];
+            const entities = this.world.getEntitiesAt(pos);
+            this.updateEntityPanel(entities);
         }
     }
 }
