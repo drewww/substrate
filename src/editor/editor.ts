@@ -593,70 +593,51 @@ export class Editor {
         const panel = document.getElementById('entity-panel');
         if (!panel) return;
 
-        if (entities.length === 1) {
-            const entity = entities[0];
-            const components = entity.getComponents();
+        if (this.selectedCells.length === 1) {  // Single cell selected
+            // Sort entities by z-index
+            const sortedEntities = this.getEntitiesSortedByZIndex(entities);
             
-            // Get all registered component types
-            const registeredComponents = Array.from(ComponentRegistry.getRegisteredComponents().keys());
-            
-            let html = `
-                <div class="entity-header">
-                    <span>Entity ${entity.getId()}</span>
-                    <div class="entity-controls">
-                        <div class="add-component-control">
-                            <select id="component-type-select">
-                                <option value="">Add Component...</option>
-                                ${registeredComponents.map(type => `
-                                    <option value="${type}">${type}</option>
-                                `).join('')}
-                            </select>
-                            <button class="icon-button" title="Add Component" onclick="window.editor.addComponent('${entity.getId()}', document.getElementById('component-type-select').value)">➕</button>
-                        </div>
-                        <button class="icon-button" title="Copy Entity" onclick="window.editor.copyEntity('${entity.getId()}')">📋</button>
-                        <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
-                    </div>
-                </div>
-                <div class="component-grid">
-                    <div class="simple-components-row">
-            `;
-
-            // Add simple components first
-            components.forEach(comp => {
-                const serialized = comp.serialize();
-                const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
-                if (isSimple) {
-                    html += `
-                        <div class="simple-component-item">
-                            <div class="component-header">
-                                <span>${comp.type}</span>
-                                <div class="component-actions">
-                                    <button class="icon-button" title="Copy Component" onclick="window.editor.copyComponent('${entity.getId()}', '${comp.type}')">📋</button>
-                                    <button class="icon-button" title="Delete Component" onclick="window.editor.deleteComponent('${entity.getId()}', '${comp.type}')">🗑️</button>
-                                </div>
+            let html = '<div class="entity-list">';
+            sortedEntities.forEach((entity, index) => {
+                const symbolComp = entity.getComponent('symbol') as SymbolComponent;
+                const zIndex = symbolComp?.zIndex ?? 0;
+                
+                html += `
+                    <div class="entity-item">
+                        <div class="entity-header">
+                            <span>Entity ${entity.getId()} (z: ${zIndex})</span>
+                            <div class="entity-controls">
+                                ${index > 0 ? 
+                                    `<button class="icon-button" title="Move Up" onclick="window.editor.moveEntityUp('${entity.getId()}')">⬆️</button>` 
+                                    : ''
+                                }
+                                ${index < sortedEntities.length - 1 ? 
+                                    `<button class="icon-button" title="Move Down" onclick="window.editor.moveEntityDown('${entity.getId()}')">⬇️</button>`
+                                    : ''
+                                }
+                                <button class="icon-button" title="Delete Entity" onclick="window.editor.deleteEntity('${entity.getId()}')">🗑️</button>
                             </div>
                         </div>
-                    `;
-                }
-            });
+                        <div class="component-list">
+                `;
 
+                const components = entity.getComponents();
+                components.forEach(comp => {
+                    const serialized = comp.serialize();
+                    const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
+                    if (isSimple) {
+                        html += `
+                            <div class="simple-component">
+                                ${comp.type}
+                            </div>
+                        `;
+                    }
+                });
+
+                html += '</div>';
+            });
+            
             html += '</div>';
-
-            // Then add complex components
-            components.forEach(comp => {
-                const serialized = comp.serialize();
-                const isSimple = Object.keys(serialized).length === 1 && 'type' in serialized;
-                if (!isSimple) {
-                    html += this.createComponentEditor(entity, comp);
-                }
-            });
-
-            html += `
-                </div>
-                <div class="entity-footer">
-                    <button class="icon-button" title="Paste Component" onclick="window.editor.pasteComponent('${entity.getId()}')">📋 Paste Component</button>
-                </div>
-            `;
             panel.innerHTML = html;
         } else {
             // Multi-select view
@@ -1356,6 +1337,60 @@ export class Editor {
                     });
                 }
             }
+        }
+    }
+
+    public moveEntityUp(entityId: string): void {
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        const pos = entity.getPosition();
+        const entitiesAtPos = this.world.getEntitiesAt(pos);
+        const sortedEntities = this.getEntitiesSortedByZIndex(entitiesAtPos);
+        
+        // Find current entity's index
+        const currentIndex = sortedEntities.findIndex(e => e.getId() === entityId);
+        if (currentIndex <= 0) return; // Already at top
+        
+        // Get the entity above this one
+        const entityAbove = sortedEntities[currentIndex - 1];
+        const currentSymbol = entity.getComponent('symbol') as SymbolComponent;
+        const aboveSymbol = entityAbove.getComponent('symbol') as SymbolComponent;
+        
+        if (currentSymbol && aboveSymbol) {
+            // Set z-index to one more than the entity above
+            currentSymbol.zIndex = aboveSymbol.zIndex + 1;
+            entity.markComponentModified('symbol');
+            
+            // Update the panel
+            this.updateEntityPanel(sortedEntities);
+        }
+    }
+
+    public moveEntityDown(entityId: string): void {
+        const entity = this.world.getEntity(entityId);
+        if (!entity) return;
+
+        const pos = entity.getPosition();
+        const entitiesAtPos = this.world.getEntitiesAt(pos);
+        const sortedEntities = this.getEntitiesSortedByZIndex(entitiesAtPos);
+        
+        // Find current entity's index
+        const currentIndex = sortedEntities.findIndex(e => e.getId() === entityId);
+        if (currentIndex === -1 || currentIndex === sortedEntities.length - 1) return; // Already at bottom
+        
+        // Get the entity below this one
+        const entityBelow = sortedEntities[currentIndex + 1];
+        const currentSymbol = entity.getComponent('symbol') as SymbolComponent;
+        const belowSymbol = entityBelow.getComponent('symbol') as SymbolComponent;
+        
+        if (currentSymbol && belowSymbol) {
+            // Set z-index to one less than the entity below
+            currentSymbol.zIndex = belowSymbol.zIndex - 1;
+            entity.markComponentModified('symbol');
+            
+            // Update the panel
+            this.updateEntityPanel(sortedEntities);
         }
     }
 }
