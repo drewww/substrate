@@ -23,6 +23,16 @@ describe('Component Registry', () => {
 });
 
 describe('Component Serialization Tests', () => {
+    describe('SymbolComponent', () => {
+        it('should serialize and deserialize correctly', () => {
+            const component = new SymbolComponent('@', '#fff', '#000', 1);
+            const serialized = JSON.parse(JSON.stringify(component));
+            const deserialized = ComponentRegistry.fromJSON(serialized);
+
+            expect(deserialized).toMatchObject(component);
+        });
+    });
+
     describe('LightEmitterComponent', () => {
         it('should serialize and deserialize correctly', () => {
             const component = new LightEmitterComponent({
@@ -45,16 +55,6 @@ describe('Component Serialization Tests', () => {
                 width: 90,
                 distanceFalloff: 'linear'
             }));
-        });
-    });
-
-    describe('SymbolComponent', () => {
-        it('should serialize and deserialize correctly', () => {
-            const component = new SymbolComponent('@', '#fff', '#000', 1);
-            const serialized = JSON.parse(JSON.stringify(component));
-            const deserialized = SymbolComponent.fromJSON(serialized);
-
-            expect(deserialized).toMatchObject(component);
         });
     });
 }); 

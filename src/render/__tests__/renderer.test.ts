@@ -103,7 +103,8 @@ describe('Renderer', () => {
 
     it('creates a tile when entity with symbol is added', () => {
         const entity = new Entity({ x: 1, y: 1 });
-        entity.setComponent(new SymbolComponent('@', '#ffffff', '#000000', 1, true));
+        entity.setComponent(new SymbolComponent('@', '#ffffff', '#000000', 1));
+        
         world.addEntity(entity);
 
         expect(display.createTile).toHaveBeenCalledWith(
@@ -114,7 +115,10 @@ describe('Renderer', () => {
             '#000000',
             1,
             {
-                alwaysRenderIfExplored: true
+                alwaysRenderIfExplored: false,
+                offsetSymbolX: 0,
+                offsetSymbolY: 0,
+                rotation: 0
             }
         );
         expect(display.tiles.size).toBe(1);
