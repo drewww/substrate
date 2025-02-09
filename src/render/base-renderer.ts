@@ -344,13 +344,16 @@ export abstract class BaseRenderer implements Renderer {
         }
 
         if (componentType === 'wall') {
-            // Always remove all wall tiles when the component is removed
+            // Track which tile IDs we've already removed to avoid duplicate removals
+            const removedTileIds = new Set<string>();
+            
             ['north', 'south', 'east', 'west'].forEach(dir => {
                 const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
-                if (tileId) {
+                if (tileId && !removedTileIds.has(tileId)) {
                     this.display.removeTile(tileId);
-                    this.wallTiles.delete(`${entity.getId()}_${dir}`);
+                    removedTileIds.add(tileId);
                 }
+                this.wallTiles.delete(`${entity.getId()}_${dir}`);
             });
         }
 
@@ -839,6 +842,8 @@ export abstract class BaseRenderer implements Renderer {
         // Check if either wall exists
         const hasNorthWall = wallComponent.north.properties.some(prop => prop);
         const hasWestWall = wallComponent.west.properties.some(prop => prop);
+
+        logger.info(`Adding entity walls for ${entity.getId()} ${hasNorthWall} ${hasWestWall}`);
         
         if (hasNorthWall || hasWestWall) {
             const wallTileId = this.display.createTile(
@@ -870,12 +875,22 @@ export abstract class BaseRenderer implements Renderer {
     }
 
     private updateEntityWalls(entity: Entity): void {
-        // Remove existing wall tiles
+        logger.info(`Updating entity walls for ${entity.getId()}`);
+        
+        // Track which tile IDs we've already removed to avoid duplicate removals
+        const removedTileIds = new Set<string>();
+        
         ['north', 'south', 'east', 'west'].forEach(dir => {
             const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
-            if (tileId) {
+            if (tileId && !removedTileIds.has(tileId)) {
                 this.display.removeTile(tileId);
-                this.wallTiles.delete(`${entity.getId()}_${dir}`);
+                removedTileIds.add(tileId);
+                // Only remove mappings when we actually remove the tile
+                ['north', 'south', 'east', 'west'].forEach(direction => {
+                    if (this.wallTiles.get(`${entity.getId()}_${direction}`) === tileId) {
+                        this.wallTiles.delete(`${entity.getId()}_${direction}`);
+                    }
+                });
             }
         });
 

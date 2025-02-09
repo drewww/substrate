@@ -1416,65 +1416,20 @@ export class World {
      * @returns false if the target position would be out of bounds
      */
     public removeWall(pos: Point, direction: WallDirection): boolean {
-        let targetPos: Point;
-        let wallDirection: WallDirection;
+        const result = this.setWall(pos, direction, {
+            properties: [false, false, false],
+            color: '#888888'
+        });
 
-        // Convert to internal wall representation (only N/W walls are stored)
-        switch (direction) {
-            case WallDirection.NORTH:
-                targetPos = pos;
-                wallDirection = WallDirection.NORTH;
-                break;
-            case WallDirection.SOUTH:
-                targetPos = { x: pos.x, y: pos.y + 1 };
-                wallDirection = WallDirection.NORTH;
-                break;
-            case WallDirection.WEST:
-                targetPos = pos;
-                wallDirection = WallDirection.WEST;
-                break;
-            case WallDirection.EAST:
-                targetPos = { x: pos.x + 1, y: pos.y };
-                wallDirection = WallDirection.WEST;
-                break;
-        }
-
-        // Check bounds
-        if (targetPos.x < 0 || targetPos.x >= this.width || 
-            targetPos.y < 0 || targetPos.y >= this.height) {
-            return false;
-        }
-
-        // Find entity with wall component at target position
-        const entity = this.getEntitiesWithComponent('wall')
-            .find(e => e.getPosition().x === targetPos.x && e.getPosition().y === targetPos.y);
-
-        if (entity) {
-            const wallComponent = entity.getComponent('wall') as WallComponent;
-            
-            // Set the specified wall direction properties to false
-            if (wallDirection === WallDirection.NORTH) {
-                wallComponent.north.properties = [false, false, false];
-            } else {
-                wallComponent.west.properties = [false, false, false];
+        // If wall was successfully modified, mark the component as changed
+        if (result) {
+            const entity = this.getEntitiesWithComponent('wall')
+                .find(e => e.getPosition().x === pos.x && e.getPosition().y === pos.y);
+            if (entity) {
+                entity.markComponentModified('wall');
             }
-
-            // Check if both walls are now empty (all properties false)
-            const northEmpty = wallComponent.north.properties.every(prop => !prop);
-            const westEmpty = wallComponent.west.properties.every(prop => !prop);
-
-            // If both walls are empty, remove the entire wall component
-            if (northEmpty && westEmpty) {
-                entity.removeComponent('wall');
-                // If this was the only component, remove the entity
-                if (entity.getComponents().length === 0) {
-                    this.removeEntity(entity.getId());
-                }
-            }
-
-            return true;
         }
 
-        return false;
+        return result;
     }
 }
