@@ -1,4 +1,3 @@
-
 import { Display } from '../display/display';
 import { BlendMode } from '../display/types';
 import { Entity } from '../entity/entity';
@@ -235,7 +234,23 @@ export abstract class BaseRenderer implements Renderer {
         } 
 
         if (componentType === 'wall') {
-            this.updateEntityWalls(entity);
+            const wallComponent = entity.getComponent('wall') as WallComponent;
+            // Only remove tiles if both walls are empty
+            const northEmpty = wallComponent.north.properties.every(prop => !prop);
+            const westEmpty = wallComponent.west.properties.every(prop => !prop);
+            
+            if (northEmpty && westEmpty) {
+                ['north', 'south', 'east', 'west'].forEach(dir => {
+                    const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
+                    if (tileId) {
+                        this.display.removeTile(tileId);
+                        this.wallTiles.delete(`${entity.getId()}_${dir}`);
+                    }
+                });
+            } else {
+                // Otherwise just update the walls
+                this.updateEntityWalls(entity);
+            }
         }
         if (componentType === 'lightEmitter') {
             const state = this.lightStates.get(entity.getId());
@@ -326,6 +341,17 @@ export abstract class BaseRenderer implements Renderer {
                 this.lightValueAnimations.clear(entity.getId());
                 this.lightColorAnimations.clear(entity.getId());
             }
+        }
+
+        if (componentType === 'wall') {
+            // Always remove all wall tiles when the component is removed
+            ['north', 'south', 'east', 'west'].forEach(dir => {
+                const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
+                if (tileId) {
+                    this.display.removeTile(tileId);
+                    this.wallTiles.delete(`${entity.getId()}_${dir}`);
+                }
+            });
         }
 
         this.handleComponentRemoved(entity, componentType, component);
@@ -831,18 +857,27 @@ export abstract class BaseRenderer implements Renderer {
                 }
             );
             
-            // Store single tile ID for both walls
-            this.wallTiles.set(entity.getId(), wallTileId);
+            // Store the same tile ID for all active directions
+            if (hasNorthWall) {
+                this.wallTiles.set(`${entity.getId()}_north`, wallTileId);
+                this.wallTiles.set(`${entity.getId()}_south`, wallTileId);
+            }
+            if (hasWestWall) {
+                this.wallTiles.set(`${entity.getId()}_west`, wallTileId);
+                this.wallTiles.set(`${entity.getId()}_east`, wallTileId);
+            }
         }
     }
 
     private updateEntityWalls(entity: Entity): void {
-        // Remove existing wall tile
-        const tileId = this.wallTiles.get(entity.getId());
-        if (tileId) {
-            this.display.removeTile(tileId);
-            this.wallTiles.delete(entity.getId());
-        }
+        // Remove existing wall tiles
+        ['north', 'south', 'east', 'west'].forEach(dir => {
+            const tileId = this.wallTiles.get(`${entity.getId()}_${dir}`);
+            if (tileId) {
+                this.display.removeTile(tileId);
+                this.wallTiles.delete(`${entity.getId()}_${dir}`);
+            }
+        });
 
         // Add new wall tiles
         this.addEntityWalls(entity);

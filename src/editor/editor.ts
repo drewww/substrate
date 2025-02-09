@@ -132,7 +132,7 @@ export class Editor {
                 areaButton.classList.add('active');
                 pointerButton.classList.remove('active');
                 panButton.classList.remove('active');
-                rotateButton.classList('active');
+                rotateButton.classList.remove('active');
                 wallButton.classList.remove('active');
                 this.renderer.clearHighlights();
                 this.selectedCells = [];
@@ -1340,14 +1340,21 @@ export class Editor {
         for (const [key, direction] of Object.entries(keyToDirection)) {
             if (this.keyStates.has(key)) {
                 const currentProperties = this.world.hasWall(this.lastDragCell, direction);
-                this.world.setWall(this.lastDragCell, direction, {
-                    properties: [
-                        this.wallParams.render,
-                        this.wallParams.impassable,
-                        this.wallParams.opaque
-                    ],
-                    color: this.wallColor
-                });
+                
+                // If wall exists (first property is true), remove it
+                if (currentProperties[0]) {
+                    this.world.removeWall(this.lastDragCell, direction);
+                } else {
+                    // If no wall exists, add one with current parameters
+                    this.world.setWall(this.lastDragCell, direction, {
+                        properties: [
+                            this.wallParams.render,
+                            this.wallParams.impassable,
+                            this.wallParams.opaque
+                        ],
+                        color: this.wallColor
+                    });
+                }
             }
         }
     }
