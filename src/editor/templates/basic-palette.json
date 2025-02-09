@@ -282,7 +282,65 @@
             "direction": 3
           }
         ]
-      }
+      },
 
+      {
+        "id": "flicker_light",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "🔥",
+            "foreground": "#ffa500",
+            "background": "#00000000",
+            "zIndex": 50
+          },
+          {
+            "type": "lightEmitter",
+            "radius": 10,
+            "intensity": 0.4,
+            "color": "#ffa500",
+            "distanceFalloff": "quadratic",
+            "mode": "fg",
+            "animation": {
+              "type": "flicker",
+              "params": {
+                "speed": "normal",
+                "intensity": 1.0
+              }
+            }
+          }
+        ]
+      },
+
+      {
+        "id": "spotlight",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "◆",
+            "foreground": "#ffff00",
+            "background": "#00000000",
+            "zIndex": 50
+          },
+          {
+            "type": "lightEmitter",
+            "radius": 10,
+            "intensity": 1.0,
+            "color": "#ffffff",
+            "distanceFalloff": "step",
+            "facing": 1.5708,
+            "width": 1.5708,
+            "mode": "fg",
+            "animation": {
+              "type": "rotate",
+              "params": {
+                "speed": "normal"
+              }
+            }
+          }
+        ]
+      }
     ]
   }

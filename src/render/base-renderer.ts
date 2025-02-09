@@ -53,11 +53,12 @@ const Z_INDEX = {
 export abstract class BaseRenderer implements Renderer {
     protected entityTiles: Map<string, string> = new Map(); // entityId -> tileId
     protected tileEntities: Map<string, string> = new Map(); // tileId -> entityId
-    private lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
-    private lightValueAnimations: ValueAnimationModule;
-    private lightColorAnimations: ColorAnimationModule;
-    private lightStates: Map<string, LightState> = new Map(); // entityId -> LightState
-    private wallTiles: Map<string, string> = new Map();  // entityId -> tileId
+    protected lightSourceTiles: Map<string, Set<string>> = new Map(); // entityId -> Set<tileId>
+    protected lightValueAnimations: ValueAnimationModule;
+    protected lightColorAnimations: ColorAnimationModule;
+    protected lightStates: Map<string, LightState> = new Map(); // entityId -> LightState
+    protected wallTiles: Map<string, string> = new Map();  // entityId -> tileId
+    protected lightsEnabled: boolean = true;  // Add this flag
 
     constructor(
         protected world: World,
@@ -388,7 +389,25 @@ export abstract class BaseRenderer implements Renderer {
         }
     }
 
+    public setLightsEnabled(enabled: boolean): void {
+        this.lightsEnabled = enabled;
+        
+        // If disabling lights, clean up all existing light tiles
+        if (!enabled) {
+            for (const [entityId, tiles] of this.lightSourceTiles) {
+                tiles.forEach(tileId => this.display.removeTile(tileId));
+                tiles.clear();
+            }
+            this.lightSourceTiles.clear();
+            this.lightValueAnimations.clear();
+            this.lightColorAnimations.clear();
+        }
+    }
+
     protected addEntityLight(entity: Entity): void {
+        // Early return if lights are disabled
+        if (!this.lightsEnabled) return;
+
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (!lightEmitter) return;
 
@@ -522,6 +541,9 @@ export abstract class BaseRenderer implements Renderer {
     }
 
     private renderLightTiles(entity: Entity, state: LightState): void {
+        // Early return if lights are disabled
+        if (!this.lightsEnabled) return;
+
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (!lightEmitter) {
             // logger.info(`No light emitter component found for ${entity.getId()}`);

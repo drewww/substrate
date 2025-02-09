@@ -417,6 +417,7 @@ export class Editor {
         
         // Setup palette renderer
         this.paletteRenderer = new EditorRenderer(paletteWorld, this.paletteDisplay);
+        this.paletteRenderer.setLightsEnabled(false);  // Disable lights for palette
 
         try {
             // Use the imported JSON directly
