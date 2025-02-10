@@ -28,8 +28,8 @@
           {
             "type": "symbol",
             "char": ".",
-            "foreground": "#FFFFFF",
-            "background": "#000000",
+            "foreground": "#333333ff",
+            "background": "#000000ff",
             "zIndex": 100,
             "alwaysRenderIfExplored": true          }
         ]
@@ -285,6 +285,40 @@
       },
 
       {
+        "id": "rotating_light",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "O",
+            "foreground": "#ffffff",
+            "background": "#00000000",
+            "zIndex": 50
+          },
+          {
+            "type": "lightEmitter",
+            "config": {
+                "radius": 10,
+                "intensity": 1.0,
+                "color": "#ffffff",
+                "distanceFalloff": "step",
+                "facing": 0,
+                "width": 0.785,
+                "mode": "fg",
+                "animation": {
+                    "type": "rotate",
+                    "params": {
+                        "speed": "normal"
+                    }
+                }
+            }
+          }
+        ]
+      },
+
+
+
+      {
         "id": "flicker_light",
         "position": { "x": 0, "y": 0 },
         "components": [
@@ -302,7 +336,14 @@
               "intensity": 0.4,
               "color": "#ffa500",
               "distanceFalloff": "quadratic",
-              "mode": "fg"
+              "mode": "fg",
+              "animation": {
+                "type": "flicker",
+                "params": {
+                  "speed": "normal",
+                  "intensity": 1.0
+                }
+              }
             }
           }
         ]
