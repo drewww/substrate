@@ -639,6 +639,12 @@ export class Editor {
         const panel = document.getElementById('entity-panel');
         if (!panel) return;
 
+        // If there's exactly one entity, switch to entity detail mode
+        if (entities.length === 1) {
+            const entity = entities[0];
+            this.state.setSelectedEntity(entity.getId());
+        }
+
         // Get the currently selected entity ID from state
         const selectedEntityId = this.state.getState().selectedEntityId;
         
@@ -741,6 +747,23 @@ export class Editor {
         const componentData = JSON.stringify(component.serialize(), null, 2);
         const data = JSON.parse(componentData);
         
+        // Check if this is a "simple" component (only has type property)
+        const properties = Object.keys(data);
+        if (properties.length === 1 && properties[0] === 'type') {
+            return `
+                <div class="simple-component-item">
+                    <div class="component-header">
+                        <span>${component.type}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Calculate lines in JSON for textarea height (add a bit of padding)
+        const lineCount = componentData.split('\n').length;
+        const lineHeight = 16; // reduced from 20px to 16px per line
+        const height = (lineCount) * lineHeight; // +1 for some padding
+        
         // Helper to detect if a value looks like a hex color
         const isHexColor = (value: string) => /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(value);
         
@@ -788,6 +811,7 @@ export class Editor {
                         class="component-data"
                         data-edited="false"
                         oninput="editor.handleComponentEdit(this)"
+                        style="height: ${height}px; min-height: ${height}px;"
                     >${componentData}</textarea>
                 </div>
             </div>
