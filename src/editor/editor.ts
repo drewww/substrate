@@ -1408,9 +1408,9 @@ export class Editor {
                     // If no wall exists, add one with current parameters
                     this.world.setWall(this.lastDragCell, direction, {
                         properties: [
-                            this.wallParams.render,
-                            this.wallParams.impassable,
-                            this.wallParams.opaque
+                            this.wallParams.render,    // RENDER = 0
+                            this.wallParams.opaque,    // OPAQUE = 1
+                            this.wallParams.impassable // IMPASSABLE = 2
                         ],
                         color: this.wallColor
                     });

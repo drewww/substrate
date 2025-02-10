@@ -1098,20 +1098,18 @@ export class World {
         // Handle walls
         const walls = this.getWallsAt(pos);
         for (const [direction, properties] of walls) {
-            if (properties.some(p => p)) {
+            if (properties[WallProperty.OPAQUE]) {
                 switch (direction) {
                     case WallDirection.NORTH:
                         this.fovMap.addWall(pos.x, pos.y, CardinalDirection.NORTH);
                         break;
                     case WallDirection.SOUTH:
-                        // South wall at (x,y) is actually a north wall at (x,y+1)
                         this.fovMap.addWall(pos.x, pos.y + 1, CardinalDirection.NORTH);
                         break;
                     case WallDirection.WEST:
                         this.fovMap.addWall(pos.x, pos.y, CardinalDirection.WEST);
                         break;
                     case WallDirection.EAST:
-                        // East wall at (x,y) is actually a west wall at (x+1,y)
                         this.fovMap.addWall(pos.x + 1, pos.y, CardinalDirection.WEST);
                         break;
                 }
