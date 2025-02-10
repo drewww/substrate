@@ -4,7 +4,7 @@ import { Point } from '../types';
 
 export interface Renderer {
     update(timestamp: number): void;
-    handleEntityAdded(entity: Entity, tileId: string): void;
+    handleEntityAdded(entity: Entity): void;
     handleEntityModified(entity: Entity, componentType: string): void;
     handleComponentModified(entity: Entity, componentType: string): void;
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;

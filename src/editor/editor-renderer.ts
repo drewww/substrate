@@ -20,10 +20,14 @@ export class EditorRenderer extends BaseRenderer {
         this.display = display;
     }
 
-    public handleEntityAdded(entity: Entity, tileId: string): void {
+    public handleEntityAdded(entity: Entity): void {
         // Store the mapping between entity and tile
-        this.entityTiles.set(entity.getId(), tileId);
-        this.tileEntities.set(tileId, entity.getId());
+        const tileId = this.entityTiles.get(entity.getId());
+
+        if(tileId) {
+            this.entityTiles.set(entity.getId(), tileId);
+            this.tileEntities.set(tileId, entity.getId());
+        }
     }
 
     public handleEntityModified(entity: Entity, componentType: string): void {
@@ -122,9 +126,5 @@ export class EditorRenderer extends BaseRenderer {
 
     public update(timestamp: number): void {
         // No need for update since we're managing tiles directly
-    }
-
-    public getWorld(): World {
-        return this.world;
     }
 } 

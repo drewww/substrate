@@ -82,7 +82,7 @@ class MockDisplay implements Pick<Display, 'createTile' | 'removeTile' | 'moveTi
 class TestRenderer extends BaseRenderer {
     public handleComponentModified(entity: Entity, componentType: string): void {}
     public handleComponentAdded(entity: Entity, componentType: string): void {}
-    public handleEntityAdded(entity: Entity, tileId: string): void {}
+    public handleEntityAdded(entity: Entity): void {}
     public handleEntityModified(entity: Entity, componentType: string): void {}
     public handleEntityRemoved(entity: Entity): void {}
     public handleEntityMoved(entity: Entity, to: Point): boolean { return false; }

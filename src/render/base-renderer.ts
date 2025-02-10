@@ -174,7 +174,6 @@ export abstract class BaseRenderer implements Renderer {
             
             this.entityTiles.set(entity.getId(), tileId);
             this.tileEntities.set(tileId, entity.getId());
-            this.handleEntityAdded(entity, tileId);
         }
         
         // Handle light emitter independently
@@ -198,6 +197,8 @@ export abstract class BaseRenderer implements Renderer {
         if (wallComponent) {
             this.addEntityWalls(entity);
         }
+
+        this.handleEntityAdded(entity);
     }
 
     /**
@@ -397,10 +398,11 @@ export abstract class BaseRenderer implements Renderer {
             for (const [entityId, tiles] of this.lightSourceTiles) {
                 tiles.forEach(tileId => this.display.removeTile(tileId));
                 tiles.clear();
+                // Pass the entityId when clearing animations
+                this.lightValueAnimations.clear(entityId);
+                this.lightColorAnimations.clear(entityId);
             }
             this.lightSourceTiles.clear();
-            this.lightValueAnimations.clear();
-            this.lightColorAnimations.clear();
         }
     }
 
@@ -830,7 +832,7 @@ export abstract class BaseRenderer implements Renderer {
     }
 
     // Update abstract methods
-    public abstract handleEntityAdded(entity: Entity, tileId: string): void;
+    public abstract handleEntityAdded(entity: Entity): void;
     public abstract handleEntityModified(entity: Entity, componentType: string): void;
     public abstract handleComponentModified(entity: Entity, componentType: string): void;
     public abstract handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;
@@ -918,5 +920,9 @@ export abstract class BaseRenderer implements Renderer {
 
         // Add new wall tiles
         this.addEntityWalls(entity);
+    }
+
+    public getWorld(): World {
+        return this.world;
     }
 }  

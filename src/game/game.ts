@@ -47,10 +47,10 @@ export abstract class Game {
     public async prepare(): Promise<void> {
         if (this.prepared) return;
 
-        // Initialize the world first (which will set world and player)
+        // Initialize the world (which will set engine and player)
         await this.setup();
 
-        if (!this.world) {
+        if (!this.world || !this.player) {
             throw new Error('World initialization failed');
         }
 
@@ -59,10 +59,6 @@ export abstract class Game {
         
         // Create renderer (which needs both world and display)
         this.renderer = this.createRenderer();
-
-        if (!this.player) {
-            throw new Error('Player initialization failed');
-        }
 
         // Create sound renderer
         this.soundRenderer = this.createSoundRenderer();

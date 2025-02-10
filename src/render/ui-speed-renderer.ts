@@ -190,7 +190,7 @@ export class UISpeedRenderer implements Renderer {
         this.updateTimeDisplay();
     }
 
-    handleEntityAdded(entity: Entity, tileId: string): void {}
+    handleEntityAdded(entity: Entity): void {}
     handleEntityModified(entity: Entity, componentType: string): void {}
     handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
     handleEntityRemoved(entity: Entity): void {}

@@ -46,7 +46,7 @@ export abstract class BaseSoundRenderer implements Renderer {
         protected audioContext: AudioContext
     ) {
         // Subscribe to world events
-        this.world.on('entityAdded', ({ entity }) => this.handleEntityAdded(entity, entity.getId()));
+        this.world.on('entityAdded', ({ entity }) => this.handleEntityAdded(entity));
         this.world.on('entityRemoved', ({ entity }) => this.handleEntityRemoved(entity));
         this.world.on('entityMoved', ({ entity, from, to }) => this.handleEntityMoved(entity, from, to));
         this.world.on('entityModified', ({ entity, componentType }) => this.handleEntityModified(entity, componentType));
@@ -57,7 +57,7 @@ export abstract class BaseSoundRenderer implements Renderer {
         // Initialize existing entities
         if(this.world.getAllEntities().length > 0) {
             for(const entity of this.world.getAllEntities()) {
-                this.handleEntityAdded(entity, entity.getId());
+                this.handleEntityAdded(entity);
             }
         }
     }
@@ -202,7 +202,7 @@ export abstract class BaseSoundRenderer implements Renderer {
     protected abstract stopSound(soundId: string): void;
     
     // Required Renderer interface methods
-    public abstract handleEntityAdded(entity: Entity, id: string): void;
+    public abstract handleEntityAdded(entity: Entity): void;
     public abstract handleEntityModified(entity: Entity, componentType: string): void;
     public abstract handleComponentModified(entity: Entity, componentType: string): void;
     public abstract handleComponentRemoved(entity: Entity, componentType: string, component: Component): void;

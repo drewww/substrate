@@ -32,7 +32,7 @@ export class GameSoundRenderer extends BaseSoundRenderer {
         ]);
     }
 
-    public handleEntityAdded(entity: Entity, id: string): void {
+    public handleEntityAdded(entity: Entity): void {
         // No-op
     }
 

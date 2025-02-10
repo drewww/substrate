@@ -38,7 +38,7 @@ export class GameRenderer extends BaseRenderer {
         }
     }
 
-    public handleEntityAdded(entity: Entity, tileId: string): void {}
+    public handleEntityAdded(entity: Entity): void {}
 
     public handleEntityModified(entity: Entity, componentType: string): void {}
     public handleComponentModified(entity: Entity, componentType: string): void {}
