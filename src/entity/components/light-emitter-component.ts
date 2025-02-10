@@ -53,23 +53,4 @@ export class LightEmitterComponent extends Component {
             throw new Error('Directional lights (with facing) require width to be set');
         }
     }
-
-    static fromJSON(data: any): LightEmitterComponent {
-        return new LightEmitterComponent(data.config);
-    }
-
-    static fromConfig(config: Partial<LightEmitterConfig>): LightEmitterComponent {
-        return new LightEmitterComponent({
-            radius: config.radius ?? 5,
-            intensity: config.intensity ?? 1.0,
-            color: config.color ?? '#FFFFFF',
-            distanceFalloff: config.distanceFalloff ?? 'quadratic',
-            facing: config.facing,
-            width: config.width,
-            xOffset: config.xOffset,
-            yOffset: config.yOffset,
-            mode: config.mode ?? 'bg',
-            animation: config.animation
-        });
-    }
 } 

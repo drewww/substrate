@@ -388,6 +388,8 @@ export abstract class BaseRenderer implements Renderer {
                 this.renderLightTiles(entity, state);
             }
         }
+
+        this.handleEntityMoved(entity, from, to);
     }
 
     public setLightsEnabled(enabled: boolean): void {

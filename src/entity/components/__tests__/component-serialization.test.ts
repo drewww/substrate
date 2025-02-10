@@ -45,7 +45,7 @@ describe('Component Serialization Tests', () => {
             });
             
             const serialized = component.serialize();
-            const deserialized = LightEmitterComponent.fromJSON(serialized);
+            const deserialized = ComponentRegistry.fromJSON(serialized) as LightEmitterComponent;
             
             expect(deserialized.config).toEqual(expect.objectContaining({
                 radius: 5,
