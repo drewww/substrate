@@ -811,6 +811,7 @@ export class Editor {
                         class="component-data"
                         data-edited="false"
                         oninput="editor.handleComponentEdit(this)"
+                        onblur="editor.saveComponent('${entity.getId()}', '${component.type}', this)"
                         style="height: ${height}px; min-height: ${height}px;"
                     >${componentData}</textarea>
                 </div>
