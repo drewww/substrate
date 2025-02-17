@@ -130,6 +130,11 @@ export class Editor {
         } else {
             logger.error('Could not find entity panel element');
         }
+
+        // Add resize handler
+        document.getElementById('resize-tool')?.addEventListener('click', () => {
+            this.handleResize();
+        });
     }
 
     private setupDisplayCallbacks(): void {
@@ -1506,6 +1511,46 @@ export class Editor {
             const entities = this.world.getEntitiesAt(pos);
             this.updateEntityPanel(entities);
         }
+    }
+
+    private handleResize(): void {
+        const width = prompt('Enter new width (in cells):', this.world.getWorldWidth().toString());
+        const height = prompt('Enter new height (in cells):', this.world.getWorldHeight().toString());
+        
+        if (!width || !height) return;
+        
+        const newWidth = parseInt(width);
+        const newHeight = parseInt(height);
+        
+        if (isNaN(newWidth) || isNaN(newHeight) || newWidth < 1 || newHeight < 1) {
+            alert('Please enter valid positive numbers for width and height');
+            return;
+        }
+        
+        // Create new world with new dimensions
+        this.world = new World(newWidth, newHeight);
+        
+        // Recreate display with new dimensions
+        this.display = new Display({
+            elementId: CANVAS_ID,
+            cellWidth: 20,
+            cellHeight: 20,
+            worldWidth: newWidth,
+            worldHeight: newHeight,
+            viewportWidth: newWidth,
+            viewportHeight: newHeight
+        });
+        
+        // Create new renderer
+        this.renderer = new EditorRenderer(this.world, this.display);
+        
+        // Clear selections
+        this.selectedCells = [];
+        
+        // Re-setup display callbacks
+        this.setupDisplayCallbacks();
+        
+        logger.info('Resized world to:', { width: newWidth, height: newHeight });
     }
 }
 

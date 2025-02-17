@@ -110,10 +110,11 @@ DONE  There's still something wrong with chainloops. If there are different dept
 
 NEXT
 ----
- - pathfinding
- - see if the movement system is fun??
+ - [done] pathfinding
+ - [done] see if the movement system is fun??
  - add floors to demo game
  - think about multi-segment enemies, that seems important...?
+  -- faked this, but probably need to do it more carefully?
  - implement a door?? not sure I need them?  Could just be passable walls. But something that causes waiting is interesting.
   - implement smashing through glass??
   - think about generation subsystems
