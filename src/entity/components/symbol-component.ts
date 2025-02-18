@@ -24,7 +24,9 @@ export class SymbolComponent extends Component {
     public alwaysRenderIfExplored: boolean = false,
     public rotation: number = 0,
     public offsetSymbolX: number = 0,
-    public offsetSymbolY: number = 0
+    public offsetSymbolY: number = 0,
+    public scaleSymbolX: number = 1.0,
+    public scaleSymbolY: number = 1.0
   ) {
     super();
   }

@@ -168,7 +168,9 @@ export abstract class BaseRenderer implements Renderer {
                     alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored,
                     rotation: (symbolComponent.rotation * Math.PI) / 180,  // Convert degrees to radians
                     offsetSymbolX: symbolComponent.offsetSymbolX,  // Need to add this
-                    offsetSymbolY: symbolComponent.offsetSymbolY  // Need to add this
+                    offsetSymbolY: symbolComponent.offsetSymbolY,  // Need to add this
+                    scaleSymbolX: symbolComponent.scaleSymbolX,
+                    scaleSymbolY: symbolComponent.scaleSymbolY
                 }
             );
             

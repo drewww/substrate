@@ -44,6 +44,8 @@ export class Editor {
         impassable: true,
         opaque: false
     };
+    private isExporting = false;
+    private isImporting = false;
 
     constructor(width: number, height: number) {
         // Create world
@@ -1178,6 +1180,10 @@ export class Editor {
     }
 
     private async handleExport(): Promise<void> {
+        // Prevent double execution
+        if (this.isExporting) return;
+        this.isExporting = true;
+
         try {
             const { exportData, failedEntities, failedComponents } = this.serializeWorld();
 
@@ -1239,6 +1245,9 @@ export class Editor {
         } catch (e) {
             logger.error('Critical export error:', e);
             alert('Export failed. Check console for details.');
+        } finally {
+            // Reset flag after export completes or fails
+            this.isExporting = false;
         }
     }
 
@@ -1249,6 +1258,10 @@ export class Editor {
     }
 
     private handleImport(): void {
+        // Prevent double execution
+        if (this.isImporting) return;
+        this.isImporting = true;
+
         // Create a hidden file input
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
@@ -1309,6 +1322,9 @@ export class Editor {
             } catch (error) {
                 logger.error('Failed to import world:', error);
                 alert('Failed to import world: ' + (error as Error).message);
+            } finally {
+                // Reset flag after import completes or fails
+                this.isImporting = false;
             }
         });
 
@@ -1556,6 +1572,17 @@ export class Editor {
         this.setupDisplayCallbacks();
         
         logger.info('Resized world to:', { width: newWidth, height: newHeight });
+    }
+
+    public handleComponentEdit(textarea: HTMLTextAreaElement): void {
+        // Mark the textarea as edited
+        textarea.dataset.edited = 'true';
+        
+        // Show the save/reset controls
+        const controls = textarea.closest('.component-item')?.querySelector('.component-controls');
+        if (controls && controls instanceof HTMLElement) {
+            controls.style.display = 'flex';
+        }
     }
 }
 
