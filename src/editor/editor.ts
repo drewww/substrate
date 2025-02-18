@@ -1263,47 +1263,52 @@ export class Editor {
                 const jsonContent = await file.text();
                 const jsonData = JSON.parse(jsonContent);
                 
+                // Check for width and height in the JSON
+                if (typeof jsonData.width !== 'number' || typeof jsonData.height !== 'number') {
+                    throw new Error('Invalid world data: missing width or height');
+                }
+
                 // Create new generator with the loaded data
                 const generator = new JsonWorldGenerator(jsonData);
                 
                 // Generate new world
-                const newWorld = generator.generate();
-                
-                // Store the new world
-                this.world = newWorld;
+                this.world = generator.generate();
 
-                const currentViewport = this.display.getViewport();
+                // Calculate viewport size to match world size
+                const viewportWidth = Math.floor(jsonData.width);
+                const viewportHeight = Math.floor(jsonData.height);
                 
                 // Clean up old display
                 this.cleanupDisplay();
                 
-                // Recreate display with new world dimensions
+                // Recreate display with dimensions from JSON
                 this.display = new Display({
                     elementId: CANVAS_ID,
                     cellWidth: 20,
                     cellHeight: 20,
-                    worldWidth: newWorld.getWorldWidth(),
-                    worldHeight: newWorld.getWorldHeight(),
-                    viewportWidth: currentViewport.width,
-                    viewportHeight: currentViewport.height
+                    worldWidth: jsonData.width,
+                    worldHeight: jsonData.height,
+                    viewportWidth: viewportWidth,
+                    viewportHeight: viewportHeight
                 });
 
                 // Create new renderer with new world and display
                 this.renderer = new EditorRenderer(this.world, this.display);
-
-                // Clear any existing selections
+                
+                // Clear selections
                 this.selectedCells = [];
-
+                
                 // Re-setup display callbacks
                 this.setupDisplayCallbacks();
                 
                 logger.info('Successfully imported world:', {
-                    width: newWorld.getWorldWidth(),
-                    height: newWorld.getWorldHeight(),
-                    entities: newWorld.getEntities().length
+                    width: jsonData.width,
+                    height: jsonData.height,
+                    entities: jsonData.entities.length
                 });
             } catch (error) {
                 logger.error('Failed to import world:', error);
+                alert('Failed to import world: ' + (error as Error).message);
             }
         });
 
