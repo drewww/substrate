@@ -768,6 +768,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             textBackgroundColor?: string;
             fillBox?: boolean;
             padding?: number;
+            animate?: {
+                delayBetweenChars: number;
+                initialDelay?: number;
+            }
         } = {}
     ): TileId[] {
         const {
@@ -779,11 +783,13 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         } = options;
 
         const tileIds: TileId[] = [];
+        let charIndex = 0;  // Track total characters for animation timing
         
+        // Calculate actual dimensions including padding
         const actualX = x - padding;
         const actualY = y - padding;
         const actualWidth = width + padding * 2;
-        const actualHeight = height + padding * 2;
+        const actualHeight = height + padding * 2 +1;
         
         // Create background if requested
         if (fillBox) {
@@ -817,15 +823,32 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
                 const wordTileIds: TileId[] = [];
                 Array.from(word).forEach(char => {
+                    const segmentBaseColor = removeOpacity(segment.color);
                     const tileId = this.createTile(
                         currentX + wordTileIds.length,
                         currentY,
                         char,
-                        segment.color,
+                        options.animate ? segmentBaseColor + "00" : segment.color,  // Start transparent if animating
                         textBackgroundColor,
                         zIndex
                     );
                     wordTileIds.push(tileId);
+
+                    // Add animation if requested
+                    if (options.animate) {
+                        const delay = (options.animate.initialDelay || 0) + 
+                            (charIndex * options.animate.delayBetweenChars);
+
+                        this.addColorAnimation(tileId, {
+                            fg: {
+                                start: segmentBaseColor + "00",
+                                end: segment.color,
+                                duration: delay,
+                                easing: (t) => t < 1 ? 0 : 1
+                            }
+                        });
+                    }
+                    charIndex++;
                 });
 
                 // Check if adding this word would exceed the width

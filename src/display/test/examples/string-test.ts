@@ -107,19 +107,23 @@ export class StringTest extends BaseTest {
             zIndex: 5
         });
 
-        // Example of wrapped text with all styling options
+        // Example of wrapped text with animation
         const wrappedText = "{r}This is a very long string that will {g}automatically wrap{/} at word boundaries when it reaches the edge of its container{/}";
         const tileIds = this.display.createWrappedString(
             2,
             2,
-            20,
-            6,
+            20,  // Width of 20 characters
+            6,   // Height of 6 lines
             wrappedText,
             {
                 zIndex: 1,
                 backgroundColor: '#331111FF',
                 fillBox: true,
-                padding: 1
+                padding: 1,
+                animate: {
+                    delayBetweenChars: 0.02,  // 20ms between characters
+                    initialDelay: 0.5        // Wait 500ms before starting
+                }
             }
         );
         this.activeStrings.push({ tileIds, text: wrappedText, zIndex: 1 });
