@@ -27,3 +27,16 @@ export function interpolateColor(start: Color, end: Color, progress: number): Co
     
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
+
+export function removeOpacity(color: string): string {
+    // If color is 9 characters (includes opacity), remove the last 2
+    if (color.length === 9) {
+        return color.slice(0, 7);
+    }
+    // If color is 7 characters (no opacity), return as is
+    if (color.length === 7) {
+        return color;
+    }
+    // Invalid color format, return black
+    return '#000000';
+}

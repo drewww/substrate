@@ -87,6 +87,26 @@ export class StringTest extends BaseTest {
             });
         });
 
+        // Add animated string example
+        const animatedText = "{m}This text appears{/} {y}one character{/} {g}at a time!{/}";
+        const animatedTileIds = this.display.createString(
+            2,
+            22,  // Position near bottom
+            animatedText,
+            5,  // High z-index to appear on top
+            {
+                animate: {
+                    delayBetweenChars: 0.02,  // 100ms between characters
+                    initialDelay: 0.5        // Wait 500ms before starting
+                }
+            }
+        );
+        this.activeStrings.push({
+            tileIds: animatedTileIds,
+            text: animatedText,
+            zIndex: 5
+        });
+
         // Example of wrapped text with all styling options
         const wrappedText = "{r}This is a very long string that will {g}automatically wrap{/} at word boundaries when it reaches the edge of its container{/}";
         const tileIds = this.display.createWrappedString(

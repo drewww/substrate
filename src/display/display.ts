@@ -6,6 +6,7 @@ import { DirtyMask } from './dirty-mask';
 import { SymbolAnimationConfig, SymbolAnimationModule } from '../animation/symbol-animation';
 import { ColorAnimationConfig, ColorAnimationModule } from '../animation/color-animation';
 import { ValueAnimationConfig, ValueAnimationModule } from '../animation/value-animation';
+import { removeOpacity } from './util/color';
 
 // Constants for viewport padding (percentage of viewport size)
 const VIEWPORT_PADDING_X = 0.2; // 20% padding on each side
@@ -705,11 +706,18 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         x: number,
         y: number,
         text: string,
-        zIndex: number = 1
+        zIndex: number = 1,
+        options?: {
+            animate?: {
+                delayBetweenChars: number;  // Delay in seconds between each character
+                initialDelay?: number;      // Initial delay before first character
+            }
+        }
     ): TileId[] {
         const segments = this.textParser.parse(text);
         const tileIds: TileId[] = [];
         let currentX = x;
+        let charIndex = 0;
 
         segments.forEach(segment => {
             Array.from(segment.text).forEach(char => {
@@ -719,9 +727,29 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     char,
                     segment.color,
                     "#000000FF",  // Default background
-                    zIndex
+                    zIndex,
+                    { bgPercent: options?.animate ? 0 : 1 }  // Start invisible if animating
                 );
                 tileIds.push(tileId);
+
+                // Add animation if requested
+                if (options?.animate) {
+                    const delay = (options.animate.initialDelay || 0) + 
+                        (charIndex * options.animate.delayBetweenChars);
+
+                    const segmentBaseColor = removeOpacity(segment.color);
+
+                    this.addColorAnimation(tileId, {
+                        fg: {
+                            start: segmentBaseColor + "00",
+                            end: segment.color,
+                            duration: delay,
+                            easing: (t) => t < 1 ? 0 : 1
+                        }
+                    });
+                }
+                
+                charIndex++;
             });
         });
 
