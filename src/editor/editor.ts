@@ -384,6 +384,10 @@ export class Editor {
             if (e.button === 2) { // Right mouse button
                 this.isRightMouseDown = false;
                 this.lastDragCell = null;
+                // Clear any ongoing actions
+                if (this.currentTool === 'wall') {
+                    this.keyStates.clear();
+                }
             } else if (e.button === 0) { // Left mouse button
                 this.isLeftMouseDown = false;
                 this.areaStartCell = null;
@@ -1254,6 +1258,15 @@ export class Editor {
     private cleanupDisplay(): void {
         if (this.display) {
             this.display.removeAllEventListeners();
+            // Reset all mouse states
+            this.isRightMouseDown = false;
+            this.isLeftMouseDown = false;
+            this.lastDragCell = null;
+            this.isPanning = false;
+            this.lastPanPoint = null;
+            // Clear selections
+            this.selectedCells = [];
+            this.renderer.clearHighlights();
         }
     }
 
@@ -1293,6 +1306,13 @@ export class Editor {
                 
                 // Clean up old display
                 this.cleanupDisplay();
+                
+                // Reset all mouse states
+                this.isRightMouseDown = false;
+                this.isLeftMouseDown = false;
+                this.lastDragCell = null;
+                this.isPanning = false;
+                this.lastPanPoint = null;
                 
                 // Recreate display with dimensions from JSON
                 this.display = new Display({
