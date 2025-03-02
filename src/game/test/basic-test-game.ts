@@ -33,6 +33,7 @@ import { StunAction } from './actions/stun.action';
 import { CreateEntityAction } from './actions/create-projectile.action';
 import { GameSoundRenderer } from './game-sound-renderer';
 import { JsonWorldGenerator } from '../../world/generators/json-world-generator';
+import { EnemyWorldGenerator } from '../../world/generators/enemy-world-generator.ts';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -176,7 +177,9 @@ export class BasicTestGame extends Game {
         const response = await fetch('/assets/world/lighting.json');
         const jsonData = await response.json();
 
-        const generator = new JsonWorldGenerator(jsonData);
+        // const generator = new JsonWorldGenerator(jsonData);
+        const generator = new EnemyWorldGenerator();
+        
         const world = generator.generate();
         this.world = world;
 
