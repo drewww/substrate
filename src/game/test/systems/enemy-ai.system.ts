@@ -18,8 +18,7 @@ export class EnemyAISystem {
     tick(): void {
         // Get all enemies (entities with enemy component and AI component)
         // TODO we need to optimize this. iterating over all the immobile world tiles is not useful
-        const enemies = this.world.getEntities()
-            .filter(e => e.hasComponent('enemyAI'));
+        const enemies = this.world.getEntitiesWithComponent('enemyAI');
 
         for (const enemy of enemies) {
             this.updateEnemy(enemy);

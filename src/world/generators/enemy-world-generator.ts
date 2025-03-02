@@ -14,7 +14,6 @@ export class EnemyWorldGenerator implements WorldGenerator {
     generate(): World {
         // Create a 200x200 world
         const world = new World(400, 400);
-        
 
         // create a background entity for all ground tiles
         for (let x = 0; x < world.getWorldWidth(); x++) {

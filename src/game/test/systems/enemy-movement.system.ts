@@ -15,8 +15,7 @@ export class EnemyMovementSystem {
     tick(): void {
 
         // THIS IS DANGEORUS and will pick up other entities indirectly, I suspect. Fix later.
-        const enemies = this.world.getEntities()
-            .filter(e => e.hasComponent('cooldown') && e.hasComponent('facing') && !e.hasComponent('player'));
+        const enemies = this.world.getEntitiesWithComponent('cooldown').filter(e => !e.hasComponent('player') && e.hasComponent('facing'));
 
         let moved = false;
         for (const enemy of enemies) {

@@ -11,9 +11,8 @@ export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
 
     tick(): void {
-        const toggleEntities = this.world.getEntities()
-            .filter(e => e.hasComponent('cooldown') && e.hasComponent('symbol'));
-
+        const toggleEntities = this.world.getEntitiesWithComponent('cooldown').filter(e => e.hasComponent('symbol'));
+            
         for (const entity of toggleEntities) {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const toggleState = cooldowns.getCooldown('toggle');
