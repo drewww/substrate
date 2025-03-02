@@ -21,6 +21,12 @@ export class RandomScanTest extends BaseTest {
         '900'
     ];
 
+    // Font style options
+    private fontStyles = [
+        'normal',
+        'italic'
+    ];
+
     constructor() {
         super({
             worldWidth: 60,
@@ -65,6 +71,10 @@ export class RandomScanTest extends BaseTest {
         return this.fontWeights[Math.floor(Math.random() * this.fontWeights.length)];
     }
 
+    private getRandomFontStyle(): string {
+        return this.fontStyles[Math.floor(Math.random() * this.fontStyles.length)];
+    }
+
     private updateNextTile() {
         if (!this.isRunning) return;
 
@@ -75,7 +85,7 @@ export class RandomScanTest extends BaseTest {
         // Clear any existing tiles at this position
         this.display.emptyCell(this.currentX, this.currentY);
 
-        // Create new tile with random font weight
+        // Create new tile with random font weight and style
         const tileId = this.display.createTile(
             this.currentX,
             this.currentY,
@@ -86,7 +96,8 @@ export class RandomScanTest extends BaseTest {
             {
                 bgPercent: Math.random()*0.5 + 0.5,
                 fillDirection: this.getRandomDirection(),
-                fontWeight: this.getRandomFontWeight()  // Add random font weight
+                fontWeight: this.getRandomFontWeight(),
+                fontStyle: this.getRandomFontStyle()  // Add random font style
             }
         );
         

@@ -319,7 +319,8 @@ export class Display {
             walls: config?.walls,
             wallColors: config?.wallColors,
             wallOverlays: config?.wallOverlays,
-            fontWeight: config?.fontWeight
+            fontWeight: config?.fontWeight,
+            fontStyle: config?.fontStyle,
         };
         
         this.tileMap.set(id, tile);
@@ -387,11 +388,13 @@ export class Display {
         this.renderCtx.translate(x, y);
         this.renderCtx.globalCompositeOperation = tile.blendMode;
 
-        // Set font with weight if specified
-        if (tile.fontWeight) {
+        // Set font with weight and style if specified
+        if (tile.fontWeight || tile.fontStyle) {
             const fontFamily = this.renderCtx.font.split('px ')[1];  // Extract font family from current font
             const fontSize = Math.floor(this.cellHeightScaled * 0.8);
-            this.renderCtx.font = `${tile.fontWeight} normal ${fontSize}px ${fontFamily}`;
+            const weight = tile.fontWeight || 'normal';
+            const style = tile.fontStyle || 'normal';
+            this.renderCtx.font = `${style} ${weight} ${fontSize}px ${fontFamily}`;
         }
 
         if (!tile.noClip) {
