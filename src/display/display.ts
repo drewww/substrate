@@ -304,7 +304,7 @@ export class Display {
             y,
             char,
             color,
-            backgroundColor: char ? backgroundColor : '#00000000',  // If no char, force transparent
+            backgroundColor: char ? backgroundColor : '#00000000',
             zIndex,
             bgPercent: config?.bgPercent ?? 1,
             fillDirection: config?.fillDirection ?? FillDirection.BOTTOM,
@@ -318,7 +318,8 @@ export class Display {
             alwaysRenderIfExplored: config?.alwaysRenderIfExplored ?? false,
             walls: config?.walls,
             wallColors: config?.wallColors,
-            wallOverlays: config?.wallOverlays
+            wallOverlays: config?.wallOverlays,
+            fontWeight: config?.fontWeight
         };
         
         this.tileMap.set(id, tile);
@@ -385,6 +386,13 @@ export class Display {
         this.renderCtx.save();
         this.renderCtx.translate(x, y);
         this.renderCtx.globalCompositeOperation = tile.blendMode;
+
+        // Set font with weight if specified
+        if (tile.fontWeight) {
+            const fontFamily = this.renderCtx.font.split('px ')[1];  // Extract font family from current font
+            const fontSize = Math.floor(this.cellHeightScaled * 0.8);
+            this.renderCtx.font = `${tile.fontWeight} normal ${fontSize}px ${fontFamily}`;
+        }
 
         if (!tile.noClip) {
             this.renderCtx.beginPath();
@@ -524,7 +532,7 @@ export class Display {
             this.renderCtx.restore();
         }
 
-        this.renderCtx.restore();
+        this.renderCtx.restore();  // This will reset the font to default
     }
 
     private renderFrame(timestamp: number): void {

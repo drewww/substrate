@@ -100,6 +100,7 @@ export interface TileConfig {
         color: string;
         blendMode: BlendMode;
     }>;
+    fontWeight?: string;
 }
 
 // BELOW HERE ARE TYPES SPECIFICALLY FOR EXTENDED FUNCTION ARGUMENTS
@@ -330,4 +331,6 @@ export interface Tile {
         color: string;
         blendMode: BlendMode;
     }>;
+
+    fontWeight?: string;
 }
