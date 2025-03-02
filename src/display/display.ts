@@ -88,6 +88,8 @@ export class Display {
         listener: EventListener;
     }> = [];
 
+    private defaultFontFamily: string = 'monospace';
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -274,11 +276,11 @@ export class Display {
     }
 
     private setupFont(defaultFont?: string, customFont?: string) {
-        const fontFamily = customFont || defaultFont || 'monospace';
+        this.defaultFontFamily = customFont || defaultFont || 'monospace';  // Store default font
         const fontSize = Math.floor(this.cellHeightScaled * 0.8);
         
         [this.displayCtx, this.renderCtx].forEach(ctx => {
-            ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
+            ctx.font = `normal normal ${fontSize}px ${this.defaultFontFamily}`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fontKerning = 'none';
@@ -321,6 +323,7 @@ export class Display {
             wallOverlays: config?.wallOverlays,
             fontWeight: config?.fontWeight,
             fontStyle: config?.fontStyle,
+            fontFamily: config?.fontFamily,
         };
         
         this.tileMap.set(id, tile);
@@ -388,13 +391,13 @@ export class Display {
         this.renderCtx.translate(x, y);
         this.renderCtx.globalCompositeOperation = tile.blendMode;
 
-        // Set font with weight and style if specified
-        if (tile.fontWeight || tile.fontStyle) {
-            const fontFamily = this.renderCtx.font.split('px ')[1];  // Extract font family from current font
+        // Set font properties if any are specified
+        if (tile.fontWeight || tile.fontStyle || tile.fontFamily) {
             const fontSize = Math.floor(this.cellHeightScaled * 0.8);
             const weight = tile.fontWeight || 'normal';
             const style = tile.fontStyle || 'normal';
-            this.renderCtx.font = `${style} ${weight} ${fontSize}px ${fontFamily}`;
+            const family = tile.fontFamily || this.renderCtx.font.split('px ')[1];  // Use tile font or default
+            this.renderCtx.font = `${style} ${weight} ${fontSize}px ${family}`;
         }
 
         if (!tile.noClip) {

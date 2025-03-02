@@ -27,6 +27,12 @@ export class RandomScanTest extends BaseTest {
         'italic'
     ];
 
+    private fontFamilies = [
+        'monospace',
+        'serif',
+        'sans-serif'
+    ];
+
     constructor() {
         super({
             worldWidth: 60,
@@ -75,6 +81,10 @@ export class RandomScanTest extends BaseTest {
         return this.fontStyles[Math.floor(Math.random() * this.fontStyles.length)];
     }
 
+    private getRandomFontFamily(): string {
+        return this.fontFamilies[Math.floor(Math.random() * this.fontFamilies.length)];
+    }
+
     private updateNextTile() {
         if (!this.isRunning) return;
 
@@ -97,7 +107,8 @@ export class RandomScanTest extends BaseTest {
                 bgPercent: Math.random()*0.5 + 0.5,
                 fillDirection: this.getRandomDirection(),
                 fontWeight: this.getRandomFontWeight(),
-                fontStyle: this.getRandomFontStyle()  // Add random font style
+                fontStyle: this.getRandomFontStyle(),
+                fontFamily: this.getRandomFontFamily()  // Add random font family
             }
         );
         

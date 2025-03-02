@@ -102,6 +102,7 @@ export interface TileConfig {
     }>;
     fontWeight?: string;
     fontStyle?: string;
+    fontFamily?: string;
 }
 
 // BELOW HERE ARE TYPES SPECIFICALLY FOR EXTENDED FUNCTION ARGUMENTS
@@ -335,4 +336,5 @@ export interface Tile {
 
     fontWeight?: string;
     fontStyle?: string;
+    fontFamily?: string;
 }
