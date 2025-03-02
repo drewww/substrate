@@ -10,6 +10,7 @@ export abstract class BaseTest {
     constructor(options: DisplayOptions) {
         this.options = {
             ...options,
+            defaultFont: 'JetBrains Mono',
             elementId: 'canvas'
         };
     }
