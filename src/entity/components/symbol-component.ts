@@ -7,6 +7,9 @@ export interface SymbolConfig {
   background?: string;
   zIndex?: number;
   alwaysRenderIfExplored?: boolean;
+  fontWeight?: string;
+  fontStyle?: string;
+  fontFamily?: string;
 }
 
 /**
@@ -26,7 +29,10 @@ export class SymbolComponent extends Component {
     public offsetSymbolX: number = 0,
     public offsetSymbolY: number = 0,
     public scaleSymbolX: number = 1.0,
-    public scaleSymbolY: number = 1.0
+    public scaleSymbolY: number = 1.0,
+    public fontWeight: string = 'normal',
+    public fontStyle: string = 'normal',
+    public fontFamily: string = 'monospace'
   ) {
     super();
   }

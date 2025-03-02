@@ -227,6 +227,23 @@ class WorldTest {
                     }
                 }));
                 this.world.addEntity(aoeChargeShoot);
+            } else if (entityType === 'serifTest') {
+                entity = new Entity(worldPos);
+                entity.setComponent(new SymbolComponent(
+                    '@',                // character
+                    '#FFFFFF',          // white foreground
+                    '#00000000',        // transparent background
+                    50,                 // z-index
+                    false,              // alwaysRenderIfExplored
+                    0,                  // rotation
+                    0,                  // offsetSymbolX
+                    0,                  // offsetSymbolY
+                    1.0,               // scaleSymbolX
+                    1.0,               // scaleSymbolY
+                    'bold',            // fontWeight
+                    'italic',          // fontStyle
+                    'serif'            // fontFamily
+                ));
             }
 
             if (entity) {
@@ -355,6 +372,9 @@ class WorldTest {
             this.keyStates.delete(e.key);   // For arrow keys
             this.keyStates.delete(e.code);  // For WASD
         });
+
+        // Add font test entities
+        // this.addFontTestEntities();
     }
 
     private setupLogLevel() {
@@ -515,7 +535,8 @@ class WorldTest {
             { value: 'spin', label: 'Spinning Light' },
             { value: 'flicker', label: 'Flickering Light' },
             { value: 'chargedShot', label: 'Charged Shot' },
-            { value: 'wall', label: 'Wall' }  // Add wall option
+            { value: 'wall', label: 'Wall' },
+            { value: 'serifTest', label: 'Serif Test' }  // Add new option
         ];
 
         options.forEach(opt => {
@@ -563,6 +584,52 @@ class WorldTest {
                 color: '#888888'
             });
         }
+    }
+
+    private addFontTestEntities(): void {
+        // Create a row of test characters with different font configurations
+        const testChars = ['@', '&', '#', '%', '?', '!'];
+        const y = Math.floor(WORLD_HEIGHT / 2);
+        const startX = Math.floor(WORLD_WIDTH / 2 - testChars.length / 2);
+
+        testChars.forEach((char, index) => {
+            const entity = new Entity({ x: startX + index, y });
+            entity.setComponent(new SymbolComponent(
+                char,
+                '#FFFFFF',          // White foreground
+                '#00000000',        // Transparent background
+                50,                 // z-index
+                false,              // alwaysRenderIfExplored
+                0,                  // rotation
+                0,                  // offsetSymbolX
+                0,                  // offsetSymbolY
+                1.0,               // scaleSymbolX
+                1.0,               // scaleSymbolY
+                'bold',            // fontWeight
+                'italic',          // fontStyle
+                'serif'            // fontFamily
+            ));
+            this.world.addEntity(entity);
+        });
+
+        // Add a label above
+        const labelEntity = new Entity({ x: startX, y: y - 1 });
+        labelEntity.setComponent(new SymbolComponent(
+            'Font Test',
+            '#888888',          // Gray foreground
+            '#00000000',        // Transparent background
+            50,                 // z-index
+            false,              // alwaysRenderIfExplored
+            0,                  // rotation
+            0,                  // offsetSymbolX
+            0,                  // offsetSymbolY
+            1.0,               // scaleSymbolX
+            1.0,               // scaleSymbolY
+            'normal',          // fontWeight
+            'normal',          // fontStyle
+            'monospace'        // fontFamily - using monospace for the label
+        ));
+        this.world.addEntity(labelEntity);
     }
 }
 

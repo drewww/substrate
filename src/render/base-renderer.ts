@@ -167,10 +167,13 @@ export abstract class BaseRenderer implements Renderer {
                 {
                     alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored,
                     rotation: (symbolComponent.rotation * Math.PI) / 180,  // Convert degrees to radians
-                    offsetSymbolX: symbolComponent.offsetSymbolX,  // Need to add this
-                    offsetSymbolY: symbolComponent.offsetSymbolY,  // Need to add this
+                    offsetSymbolX: symbolComponent.offsetSymbolX,
+                    offsetSymbolY: symbolComponent.offsetSymbolY,
                     scaleSymbolX: symbolComponent.scaleSymbolX,
-                    scaleSymbolY: symbolComponent.scaleSymbolY
+                    scaleSymbolY: symbolComponent.scaleSymbolY,
+                    fontWeight: symbolComponent.fontWeight,
+                    fontStyle: symbolComponent.fontStyle,
+                    fontFamily: symbolComponent.fontFamily
                 }
             );
             
@@ -232,7 +235,10 @@ export abstract class BaseRenderer implements Renderer {
                     alwaysRenderIfExplored: symbol.alwaysRenderIfExplored,
                     rotation: (symbol.rotation * Math.PI) / 180,
                     offsetSymbolX: symbol.offsetSymbolX,
-                    offsetSymbolY: symbol.offsetSymbolY
+                    offsetSymbolY: symbol.offsetSymbolY,
+                    fontWeight: symbol.fontWeight,
+                    fontStyle: symbol.fontStyle,
+                    fontFamily: symbol.fontFamily
                 });
             }
         } 

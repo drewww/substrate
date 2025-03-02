@@ -186,6 +186,9 @@ export interface TileUpdateConfig {
     rotation?: number;
     offsetSymbolX?: number;
     offsetSymbolY?: number;
+    fontWeight?: string;
+    fontStyle?: string;
+    fontFamily?: string;
 }
 
 export interface PerformanceMetrics {

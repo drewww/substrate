@@ -1160,6 +1160,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         if (config.fillDirection !== undefined) tile.fillDirection = config.fillDirection;
         if (config.noClip !== undefined) tile.noClip = config.noClip;
         if (config.blendMode !== undefined) tile.blendMode = config.blendMode;
+        if (config.fontWeight !== undefined) tile.fontWeight = config.fontWeight;
+        if (config.fontStyle !== undefined) tile.fontStyle = config.fontStyle;
+        if (config.fontFamily !== undefined) tile.fontFamily = config.fontFamily;
 
         this.dirtyMask.markDirty(tile);
         this.hasChanges = true;
