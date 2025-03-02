@@ -770,7 +770,7 @@ export class World {
         const radiusInteger = Math.ceil(radius);
 
         // Update FOV map to ensure it's current
-        this.rebuildFOVMap();
+        // this.rebuildFOVMap();
         
         // Calculate FOV from the position
         const fov = computeFieldOfView(
