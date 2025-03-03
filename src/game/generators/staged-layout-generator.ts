@@ -35,6 +35,10 @@ export class StagedLayoutGenerator {
     private originX: number = 0;
     private originY: number = 0;
 
+    // Add these properties for medium roads
+    private readonly MIN_MEDIUM_SPACE = 3; // Minimum space needed for medium roads
+    private readonly MEDIUM_DENSITY_RADIUS = 3;
+
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
@@ -250,76 +254,195 @@ export class StagedLayoutGenerator {
         return false;
     }
 
-    step(): StepOutcome {
-        if (this.currentPhase !== 'trunk') {
-            console.log('Ending: Not in trunk phase');
-            return StepOutcome.DONE; // Indicate done
-        }
-        
-        if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
-            console.log(`Ending: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
-            return StepOutcome.DONE; // Indicate done
+    private isMediumBranchPoint(x: number, y: number, direction: number): boolean {
+        const cell = this.layout[y][x];
+        if (cell.type !== 'road' || !cell.roadInfo || cell.roadInfo.weight !== 'trunk') {
+            return false;
         }
 
-        // Calculate next position
-        const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
-        const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
-        
-        // Check if placing a road at the next position would create a 2x2 block
-        if (this.wouldCreateRoadBlock(nextX, nextY)) {
-            console.log(`Would create a 2x2 block at (${nextX}, ${nextY}), ending trunk`);
-            return StepOutcome.RESET; // End this trunk and start a new one
+        // Check if there's enough space in the given direction
+        let spaceCount = 0;
+        let checkX = x + this.DIRECTIONS[direction][0];
+        let checkY = y + this.DIRECTIONS[direction][1];
+
+        while (this.isValidPosition(checkX, checkY) && 
+               this.layout[checkY][checkX].type === 'building' &&
+               spaceCount < this.MIN_MEDIUM_SPACE) {
+            spaceCount++;
+            checkX += this.DIRECTIONS[direction][0];
+            checkY += this.DIRECTIONS[direction][1];
         }
 
-        // Place current road
-        this.placeRoad(this.startX, this.startY, 'trunk');
-        this.trunkTilesPlaced++;
+        return spaceCount >= this.MIN_MEDIUM_SPACE;
+    }
+
+    private startNewMedium(): boolean {
+        // Find all valid trunk points that have enough space for a medium road
+        const validOptions: Array<{point: {x: number, y: number}, direction: number}> = [];
         
-        console.log(`Placed trunk tile ${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES} at (${this.startX}, ${this.startY})`);
-        console.log(`Current length: ${this.currentLength}, Direction: ${this.currentDirection}`);
-        console.log(`Unexplored directions: ${this.unexploredDirections.join(', ')}`);
-        
-        // Check if we should continue
-        if (this.isValidPosition(nextX, nextY)) {
-            this.currentLength++;
-            
-            // If we've reached minimum length, check if we should continue
-            if (this.currentLength >= this.MIN_TRUNK_LENGTH) {
-                const continueChance = this.TRUNK_CONTINUE_CHANCE -
-                    (this.currentLength - 6) * this.TRUNK_CONTINUE_DECREASE;
-                
-                console.log(`Continue chance: ${continueChance} at length ${this.currentLength}`);
-                
-                if (Math.random() > continueChance) {
-                    console.log('Failed continue check, starting new trunk');
-                    // End this trunk and start a new one
-                    return StepOutcome.RESET; // Indicate reset
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                // Check all four directions from trunk roads
+                for (let dir = 0; dir < 4; dir++) {
+                    if (this.isMediumBranchPoint(x, y, dir)) {
+                        const nextX = x + this.DIRECTIONS[dir][0];
+                        const nextY = y + this.DIRECTIONS[dir][1];
+                        
+                        // Add density check here too
+                        if (!this.wouldCreateRoadBlock(nextX, nextY) && 
+                            this.checkMediumRoadDensity(nextX, nextY)) {
+                            validOptions.push({
+                                point: { x, y },
+                                direction: dir
+                            });
+                        }
+                    }
                 }
             }
+        }
+
+        console.log(`Found ${validOptions.length} valid medium road branch points`);
+        
+        if (validOptions.length === 0) {
+            console.log('No valid medium branch points found');
+            return false;
+        }
+
+        // Pick a random valid option
+        const chosen = validOptions[Math.floor(Math.random() * validOptions.length)];
+        
+        // Set new position and direction
+        this.startX = chosen.point.x;
+        this.startY = chosen.point.y;
+        this.currentDirection = chosen.direction;
+        this.currentLength = 0;
+        
+        console.log(`Starting new medium road at (${this.startX}, ${this.startY}) in direction ${this.currentDirection}`);
+        
+        return true;
+    }
+
+    private wouldHitExistingRoad(x: number, y: number): boolean {
+        return this.isValidPosition(x, y) && 
+               this.layout[y][x].type === 'road';
+    }
+
+    private checkMediumRoadDensity(x: number, y: number): boolean {
+        let roadCount = 0;
+        const maxAllowedRoads = 3; // Maximum number of existing roads allowed in the area
+
+        // Check surrounding area
+        for (let dy = -this.MEDIUM_DENSITY_RADIUS; dy <= this.MEDIUM_DENSITY_RADIUS; dy++) {
+            for (let dx = -this.MEDIUM_DENSITY_RADIUS; dx <= this.MEDIUM_DENSITY_RADIUS; dx++) {
+                const checkX = x + dx;
+                const checkY = y + dy;
+                
+                if (this.isValidPosition(checkX, checkY) && 
+                    this.layout[checkY][checkX].type === 'road' &&
+                    this.layout[checkY][checkX].roadInfo?.weight === 'medium') {
+                    roadCount++;
+                    if (roadCount > maxAllowedRoads) {
+                        return false; // Too many medium roads in the area
+                    }
+                }
+            }
+        }
+        
+        return true; // Area is not too dense with medium roads
+    }
+
+    step(): StepOutcome {
+        if (this.currentPhase === 'trunk') {
+            if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
+                console.log(`Ending: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
+                return StepOutcome.DONE; // Indicate done
+            }
+
+            // Calculate next position
+            const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
+            const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
+            
+            // Check if placing a road at the next position would create a 2x2 block
+            if (this.wouldCreateRoadBlock(nextX, nextY)) {
+                console.log(`Would create a 2x2 block at (${nextX}, ${nextY}), ending trunk`);
+                return StepOutcome.RESET; // End this trunk and start a new one
+            }
+
+            // Place current road
+            this.placeRoad(this.startX, this.startY, 'trunk');
+            this.trunkTilesPlaced++;
+            
+            console.log(`Placed trunk tile ${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES} at (${this.startX}, ${this.startY})`);
+            console.log(`Current length: ${this.currentLength}, Direction: ${this.currentDirection}`);
+            console.log(`Unexplored directions: ${this.unexploredDirections.join(', ')}`);
+            
+            // Check if we should continue
+            if (this.isValidPosition(nextX, nextY)) {
+                this.currentLength++;
+                
+                // If we've reached minimum length, check if we should continue
+                if (this.currentLength >= this.MIN_TRUNK_LENGTH) {
+                    const continueChance = this.TRUNK_CONTINUE_CHANCE -
+                        (this.currentLength - 6) * this.TRUNK_CONTINUE_DECREASE;
+                    
+                    console.log(`Continue chance: ${continueChance} at length ${this.currentLength}`);
+                    
+                    if (Math.random() > continueChance) {
+                        console.log('Failed continue check, starting new trunk');
+                        // End this trunk and start a new one
+                        return StepOutcome.RESET; // Indicate reset
+                    }
+                }
+                
+                // Move to next position
+                this.startX = nextX;
+                this.startY = nextY;
+                return StepOutcome.CONTINUE; // Indicate continue
+            } else {
+                console.log(`Hit invalid position at (${nextX}, ${nextY}), handling edge`);
+                // We hit an edge
+                this.handleEdgeIntersection(this.startX, this.startY);
+                
+                // If we hit an edge, also start a new trunk
+                return StepOutcome.RESET; // Indicate reset
+            }
+        } else if (this.currentPhase === 'medium') {
+            // Calculate next position
+            const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
+            const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
+
+            // Check if we would hit another road or go out of bounds
+            if (!this.isValidPosition(nextX, nextY) || 
+                this.wouldHitExistingRoad(nextX, nextY) ||
+                this.wouldCreateRoadBlock(nextX, nextY)) {
+                return StepOutcome.RESET;
+            }
+
+            // Place current road
+            this.placeRoad(this.startX, this.startY, 'medium');
             
             // Move to next position
             this.startX = nextX;
             this.startY = nextY;
-            return StepOutcome.CONTINUE; // Indicate continue
-        } else {
-            console.log(`Hit invalid position at (${nextX}, ${nextY}), handling edge`);
-            // We hit an edge
-            this.handleEdgeIntersection(this.startX, this.startY);
-            
-            // If we hit an edge, also start a new trunk
-            return StepOutcome.RESET; // Indicate reset
+            return StepOutcome.CONTINUE;
         }
+
+        return StepOutcome.DONE;
     }
 
     generate(): ChunkMetadata[][] {
+        // First generate trunk roads
+        this.currentPhase = 'trunk';
         this.reset();
-        let consecutiveResets = 0;
-        const MAX_CONSECUTIVE_RESETS = 10; // Prevent infinite loops
         
+        let consecutiveResets = 0;
+        const MAX_CONSECUTIVE_RESETS = 10;
+        
+        // Generate trunk roads
         while (true) {
             const outcome = this.step();
             if (outcome === StepOutcome.DONE) {
-                break; // Stop generation
+                break;
             } else if (outcome === StepOutcome.RESET) {
                 consecutiveResets++;
                 if (consecutiveResets >= MAX_CONSECUTIVE_RESETS) {
@@ -331,9 +454,33 @@ export class StagedLayoutGenerator {
                     break;
                 }
             } else {
-                consecutiveResets = 0; // Reset counter when we successfully continue
+                consecutiveResets = 0;
             }
         }
+
+        // Then generate medium roads
+        this.currentPhase = 'medium';
+        consecutiveResets = 0;
+        
+        while (true) {
+            const outcome = this.step();
+            if (outcome === StepOutcome.DONE) {
+                break;
+            } else if (outcome === StepOutcome.RESET) {
+                consecutiveResets++;
+                if (consecutiveResets >= MAX_CONSECUTIVE_RESETS) {
+                    console.log('Too many consecutive resets, ending medium phase');
+                    break;
+                }
+                if (!this.startNewMedium()) {
+                    console.log('Could not find valid medium point, ending medium phase');
+                    break;
+                }
+            } else {
+                consecutiveResets = 0;
+            }
+        }
+
         return this.layout;
     }
 
