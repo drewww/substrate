@@ -65,6 +65,12 @@ export class Editor {
             viewportHeight: viewportHeight
         });
 
+        // Add this line to set the background color
+        const canvas = document.getElementById(CANVAS_ID) as HTMLCanvasElement;
+        if (canvas) {
+            canvas.style.backgroundColor = '#ffffff';
+        }
+
         // Create state manager
         this.state = new EditorStateManager();
 
