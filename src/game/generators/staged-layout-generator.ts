@@ -43,6 +43,10 @@ export class StagedLayoutGenerator {
     private readonly MIN_DISTANCE_FROM_TRUNK = 2;    // Minimum distance to maintain from trunk roads
     private lastTurned: boolean = false;             // Track if we turned last time
 
+    // Add these properties for minor roads near the other road properties
+    private readonly MINOR_MAX_LENGTH = 4;  // Maximum length for minor roads
+    private readonly MINOR_CONTINUE_CHANCE = 0.7;  // 70% chance to continue
+
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
@@ -526,8 +530,8 @@ export class StagedLayoutGenerator {
             const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
             const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
 
-            // Stop after placing two roads
-            if (this.currentLength >= 2) {
+            // Stop if we've reached max length
+            if (this.currentLength >= this.MINOR_MAX_LENGTH) {
                 return StepOutcome.RESET;
             }
 
@@ -537,8 +541,16 @@ export class StagedLayoutGenerator {
                 return StepOutcome.RESET;
             }
 
+            // Place current road
             this.placeRoad(this.startX, this.startY, 'minor');
             this.currentLength++;
+            
+            // Check if we should continue
+            if (this.currentLength >= 2) {  // After minimum length of 2
+                if (Math.random() > this.MINOR_CONTINUE_CHANCE) {
+                    return StepOutcome.RESET;
+                }
+            }
             
             this.startX = nextX;
             this.startY = nextY;
