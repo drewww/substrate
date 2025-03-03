@@ -48,6 +48,86 @@
         ]
       },
       {
+        "id": "street_light",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⚟",
+            "foreground": "#FFC505",
+            "background": "#654500",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": false,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+      {
+        "id": "street_light_off",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⍠",
+            "foreground": "#666666",
+            "background": "#000D12",
+            "zIndex": 10,
+            "alwaysRenderIfExplored": false,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+      {
+        "id": "street_light_warning",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⍠",
+            "foreground": "#FFFA5E",
+            "background": "#000D12",
+            "zIndex": 10,
+            "alwaysRenderIfExplored": false,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+      {
+        "id": "street_light_stop",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⍠",
+            "foreground": "#FF194D",
+            "background": "#590426",
+            "zIndex": 10,
+            "alwaysRenderIfExplored": false,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+      {
         "id": "player_template",
         "position": { "x": 0, "y": 0 },
         "components": [
@@ -61,6 +141,7 @@
             "lockRotationToFacing": true,
             "scaleSymbolX": 1.5,
             "scaleSymbolY": 1.5,
+            "offsetSymbolY": -0.05,
             "fontWeight": "bold"  
           },
           {
