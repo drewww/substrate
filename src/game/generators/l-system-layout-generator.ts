@@ -29,10 +29,10 @@ export class LSystemLayoutGenerator {
     // L-System parameters
     private axiom: string = 'o';    // o for original
     private rules: LSystemRule[] = [
-        { predecessor: 'o', successor: '[T]+[T]+[T]+[T]' }, 
+        { predecessor: 'o', successor: '[tT]+[tT]+[tT]+[tT]' }, 
         { predecessor: 'T', successor: 'tT', probability: 0.7 },
-        { predecessor: 'T', successor: 't+[T]T', probability: 0.1 },
-        { predecessor: 'T', successor: 't-[T]T', probability: 0.1 },
+        { predecessor: 'T', successor: 't+[tT]tT', probability: 0.1 },
+        { predecessor: 'T', successor: 't-[tT]tT', probability: 0.1 },
         { predecessor: 'T', successor: 't', probability: 0.05 }, // just end the road
         { predecessor: 'T', successor: 'M', probability: 0.05 }, // just end the road
         // { predecessor: 'M', successor: 'mM', probability: 0.7 },
@@ -55,6 +55,15 @@ export class LSystemLayoutGenerator {
     // Add a property to store the starting position
     private startX: number = 0;
     private startY: number = 0;
+    
+    // Add these properties to the class
+    private readonly EDGE_MARGIN = 1; // How close to edge before we consider it an edge tile
+    private readonly edgeRules: LSystemRule[] = [
+        { predecessor: 'T', successor: 't+T', probability: 0.5 },  // Turn right
+        { predecessor: 'T', successor: 't-T', probability: 0.5 },  // Turn left
+        { predecessor: 'T', successor: 't+[tT]t-[tT]', probability: 0.3 }, // Split
+        { predecessor: 'T', successor: 't', probability: 0.2 }, // End the road
+    ];
     
     constructor(width: number, height: number) {
         this.width = width;
@@ -232,12 +241,8 @@ export class LSystemLayoutGenerator {
     
     // Public methods
     step(): boolean {
-        // If we've completed all iterations, return false
-        if (this.isGenerationComplete) {
-            return false;
-        }
+        if (this.isGenerationComplete) return false;
         
-        // If we've reached the target number of iterations, process the final result
         if (this.currentIteration >= this.iterations) {
             // Reset the layout
             this.layout = Array(this.height).fill(null).map(() => 
@@ -260,16 +265,30 @@ export class LSystemLayoutGenerator {
             return true;
         }
         
-        // Perform one iteration of the L-System
         let nextString = '';
+        let currentX = this.startX;
+        let currentY = this.startY;
+        let currentDirection = 0;
         
         for (const char of this.currentLSystemString) {
             let replaced = false;
             
+            // Update position based on current character
+            if (['T', 'M', 'L', 't', 'm', 'l'].includes(char)) {
+                currentX += this.DIRECTIONS[currentDirection][0];
+                currentY += this.DIRECTIONS[currentDirection][1];
+            } else if (char === '+') {
+                currentDirection = (currentDirection + 1) % 4;
+            } else if (char === '-') {
+                currentDirection = (currentDirection + 3) % 4;
+            }
+            
+            // Choose rules based on whether we're in an edge tile
+            const rules = this.isEdgeTile(currentX, currentY) ? this.edgeRules : this.rules;
+            
             // Apply rules
-            for (const rule of this.rules) {
+            for (const rule of rules) {
                 if (char === rule.predecessor) {
-                    // For stochastic rules, check probability
                     if (!rule.probability || Math.random() < rule.probability) {
                         nextString += rule.successor;
                         replaced = true;
@@ -278,7 +297,6 @@ export class LSystemLayoutGenerator {
                 }
             }
             
-            // If no rule applies, keep the character
             if (!replaced) {
                 nextString += char;
             }
@@ -421,5 +439,13 @@ export class LSystemLayoutGenerator {
         };
         
         return symbolMap[sortedKey]?.[weight] ?? '○';
+    }
+    
+    // Add this helper method
+    private isEdgeTile(x: number, y: number): boolean {
+        return x <= this.EDGE_MARGIN || 
+               x >= this.width - this.EDGE_MARGIN || 
+               y <= this.EDGE_MARGIN || 
+               y >= this.height - this.EDGE_MARGIN;
     }
 } 
