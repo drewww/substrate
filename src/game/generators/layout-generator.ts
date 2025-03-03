@@ -13,6 +13,8 @@ interface OpenTile {
     y: number;
     sourceRoadX: number;
     sourceRoadY: number;
+    direction: number;  // Add direction to track which way this branch would go
+    isStraight: boolean;  // Flag if this continues the previous direction
 }
 
 export class LayoutGenerator {
@@ -20,13 +22,14 @@ export class LayoutGenerator {
     private height: number;
     private layout!: ChunkMetadata[][];
     private agent!: Agent;
-    private readonly TARGET_ROAD_PERCENTAGE = 0.3;
+    private readonly TARGET_ROAD_PERCENTAGE = 0.7;
     private readonly DIRECTIONS = [
         [0, -1], // north
         [1, 0],  // east
         [0, 1],  // south
         [-1, 0]  // west
     ];
+    private readonly STRAIGHT_BIAS = 0.7; // 70% chance to go straight if possible
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -65,19 +68,38 @@ export class LayoutGenerator {
             for (let x = 0; x < this.width; x++) {
                 if (this.layout[y][x].type !== 'road') continue;
 
+                // Find the direction this road came from (if possible)
+                let sourceDirection = -1;
+                for (let dir = 0; dir < this.DIRECTIONS.length; dir++) {
+                    const prevX = x - this.DIRECTIONS[dir][0];
+                    const prevY = y - this.DIRECTIONS[dir][1];
+                    if (prevX >= 0 && prevX < this.width && 
+                        prevY >= 0 && prevY < this.height &&
+                        this.layout[prevY][prevX].type === 'road') {
+                        sourceDirection = dir;
+                        break;
+                    }
+                }
+
                 // Check adjacent tiles
-                for (const [dx, dy] of this.DIRECTIONS) {
+                for (let dir = 0; dir < this.DIRECTIONS.length; dir++) {
+                    const [dx, dy] = this.DIRECTIONS[dir];
                     const newX = x + dx;
                     const newY = y + dy;
                     
                     if (this.isValidExpansionTile(newX, newY)) {
-                        // Check if this would create parallel roads
                         if (!this.wouldCreateRoadBlock(newX, newY)) {
+                            // If we found a source direction, check if this would be "straight"
+                            const isStraight = sourceDirection !== -1 && 
+                                ((sourceDirection + 2) % 4 !== dir); // Not going backwards
+                                
                             openTiles.push({
                                 x: newX,
                                 y: newY,
                                 sourceRoadX: x,
-                                sourceRoadY: y
+                                sourceRoadY: y,
+                                direction: dir,
+                                isStraight: isStraight
                             });
                         }
                     }
@@ -155,22 +177,31 @@ export class LayoutGenerator {
     }
 
     step(): boolean {
-        // If we haven't reached our target road percentage
         if (this.getRoadPercentage() < this.TARGET_ROAD_PERCENTAGE) {
             const validBranchPoints = this.findValidBranchPoints();
             
             if (validBranchPoints.length > 0) {
-                // Pick a random valid branch point
-                const branchPoint = validBranchPoints[Math.floor(Math.random() * validBranchPoints.length)];
+                let branchPoint: OpenTile;
+
+                // Try to find a straight path
+                const straightPaths = validBranchPoints.filter(tile => tile.isStraight);
+                
+                if (straightPaths.length > 0 && Math.random() < this.STRAIGHT_BIAS) {
+                    // Pick a random straight path
+                    branchPoint = straightPaths[Math.floor(Math.random() * straightPaths.length)];
+                } else {
+                    // Pick any valid branch point
+                    branchPoint = validBranchPoints[Math.floor(Math.random() * validBranchPoints.length)];
+                }
                 
                 // Create new road at branch point
                 this.layout[branchPoint.y][branchPoint.x] = { type: 'road' as const };
                 
-                // Set agent to new position
+                // Set agent to new position with the chosen direction
                 this.agent = {
                     x: branchPoint.x,
                     y: branchPoint.y,
-                    direction: Math.floor(Math.random() * 4)
+                    direction: branchPoint.direction
                 };
                 
                 return true;
