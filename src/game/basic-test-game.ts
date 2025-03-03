@@ -31,6 +31,7 @@ import { EnemyMovementSystem } from './systems/enemy-movement.system.ts';
 import { FollowingSystem } from './systems/following.system.ts';
 import { PlayerMovementSystem } from './systems/player-movement-system.ts';
 import { WorldSystem } from './systems/world.system.ts';
+import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts';
 
 
 
@@ -172,52 +173,55 @@ export class BasicTestGame extends Game {
     }
 
     protected async setup(): Promise<void> {
-        // Use JsonWorldGenerator to create the initial world
-        const response = await fetch('/assets/world/lighting.json');
-        const jsonData = await response.json();
+        try {
+            // Load the world from JSON
+            const generator = await JsonWorldGenerator.fromFile('/assets/world/test-world.json');
+            const world = generator.generate();
+            this.world = world;
 
-        // const generator = new JsonWorldGenerator(jsonData);
-        const generator = new EnemyWorldGenerator();
-        
-        const world = generator.generate();
-        this.world = world;
+            // Find the player entity that was created by the generator
+            this.player = world.getEntitiesWithComponent('player')[0];
 
-        // Find the player entity that was created by the generator
-        this.player = world.getEntitiesWithComponent('player')[0];
+            // Add components to player
+            const cooldowns = new CooldownComponent();
+            cooldowns.setCooldown('move', 4, 4, false);
+            this.player.setComponent(cooldowns);
 
-        // Add components to player
-        const cooldowns = new CooldownComponent();
-        cooldowns.setCooldown('move', 4, 4, false);
-        this.player.setComponent(cooldowns);
+            const inertia = new InertiaComponent(Direction.East, 0);
+            this.player.setComponent(inertia);
 
-        const inertia = new InertiaComponent(Direction.East, 0);
-        this.player.setComponent(inertia);
+            if (!this.player) {
+                throw new Error('No player entity found in generated world');
+            }
 
-        if (!this.player) {
-            throw new Error('No player entity found in generated world');
+            // Initialize engine with the generated world
+            this.engine = new Engine({
+                mode: 'realtime',
+                worldWidth: world.getWorldWidth(),
+                worldHeight: world.getWorldHeight(),
+                player: this.player,
+                world: world
+            });
+
+            const visionComponent = this.player.getComponent('vision') as VisionComponent;
+            const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
+            this.world.updateVision(this.player.getPosition(), radius);
+
+            // Set up action handler with new PlayerMoveAction
+            this.actionHandler = new ActionHandler(this.world);
+            this.actionHandler.registerAction('entityMove', EntityMoveAction);
+            this.actionHandler.registerAction('stun', StunAction);
+            this.actionHandler.registerAction('createProjectile', CreateEntityAction);
+
+            // Note: These setup calls will happen after display is created in prepare()
+            // They are moved out of setup() and will be called after prepare() creates the display
+        } catch (error) {
+            logger.error('Failed to load world:', error);
+            // Fallback to EnemyWorldGenerator if JSON loading fails
+            const fallbackGenerator = new EnemyWorldGenerator();
+            this.world = fallbackGenerator.generate();
+            this.player = this.world.getEntitiesWithComponent('player')[0];
         }
-
-        // Initialize engine with the generated world
-        this.engine = new Engine({
-            mode: 'realtime',
-            worldWidth: world.getWorldWidth(),
-            worldHeight: world.getWorldHeight(),
-            player: this.player,
-            world: world
-        });
-
-        const visionComponent = this.player.getComponent('vision') as VisionComponent;
-        const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
-        this.world.updateVision(this.player.getPosition(), radius);
-
-        // Set up action handler with new PlayerMoveAction
-        this.actionHandler = new ActionHandler(this.world);
-        this.actionHandler.registerAction('entityMove', EntityMoveAction);
-        this.actionHandler.registerAction('stun', StunAction);
-        this.actionHandler.registerAction('createProjectile', CreateEntityAction);
-
-        // Note: These setup calls will happen after display is created in prepare()
-        // They are moved out of setup() and will be called after prepare() creates the display
     }
 
     // Add a new method to handle post-display setup

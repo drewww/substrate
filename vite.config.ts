@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        game: 'src/game/test/index.html',
+        game: 'src/game/index.html',
       }
     },
     outDir: 'dist',
@@ -17,5 +17,8 @@ export default defineConfig({
   server: {
     open: '/',
     port: 3000
-  }
+  },
+
+  publicDir: 'public',
+  base: '/',
 });

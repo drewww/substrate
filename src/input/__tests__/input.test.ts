@@ -1,16 +1,19 @@
 import { describe, beforeEach, it, expect, vi, afterEach } from 'vitest';
 import { InputManager } from '../input';
 
+// Create a type that combines both the Mock and setInterval types
+type MockInterval = ReturnType<typeof vi.fn> & typeof setInterval;
+
 describe('InputManager', () => {
     let inputManager: InputManager;
     let mockAddEventListener: ReturnType<typeof vi.fn>;
-    let mockSetInterval: ReturnType<typeof vi.fn>;
+    let mockSetInterval: MockInterval;
     let mockClearInterval: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         vi.useFakeTimers();
         mockAddEventListener = vi.fn();
-        mockSetInterval = vi.fn();
+        mockSetInterval = vi.fn() as MockInterval;
         mockClearInterval = vi.fn();
         
         inputManager = new InputManager({

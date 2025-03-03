@@ -10,8 +10,8 @@ export class TimerComponent extends Component {
   type: 'timer' = 'timer';
   
   constructor(
-    public remaining: number,  // seconds remaining
-    public total: number,      // total duration
+    public remaining: number = 0,  // seconds remaining
+    public total: number = 1,      // total duration
     public onComplete?: string // event to emit when done
   ) {
     super();
@@ -30,8 +30,8 @@ export class SpawnerComponent extends Component {
   type: 'spawner' = 'spawner';
   
   constructor(
-    public entityType: string,
-    public pattern: Point[],  // relative positions to spawn at
+    public entityType: string = '',
+    public pattern: Point[] = [],  // relative positions to spawn at
     public config: any = {}   // additional spawn configuration
   ) {
     super();
@@ -52,7 +52,7 @@ export class FadeComponent extends Component {
   constructor(
     public startOpacity: number = 1.0,
     public endOpacity: number = 0.0,
-    public duration: number    // seconds
+    public duration: number = 1    // seconds
   ) {
     super();
   }

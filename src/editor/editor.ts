@@ -12,7 +12,7 @@ import { MouseTransition } from '../display/display';
 import { WallDirection } from '../entity/components/wall-component';
 
 import '../entity/components/index.ts';
-import '../game/test/components/index.ts';
+import '../game/components/index.ts';
 import { JsonWorldGenerator } from '../world/generators/json-world-generator';
 
 import basicPalette from './templates/basic-palette.json';

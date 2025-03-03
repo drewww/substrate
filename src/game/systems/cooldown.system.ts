@@ -1,4 +1,4 @@
-import { World } from '../../../world/world';
+import { World } from '../../world/world';
 import { CooldownComponent } from '../components/cooldown.component';
 import { StunComponent } from '../components/stun.component';
 
