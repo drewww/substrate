@@ -1397,6 +1397,7 @@ export class Editor {
                 
                 // Update facing direction
                 facingComponent.direction = newFacing;
+                entity.setComponent(facingComponent);
                 logger.info(`Rotated entity ${entity.getId()} from ${currentFacing} to ${newFacing}`);
                 
                 // Update the entity panel to show the new rotation
