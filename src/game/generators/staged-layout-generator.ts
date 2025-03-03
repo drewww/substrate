@@ -21,6 +21,13 @@ export class StagedLayoutGenerator {
     private readonly TRUNK_CONTINUE_CHANCE = 0.95; // Base chance to continue
     private readonly TRUNK_CONTINUE_DECREASE = 0.02; // Increase per tile beyond 4
 
+    // Add these new properties
+    private readonly MAX_TRUNK_TILES = 100;
+    private trunkTilesPlaced = 0;
+    private unexploredDirections: number[] = [0, 1, 2, 3]; // Cardinal directions to explore from origin
+    private originX: number = 0;
+    private originY: number = 0;
+
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
@@ -33,12 +40,20 @@ export class StagedLayoutGenerator {
         );
         
         // Choose a random starting point (not within 2 of an edge)
-        this.startX = Math.floor(Math.random() * (this.width - 6)) + 3;
-        this.startY = Math.floor(Math.random() * (this.height - 6)) + 3;
+        this.originX = Math.floor(Math.random() * (this.width - 6)) + 3;
+        this.originY = Math.floor(Math.random() * (this.height - 6)) + 3;
         
-        // Start with first direction (north)
+        // Reset all tracking variables
+        this.startX = this.originX;
+        this.startY = this.originY;
         this.currentDirection = 0;
         this.currentLength = 0;
+        this.trunkTilesPlaced = 0;
+        this.unexploredDirections = [0, 1, 2, 3];
+        
+        // Place the origin point
+        this.placeRoad(this.originX, this.originY, 'trunk');
+        this.trunkTilesPlaced++;
     }
 
     private placeRoad(x: number, y: number, weight: RoadWeight): void {
@@ -92,13 +107,100 @@ export class StagedLayoutGenerator {
         this.currentLength = 0;
     }
 
+    // Add this helper method to check if a point is part of a straight trunk segment
+    private isStraightTrunkSegment(x: number, y: number): boolean {
+        const cell = this.layout[y][x];
+        if (cell.type !== 'road' || !cell.roadInfo || cell.roadInfo.weight !== 'trunk') {
+            return false;
+        }
+
+        // Check horizontal straight
+        const isHorizontalStraight = 
+            this.isRoadOfType(x - 1, y, 'trunk') && 
+            this.isRoadOfType(x + 1, y, 'trunk') &&
+            !this.isRoadOfType(x, y - 1, 'trunk') && 
+            !this.isRoadOfType(x, y + 1, 'trunk');
+
+        // Check vertical straight
+        const isVerticalStraight = 
+            this.isRoadOfType(x, y - 1, 'trunk') && 
+            this.isRoadOfType(x, y + 1, 'trunk') &&
+            !this.isRoadOfType(x - 1, y, 'trunk') && 
+            !this.isRoadOfType(x + 1, y, 'trunk');
+
+        return isHorizontalStraight || isVerticalStraight;
+    }
+
+    // Helper to check if a position has a road of specific weight
+    private isRoadOfType(x: number, y: number, weight: RoadWeight): boolean {
+        if (!this.isValidPosition(x, y)) return false;
+        const cell = this.layout[y][x];
+        return cell.type === 'road' && cell.roadInfo?.weight === weight;
+    }
+
+    // Modify startNewTrunk to consider all valid trunk points
+    private startNewTrunk(): boolean {
+        if (this.unexploredDirections.length === 0) {
+            console.log('No more unexplored directions');
+            return false;
+        }
+
+        // Collect all valid trunk points
+        const validTrunkPoints: Array<{x: number, y: number}> = [];
+        
+        // Always include the origin
+        validTrunkPoints.push({ x: this.originX, y: this.originY });
+        
+        // Find other valid trunk points
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (this.isStraightTrunkSegment(x, y)) {
+                    validTrunkPoints.push({ x, y });
+                }
+            }
+        }
+
+        console.log(`Found ${validTrunkPoints.length} valid trunk points`);
+        
+        // Pick a random valid trunk point
+        const startPoint = validTrunkPoints[Math.floor(Math.random() * validTrunkPoints.length)];
+        
+        // Pick a random unexplored direction
+        const dirIndex = Math.floor(Math.random() * this.unexploredDirections.length);
+        this.currentDirection = this.unexploredDirections[dirIndex];
+        
+        // Remove this direction from unexplored list
+        this.unexploredDirections.splice(dirIndex, 1);
+        
+        console.log(`Starting new trunk at (${startPoint.x}, ${startPoint.y}) in direction ${this.currentDirection}`);
+        console.log(`Remaining unexplored directions: ${this.unexploredDirections.join(', ')}`);
+        
+        // Set position to chosen point and reset length counter
+        this.startX = startPoint.x;
+        this.startY = startPoint.y;
+        this.currentLength = 0;
+        
+        return true;
+    }
+
     step(): boolean {
         if (this.currentPhase !== 'trunk') {
+            console.log('Ending: Not in trunk phase');
+            return false;
+        }
+        
+        if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
+            console.log(`Ending: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
             return false;
         }
 
         // Place current road
         this.placeRoad(this.startX, this.startY, 'trunk');
+        this.trunkTilesPlaced++;
+        
+        console.log(`Placed trunk tile ${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES} at (${this.startX}, ${this.startY})`);
+        console.log(`Current length: ${this.currentLength}, Direction: ${this.currentDirection}`);
+        console.log(`Unexplored directions: ${this.unexploredDirections.join(', ')}`);
         
         // Calculate next position
         const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
@@ -113,11 +215,12 @@ export class StagedLayoutGenerator {
                 const continueChance = this.TRUNK_CONTINUE_CHANCE -
                     (this.currentLength - 6) * this.TRUNK_CONTINUE_DECREASE;
                 
+                console.log(`Continue chance: ${continueChance} at length ${this.currentLength}`);
+                
                 if (Math.random() > continueChance) {
-                    // End this trunk
-                    this.currentDirection = (this.currentDirection + 1) % 4;
-                    this.currentLength = 0;
-                    return true;
+                    console.log('Failed continue check, starting new trunk');
+                    // End this trunk and start a new one
+                    return this.startNewTrunk();
                 }
             }
             
@@ -126,9 +229,12 @@ export class StagedLayoutGenerator {
             this.startY = nextY;
             return true;
         } else {
+            console.log(`Hit invalid position at (${nextX}, ${nextY}), handling edge`);
             // We hit an edge
             this.handleEdgeIntersection(this.startX, this.startY);
-            return true;
+            
+            // If we hit an edge, also start a new trunk
+            return this.startNewTrunk();
         }
     }
 
