@@ -1569,6 +1569,16 @@ export class Editor {
             return;
         }
         
+        // Clean up old display
+        this.cleanupDisplay();
+        
+        // Reset all mouse states
+        this.isRightMouseDown = false;
+        this.isLeftMouseDown = false;
+        this.lastDragCell = null;
+        this.isPanning = false;
+        this.lastPanPoint = null;
+        
         // Create new world with new dimensions
         this.world = new World(newWidth, newHeight);
         

@@ -41,8 +41,8 @@
           {
             "type": "symbol",
             "char": "",
-            "foreground": "#000000",
-            "background": "#000D12",
+            "foreground": "#000000FF",
+            "background": "#000D12FF",
             "zIndex": 0,
             "alwaysRenderIfExplored": true          }
         ]
