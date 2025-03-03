@@ -28,9 +28,22 @@
           {
             "type": "symbol",
             "char": ".",
-            "foreground": "#333333ff",
-            "background": "#000000ff",
-            "zIndex": 100,
+            "foreground": "#000D12ff",
+            "background": "#252525ff",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+      {
+        "id": "road_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "",
+            "foreground": "#000000",
+            "background": "#000D12",
+            "zIndex": 0,
             "alwaysRenderIfExplored": true          }
         ]
       },
@@ -40,10 +53,19 @@
         "components": [
           {
             "type": "symbol",
-            "char": "@",
-            "foreground": "#FFFF00FF",
-            "background": "#00000000",
-            "zIndex": 100
+            "char": "⧋",
+            "foreground": "#FFFFFFFF",
+            "background": "#00D3EFFF",
+            "zIndex": 300,
+            "alwaysRenderIfExplored": false,
+            "lockRotationToFacing": true,
+            "scaleSymbolX": 1.5,
+            "scaleSymbolY": 1.5,
+            "fontWeight": "bold"  
+          },
+          {
+            "type": "facing",
+            "direction": 0
           },
           {
             "type": "opacity"
@@ -62,43 +84,6 @@
             "type": "inertia",
             "direction": 4,
             "magnitude": 0
-          },
-          {
-            "type": "cooldown",
-            "cooldowns": {
-              "move": {
-                "base": 4,
-                "current": 4,
-                "ready": false
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "enemy_follower_template",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "F",
-            "foreground": "#FF0000",
-            "background": "#000000",
-            "zIndex": 100
-          },
-          {
-            "type": "opacity"
-          },
-          {
-            "type": "vision",
-            "radius": 30
-          },
-          {
-            "type": "enemyAI",
-            "aiType": "follower",
-            "turnsLocked": 0,
-            "visionRadius": 10,
-            "mode": "idle"
           },
           {
             "type": "cooldown",
