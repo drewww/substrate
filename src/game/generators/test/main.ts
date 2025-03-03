@@ -18,15 +18,30 @@ const display = new Display({
 });
 
 // Create layout generator and renderer
-const generator = new LayoutGenerator(20, 20);
+let generator = new LayoutGenerator(20, 20);
 const renderer = new LayoutRenderer(display);
+renderer.renderLayout(generator.getCurrentLayout());
 
 // Generate and render initial layout
-const initialLayout = generator.generate();
-renderer.renderLayout(initialLayout);
+// const initialLayout = generator.generate();
 
-// Add keyboard listener to regenerate layout on any key press
-document.addEventListener('keydown', () => {
-    const newLayout = generator.generate();
-    renderer.renderLayout(newLayout);
+// Add keyboard listener for step-by-step generation
+document.addEventListener('keydown', (event) => {
+    switch (event.key.toLowerCase()) {
+        case 's':
+            // Step forward one road placement
+            generator.step();
+            renderer.renderLayout(generator.getCurrentLayout());
+            break;
+        case 'g':
+            // Generate complete layout
+            generator.generate();
+            renderer.renderLayout(generator.getCurrentLayout());
+            break;
+        case 'r':
+            // Reset layout
+            generator = new LayoutGenerator(20, 20);
+            renderer.renderLayout(generator.getCurrentLayout());
+            break;
+    }
 }); 
