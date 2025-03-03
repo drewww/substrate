@@ -40,7 +40,7 @@
         "components": [
           {
             "type": "symbol",
-            "char": "",
+            "char": " ",
             "foreground": "#000000FF",
             "background": "#000D12FF",
             "zIndex": 0,
