@@ -10,6 +10,10 @@ import { Point } from '../types';
 import { Direction } from '../types';
 import { Component } from '../entity/component';
 
+
+import turboSound from '../assets/sound/turbo.mp3?url';
+import tickSound from '../assets/sound/beat-Tone3E.wav?url';
+
 export class GameSoundRenderer extends BaseSoundRenderer {
     constructor(world: World, audioContext: AudioContext) {
         super(world, audioContext);
@@ -18,14 +22,14 @@ export class GameSoundRenderer extends BaseSoundRenderer {
         this.loadSounds([
             {
                 id: 'turbo',
-                url: '/assets/sound/turbo.mp3',
+                url: turboSound,
                 options: {
                     category: 'sfx'
                 }
             },
             {
                 id: 'tick',
-                url: '/assets/sound/beat-Tone3E.wav',
+                url: tickSound,
                 options: {
                     category: 'sfx'
                 }
