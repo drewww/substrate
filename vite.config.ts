@@ -20,5 +20,8 @@ export default defineConfig({
   },
 
   publicDir: 'public',
-  base: '/',
+  base: './',
+  json: {
+    stringify: true
+  }
 });

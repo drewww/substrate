@@ -65,25 +65,23 @@ export class JsonWorldGenerator implements WorldGenerator {
         return world;
     }
 
-    // Static helper to load from file
-    static async fromFile(path: string): Promise<JsonWorldGenerator> {
-        // Handle both development and production paths
-        const basePath = import.meta.env.DEV 
-            ? '' // In dev, paths are served from root
-            : import.meta.env.BASE_URL || '/'; // In prod, respect the base URL
-
-        const fullPath = `${basePath}${path}`;
-        
+    // Replace the fromFile method with fromUrl
+    static async fromUrl(url: string): Promise<JsonWorldGenerator> {
         try {
-            const response = await fetch(fullPath);
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Failed to load level file: ${response.statusText}`);
             }
-            const jsonData = await response.text();
-            return new JsonWorldGenerator(JSON.parse(jsonData));
+            const jsonData = await response.json();
+            return new JsonWorldGenerator(jsonData);
         } catch (error) {
-            logger.error(`Failed to load world file from ${fullPath}:`, error);
+            logger.error(`Failed to load world from URL ${url}:`, error);
             throw error;
         }
+    }
+
+    // You can keep fromFile for backward compatibility if needed
+    static async fromFile(path: string): Promise<JsonWorldGenerator> {
+        return this.fromUrl(path);
     }
 } 

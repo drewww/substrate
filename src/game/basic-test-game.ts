@@ -33,6 +33,8 @@ import { PlayerMovementSystem } from './systems/player-movement-system.ts';
 import { WorldSystem } from './systems/world.system.ts';
 import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts';
 
+import testWorldUrl from '../assets/world/test-world.json?url';
+
 
 
 const DEFAULT_INPUT_CONFIG = `
@@ -174,8 +176,8 @@ export class BasicTestGame extends Game {
 
     protected async setup(): Promise<void> {
         try {
-            // Load the world from JSON
-            const generator = await JsonWorldGenerator.fromFile('/assets/world/test-world.json');
+            // Load the world from JSON using the URL
+            const generator = await JsonWorldGenerator.fromUrl(testWorldUrl);
             const world = generator.generate();
             this.world = world;
 
