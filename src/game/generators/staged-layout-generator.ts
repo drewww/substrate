@@ -38,6 +38,10 @@ export class StagedLayoutGenerator {
     // Add these properties for medium roads
     private readonly MIN_MEDIUM_SPACE = 3; // Minimum space needed for medium roads
     private readonly MEDIUM_DENSITY_RADIUS = 3;
+    private readonly MEDIUM_BASE_TURN_CHANCE = 0.1;  // 10% base chance to turn
+    private readonly MEDIUM_TURN_INCREASE = 0.15;    // Increase chance by 15% if turned last time
+    private readonly MIN_DISTANCE_FROM_TRUNK = 2;    // Minimum distance to maintain from trunk roads
+    private lastTurned: boolean = false;             // Track if we turned last time
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -418,6 +422,48 @@ export class StagedLayoutGenerator {
                 return StepOutcome.RESET;
             }
 
+            // Consider turning
+            const turnChance = this.lastTurned ? 
+                this.MEDIUM_BASE_TURN_CHANCE + this.MEDIUM_TURN_INCREASE : 
+                this.MEDIUM_BASE_TURN_CHANCE;
+
+            if (Math.random() < turnChance) {
+                // Try to turn left or right
+                const turnDirections = [
+                    (this.currentDirection + 1) % 4, // Right
+                    (this.currentDirection + 3) % 4  // Left
+                ];
+
+                // Check each turn direction
+                for (const turnDir of turnDirections) {
+                    const turnX = this.startX + this.DIRECTIONS[turnDir][0];
+                    const turnY = this.startY + this.DIRECTIONS[turnDir][1];
+                    
+                    // Check if turning would create issues
+                    if (this.isValidPosition(turnX, turnY) && 
+                        !this.wouldHitExistingRoad(turnX, turnY) &&
+                        !this.wouldCreateRoadBlock(turnX, turnY) &&
+                        !this.isNearTrunkRoad(turnX, turnY)) {
+                        
+                        // Check the next tile after the turn
+                        const afterTurnX = turnX + this.DIRECTIONS[turnDir][0];
+                        const afterTurnY = turnY + this.DIRECTIONS[turnDir][1];
+                        
+                        if (this.isValidPosition(afterTurnX, afterTurnY) && 
+                            !this.wouldHitExistingRoad(afterTurnX, afterTurnY) &&
+                            !this.wouldCreateRoadBlock(afterTurnX, afterTurnY) &&
+                            !this.isNearTrunkRoad(afterTurnX, afterTurnY)) {
+                            
+                            this.currentDirection = turnDir;
+                            this.lastTurned = true;
+                            break;
+                        }
+                    }
+                }
+            } else {
+                this.lastTurned = false;
+            }
+
             // Place current road
             this.placeRoad(this.startX, this.startY, 'medium');
             
@@ -486,5 +532,22 @@ export class StagedLayoutGenerator {
 
     getCurrentLayout(): ChunkMetadata[][] {
         return this.layout;
+    }
+
+    // Add this helper method to check if a position is near a trunk road
+    private isNearTrunkRoad(x: number, y: number): boolean {
+        for (let dy = -this.MIN_DISTANCE_FROM_TRUNK; dy <= this.MIN_DISTANCE_FROM_TRUNK; dy++) {
+            for (let dx = -this.MIN_DISTANCE_FROM_TRUNK; dx <= this.MIN_DISTANCE_FROM_TRUNK; dx++) {
+                const checkX = x + dx;
+                const checkY = y + dy;
+                
+                if (this.isValidPosition(checkX, checkY) && 
+                    this.layout[checkY][checkX].type === 'road' &&
+                    this.layout[checkY][checkX].roadInfo?.weight === 'trunk') {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 } 
