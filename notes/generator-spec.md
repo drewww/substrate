@@ -56,3 +56,18 @@ F -> FF
 and then subsequently there's a rationalization pass that identifies intersections and such.
 
 Now the question is whether it's simpler to express this in code than being fancy with l-systems.
+
+
+GOALS
+-----
+
+3 road widths -- I want "trunk" roads and then medium roads, and then minor roads. 
+
+trunk roads never turn, they just radiate from a point and go straight.
+
+then medium roads branch off from the trunk probablistically and rarely turn, but can turn.
+
+finally minor roads connect only to medium roads and can turn frequently.
+
+
+the l-system approach I 

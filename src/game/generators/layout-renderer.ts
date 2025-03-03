@@ -1,47 +1,51 @@
 import { Display } from '../../display/display';
-import { ChunkMetadata, Direction } from './layout-generator';
+import { ChunkMetadata, Direction, RoadWeight } from './layout-generator';
 
 export class LayoutRenderer {
     constructor(private display: Display) {}
 
-    private getRoadSymbol(connections: Direction[]): string {
-        // Sort connections alphabetically to ensure consistent key generation
-        const sortedKey = [...connections].sort().join(',');
+    private getRoadSymbol(connections: Direction[], weight: RoadWeight = 'minor'): string {
+        // Handle empty connections array
+        if (!connections || connections.length === 0) {
+            return '•'; // or some other placeholder for roads without connections
+        }
 
-        // Create map with alphabetically sorted keys
-        const symbolMap: Record<string, string> = {
+        const key = [...connections].sort((a, b) => a.localeCompare(b)).join(',');
+        
+        // Complete map of all possible configurations
+        const symbolMap: Record<string, Record<RoadWeight, string>> = {
             // Single connections (dead ends)
-            'north': '║',
-            'south': '║',
-            'east': '═',
-            'west': '═',
+            'north': { trunk: '║', medium: '│', minor: '╎' },
+            'south': { trunk: '║', medium: '│', minor: '╎' },
+            'east': { trunk: '═', medium: '─', minor: '╌' },
+            'west': { trunk: '═', medium: '─', minor: '╌' },
 
             // Straight sections
-            'north,south': '║',
-            'east,west': '═',
+            'north,south': { trunk: '║', medium: '│', minor: '╎' },
+            'east,west': { trunk: '═', medium: '─', minor: '╌' },
 
             // Corners/Turns
-            'east,south': '╔',
-            'south,west': '╗',
-            'east,north': '╚',
-            'north,west': '╝',
+            'east,north': { trunk: '╚', medium: '└', minor: '└' },     // Changed order
+            'east,south': { trunk: '╔', medium: '┌', minor: '┌' },
+            'north,west': { trunk: '╝', medium: '┘', minor: '┘' },
+            'south,west': { trunk: '╗', medium: '┐', minor: '┐' },
 
             // T-junctions
-            'east,south,west': '╦',
-            'east,north,west': '╩',
-            'east,north,south': '╠',
-            'north,south,west': '╣',
+            'east,north,west': { trunk: '╩', medium: '┴', minor: '┴' }, // Changed order
+            'east,south,west': { trunk: '╦', medium: '┬', minor: '┬' },
+            'east,north,south': { trunk: '╠', medium: '├', minor: '├' },
+            'north,south,west': { trunk: '╣', medium: '┤', minor: '┤' },
 
             // Four-way intersection
-            'east,north,south,west': '╬'
+            'east,north,south,west': { trunk: '╬', medium: '┼', minor: '┼' }
         };
 
-        const symbol = symbolMap[sortedKey];
-        if (!symbol) {
-            console.warn(`Unknown road configuration: ${sortedKey}`);
+        const symbolSet = symbolMap[key];
+        if (!symbolSet) {
+            console.warn(`Unknown road configuration: ${key}, sorted from [${connections.join(',')}]`);
             return '○';
         }
-        return symbol;
+        return symbolSet[weight];
     }
 
     renderLayout(layout: ChunkMetadata[][]): void {
@@ -54,26 +58,32 @@ export class LayoutRenderer {
                 const metadata = layout[y][x];
                 
                 if (metadata.type === 'road') {
-                    const symbol = metadata.roadInfo ? 
-                        this.getRoadSymbol(metadata.roadInfo.connections) : 
-                        '○';
+                    // Ensure roadInfo exists
+                    const roadInfo = metadata.roadInfo || { 
+                        type: 'deadend', 
+                        weight: 'minor', 
+                        connections: [] 
+                    };
                     
-                    // Use a single color for all roads
-                    this.display.createTile(
-                        x,
-                        y,
-                        symbol,
-                        '#AAAAAA',  // Single road color
-                        '#333333'   // Background color
-                    );
+                    const symbol = this.getRoadSymbol(roadInfo.connections, roadInfo.weight);
+                    
+                    // Color based on weight
+                    let color = '#666666';
+                    switch (roadInfo.weight) {
+                        case 'trunk':
+                            color = '#FFFFFF';
+                            break;
+                        case 'medium':
+                            color = '#AAAAAA';
+                            break;
+                        case 'minor':
+                            color = '#666666';
+                            break;
+                    }
+
+                    this.display.createTile(x, y, symbol, color, '#333333');
                 } else {
-                    this.display.createTile(
-                        x,
-                        y,
-                        '#',
-                        '#666666',
-                        '#444444'
-                    );
+                    this.display.createTile(x, y, '#', '#666666', '#444444');
                 }
             }
         }
