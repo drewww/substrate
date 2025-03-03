@@ -70,4 +70,4 @@ then medium roads branch off from the trunk probablistically and rarely turn, bu
 finally minor roads connect only to medium roads and can turn frequently.
 
 
-the l-system approach I 
+So my rule sets are working well. Do we want road WEIGHT to be salient ot future road decisions? I think so. OK.

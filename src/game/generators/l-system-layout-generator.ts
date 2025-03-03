@@ -27,16 +27,34 @@ export class LSystemLayoutGenerator {
     ];
     
     // L-System parameters
-    private axiom: string = 'F';
+    private axiom: string = 'o';    // o for original
     private rules: LSystemRule[] = [
-        { predecessor: 'F', successor: 'F+F-F-F+F' }, // Example Koch curve rule
+        { predecessor: 'o', successor: '[T]+[T]+[T]+[T]' }, 
+        { predecessor: 'T', successor: 'tT', probability: 0.7 },
+        { predecessor: 'T', successor: 't+[T]T', probability: 0.1 },
+        { predecessor: 'T', successor: 't-[T]T', probability: 0.1 },
+        { predecessor: 'T', successor: 't', probability: 0.05 }, // just end the road
+        { predecessor: 'T', successor: 'M', probability: 0.05 }, // just end the road
+        // { predecessor: 'M', successor: 'mM', probability: 0.7 },
+        // { predecessor: 'M', successor: 'm+[M]M', probability: 0.1 },
+        // { predecessor: 'M', successor: 'm-[M]M', probability: 0.1 },
+        // { predecessor: 'M', successor: 'L', probability: 0.05 }, // just end the road
+        
+        // { predecessor: 'L', successor: 'lL', probability: 0.7 },
+        // { predecessor: 'L', successor: 'l+[L]L', probability: 0.1 },
+        // { predecessor: 'L', successor: 'l-[L]L', probability: 0.1 },
+        // { predecessor: 'L', successor: 'l', probability: 0.05 }, // just end the road
     ];
-    private iterations: number = 2;
+    private iterations: number = 200;
     
     // Add these properties to track the current state
     private currentIteration: number = 0;
     private currentLSystemString: string = '';
     private isGenerationComplete: boolean = false;
+    
+    // Add a property to store the starting position
+    private startX: number = 0;
+    private startY: number = 0;
     
     constructor(width: number, height: number) {
         this.width = width;
@@ -49,52 +67,24 @@ export class LSystemLayoutGenerator {
             Array(this.width).fill(null).map(() => ({ type: 'building' as const }))
         );
         
+        // Choose a random starting point (not within 2 of an edge)
+        this.startX = Math.floor(Math.random() * (this.width - 4)) + 2;
+        this.startY = Math.floor(Math.random() * (this.height - 4)) + 2;
+        
+        console.log(`Starting point: (${this.startX}, ${this.startY})`);
+        
         // Reset L-System state
         this.currentIteration = 0;
         this.currentLSystemString = this.axiom;
         this.isGenerationComplete = false;
     }
     
-    // Generate L-System string based on rules and iterations
-    private generateLSystemString(): string {
-        let current = this.axiom;
-        
-        for (let i = 0; i < this.iterations; i++) {
-            let next = '';
-            
-            for (const char of current) {
-                let replaced = false;
-                
-                // Apply rules
-                for (const rule of this.rules) {
-                    if (char === rule.predecessor) {
-                        // For stochastic rules, check probability
-                        if (!rule.probability || Math.random() < rule.probability) {
-                            next += rule.successor;
-                            replaced = true;
-                            break;
-                        }
-                    }
-                }
-                
-                // If no rule applies, keep the character
-                if (!replaced) {
-                    next += char;
-                }
-            }
-            
-            current = next;
-        }
-        
-        return current;
-    }
-    
     // Interpret L-System string to create road layout
     private interpretLSystem(lSystemString: string): void {
-        // Start in the center
+        // Start at the random position
         const turtle: TurtleState = {
-            x: Math.floor(this.width / 2),
-            y: Math.floor(this.height / 2),
+            x: this.startX,
+            y: this.startY,
             direction: 0, // Start facing north
             weight: 'trunk'
         };
@@ -108,6 +98,7 @@ export class LSystemLayoutGenerator {
         // Interpret each character in the L-System string
         for (const char of lSystemString) {
             switch (char) {
+                case 'f': // Move forward and draw ('f' just means a non-branch-eligible road. it's locked in.)
                 case 'F': // Move forward and draw
                     const nextX = turtle.x + this.DIRECTIONS[turtle.direction][0];
                     const nextY = turtle.y + this.DIRECTIONS[turtle.direction][1];
@@ -132,7 +123,7 @@ export class LSystemLayoutGenerator {
                     stack.push({...turtle}); // Clone current state
                     break;
                     
-                case ']': // Restore state (end branch)
+                case ']': // Pop state from stack
                     if (stack.length > 0) {
                         const savedState = stack.pop()!;
                         turtle.x = savedState.x;
@@ -142,16 +133,40 @@ export class LSystemLayoutGenerator {
                     }
                     break;
                     
-                case 'T': // Set weight to trunk
-                    turtle.weight = 'trunk';
+                case 'T': // Go forward with trunk weight
+                    this.placeRoad(turtle.x, turtle.y, 'trunk');
+                    turtle.x += this.DIRECTIONS[turtle.direction][0];
+                    turtle.y += this.DIRECTIONS[turtle.direction][1];
                     break;
                     
-                case 'M': // Set weight to medium
-                    turtle.weight = 'medium';
+                case 'M': // Go forward with medium weight
+                    this.placeRoad(turtle.x, turtle.y, 'medium');
+                    turtle.x += this.DIRECTIONS[turtle.direction][0];
+                    turtle.y += this.DIRECTIONS[turtle.direction][1];
                     break;
                     
-                case 'm': // Set weight to minor
-                    turtle.weight = 'minor';
+                case 'L': // Go forward with local/minor weight
+                    this.placeRoad(turtle.x, turtle.y, 'minor');
+                    turtle.x += this.DIRECTIONS[turtle.direction][0];
+                    turtle.y += this.DIRECTIONS[turtle.direction][1];
+                    break;
+                    
+                case 't': // Go forward with trunk weight (locked, won't be replaced)
+                    this.placeRoad(turtle.x, turtle.y, 'trunk');
+                    turtle.x += this.DIRECTIONS[turtle.direction][0];
+                    turtle.y += this.DIRECTIONS[turtle.direction][1];
+                    break;
+                    
+                case 'm': // Go forward with medium weight (locked, won't be replaced)
+                    this.placeRoad(turtle.x, turtle.y, 'medium');
+                    turtle.x += this.DIRECTIONS[turtle.direction][0];
+                    turtle.y += this.DIRECTIONS[turtle.direction][1];
+                    break;
+                    
+                case 'l': // Go forward with local/minor weight (locked, won't be replaced)
+                    this.placeRoad(turtle.x, turtle.y, 'minor');
+                    turtle.x += this.DIRECTIONS[turtle.direction][0];
+                    turtle.y += this.DIRECTIONS[turtle.direction][1];
                     break;
             }
         }
