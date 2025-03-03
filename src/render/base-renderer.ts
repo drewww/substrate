@@ -178,7 +178,8 @@ export abstract class BaseRenderer implements Renderer {
                     scaleSymbolY: symbolComponent.scaleSymbolY,
                     fontWeight: symbolComponent.fontWeight,
                     fontStyle: symbolComponent.fontStyle,
-                    fontFamily: symbolComponent.fontFamily
+                    fontFamily: symbolComponent.fontFamily,
+                    blendMode: symbolComponent.blendMode as BlendMode  // Convert string to enum
                 }
             );
             

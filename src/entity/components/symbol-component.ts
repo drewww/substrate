@@ -1,5 +1,6 @@
 import { Component } from "../component";
 import { RegisterComponent } from "../component-registry";
+import { BlendMode } from "../../display/types";
 
 export interface SymbolConfig {
   char: string;
@@ -11,6 +12,7 @@ export interface SymbolConfig {
   fontStyle?: string;
   fontFamily?: string;
   lockRotationToFacing?: boolean;
+  blendMode?: string;  // Store as string for JSON serialization
 }
 
 /**
@@ -34,7 +36,8 @@ export class SymbolComponent extends Component {
     public fontWeight: string = 'normal',
     public fontStyle: string = 'normal',
     public fontFamily: string = 'monospace',
-    public lockRotationToFacing: boolean = false
+    public lockRotationToFacing: boolean = false,
+    public blendMode: string = BlendMode.SourceOver  // Store as string, default to enum value
   ) {
     super();
   }
