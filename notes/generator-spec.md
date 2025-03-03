@@ -18,3 +18,41 @@ Also -- do we implement a different renderer that doesn't take a World object bu
 
 What is our actual data structure that we spit out?
     It's a 2d array, HxW, and each cell has a data structure that has, to start, (road, building). Over time it will get a lot more detail to it. 
+
+
+Okay now for the L-system itself.
+
+TRUE L-systems operate on strings, and then have something that represents those strings.
+
+So we might have an axiom that is...
+
+this is hard. in the classic examples you have a single "pointer" that moves around. The fractal examples are clear.
+
+If we had a "seed" that is "O" and has some implied base location.
+
+then 
+
+wRasd as directions
+
+constants:
+    [ push
+    ] pop
+    + turn right 90
+    - turn left 90
+
+commands:
+    F push forward one space, make a road
+
+seed:
+    O origin
+
+O -> [F]+[F]+[F]+[F]
+
+F -> FF
+
+ later add chances that it splits, makes other strange shapes, and so on. 
+ we can have F's that go forward but cannot spawn
+
+and then subsequently there's a rationalization pass that identifies intersections and such.
+
+Now the question is whether it's simpler to express this in code than being fancy with l-systems.
