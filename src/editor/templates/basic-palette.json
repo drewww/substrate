@@ -68,7 +68,40 @@
       },
 
       {
-        "id": "street_light_off",
+        "id": "cast_light_strong",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#00000000",
+          "background": "#968b7299",
+          "zIndex": 1000,
+          "alwaysRenderIfExplored": false,
+          "blendMode": "screen"
+        }
+      ]
+    },
+
+
+    {
+      "id": "cast_light_weak",
+      "position": { "x": 0, "y": 0 },
+      "components": [
+      {
+        "type": "symbol",
+        "char": " ",
+        "foreground": "#00000000",
+        "background": "#91877199",
+        "zIndex": 1000,
+        "alwaysRenderIfExplored": false,
+        "blendMode": "screen"
+      }
+     ]
+    },
+
+      {
+        "id": "traffic_light_off",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
@@ -88,7 +121,7 @@
       },
 
       {
-        "id": "street_light_warning",
+        "id": "traffic_light_warning",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
@@ -108,7 +141,7 @@
       },
 
       {
-        "id": "street_light_stop",
+        "id": "traffic_light_stop",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
@@ -214,16 +247,60 @@
           }
         ]
       },
+      
+      
+
+      {
+        "id": "vehicle_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "E",
+            "foreground": "#FFFFFF",
+            "background": "#0000FF",
+            "zIndex": 100
+          },
+          {
+            "type": "facing",
+            "direction": 1
+          },
+          {
+            "type": "opacity"
+          },
+          {
+            "type": "impassable"
+          },
+          {
+            "type": "followable"
+          },
+          {
+            "type": "cooldown",
+            "cooldowns": {
+              "move": {
+                "base": 4,
+                "current": 4,
+                "ready": false
+              }
+            }
+          }
+        ]
+      },
       {
         "id": "follower_template",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
             "type": "symbol",
-            "char": " ",
-            "foreground": "#000000FF",
-            "background": "#0000FFAA",
-            "zIndex": 100
+            "char": "⧯",
+            "foreground": "#5335FFFF",
+            "background": "#00000000",
+            "zIndex": 20,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
           },
           {
             "type": "opacity"
@@ -239,6 +316,31 @@
           }
         ]
       },
+
+      {
+        "id": "turn-up",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "^",
+            "foreground": "#FFFFFFFF",
+            "background": "#000000FF",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": true,
+            "offsetSymbolY": 0.2,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          },
+          {
+            "type":"turn"
+          }
+        ]
+      },
+
       {
         "id": "emp_turret",
         "position": { "x": 0, "y": 0 },
@@ -263,154 +365,6 @@
           {
             "type": "enemyAI",
             "aiType": "emp_turret"
-          }
-        ]
-      },
-
-      {
-        "id": "turn-up",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "^",
-            "foreground": "#FFFFFFFF",
-            "background": "#000000FF",
-            "zIndex": 100,
-            "alwaysRenderIfExplored": true,
-            "offsetSymbolY": 0.2
-          },
-          {
-            "type":"turn",
-            "direction": 0
-          }
-        ]
-      },
-
-      {
-        "id": "turn-right",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "^",
-            "foreground": "#FFFFFFFF",
-            "background": "#000000FF",
-            "zIndex": 100,
-            "alwaysRenderIfExplored": true,
-            "rotation": 90,
-            "offsetSymbolY": 0.2
-          },
-          {
-            "type":"turn",
-            "direction": 1
-          }
-        ]
-      },
-
-      {
-        "id": "turn-down",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "^",
-            "foreground": "#FFFFFFFF",
-            "background": "#000000FF",
-            "zIndex": 100,
-            "alwaysRenderIfExplored": true,
-            "rotation": 180,
-            "offsetSymbolY": 0.2
-          },
-          {
-            "type":"turn",
-            "direction": 2
-          }
-        ]
-      },
-
-      {
-        "id": "turn-left",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "^",
-            "foreground": "#FFFFFFFF",
-            "background": "#000000FF",
-            "zIndex": 100,
-            "alwaysRenderIfExplored": true,
-            "rotation": 270,
-            "offsetSymbolY": 0.2
-          },
-          {
-            "type":"turn",
-            "direction": 3
-          }
-        ]
-      },
-
-      {
-        "id": "rotating_light",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "O",
-            "foreground": "#ffffff",
-            "background": "#00000000",
-            "zIndex": 50
-          },
-          {
-            "type": "lightEmitter",
-            "config": {
-                "radius": 10,
-                "intensity": 1.0,
-                "color": "#ffffff",
-                "distanceFalloff": "step",
-                "facing": 0,
-                "width": 0.785,
-                "mode": "fg",
-                "animation": {
-                    "type": "rotate",
-                    "params": {
-                        "speed": "normal"
-                    }
-                }
-            }
-          }
-        ]
-      },
-
-
-
-      {
-        "id": "flicker_light",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "🔥",
-            "foreground": "#ffa500",
-            "background": "#00000000",
-            "zIndex": 50
-          },
-          {
-            "type": "lightEmitter",
-            "config": {
-              "radius": 10,
-              "intensity": 0.4,
-              "color": "#ffa500",
-              "distanceFalloff": "quadratic",
-              "mode": "fg",
-              "animation": {
-                "type": "flicker",
-                "params": {
-                  "speed": "normal",
-                  "intensity": 1.0
-                }
-              }
-            }
           }
         ]
       }
