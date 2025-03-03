@@ -1,8 +1,7 @@
 import { Display } from '../../../display/display';
 import { World } from '../../../world/world';
-import { LayoutGenerator } from '../layout-generator';
+import { StagedLayoutGenerator } from '../staged-layout-generator';
 import { LayoutRenderer } from '../layout-renderer';
-import { LSystemLayoutGenerator } from '../l-system-layout-generator';
 
 // Create a simple 20x20 world
 const world = new World(20, 20);
@@ -18,25 +17,12 @@ const display = new Display({
     worldHeight: 20
 });
 
-// Create and use the L-System layout generator
+// Create and use the Staged layout generator
 const width = 20;
 const height = 20;
 
-let generator = new LSystemLayoutGenerator(width, height);
-
-// Generate the layout
-// const layout = generator.generate();
-
-// You can add any visualization or testing code here
-console.log("Layout generation complete");
-
-// Create layout generator and renderer
-// let layoutGenerator = new LayoutGenerator(20, 20);
+let generator = new StagedLayoutGenerator(width, height);
 const renderer = new LayoutRenderer(display);
-// renderer.renderLayout(layout);
-
-// Generate and render initial layout
-// const initialLayout = generator.generate();
 
 // Add keyboard listener for step-by-step generation
 document.addEventListener('keydown', (event) => {
@@ -53,7 +39,7 @@ document.addEventListener('keydown', (event) => {
             break;
         case 'r':
             // Reset layout
-            generator = new LSystemLayoutGenerator(20, 20);
+            generator = new StagedLayoutGenerator(20, 20);
             renderer.renderLayout(generator.getCurrentLayout());
             break;
     }
