@@ -351,6 +351,61 @@ export class StagedLayoutGenerator {
         return true; // Area is not too dense with medium roads
     }
 
+    private isMinorBranchPoint(x: number, y: number, direction: number): boolean {
+        const cell = this.layout[y][x];
+        if (cell.type !== 'road' || !cell.roadInfo || cell.roadInfo.weight !== 'medium') {
+            return false;
+        }
+
+        let spaceCount = 0;
+        let checkX = x + this.DIRECTIONS[direction][0];
+        let checkY = y + this.DIRECTIONS[direction][1];
+
+        while (this.isValidPosition(checkX, checkY) && 
+               this.layout[checkY][checkX].type === 'building' &&
+               spaceCount < this.MIN_MEDIUM_SPACE) {  // We can reuse the same minimum space
+            spaceCount++;
+            checkX += this.DIRECTIONS[direction][0];
+            checkY += this.DIRECTIONS[direction][1];
+        }
+
+        return spaceCount >= this.MIN_MEDIUM_SPACE;
+    }
+
+    private startNewMinor(): boolean {
+        const validOptions: Array<{point: {x: number, y: number}, direction: number}> = [];
+        
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                for (let dir = 0; dir < 4; dir++) {
+                    if (this.isMinorBranchPoint(x, y, dir)) {
+                        const nextX = x + this.DIRECTIONS[dir][0];
+                        const nextY = y + this.DIRECTIONS[dir][1];
+                        
+                        if (!this.wouldCreateRoadBlock(nextX, nextY)) {
+                            validOptions.push({
+                                point: { x, y },
+                                direction: dir
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        if (validOptions.length === 0) {
+            return false;
+        }
+
+        const chosen = validOptions[Math.floor(Math.random() * validOptions.length)];
+        this.startX = chosen.point.x;
+        this.startY = chosen.point.y;
+        this.currentDirection = chosen.direction;
+        this.currentLength = 0;
+        
+        return true;
+    }
+
     step(): StepOutcome {
         if (this.currentPhase === 'trunk') {
             if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
@@ -467,6 +522,27 @@ export class StagedLayoutGenerator {
             this.startX = nextX;
             this.startY = nextY;
             return StepOutcome.CONTINUE;
+        } else if (this.currentPhase === 'minor') {
+            const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
+            const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
+
+            // Stop after placing two roads
+            if (this.currentLength >= 2) {
+                return StepOutcome.RESET;
+            }
+
+            if (!this.isValidPosition(nextX, nextY) || 
+                this.wouldHitExistingRoad(nextX, nextY) ||
+                this.wouldCreateRoadBlock(nextX, nextY)) {
+                return StepOutcome.RESET;
+            }
+
+            this.placeRoad(this.startX, this.startY, 'minor');
+            this.currentLength++;
+            
+            this.startX = nextX;
+            this.startY = nextY;
+            return StepOutcome.CONTINUE;
         }
 
         return StepOutcome.DONE;
@@ -523,6 +599,29 @@ export class StagedLayoutGenerator {
             }
         }
 
+        // Then generate minor roads
+        this.currentPhase = 'minor';
+        consecutiveResets = 0;
+        
+        while (true) {
+            const outcome = this.step();
+            if (outcome === StepOutcome.DONE) {
+                break;
+            } else if (outcome === StepOutcome.RESET) {
+                consecutiveResets++;
+                if (consecutiveResets >= MAX_CONSECUTIVE_RESETS) {
+                    console.log('Too many consecutive resets, ending minor phase');
+                    break;
+                }
+                if (!this.startNewMinor()) {
+                    console.log('Could not find valid minor point, ending minor phase');
+                    break;
+                }
+            } else {
+                consecutiveResets = 0;
+            }
+        }
+
         this.dumpLayout();
         return this.layout;
     }
@@ -555,14 +654,16 @@ export class StagedLayoutGenerator {
             let row = '';
             for (let x = 0; x < this.width; x++) {
                 const cell = this.layout[y][x];
+                const roadInfo = cell.roadInfo;
                 if (cell.type === 'road') {
-                    row += cell.roadInfo.weight === 'trunk' ? 'T' : 'M';
+                    row += roadInfo?.weight === 'trunk' ? 'T' : 
+                           roadInfo?.weight === 'medium' ? 'M' : 'm';
                 } else {
                     row += '.';
                 }
             }
             console.log(row);
         }
-        console.log('\nT = Trunk Road, M = Medium Road, . = Building\n');
+        console.log('\nT = Trunk Road, M = Medium Road, m = Minor Road, . = Building\n');
     }
 } 
