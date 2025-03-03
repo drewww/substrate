@@ -5,7 +5,7 @@ class BasicTestGame {
 
     constructor() {
         // Create a 30x20 editor
-        this.editor = new Editor(50, 40);
+        this.editor = new Editor(12, 12);
         
         // Set up tool buttons
         this.setupTools();

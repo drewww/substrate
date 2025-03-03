@@ -211,45 +211,7 @@
           }
         ]
       },
-      {
-        "id": "vehicle_template",
-        "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "E",
-            "foreground": "#FFFFFF",
-            "background": "#0000FF",
-            "zIndex": 100
-          },
-          {
-            "type": "facing",
-            "direction": 1
-          },
-          {
-            "type": "opacity"
-          },
-          {
-            "type": "impassable"
-          },
-          {
-            "type": "followable"
-          },
-          {
-            "type": "cooldown",
-            "cooldowns": {
-              "move": {
-                "base": 4,
-                "current": 4,
-                "ready": false
-              }
-            }
-          }
-        ]
-      },
       
-      
-
       {
         "id": "vehicle_template",
         "position": { "x": 0, "y": 0 },
