@@ -13,6 +13,9 @@ import { Component } from '../entity/component';
 import { WallComponent, WallDirection } from '../entity/components/wall-component';
 import { computeFieldOfView } from 'wally-fov';
 import { Renderer } from './renderer';
+import { FacingComponent } from '../entity/components/facing-component';
+import { Direction } from '../types';
+
 /**
  * Base renderer class that handles entity visualization
  * 
@@ -157,6 +160,8 @@ export abstract class BaseRenderer implements Renderer {
         const symbolComponent = entity.getComponent('symbol') as SymbolComponent;
         if (symbolComponent) {
             const position = entity.getPosition();
+            const effectiveRotation = this.getEffectiveSymbolRotation(entity, symbolComponent);
+            
             const tileId = this.display.createTile(
                 position.x,
                 position.y,
@@ -166,7 +171,7 @@ export abstract class BaseRenderer implements Renderer {
                 symbolComponent.zIndex, 
                 {
                     alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored,
-                    rotation: (symbolComponent.rotation * Math.PI) / 180,  // Convert degrees to radians
+                    rotation: effectiveRotation/180 * Math.PI,
                     offsetSymbolX: symbolComponent.offsetSymbolX,
                     offsetSymbolY: symbolComponent.offsetSymbolY,
                     scaleSymbolX: symbolComponent.scaleSymbolX,
@@ -227,13 +232,14 @@ export abstract class BaseRenderer implements Renderer {
             const tileId = this.entityTiles.get(entity.getId());
             const symbol = entity.getComponent('symbol') as SymbolComponent;
             if (tileId && symbol) {
+                const effectiveRotation = this.getEffectiveSymbolRotation(entity, symbol);
                 this.display.updateTile(tileId, {
                     char: symbol.char,
                     fg: symbol.foreground,
                     bg: symbol.background,
                     zIndex: symbol.zIndex,
                     alwaysRenderIfExplored: symbol.alwaysRenderIfExplored,
-                    rotation: (symbol.rotation * Math.PI) / 180,
+                    rotation: effectiveRotation/180 * Math.PI,
                     offsetSymbolX: symbol.offsetSymbolX,
                     offsetSymbolY: symbol.offsetSymbolY,
                     fontWeight: symbol.fontWeight,
@@ -282,6 +288,22 @@ export abstract class BaseRenderer implements Renderer {
                 // state.currentProperties.lightSourceTile = lightEmitter.config.lightSourceTile ?? true;
 
                 this.renderLightTiles(entity, state);
+            }
+        }
+        if(componentType === 'facing') {
+            const facing = entity.getComponent('facing') as FacingComponent;
+            if(facing) {
+                const symbol = entity.getComponent('symbol') as SymbolComponent;
+                if(symbol) {
+                    const effectiveRotation = this.getEffectiveSymbolRotation(entity, symbol);
+
+                    const tileId = this.entityTiles.get(entity.getId());
+                    if(tileId) {
+                        this.display.updateTile(tileId, {
+                            rotation: effectiveRotation/180 * Math.PI
+                        });
+                    }
+                }
             }
         }
     }
@@ -934,5 +956,28 @@ export abstract class BaseRenderer implements Renderer {
 
     public getWorld(): World {
         return this.world;
+    }
+
+    private getEffectiveSymbolRotation(entity: Entity, symbol: SymbolComponent): number {
+        if (!symbol.lockRotationToFacing) {
+            return symbol.rotation;
+        }
+
+        const facing = entity.getComponent('facing') as FacingComponent;
+
+        if (!facing || facing.direction === Direction.None) {
+            return symbol.rotation;
+        }
+
+        logger.info(`Getting effective symbol rotation for ${entity.getId()} ${symbol.rotation} and facing: ${facing.direction}`);
+
+        // Convert direction to rotation (in degrees)
+        switch (facing.direction) {
+            case Direction.North: return 0;
+            case Direction.East: return 90;
+            case Direction.South: return 180;
+            case Direction.West: return 270;
+            default: return symbol.rotation;
+        }
     }
 }  

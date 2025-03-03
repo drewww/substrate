@@ -1163,6 +1163,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         if (config.fontWeight !== undefined) tile.fontWeight = config.fontWeight;
         if (config.fontStyle !== undefined) tile.fontStyle = config.fontStyle;
         if (config.fontFamily !== undefined) tile.fontFamily = config.fontFamily;
+        if (config.rotation !== undefined) tile.rotation = config.rotation;
 
         this.dirtyMask.markDirty(tile);
         this.hasChanges = true;

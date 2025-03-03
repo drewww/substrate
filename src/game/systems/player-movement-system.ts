@@ -10,6 +10,7 @@ import { LightEmitterComponent } from '../../entity/components/light-emitter-com
 import { MovementPredictor } from './movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
 import { directionToRadians } from '../../util';
+import { FacingComponent } from '../../entity/components/facing-component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -56,11 +57,12 @@ export class PlayerMovementSystem {
         const prediction = this.movementPredictor.predictMove(player);
         const inertia = player.getComponent('inertia') as InertiaComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
+        const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
+
         if (prediction.willCollide) {
             if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
             }
-            
             return;
         }
 
@@ -80,28 +82,25 @@ export class PlayerMovementSystem {
             prediction.finalInertia.magnitude
         ));
 
-
-           
-
+        // Update facing based on buffered move or inertia
+        const facingDirection = bufferedMove ? bufferedMove.direction : prediction.finalInertia.direction;
+        player.setComponent(new FacingComponent(facingDirection));
+        
         // UPDATE COOLDOWNS
         //      this will happen when speed changes from 2 to 3
         //      and then again when turbo mode is engaged.
 
-
             const cooldowns = player.getComponent('cooldown') as CooldownComponent;
             if(cooldowns) {
                 if(prediction.finalInertia.magnitude >= 2) {
-
-
                     const turbo = player.getComponent('turbo') as TurboComponent;
 
                     const newCooldown = turbo ? 1 : 2; // then 2 and 1
-                    logger.info(`Setting move cooldown to ${newCooldown} ticks`);
+                    // logger.info(`Setting move cooldown to ${newCooldown} ticks`);
                     cooldowns.setCooldown('move', newCooldown, newCooldown);
                     player.setComponent(cooldowns);
                 }
             }
-
 
         // Update light emitter if present
         if (player.hasComponent('lightEmitter')) {
@@ -131,7 +130,6 @@ export class PlayerMovementSystem {
     }
 
     stunPlayer(player: Entity, magnitude: number) {
-
         if (magnitude == 0) {
             return;
         }

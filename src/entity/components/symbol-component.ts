@@ -10,6 +10,7 @@ export interface SymbolConfig {
   fontWeight?: string;
   fontStyle?: string;
   fontFamily?: string;
+  lockRotationToFacing?: boolean;
 }
 
 /**
@@ -32,7 +33,8 @@ export class SymbolComponent extends Component {
     public scaleSymbolY: number = 1.0,
     public fontWeight: string = 'normal',
     public fontStyle: string = 'normal',
-    public fontFamily: string = 'monospace'
+    public fontFamily: string = 'monospace',
+    public lockRotationToFacing: boolean = false
   ) {
     super();
   }
