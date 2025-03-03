@@ -49,16 +49,16 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 const turnEntity = entitiesAtNewPos.find(e => e.hasComponent('turn'));
                 
                 if (turnEntity) {
-                    const turnComponent = turnEntity.getComponent('turn') as TurnComponent;
-                    const turnDirection = turnComponent.direction;
-                    const facingComponent = entity.getComponent('facing') as FacingComponent;
-                    facingComponent.direction = turnComponent.direction;
-                    entity.setComponent(facingComponent);
+                    const turnFacing = turnEntity.getComponent('facing') as FacingComponent;
+                    const turnDirection = turnFacing.direction;
+                    const entityFacing = entity.getComponent('facing') as FacingComponent;
+                    entityFacing.direction = turnDirection;
+                    entity.setComponent(entityFacing);
 
                     // Update light emitter facing
                     const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
                     if (lightEmitter) {
-                        lightEmitter.config.facing = turnComponent.direction;
+                        lightEmitter.config.facing = turnDirection;
                         entity.setComponent(lightEmitter);
                     }
                 }
