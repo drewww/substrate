@@ -1,9 +1,9 @@
-import { BasicTestGame } from './basic-test-game';
+import { RuntimeGame } from './basic-test-game';
 import { logger, LogLevel } from '../util/logger';
 import { WorldDebugOverlay } from '../world/debug-overlay';
 import { DebugOverlay } from '../display/test/debug-overlay';
 
-let game: BasicTestGame;
+let game: RuntimeGame;
 let displayDebug: DebugOverlay;
 let worldDebug: WorldDebugOverlay;
 let engineDebugElement: HTMLDivElement;
@@ -12,7 +12,7 @@ let componentStatsElement: HTMLDivElement;
 async function init() {
     // Initialize game with the canvas ID, not the container ID
     const displayCanvas = document.getElementById('display') as HTMLCanvasElement;
-    game = new BasicTestGame(displayCanvas.id);
+    game = new RuntimeGame(displayCanvas.id);
     
     // Wait for game to be fully prepared
     await game.prepare();

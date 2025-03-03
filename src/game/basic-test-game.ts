@@ -21,9 +21,9 @@ import { BufferedMoveComponent } from './components/buffered-move.component.ts';
 import { CooldownComponent } from './components/cooldown.component.ts';
 import { InertiaComponent } from './components/inertia.component.ts';
 import { TurboComponent } from './components/turbo.component.ts';
-import { GameSoundRenderer } from './game-sound-renderer.ts';
+import { RuntimeSoundRenderer } from './game-sound-renderer.ts';
 import { Game } from './game.ts';
-import { TestGameRenderer } from './renderers/test-game-renderer.ts';
+import { RuntimeRenderer } from './renderers/test-game-renderer.ts';
 import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system.ts';
 import { CooldownSystem } from './systems/cooldown.system.ts';
 import { EnemyAISystem } from './systems/enemy-ai.system.ts';
@@ -52,7 +52,7 @@ Space brake
 Shift turbo
 `;
 
-export class BasicTestGame extends Game {
+export class RuntimeGame extends Game {
    
     // I don't love all these `!` but I'm not sure how else to do it with the async loading
     private enemyMovementSystem!: EnemyMovementSystem;
@@ -90,7 +90,7 @@ export class BasicTestGame extends Game {
             throw new Error('Display and renderer must be initialized');
         }
 
-        (this.renderer as TestGameRenderer).updateVisibility();
+        (this.renderer as RuntimeRenderer).updateVisibility();
 
         // Attach render canvas to DOM for debugging
         const renderCanvas = this.display.getRenderCanvas();
@@ -163,15 +163,15 @@ export class BasicTestGame extends Game {
             throw new Error('World and display must be initialized');
         }
 
-        return new TestGameRenderer(this.display, this.world);
+        return new RuntimeRenderer(this.display, this.world);
     }
 
-    protected createSoundRenderer(): GameSoundRenderer {
+    protected createSoundRenderer(): RuntimeSoundRenderer {
         if (!this.world || !this.player) {
             throw new Error('World and player must be initialized');
         }
 
-        return new GameSoundRenderer(this.world, this.audioContext);
+        return new RuntimeSoundRenderer(this.world, this.audioContext);
     }
 
     protected async setup(): Promise<void> {
@@ -272,7 +272,7 @@ export class BasicTestGame extends Game {
             }
 
             // Log the visibility mask
-            const renderer = this.renderer as TestGameRenderer;
+            const renderer = this.renderer as RuntimeRenderer;
             const visibilityMask = renderer.getVisibilityMask?.();
             if (visibilityMask) {
                 logger.info('Visibility:', visibilityMask[pos.y][pos.x]);

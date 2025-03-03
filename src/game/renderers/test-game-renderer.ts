@@ -16,7 +16,7 @@ import { TurboComponent } from "../components/turbo.component";
 import { TICK_MS } from "../constants";
 import { MovementPredictor } from "../systems/movement-predictor";
 
-export class TestGameRenderer extends GameRenderer {
+export class RuntimeRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
     private movementPredictor: MovementPredictor;

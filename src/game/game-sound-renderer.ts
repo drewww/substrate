@@ -14,7 +14,7 @@ import { Component } from '../entity/component';
 import turboSound from '../assets/sound/turbo.mp3?url';
 import tickSound from '../assets/sound/beat-Tone3E.wav?url';
 
-export class GameSoundRenderer extends BaseSoundRenderer {
+export class RuntimeSoundRenderer extends BaseSoundRenderer {
     constructor(world: World, audioContext: AudioContext) {
         super(world, audioContext);
         

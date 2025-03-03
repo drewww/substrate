@@ -5,7 +5,7 @@ import { Entity } from '../entity/entity';
 import { Display } from '../display/display';
 import { BaseRenderer } from '../render/base-renderer';
 import { DisplayOptions } from '../display/types';
-import { GameSoundRenderer } from './game-sound-renderer';
+import { RuntimeSoundRenderer } from './game-sound-renderer';
 
 export abstract class Game {
     protected engine: Engine | null = null;
@@ -16,7 +16,7 @@ export abstract class Game {
     protected renderer: BaseRenderer | null = null;
     protected updateInterval: number | null = null;
     protected readonly targetFrameTime: number = 1000 / 15; // 15 FPS
-    protected soundRenderer: GameSoundRenderer | null = null;
+    protected soundRenderer: RuntimeSoundRenderer | null = null;
     protected audioContext: AudioContext;
     private prepared = false;
 
@@ -39,7 +39,7 @@ export abstract class Game {
     }
 
     protected abstract createRenderer(): BaseRenderer;
-    protected abstract createSoundRenderer(): GameSoundRenderer;
+    protected abstract createSoundRenderer(): RuntimeSoundRenderer;
     protected abstract setup(): Promise<void>;
     protected abstract handleInput(type: string, action: string, params: string[]): void;
     protected abstract createDisplay(): Display;
