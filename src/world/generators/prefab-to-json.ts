@@ -1,5 +1,5 @@
-import { LEVEL_DATA } from '../../game/test/basic-test-game';
-import { SYMBOL_DEFINITIONS } from '../../game/test/basic-test-game';
+import { LEVEL_DATA } from '../../game/basic-test-game';
+import { SYMBOL_DEFINITIONS } from '../../game/basic-test-game';
 import { logger } from '../../util/logger';
 import { PrefabWorldGenerator } from './prefab-world-generator';
 

@@ -1,13 +1,14 @@
-import { Entity } from '../../entity/entity';
-import { Component } from '../../entity/component';
-import { Direction, Point } from '../../types';
-import { BaseSoundRenderer } from '../../sound/base-sound-renderer';
-import { World } from '../../world/world';
-import { logger } from '../../util/logger';
+import { logger } from '../util/logger';
 import { CooldownComponent } from './components/cooldown.component';
 import { InertiaComponent } from './components/inertia.component';
 import { BufferedMoveComponent } from './components/buffered-move.component';
 import { TurboComponent } from './components/turbo.component';
+import { World } from '../world/world';
+import { BaseSoundRenderer } from '../sound/base-sound-renderer';
+import { Entity } from '../entity/entity';
+import { Point } from '../types';
+import { Direction } from '../types';
+import { Component } from '../entity/component';
 
 export class GameSoundRenderer extends BaseSoundRenderer {
     constructor(world: World, audioContext: AudioContext) {

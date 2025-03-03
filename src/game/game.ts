@@ -5,7 +5,7 @@ import { Entity } from '../entity/entity';
 import { Display } from '../display/display';
 import { BaseRenderer } from '../render/base-renderer';
 import { DisplayOptions } from '../display/types';
-import { GameSoundRenderer } from './test/game-sound-renderer';
+import { GameSoundRenderer } from './game-sound-renderer';
 
 export abstract class Game {
     protected engine: Engine | null = null;

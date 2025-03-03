@@ -1,5 +1,5 @@
-import { Component } from '../../../entity/component';
-import { RegisterComponent } from '../../../entity/component-registry';
+import { Component } from "../../entity/component";
+import { RegisterComponent } from "../../entity/component-registry";
 
 export enum EnemyAIMode {
     IDLE = 'idle',

@@ -1,5 +1,5 @@
-import { Component, SerializedComponent } from '../../../entity/component';
-import { RegisterComponent } from '../../../entity/component-registry';
+import { Component, SerializedComponent } from '../../entity/component';
+import { RegisterComponent } from '../../entity/component-registry';
 
 export interface CooldownState {
     current: number;

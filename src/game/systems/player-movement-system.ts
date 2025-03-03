@@ -1,15 +1,15 @@
-import { World } from '../../../world/world';
-import { Point, Direction } from '../../../types';
-import { ActionHandler } from '../../../action/action-handler';
+import { World } from '../../world/world';
+import { Point, Direction } from '../../types';
+import { ActionHandler } from '../../action/action-handler';
 import { CooldownComponent } from '../components/cooldown.component';
-import { logger } from '../../../util/logger';
-import { Entity } from '../../../entity/entity';
+import { logger } from '../../util/logger';
+import { Entity } from '../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
-import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
+import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
 import { MovementPredictor } from './movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
-import { directionToRadians } from '../../../util';
+import { directionToRadians } from '../../util';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 

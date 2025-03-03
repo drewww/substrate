@@ -8,14 +8,14 @@ import { PlayerComponent } from "../../entity/components/player-component";
 import { ImpassableComponent } from "../../entity/components/impassable-component";
 import { VisionComponent } from "../../entity/components/vision-component";
 import { logger } from "../../util/logger";
-import { CooldownComponent } from "../../game/test/components/cooldown.component";
+import { CooldownComponent } from "../../game/components/cooldown.component";
 import { FacingComponent } from "../../entity/components/facing-component";
 import { FollowableComponent } from "../../entity/components/followable-component";
 import { FollowerComponent } from "../../entity/components/follower-component";
 import { TurnComponent } from "../../entity/components/turn-component";
 import { LightEmitterComponent } from "../../entity/components/light-emitter-component";
-import { EnemyAIComponent } from "../../game/test/components/enemy-ai.component";
-import { ApplyTimestampComponent } from "../../game/test/components/apply.timestamp.component";
+import { EnemyAIComponent } from "../../game/components/enemy-ai.component";
+import { ApplyTimestampComponent } from "../../game/components/apply.timestamp.component";
 
 interface SymbolDefinition {
     components: Component[];

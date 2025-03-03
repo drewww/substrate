@@ -1,11 +1,11 @@
-import { Component } from "../../../entity/component";
-import { RegisterComponent } from "../../../entity/component-registry";
+import { Component } from "../../entity/component";
+import { RegisterComponent } from "../../entity/component-registry";
 
 @RegisterComponent('timestamp')
 export class TimestampComponent extends Component {
     type: 'timestamp' = 'timestamp';
 
-    constructor(public start: number) {
+    constructor(public start: number = 0) {
         super();
     }
 

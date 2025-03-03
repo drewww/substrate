@@ -1,5 +1,5 @@
-import { Component } from '../../../entity/component';
-import { RegisterComponent } from '../../../entity/component-registry';
+import { Component } from '../../entity/component';
+import { RegisterComponent } from '../../entity/component-registry';
 
 @RegisterComponent('moveCooldown')
 export class MoveCooldownComponent extends Component {
@@ -8,7 +8,7 @@ export class MoveCooldownComponent extends Component {
     baseTime: number;
     ready: boolean = false;
 
-    constructor(baseTime: number, initialCooldown?: number) {
+    constructor(baseTime: number = 8, initialCooldown?: number) {
         super();
         this.baseTime = baseTime;
         this.cooldown = initialCooldown ?? baseTime;

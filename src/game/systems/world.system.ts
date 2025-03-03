@@ -1,11 +1,11 @@
-import { World } from '../../../world/world';
+import { World } from '../../world/world';
 import { CooldownComponent } from '../components/cooldown.component';
-import { SymbolComponent } from '../../../entity/components/symbol-component';
-import { OpacityComponent } from '../../../entity/components/opacity-component';
-import { ImpassableComponent } from '../../../entity/components/impassable-component';
-import { Entity } from '../../../entity/entity';
+import { SymbolComponent } from '../../entity/components/symbol-component';
+import { OpacityComponent } from '../../entity/components/opacity-component';
+import { ImpassableComponent } from '../../entity/components/impassable-component';
+import { Entity } from '../../entity/entity';
 import { EMPComponent } from '../components/emp.component';
-import { ActionHandler } from '../../../action/action-handler';
+import { ActionHandler } from '../../action/action-handler';
 
 export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }

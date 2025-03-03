@@ -4,7 +4,7 @@ import { Entity } from "../../entity/entity";
 import { SymbolComponent } from "../../entity/components/symbol-component";
 import { OpacityComponent } from "../../entity/components/opacity-component";
 import { ImpassableComponent } from "../../entity/components/impassable-component";
-import { CooldownComponent } from "../../game/test/components/cooldown.component";
+import { CooldownComponent } from "../../game/components/cooldown.component";
 import { Direction } from "../../types";
 import { FacingComponent } from "../../entity/components/facing-component";
 import { PlayerComponent } from "../../entity/components/player-component";

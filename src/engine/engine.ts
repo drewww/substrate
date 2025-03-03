@@ -2,9 +2,11 @@ import { World } from '../world/world';
 import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { ActionHandler } from '../action/action-handler';
-import { MoveAction } from '../game/test/basic-test-game';
 import { EngineLoop } from './engine-loop';
-import { TICK_MS } from '../game/test/constants';
+
+// these imports should not be so deep in a non-game file. but too late to fix for now.
+import { MoveAction } from '../game/basic-test-game';
+import { TICK_MS } from '../game/constants';
 
 export interface EngineOptions {
     mode: 'turn-based' | 'realtime';

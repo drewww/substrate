@@ -1,7 +1,7 @@
 import { BasicTestGame } from './basic-test-game';
-import { logger, LogLevel } from '../../util/logger';
-import { DebugOverlay } from '../../display/test/debug-overlay';
-import { WorldDebugOverlay } from '../../world/debug-overlay';
+import { logger, LogLevel } from '../util/logger';
+import { WorldDebugOverlay } from '../world/debug-overlay';
+import { DebugOverlay } from '../display/test/debug-overlay';
 
 let game: BasicTestGame;
 let displayDebug: DebugOverlay;

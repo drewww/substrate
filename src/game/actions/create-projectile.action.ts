@@ -1,8 +1,8 @@
-import { BaseAction, ActionClass } from '../../../action/action-handler';
-import { World } from '../../../world/world';
-import { Entity } from '../../../entity/entity';
-import { Point } from '../../../types';
-import { SymbolComponent } from '../../../entity/components/symbol-component';
+import { BaseAction, ActionClass } from '../../action/action-handler';
+import { World } from '../../world/world';
+import { Entity } from '../../entity/entity';
+import { Point } from '../../types';
+import { SymbolComponent } from '../../entity/components/symbol-component';
 import { CooldownComponent } from '../components/cooldown.component';
 
 // TODO this will need component data too

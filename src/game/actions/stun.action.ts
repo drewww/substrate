@@ -1,9 +1,9 @@
-import { BaseAction, ActionClass } from '../../../action/action-handler';
-import { World } from '../../../world/world';
+import { BaseAction, ActionClass } from '../../action/action-handler';
+import { World } from '../../world/world';
 import { CooldownComponent } from '../components/cooldown.component';
 import { InertiaComponent } from '../components/inertia.component';
-import { Direction } from '../../../types';
-import { logger } from '../../../util/logger';
+import { Direction } from '../../types';
+import { logger } from '../../util/logger';
 import { StunComponent } from '../components/stun.component';
 
 interface StunActionData {

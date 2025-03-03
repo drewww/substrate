@@ -3,7 +3,7 @@ import { Entity } from '../entity/entity';
 import { Point } from '../types';
 import { World } from '../world/world';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { TICK_MS } from '../game/test/constants';
+import { TICK_MS } from '../game/constants';
 
 // Mock window object for tests
 const mockWindow = {

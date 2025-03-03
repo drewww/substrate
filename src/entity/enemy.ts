@@ -1,6 +1,6 @@
 import { Entity } from './entity';
 import { Point } from '../types';
-import { MoveCooldownComponent } from '../game/test/components/move-cooldown.component';
+import { MoveCooldownComponent } from '../game/components/move-cooldown.component';
 import { SymbolComponent } from './components/symbol-component';
 export class EnemyEntity extends Entity {
     constructor(position: Point) {

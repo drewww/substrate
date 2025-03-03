@@ -3,8 +3,8 @@ import { Entity } from '../entity/entity';
 import { Component } from '../entity/component';
 import { Point } from '../types';
 import { Renderer } from './renderer';
-import { InertiaComponent } from '../game/test/components/inertia.component';
-import { TimestampComponent } from '../game/test/components/timestamp.component';
+import { InertiaComponent } from '../game/components/inertia.component';
+import { TimestampComponent } from '../game/components/timestamp.component';
 import { logger } from '../util/logger';
 
 export class UISpeedRenderer implements Renderer {

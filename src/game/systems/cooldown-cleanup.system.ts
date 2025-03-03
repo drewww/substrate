@@ -1,6 +1,6 @@
-import { World } from '../../../world/world';
+import { World } from '../../world/world';
 import { CooldownComponent } from '../components/cooldown.component';
-import { logger } from '../../../util/logger';
+import { logger } from '../../util/logger';
 
 export class CooldownCleanupSystem {
     constructor(private world: World) {}

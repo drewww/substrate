@@ -1,10 +1,10 @@
-import { World } from '../../../world/world';
-import { ActionHandler } from '../../../action/action-handler';
-import { Entity } from '../../../entity/entity';
-import { logger } from '../../../util/logger';
+import { World } from '../../world/world';
+import { ActionHandler } from '../../action/action-handler';
+import { Entity } from '../../entity/entity';
+import { logger } from '../../util/logger';
 import { EnemyAIComponent, EnemyAIType } from '../components/enemy-ai.component';
 import { InertiaComponent } from '../components/inertia.component';
-import { directionToPoint } from '../../../util';
+import { directionToPoint } from '../../util';
 import { CooldownComponent } from '../components/cooldown.component';
 
 

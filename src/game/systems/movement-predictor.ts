@@ -1,13 +1,13 @@
-import { World } from '../../../world/world';
-import { Entity } from '../../../entity/entity';
-import { Point, Direction } from '../../../types';
+import { World } from '../../world/world';
+import { Entity } from '../../entity/entity';
+import { Point, Direction } from '../../types';
 import { InertiaComponent } from '../components/inertia.component';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
-import { logger } from '../../../util/logger';
+import { logger } from '../../util/logger';
 import { SLIDE_SPEED } from '../constants';
 import { BrakeComponent } from '../components/brake.component';
 import { TurboComponent } from '../components/turbo.component';
-import { directionToPoint, isOppositeDirection } from '../../../util';
+import { directionToPoint, isOppositeDirection } from '../../util';
 
 export interface PredictedAction {
     type: 'entityMove';

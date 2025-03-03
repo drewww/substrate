@@ -1,10 +1,10 @@
-import { World } from '../../../world/world';
-import { Point, Direction } from '../../../types';
-import { ActionHandler } from '../../../action/action-handler';
+import { World } from '../../world/world';
+import { Point, Direction } from '../../types';
+import { ActionHandler } from '../../action/action-handler';
 import { CooldownComponent } from '../components/cooldown.component';
-import { FacingComponent } from '../../../entity/components/facing-component';
-import { Entity } from '../../../entity/entity';
-import { logger } from '../../../util/logger';
+import { FacingComponent } from '../../entity/components/facing-component';
+import { Entity } from '../../entity/entity';
+import { logger } from '../../util/logger';
 
 export class EnemyMovementSystem {
     constructor(

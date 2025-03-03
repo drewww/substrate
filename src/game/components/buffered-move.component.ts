@@ -1,13 +1,13 @@
-import { Component } from '../../../entity/component';
-import { RegisterComponent } from '../../../entity/component-registry';
-import { Direction } from '../../../types';
+import { Component } from '../../entity/component';
+import { RegisterComponent } from '../../entity/component-registry';
+import { Direction } from '../../types';
 
-@RegisterComponent('bufferedMove')
+@RegisterComponent('bufferedMove')  
 export class BufferedMoveComponent extends Component {
     type: 'bufferedMove' = 'bufferedMove';
     
     constructor(
-        public direction: Direction,
+        public direction: Direction = Direction.None,
     ) {
         super();
     }

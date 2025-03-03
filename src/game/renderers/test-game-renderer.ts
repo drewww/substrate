@@ -1,21 +1,20 @@
-import { GameRenderer } from '../../../render/test/game-renderer';
-import { Entity } from '../../../entity/entity';
-import { Point } from '../../../types';
-import { Easing, FillDirection, TileId } from '../../../display/types';
-import { BumpingComponent } from '../../../entity/components/bumping-component';
-import { logger } from '../../../util/logger';
-import { World } from '../../../world/world';
-import { Display } from '../../../display/display';
-import { Component } from '../../../entity/component';
-import { Direction } from '../../../types';
-import { InertiaComponent } from '../components/inertia.component';
-import { VisionComponent } from '../../../entity/components/vision-component';
-import { CooldownComponent } from '../components/cooldown.component';
-import { TICK_MS } from '../constants';
-import { MovementPredictor } from '../systems/movement-predictor';
-import { TurboComponent } from '../components/turbo.component';
-import { EnemyAIComponent } from '../components/enemy-ai.component';
-import { directionToRadians } from '../../../util';
+import { Display } from "../../display/display";
+import { FillDirection, Easing, TileId } from "../../display/types";
+import { Component } from "../../entity/component";
+import { BumpingComponent } from "../../entity/components/bumping-component";
+import { VisionComponent } from "../../entity/components/vision-component";
+import { Entity } from "../../entity/entity";
+import { GameRenderer } from "../../render/test/game-renderer";
+import { Point, Direction } from "../../types";
+import { directionToRadians } from "../../util";
+import { logger } from "../../util/logger";
+import { World } from "../../world/world";
+import { CooldownComponent } from "../components/cooldown.component";
+import { EnemyAIComponent } from "../components/enemy-ai.component";
+import { InertiaComponent } from "../components/inertia.component";
+import { TurboComponent } from "../components/turbo.component";
+import { TICK_MS } from "../constants";
+import { MovementPredictor } from "../systems/movement-predictor";
 
 export class TestGameRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings

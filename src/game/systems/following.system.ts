@@ -1,9 +1,9 @@
-import { World } from '../../../world/world';
-import { ActionHandler } from '../../../action/action-handler';
-import { Entity } from '../../../entity/entity';
-import { FollowerComponent } from '../../../entity/components/follower-component';
-import { Point } from '../../../types';
-import { logger } from '../../../util/logger';
+import { World } from '../../world/world';
+import { ActionHandler } from '../../action/action-handler';
+import { Entity } from '../../entity/entity';
+import { FollowerComponent } from '../../entity/components/follower-component';
+import { Point } from '../../types';
+import { logger } from '../../util/logger';
 
 export class FollowingSystem {
     constructor(
