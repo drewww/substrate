@@ -1,5 +1,12 @@
+export type RoadType = 'straight' | 'turn' | 'intersection' | 'deadend';
+export type Direction = 'north' | 'east' | 'south' | 'west';
+
 export interface ChunkMetadata {
     type: 'road' | 'building';
+    roadInfo?: {
+        type: RoadType;
+        connections: Direction[];  // Which directions have roads
+    };
 }
 
 interface Agent {
@@ -29,7 +36,7 @@ export class LayoutGenerator {
         [0, 1],  // south
         [-1, 0]  // west
     ];
-    private readonly STRAIGHT_BIAS = 0.7; // 70% chance to go straight if possible
+    private readonly STRAIGHT_BIAS = 0.95; // 70% chance to go straight if possible
 
     constructor(width: number, height: number) {
         this.width = width;
@@ -208,12 +215,57 @@ export class LayoutGenerator {
             }
         }
         
+        // No more steps possible - do post-processing
+        this.postProcess();
         return false;
+    }
+
+    private postProcess(): void {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (this.layout[y][x].type === 'road') {
+                    // Find connected roads
+                    const connections: Direction[] = [];
+                    if (y > 0 && this.layout[y-1][x].type === 'road') connections.push('north');
+                    if (x < this.width-1 && this.layout[y][x+1].type === 'road') connections.push('east');
+                    if (y < this.height-1 && this.layout[y+1][x].type === 'road') connections.push('south');
+                    if (x > 0 && this.layout[y][x-1].type === 'road') connections.push('west');
+
+                    let roadType: RoadType;
+                    switch (connections.length) {
+                        case 1:
+                            roadType = 'deadend';
+                            break;
+                        case 2:
+                            // Check if straight
+                            if ((connections.includes('north') && connections.includes('south')) ||
+                                (connections.includes('east') && connections.includes('west'))) {
+                                roadType = 'straight';
+                            } else {
+                                roadType = 'turn';
+                            }
+                            break;
+                        case 3:
+                        case 4:
+                            roadType = 'intersection';
+                            break;
+                        default:
+                            roadType = 'deadend';
+                    }
+
+                    this.layout[y][x].roadInfo = {
+                        type: roadType,
+                        connections
+                    };
+                }
+            }
+        }
     }
 
     generate(): ChunkMetadata[][] {
         this.reset();
         while (this.step()) {}
+        this.postProcess();
         return this.layout;
     }
 
