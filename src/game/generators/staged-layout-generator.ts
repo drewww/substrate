@@ -1,5 +1,12 @@
 import { ChunkMetadata, Direction, RoadType, RoadWeight } from './layout-generator';
 
+// Define an enum for step outcomes
+enum StepOutcome {
+    CONTINUE, // Continue generating
+    RESET,    // Reset with a new branch point
+    DONE      // Generation is complete
+}
+
 export class StagedLayoutGenerator {
     private width: number;
     private height: number;
@@ -22,7 +29,7 @@ export class StagedLayoutGenerator {
     private readonly TRUNK_CONTINUE_DECREASE = 0.02; // Increase per tile beyond 4
 
     // Add these new properties
-    private readonly MAX_TRUNK_TILES = 100;
+    private readonly MAX_TRUNK_TILES = 80;
     private trunkTilesPlaced = 0;
     private unexploredDirections: number[] = [0, 1, 2, 3]; // Cardinal directions to explore from origin
     private originX: number = 0;
@@ -140,11 +147,6 @@ export class StagedLayoutGenerator {
 
     // Modify startNewTrunk to consider all valid trunk points
     private startNewTrunk(): boolean {
-        if (this.unexploredDirections.length === 0) {
-            console.log('No more unexplored directions');
-            return false;
-        }
-
         // Collect all valid trunk points
         const validTrunkPoints: Array<{x: number, y: number}> = [];
         
@@ -162,36 +164,111 @@ export class StagedLayoutGenerator {
 
         console.log(`Found ${validTrunkPoints.length} valid trunk points`);
         
-        // Pick a random valid trunk point
-        const startPoint = validTrunkPoints[Math.floor(Math.random() * validTrunkPoints.length)];
+        if (validTrunkPoints.length === 0) {
+            console.log('No valid trunk points found');
+            return false;
+        }
+
+        // For each trunk point, find valid directions that wouldn't create a 2x2 block
+        const validOptions: Array<{point: {x: number, y: number}, direction: number}> = [];
         
-        // Pick a random unexplored direction
-        const dirIndex = Math.floor(Math.random() * this.unexploredDirections.length);
-        this.currentDirection = this.unexploredDirections[dirIndex];
+        for (const point of validTrunkPoints) {
+            // Check all four directions
+            for (let dir = 0; dir < 4; dir++) {
+                const nextX = point.x + this.DIRECTIONS[dir][0];
+                const nextY = point.y + this.DIRECTIONS[dir][1];
+                
+                // Check if this direction would be valid
+                if (this.isValidPosition(nextX, nextY) && 
+                    !this.wouldCreateRoadBlock(nextX, nextY) &&
+                    this.layout[nextY][nextX].type !== 'road') {
+                    validOptions.push({
+                        point: point,
+                        direction: dir
+                    });
+                }
+            }
+        }
+
+        console.log(`Found ${validOptions.length} valid branching options`);
         
-        // Remove this direction from unexplored list
-        this.unexploredDirections.splice(dirIndex, 1);
+        if (validOptions.length === 0) {
+            console.log('No valid branching options found');
+            return false;
+        }
+
+        // Pick a random valid option
+        const chosen = validOptions[Math.floor(Math.random() * validOptions.length)];
         
-        console.log(`Starting new trunk at (${startPoint.x}, ${startPoint.y}) in direction ${this.currentDirection}`);
-        console.log(`Remaining unexplored directions: ${this.unexploredDirections.join(', ')}`);
-        
-        // Set position to chosen point and reset length counter
-        this.startX = startPoint.x;
-        this.startY = startPoint.y;
+        // Set new position and direction
+        this.startX = chosen.point.x;
+        this.startY = chosen.point.y;
+        this.currentDirection = chosen.direction;
         this.currentLength = 0;
+        
+        console.log(`Starting new trunk at (${this.startX}, ${this.startY}) in direction ${this.currentDirection}`);
         
         return true;
     }
 
-    step(): boolean {
+    private wouldCreateRoadBlock(x: number, y: number): boolean {
+        // Check all possible 2x2 blocks this tile could be part of
+        for (let offsetY = -1; offsetY <= 0; offsetY++) {
+            for (let offsetX = -1; offsetX <= 0; offsetX++) {
+                // Check if this 2x2 block would be all roads
+                let allRoads = true;
+                
+                // Check each position in the 2x2 block
+                for (let dy = 0; dy < 2; dy++) {
+                    for (let dx = 0; dx < 2; dx++) {
+                        const checkX = x + offsetX + dx;
+                        const checkY = y + offsetY + dy;
+                        
+                        // If any position is out of bounds or not a road, this block is okay
+                        if (checkX < 0 || checkX >= this.width || 
+                            checkY < 0 || checkY >= this.height) {
+                            allRoads = false;
+                            break;
+                        }
+                        
+                        // Check if this position would be a road
+                        // (either it already is, or it's the position we're checking)
+                        if (checkX === x && checkY === y) continue; // This would be a road
+                        if (this.layout[checkY][checkX].type !== 'road') {
+                            allRoads = false;
+                            break;
+                        }
+                    }
+                    if (!allRoads) break;
+                }
+                
+                // If we found a 2x2 block that would be all roads, return true
+                if (allRoads) return true;
+            }
+        }
+        
+        return false;
+    }
+
+    step(): StepOutcome {
         if (this.currentPhase !== 'trunk') {
             console.log('Ending: Not in trunk phase');
-            return false;
+            return StepOutcome.DONE; // Indicate done
         }
         
         if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
             console.log(`Ending: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
-            return false;
+            return StepOutcome.DONE; // Indicate done
+        }
+
+        // Calculate next position
+        const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
+        const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
+        
+        // Check if placing a road at the next position would create a 2x2 block
+        if (this.wouldCreateRoadBlock(nextX, nextY)) {
+            console.log(`Would create a 2x2 block at (${nextX}, ${nextY}), ending trunk`);
+            return StepOutcome.RESET; // End this trunk and start a new one
         }
 
         // Place current road
@@ -201,10 +278,6 @@ export class StagedLayoutGenerator {
         console.log(`Placed trunk tile ${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES} at (${this.startX}, ${this.startY})`);
         console.log(`Current length: ${this.currentLength}, Direction: ${this.currentDirection}`);
         console.log(`Unexplored directions: ${this.unexploredDirections.join(', ')}`);
-        
-        // Calculate next position
-        const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
-        const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
         
         // Check if we should continue
         if (this.isValidPosition(nextX, nextY)) {
@@ -220,27 +293,47 @@ export class StagedLayoutGenerator {
                 if (Math.random() > continueChance) {
                     console.log('Failed continue check, starting new trunk');
                     // End this trunk and start a new one
-                    return this.startNewTrunk();
+                    return StepOutcome.RESET; // Indicate reset
                 }
             }
             
             // Move to next position
             this.startX = nextX;
             this.startY = nextY;
-            return true;
+            return StepOutcome.CONTINUE; // Indicate continue
         } else {
             console.log(`Hit invalid position at (${nextX}, ${nextY}), handling edge`);
             // We hit an edge
             this.handleEdgeIntersection(this.startX, this.startY);
             
             // If we hit an edge, also start a new trunk
-            return this.startNewTrunk();
+            return StepOutcome.RESET; // Indicate reset
         }
     }
 
     generate(): ChunkMetadata[][] {
         this.reset();
-        while (this.step()) {}
+        let consecutiveResets = 0;
+        const MAX_CONSECUTIVE_RESETS = 10; // Prevent infinite loops
+        
+        while (true) {
+            const outcome = this.step();
+            if (outcome === StepOutcome.DONE) {
+                break; // Stop generation
+            } else if (outcome === StepOutcome.RESET) {
+                consecutiveResets++;
+                if (consecutiveResets >= MAX_CONSECUTIVE_RESETS) {
+                    console.log('Too many consecutive resets, ending trunk phase');
+                    break;
+                }
+                if (!this.startNewTrunk()) {
+                    console.log('Could not find valid trunk point, ending trunk phase');
+                    break;
+                }
+            } else {
+                consecutiveResets = 0; // Reset counter when we successfully continue
+            }
+        }
         return this.layout;
     }
 
