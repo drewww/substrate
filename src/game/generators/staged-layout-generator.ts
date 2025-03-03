@@ -223,7 +223,6 @@ export class StagedLayoutGenerator {
         // Check all possible 2x2 blocks this tile could be part of
         for (let offsetY = -1; offsetY <= 0; offsetY++) {
             for (let offsetX = -1; offsetX <= 0; offsetX++) {
-                // Check if this 2x2 block would be all roads
                 let allRoads = true;
                 
                 // Check each position in the 2x2 block
@@ -232,7 +231,6 @@ export class StagedLayoutGenerator {
                         const checkX = x + offsetX + dx;
                         const checkY = y + offsetY + dy;
                         
-                        // If any position is out of bounds or not a road, this block is okay
                         if (checkX < 0 || checkX >= this.width || 
                             checkY < 0 || checkY >= this.height) {
                             allRoads = false;
@@ -240,9 +238,9 @@ export class StagedLayoutGenerator {
                         }
                         
                         // Check if this position would be a road
-                        // (either it already is, or it's the position we're checking)
-                        if (checkX === x && checkY === y) continue; // This would be a road
-                        if (this.layout[checkY][checkX].type !== 'road') {
+                        // (either it's the position we're checking, or it's already a road)
+                        const cell = this.layout[checkY][checkX];
+                        if (cell.type !== 'road' && (checkX !== x || checkY !== y)) {
                             allRoads = false;
                             break;
                         }
@@ -250,11 +248,9 @@ export class StagedLayoutGenerator {
                     if (!allRoads) break;
                 }
                 
-                // If we found a 2x2 block that would be all roads, return true
                 if (allRoads) return true;
             }
         }
-        
         return false;
     }
 
@@ -527,6 +523,7 @@ export class StagedLayoutGenerator {
             }
         }
 
+        this.dumpLayout();
         return this.layout;
     }
 
@@ -549,5 +546,23 @@ export class StagedLayoutGenerator {
             }
         }
         return false;
+    }
+
+    // Add this method to visualize the layout
+    private dumpLayout(): void {
+        console.log('\nFinal Layout:');
+        for (let y = 0; y < this.height; y++) {
+            let row = '';
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.layout[y][x];
+                if (cell.type === 'road') {
+                    row += cell.roadInfo.weight === 'trunk' ? 'T' : 'M';
+                } else {
+                    row += '.';
+                }
+            }
+            console.log(row);
+        }
+        console.log('\nT = Trunk Road, M = Medium Road, . = Building\n');
     }
 } 
