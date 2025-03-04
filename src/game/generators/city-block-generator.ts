@@ -96,10 +96,12 @@ export class CityBlockGenerator {
                         blockUrl = await blockFiles[isThreeWay ? 
                             '../../assets/blocks/4-3i.json' : 
                             '../../assets/blocks/4-4i.json']();
-                    } else if (cell.roadInfo?.type === 'straight' || cell.roadInfo?.type === 'deadend') {
+                    } else if (cell.roadInfo?.type === 'straight') {
                         blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
                     } else if (cell.roadInfo?.type === 'turn') {
                         blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
+                    } else if (cell.roadInfo?.type === 'deadend') {
+                        blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
                     } else if (cell.roadInfo?.type === 'unknown') {
                         blockUrl = await blockFiles['../../assets/blocks/unknown.json']();
                     } else {

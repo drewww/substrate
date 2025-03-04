@@ -106,11 +106,11 @@ export class StagedLayoutGenerator {
         switch (connections.length) {
             case 1:
                 roadType = 'deadend';
-                // For dead ends, orient towards the connection
-                if (connections[0] === 'north') orientation = 0;
-                else if (connections[0] === 'east') orientation = 1;
-                else if (connections[0] === 'south') orientation = 2;
-                else if (connections[0] === 'west') orientation = 3;
+                // For dead ends, orient away from the connection (flipped from before)
+                if (connections[0] === 'north') orientation = 2;  // Was 0
+                else if (connections[0] === 'east') orientation = 3;  // Was 1
+                else if (connections[0] === 'south') orientation = 0;  // Was 2
+                else if (connections[0] === 'west') orientation = 1;  // Was 3
                 break;
             case 2:
                 if ((connections.includes('north') && connections.includes('south')) ||
