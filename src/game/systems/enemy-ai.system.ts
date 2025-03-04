@@ -28,8 +28,10 @@ export class EnemyAISystem {
     private updateEnemy(enemy: Entity): void {
         const ai = enemy.getComponent('enemyAI') as EnemyAIComponent;
 
-        const canSeePlayer = this.world.canEntitySeeEntity(enemy, this.world.getPlayer());
-
+        let canSeePlayer = false;
+        if(enemy.hasComponent('vision')) {
+            canSeePlayer = this.world.canEntitySeeEntity(enemy, this.world.getPlayer());
+        }
 
         switch (ai.aiType) {
             case EnemyAIType.FOLLOWER:
@@ -64,7 +66,53 @@ export class EnemyAISystem {
 
                 enemy.setComponent(ai);
                 break;
+            case EnemyAIType.PEDESTRIAN:      
+            
+                const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
+                const moveCooldown = cooldowns?.getCooldown('move');
 
+                if(moveCooldown && moveCooldown.ready) {
+                    if(!ai.destination) {
+                        const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation');
+                        const sortedNavPoints = navPoints
+                            .map(point => ({
+                                point: point.getPosition(),
+                                distance: Math.abs(point.getPosition().x - enemy.getPosition().x) + Math.abs(point.getPosition().y - enemy.getPosition().y)
+                            }))
+                            .sort((a, b) => a.distance - b.distance)
+                            .slice(0, 6)
+                            .filter(destination => destination.distance > 0) // don't pick current location
+                            .filter(destination => !ai.previousDestination || 
+                                (ai.previousDestination.x !== destination.point.x || ai.previousDestination.y !== destination.point.y))
+                            .map(item => item.point);
+
+                        if(sortedNavPoints.length > 0) {
+                            ai.previousDestination = enemy.getPosition(); // Store current position as previous source
+                            ai.destination = sortedNavPoints[Math.floor(Math.random() * sortedNavPoints.length)];
+                            enemy.setComponent(ai);
+                        }
+                    }
+
+
+                    if(ai.destination) {
+                        const path = this.world.findPath(enemy.getPosition(), ai.destination);
+
+                        if(path && path.length > 1) {
+                            const nextPos = path[1];
+                            this.actionHandler.execute({
+                                type: 'entityMove',
+                                entityId: enemy.getId(),
+                                data: { to: nextPos }
+                            });
+
+                            if(nextPos.x === ai.destination.x && nextPos.y === ai.destination.y) {
+                                ai.destination = null;
+                            }
+                        }
+                    }
+                }
+
+                break;
             case EnemyAIType.EMP_TURRET:
                 if (canSeePlayer) {
                     ai.turnsLocked += 1

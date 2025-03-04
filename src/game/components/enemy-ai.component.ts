@@ -1,5 +1,6 @@
 import { Component } from "../../entity/component";
 import { RegisterComponent } from "../../entity/component-registry";
+import { Point } from "../../types";
 
 export enum EnemyAIMode {
     IDLE = 'idle',
@@ -11,7 +12,8 @@ export enum EnemyAIMode {
 export enum EnemyAIType {
     EMP_TURRET = 'emp_turret',
     FOLLOWER = 'follower',
-    FAST_FOLLOWER = 'fast_follower'
+    FAST_FOLLOWER = 'fast_follower',
+    PEDESTRIAN = 'pedestrian'
 }
 
 @RegisterComponent('enemyAI')
@@ -22,7 +24,9 @@ export class EnemyAIComponent extends Component {
         public aiType: EnemyAIType = EnemyAIType.EMP_TURRET,
         public turnsLocked: number = 0,
         public visionRadius: number = 5,
-        public mode: EnemyAIMode = EnemyAIMode.IDLE
+        public mode: EnemyAIMode = EnemyAIMode.IDLE,
+        public destination: Point | null = null,
+        public previousDestination: Point | null = null
     ) {
         super();
     }

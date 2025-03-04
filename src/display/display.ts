@@ -1394,49 +1394,38 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         const valueAnims = this.valueAnimations.get(tile.id);
         if (valueAnims) {
             if (valueAnims.x || valueAnims.y) {
-                // Calculate the target position
-
-                // this is probematic because it makes assumptions about the value animation behavior
-                // and if we are implement Transform functions. I think for now we can get away with 
-                // simply using range instead. but there are potentially bad cases here for x/y
-                // animations that have greater than 1 range. 
-
-
-                // TODO: consider also folding the transform function into this calculation
-
-                // this gets unnecessarily complex because we have to test for range/offset versus start/end
-                // but for now it's faster than a total refactor.
-
-
                 let rangeX: number = 0;
-                if(valueAnims.x?.range) {
-                    rangeX = valueAnims.x.range;
-                } else if(valueAnims.x?.end && valueAnims.x?.start) {
-                    rangeX = valueAnims.x.end - valueAnims.x.start;
-                } else {
-                    logger.warn(`No range or start/end for x animation ${tile.id} ${JSON.stringify(valueAnims.x)}`);
+                if (valueAnims.x) {
+                    if (valueAnims.x.range !== undefined) {
+                        rangeX = valueAnims.x.range;
+                    } else if (valueAnims.x.end !== undefined && valueAnims.x.start !== undefined) {
+                        // Only calculate range if start and end are different
+                        rangeX = Math.abs(valueAnims.x.end - valueAnims.x.start);
+                    }
                 }
  
                 let rangeY: number = 0;
-                if(valueAnims.y?.range) {
-                    rangeY = valueAnims.y.range;
-                } else if(valueAnims.y?.end && valueAnims.y?.start) {
-                    rangeY = valueAnims.y.end - valueAnims.y.start;
-                } else {
-                    logger.warn(`No range or start/end for y animation ${tile.id} ${JSON.stringify(valueAnims.y)}`);
+                if (valueAnims.y) {
+                    if (valueAnims.y.range !== undefined) {
+                        rangeY = valueAnims.y.range;
+                    } else if (valueAnims.y.end !== undefined && valueAnims.y.start !== undefined) {
+                        // Only calculate range if start and end are different
+                        rangeY = Math.abs(valueAnims.y.end - valueAnims.y.start);
+                    }
                 }
 
-                const targetX = valueAnims.x ? 
-                    Math.round(tile.x + (rangeX)) : 
-                    tile.x;
-                const targetY = valueAnims.y ? 
-                    Math.round(tile.y + (rangeY)) : 
-                    tile.y;
-                
-                // Check visibility at target position
-                const targetPosVisibility = this.visibilityMask[targetY]?.[targetX];
-                // Use the higher visibility value between current and target positions
-                targetVisibility = Math.max(currentVisibility ?? 0, targetPosVisibility ?? 0);
+                // Only calculate target position if there's actual movement
+                if (rangeX !== 0 || rangeY !== 0) {
+                    const targetX = valueAnims.x ? 
+                        Math.round(tile.x + rangeX) : 
+                        tile.x;
+                    const targetY = valueAnims.y ? 
+                        Math.round(tile.y + rangeY) : 
+                        tile.y;
+                    
+                    const targetPosVisibility = this.visibilityMask[targetY]?.[targetX];
+                    targetVisibility = Math.max(currentVisibility ?? 0, targetPosVisibility ?? 0);
+                }
             }
         }
 

@@ -4490,6 +4490,106 @@
           "blendMode": "source-over"
         }
       ]
+    },
+    {
+      "id": "e584",
+      "position": {
+        "x": 11,
+        "y": 7
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "i",
+          "foreground": "#FFFFFFFF",
+          "background": "#00000000",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "enemyAI",
+          "aiType": "pedestrian",
+          "turnsLocked": 0,
+          "visionRadius": 5,
+          "mode": "idle",
+          "destination": null
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "move": {
+              "base": 6,
+              "current": 6,
+              "ready": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "e901",
+      "position": {
+        "x": 0,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
+    },
+    {
+      "id": "e1186",
+      "position": {
+        "x": 11,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
+    },
+    {
+      "id": "e1248",
+      "position": {
+        "x": 11,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
+    },
+    {
+      "id": "e1500",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
     }
   ]
 }
