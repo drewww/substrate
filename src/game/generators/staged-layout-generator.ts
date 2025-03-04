@@ -635,6 +635,7 @@ export class StagedLayoutGenerator {
         }
 
         this.dumpLayout();
+        this.dumpLayoutByType();
         return this.layout;
     }
 
@@ -677,5 +678,25 @@ export class StagedLayoutGenerator {
             console.log(row);
         }
         console.log('\nT = Trunk Road, M = Medium Road, m = Minor Road, . = Building\n');
+    }
+
+    private dumpLayoutByType(): void {
+        console.log('\nLayout by Road Type:');
+        for (let y = 0; y < this.height; y++) {
+            let row = '';
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.layout[y][x];
+                const roadInfo = cell.roadInfo;
+                if (cell.type === 'road') {
+                    row += roadInfo?.type === 'straight' ? 'S' : 
+                           roadInfo?.type === 'corner' ? 'C' : 
+                           roadInfo?.type === 't-intersection' ? 'T' : 'X';
+                } else {
+                    row += '.';
+                }
+            }
+            console.log(row);
+        }
+        console.log('\nS = Straight, C = Corner, T = T-intersection, X = Intersection, . = Building\n');
     }
 } 
