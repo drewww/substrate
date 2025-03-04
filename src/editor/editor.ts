@@ -52,8 +52,8 @@ export class Editor {
         this.world = new World(width, height);
         
         // Create display with smaller viewport
-        const viewportWidth = Math.floor(width * 0.75);  // 25% smaller
-        const viewportHeight = Math.floor(height * 0.75);
+        const viewportWidth = width;
+        const viewportHeight = height;
         
         this.display = new Display({
             elementId: CANVAS_ID,
@@ -477,6 +477,8 @@ export class Editor {
             this.paletteDisplay.onCellHover((point: Point | null) => {
                 if (!point && this.paletteRenderer) {
                     this.paletteRenderer.hoverCell(null);
+                    const canvas = document.getElementById('palette-canvas') as HTMLCanvasElement;
+                    if (canvas) canvas.title = '';
                     return;
                 }
                 
@@ -484,6 +486,8 @@ export class Editor {
                     const index = point.y * PALETTE_WIDTH + point.x;
                     if (index >= 0 && index < paletteData.entities.length) {
                         this.paletteRenderer.hoverCell(point);
+                        const canvas = document.getElementById('palette-canvas') as HTMLCanvasElement;
+                        if (canvas) canvas.title = `${paletteData.entities[index].id}`;
                     }
                 }
             });
