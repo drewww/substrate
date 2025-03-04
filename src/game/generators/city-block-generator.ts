@@ -91,7 +91,11 @@ export class CityBlockGenerator {
                     if(cell.type === 'building') {
                         blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
                     } else if (cell.roadInfo?.type === 'intersection') {
-                        blockUrl = await blockFiles['../../assets/blocks/4-4i.json']();
+                        // Use different blocks for 3-way vs 4-way intersections
+                        const isThreeWay = cell.roadInfo.connections.length === 3;
+                        blockUrl = await blockFiles[isThreeWay ? 
+                            '../../assets/blocks/4-3i.json' : 
+                            '../../assets/blocks/4-4i.json']();
                     } else if (cell.roadInfo?.type === 'straight' || cell.roadInfo?.type === 'deadend') {
                         blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
                     } else if (cell.roadInfo?.type === 'turn') {

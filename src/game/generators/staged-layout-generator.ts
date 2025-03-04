@@ -131,9 +131,16 @@ export class StagedLayoutGenerator {
                 }
                 break;
             case 3:
+                roadType = 'intersection';
+                // For 3-way intersections, orient based on the missing direction
+                if (!connections.includes('north')) orientation = 0;      // T facing down (template)
+                else if (!connections.includes('east')) orientation = 1;  // T facing left
+                else if (!connections.includes('south')) orientation = 2; // T facing up
+                else if (!connections.includes('west')) orientation = 3;  // T facing right
+                break;
             case 4:
                 roadType = 'intersection';
-                // For intersections, orient based on the first connection
+                // For 4-way intersections, orient based on the first connection
                 if (connections[0] === 'north') orientation = 0;
                 else if (connections[0] === 'east') orientation = 1;
                 else if (connections[0] === 'south') orientation = 2;
