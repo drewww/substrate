@@ -43,14 +43,17 @@ export class CityBlockGenerator {
                 try {
                     // Get the block file URL based on road shape metadata
                     let blockUrl: string | undefined;
-                    if (cell.roadInfo?.type === 'intersection') {
+
+                    if(cell.type === 'building') {
+                        blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
+                    } else if (cell.roadInfo?.type === 'intersection') {
                         blockUrl = await blockFiles['../../assets/blocks/4-4i.json']();
                     } else if (cell.roadInfo?.type === 'straight' || cell.roadInfo?.type === 'deadend') {
                         blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
                     } else if (cell.roadInfo?.type === 'turn') {
                         blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
                     } else if (cell.roadInfo?.type === 'unknown') {
-                        blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
+                        blockUrl = await blockFiles['../../assets/blocks/unknown.json']();
                     } else {
                         logger.error(`Unknown road type at ${x},${y}: ${cell.roadInfo?.type}`);
                         continue;
