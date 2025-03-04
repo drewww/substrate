@@ -6,7 +6,7 @@ import { ImpassableComponent } from '../../entity/components/impassable-componen
 import { Entity } from '../../entity/entity';
 import { EMPComponent } from '../components/emp.component';
 import { ActionHandler } from '../../action/action-handler';
-import { EntitySpawnerComponent } from '../components/entity-spawner.component';
+import { EntitySpawnerComponent, SPAWNER_TYPES } from '../components/entity-spawner.component';
 import { FacingComponent } from '../../entity/components/facing-component';
 import { directionToPoint } from '../../util';
 import { logger } from '../../util/logger';
@@ -125,23 +125,28 @@ export class WorldSystem {
 
             const spawnerState = entity.getComponent('entity-spawner') as EntitySpawnerComponent;
             const spawnCooldown = cooldowns.getCooldown('spawn');
-            if (spawnerState) {
+            const facing = entity.getComponent('facing') as FacingComponent;
+            if (spawnerState && facing) {
                 if (spawnerState.spawnTypes.length > 0 && spawnCooldown && spawnCooldown.ready) {
                     // TODO Package this in an action
                     const spawnType = spawnerState.spawnTypes[0];
-
-                    const facing = entity.getComponent('facing') as FacingComponent;
+                    
                     const directionPoint = directionToPoint(facing.direction);
                     const spawnPosition = {
                         x: entity.getPosition().x + directionPoint.x,
                         y: entity.getPosition().y + directionPoint.y
                     };
 
-                    logger.warn("TRYING TO SPAWN AN ENTITY: ", spawnPosition);
-
-                    const spawner = new Entity(spawnPosition);
-                    spawner.setComponent(new SymbolComponent('?', '#FFFFFFFF', '#5335FFFF', 1500));
-                    this.world.addEntity(spawner);
+                    // Get the entity template from SPAWNER_TYPES
+                    const template = SPAWNER_TYPES[spawnType as keyof typeof SPAWNER_TYPES];
+                    if (template) {
+                        // Create entity from template
+                        const spawner = Entity.deserialize({
+                            ...template,
+                            position: spawnPosition
+                        });
+                        this.world.addEntity(spawner);
+                    }
                 }
             }
         }
