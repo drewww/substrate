@@ -1180,7 +1180,7 @@ export class Editor {
                 // Check if there's already a matching entity at this position
                 const entities = this.world.getEntitiesAt(point);
                 const hasMatchingEntity = entities.some(entity => 
-                    this.entitiesHaveSameComponents(entity, clipboard.entity)
+                    clipboard.entity && this.entitiesHaveSameComponents(entity, clipboard.entity)
                 );
                 
                 // Only place if no matching entity exists
