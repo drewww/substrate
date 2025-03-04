@@ -338,33 +338,40 @@ export class Editor {
             // Handle clipboard entity preview
             const clipboard = this.state.getClipboard();
             if (clipboard.type === 'entity' && clipboard.entity) {
-                // Remove old preview if it exists
-                if (this.previewEntity) {
-                    this.world.removeEntity(this.previewEntity.getId());
-                }
+                // Don't show preview during right-click drag
+                if (!this.isRightMouseDown) {
+                    // Remove old preview if it exists
+                    if (this.previewEntity) {
+                        this.world.removeEntity(this.previewEntity.getId());
+                    }
 
-                if (point) {
-                    // Create new preview entity
-                    this.previewEntity = clipboard.entity.clone();
-                    this.previewEntity.setPosition(point.x, point.y);
-                    
-                    // Set opacity to 75% for all color components
-                    this.previewEntity.getComponents().forEach(component => {
-                        const data = component.serialize();
-                        Object.entries(data).forEach(([key, value]) => {
-                            if (typeof value === 'string' && value.startsWith('#')) {
-                                // Only apply alpha to fg/bg color values
-                                if (key === 'fg' || key === 'bg') {
-                                const baseColor = value.slice(0, 7); // Remove any existing alpha
-                                data[key] = baseColor + '66'; 
-                            }
-                            }
+                    if (point) {
+                        // Create new preview entity
+                        this.previewEntity = clipboard.entity.clone();
+                        this.previewEntity.setPosition(point.x, point.y);
+                        
+                        // Set opacity to 75% for all color components
+                        this.previewEntity.getComponents().forEach(component => {
+                            const data = component.serialize();
+                            Object.entries(data).forEach(([key, value]) => {
+                                if (typeof value === 'string' && value.startsWith('#')) {
+                                    // Only apply alpha to fg/bg color values
+                                    if (key === 'fg' || key === 'bg') {
+                                        const baseColor = value.slice(0, 7); // Remove any existing alpha
+                                        data[key] = baseColor + '66'; 
+                                    }
+                                }
+                            });
+                            this.previewEntity?.setComponent(ComponentRegistry.fromJSON(data));
                         });
-                        this.previewEntity?.setComponent(ComponentRegistry.fromJSON(data));
-                    });
 
-                    // Add to world
-                    this.world.addEntity(this.previewEntity);
+                        // Add to world
+                        this.world.addEntity(this.previewEntity);
+                    }
+                } else if (this.previewEntity) {
+                    // Remove preview if right-click dragging
+                    this.world.removeEntity(this.previewEntity.getId());
+                    this.previewEntity = null;
                 }
             } else if (this.previewEntity) {
                 // Remove preview if no entity in clipboard or no point
@@ -393,6 +400,12 @@ export class Editor {
                     this.lastDragCell.x !== point.x || 
                     this.lastDragCell.y !== point.y) {
                     
+                    // Remove preview entity before drag operation
+                    if (this.previewEntity) {
+                        this.world.removeEntity(this.previewEntity.getId());
+                        this.previewEntity = null;
+                    }
+
                     const clipboard = this.state.getClipboard();
                     if (clipboard.type === 'entity' && clipboard.entity) {
                         if (this.rightClickMode === 'remove') {
@@ -637,6 +650,12 @@ export class Editor {
 
     private handleRightClick(point: Point | null): void {
         if (!point) return;
+
+        // Remove preview entity before handling right click
+        if (this.previewEntity) {
+            this.world.removeEntity(this.previewEntity.getId());
+            this.previewEntity = null;
+        }
 
         // If we're in single-entity view, clear it first
         if (this.state.getState().selectedEntityId) {
