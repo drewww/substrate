@@ -35,6 +35,7 @@ import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts'
 
 import testWorldUrl from '../assets/world/test-world.json?url';
 import { CityBlockGenerator } from './generators/city-block-generator.ts';
+import { EntitySpawnAction } from './actions/entity-spawn.action.ts';
 
 
 
@@ -215,6 +216,7 @@ export class RuntimeGame extends Game {
             this.actionHandler.registerAction('entityMove', EntityMoveAction);
             this.actionHandler.registerAction('stun', StunAction);
             this.actionHandler.registerAction('createProjectile', CreateEntityAction);
+            this.actionHandler.registerAction('spawn', EntitySpawnAction);
 
             // Note: These setup calls will happen after display is created in prepare()
             // They are moved out of setup() and will be called after prepare() creates the display

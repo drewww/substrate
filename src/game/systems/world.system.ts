@@ -147,15 +147,16 @@ export class WorldSystem {
                     // Get the entity template from SPAWNER_TYPES
                     const template = SPAWNER_TYPES[spawnType as keyof typeof SPAWNER_TYPES];
                     if (template) {
-                        // Create entity from template
-                        const spawner = Entity.deserialize({
-                            ...template,
-                            position: spawnPosition
+                        logger.info(`Spawning entity ${spawnType} at ${spawnPosition} facing ${facing.direction}`);
+                        this.actionHandler.execute({
+                            type: 'spawn',
+                            entityId: entity.getId(),
+                            data: {
+                                template,
+                                position: spawnPosition,
+                                facing: facing.direction
+                            }
                         });
-
-                        spawner.setComponent(new FacingComponent(facing.direction));
-                        
-                        this.world.addEntity(spawner);
                     }
                 }
             }
