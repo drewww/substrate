@@ -227,6 +227,10 @@ export class StagedLayoutGenerator {
 
     // Modify startNewTrunk to consider all valid trunk points
     private startNewTrunk(): boolean {
+        if (this.currentPhase !== 'trunk') {
+            console.error('Attempted to start new trunk road during', this.currentPhase, 'phase');
+            return false;
+        }
         // Collect all valid trunk points
         const validTrunkPoints: Array<{x: number, y: number}> = [];
         
@@ -349,6 +353,13 @@ export class StagedLayoutGenerator {
     }
 
     private startNewMedium(): boolean {
+        if (this.currentPhase !== 'medium') {
+            console.error('Attempted to start new medium road during', this.currentPhase, 'phase');
+            return false;
+        }
+        // Add debug logging at the start
+        console.log('Starting new medium road search...');
+        
         // Find all valid trunk points that have enough space for a medium road
         const validOptions: Array<{point: {x: number, y: number}, direction: number}> = [];
         
@@ -445,6 +456,10 @@ export class StagedLayoutGenerator {
     }
 
     private startNewMinor(): boolean {
+        if (this.currentPhase !== 'minor') {
+            console.error('Attempted to start new minor road during', this.currentPhase, 'phase');
+            return false;
+        }
         const validOptions: Array<{point: {x: number, y: number}, direction: number}> = [];
         
         for (let y = 0; y < this.height; y++) {
@@ -678,6 +693,8 @@ export class StagedLayoutGenerator {
                     console.log('Could not find valid medium point, ending medium phase');
                     break;
                 }
+                // Reset lastTurned when starting a new medium road
+                this.lastTurned = false;
             } else {
                 consecutiveResets = 0;
             }
