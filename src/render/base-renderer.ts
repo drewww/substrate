@@ -970,8 +970,6 @@ export abstract class BaseRenderer implements Renderer {
             return symbol.rotation;
         }
 
-        logger.info(`Getting effective symbol rotation for ${entity.getId()} ${symbol.rotation} and facing: ${facing.direction}`);
-
         // Convert direction to rotation (in degrees)
         switch (facing.direction) {
             case Direction.North: return 0;

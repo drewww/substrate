@@ -6,14 +6,18 @@ import { ImpassableComponent } from '../../entity/components/impassable-componen
 import { Entity } from '../../entity/entity';
 import { EMPComponent } from '../components/emp.component';
 import { ActionHandler } from '../../action/action-handler';
+import { EntitySpawnerComponent } from '../components/entity-spawner.component';
+import { FacingComponent } from '../../entity/components/facing-component';
+import { directionToPoint } from '../../util';
+import { logger } from '../../util/logger';
 
 export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
 
     tick(): void {
-        const toggleEntities = this.world.getEntitiesWithComponent('cooldown').filter(e => e.hasComponent('symbol'));
-            
-        for (const entity of toggleEntities) {
+        const cooldownEntities = this.world.getEntitiesWithComponent('cooldown').filter(e => e.hasComponent('symbol'));
+
+        for (const entity of cooldownEntities) {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const toggleState = cooldowns.getCooldown('toggle');
 
@@ -23,11 +27,11 @@ export class WorldSystem {
                     const pos = entity.getPosition();
                     const entitiesAtPos = this.world.getEntitiesAt(pos);
                     const hasImpassableEntity = entitiesAtPos.some(e => e !== entity && e.hasComponent('impassable'));
-                    
+
                     if (hasImpassableEntity) {
                         return;
                     }
-                   
+
                     cooldowns.setCooldown('toggle', toggleState.base, toggleState.base, false);
 
                     const symbol = entity.getComponent('symbol') as SymbolComponent;
@@ -56,18 +60,18 @@ export class WorldSystem {
             }
 
             const disperseState = cooldowns.getCooldown('disperse');
-            if(disperseState) {
-                if(disperseState.ready) {
+            if (disperseState) {
+                if (disperseState.ready) {
                     this.world.removeEntity(entity.getId());
                 }
             }
 
             const empState = entity.getComponent('emp') as EMPComponent;
-            if(empState) {
+            if (empState) {
                 // apply EMP effect
                 const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
-                for(const entity of entitiesAtPos) {
-                    if(entity.hasComponent('player')) {
+                for (const entity of entitiesAtPos) {
+                    if (entity.hasComponent('player')) {
                         this.actionHandler.execute({
                             type: 'stun',
                             entityId: entity.getId(),
@@ -81,8 +85,8 @@ export class WorldSystem {
             }
 
             const explodeEmpState = cooldowns.getCooldown('explode-emp');
-            if(explodeEmpState) {
-                if(explodeEmpState.ready) {
+            if (explodeEmpState) {
+                if (explodeEmpState.ready) {
                     explodeEmpState.current = explodeEmpState.base;
                     explodeEmpState.ready = false;
                     entity.setComponent(cooldowns);
@@ -91,13 +95,13 @@ export class WorldSystem {
 
                     // now make an EMP explosion entity on everyt adjacent tile
                     const pattern = [
-                        {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 0},
-                        {x: 0, y: 1}, {x: 0, y: -1},
-                        {x: 1, y: 1}, {x: -1, y: 1},
-                        {x: 1, y: -1}, {x: -1, y: -1}
+                        { x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 },
+                        { x: 0, y: 1 }, { x: 0, y: -1 },
+                        { x: 1, y: 1 }, { x: -1, y: 1 },
+                        { x: 1, y: -1 }, { x: -1, y: -1 }
                     ];
 
-                    for(const offset of pattern) {
+                    for (const offset of pattern) {
                         const pos = {
                             x: entity.getPosition().x + offset.x,
                             y: entity.getPosition().y + offset.y
@@ -112,10 +116,32 @@ export class WorldSystem {
                                 ready: false
                             }
                         }));
-                        
+
                         emp.setComponent(new EMPComponent());
                         this.world.addEntity(emp);
                     }
+                }
+            }
+
+            const spawnerState = entity.getComponent('entity-spawner') as EntitySpawnerComponent;
+            const spawnCooldown = cooldowns.getCooldown('spawn');
+            if (spawnerState) {
+                if (spawnerState.spawnTypes.length > 0 && spawnCooldown && spawnCooldown.ready) {
+                    // TODO Package this in an action
+                    const spawnType = spawnerState.spawnTypes[0];
+
+                    const facing = entity.getComponent('facing') as FacingComponent;
+                    const directionPoint = directionToPoint(facing.direction);
+                    const spawnPosition = {
+                        x: entity.getPosition().x + directionPoint.x,
+                        y: entity.getPosition().y + directionPoint.y
+                    };
+
+                    logger.warn("TRYING TO SPAWN AN ENTITY: ", spawnPosition);
+
+                    const spawner = new Entity(spawnPosition);
+                    spawner.setComponent(new SymbolComponent('?', '#FFFFFFFF', '#5335FFFF', 1500));
+                    this.world.addEntity(spawner);
                 }
             }
         }

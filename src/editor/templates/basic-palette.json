@@ -385,6 +385,46 @@
             "type": "pedestrian-navigation"
           }
         ]
+      },
+
+      {
+        "id": "vehicle_spawner",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "^",
+            "foreground": "#FFFFFFFF",
+            "background": "#5335FFFF",
+            "zIndex": 20,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          },
+          {
+            "type": "opacity"
+          },
+          {
+            "type": "impassable"
+          },
+          {
+            "type": "entity-spawner",
+            "spawnTypes": ["vehicle-followable"]
+          },
+          {
+            "type": "cooldown",
+            "cooldowns": {
+              "spawn": {
+                "base": 20,
+                "current": 20,
+                "ready": false
+              }
+            }
+          }
+        ]
       }
+
     ]
   }
