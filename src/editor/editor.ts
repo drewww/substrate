@@ -252,7 +252,16 @@ export class Editor {
 
         // Add other tool button handlers
         if (fillButton) {
-            fillButton.addEventListener('click', () => this.handleFill());
+            // Remove any existing listeners first
+            const newFillButton = fillButton.cloneNode(true);
+            fillButton.parentNode?.replaceChild(newFillButton, fillButton);
+            
+            // Add single listener with stopPropagation
+            newFillButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleFill();
+            }, { once: true });  // Ensure the listener only fires once
         }
 
         if (exportButton) {
@@ -383,7 +392,9 @@ export class Editor {
                 const newSelection = this.getCellsInArea(this.areaStartCell, point);
                 if (JSON.stringify(newSelection) !== JSON.stringify(this.selectedCells)) {
                     this.selectedCells = newSelection;
-                    this.renderer.highlightCells(this.selectedCells);
+                    // Get the cells around the selection instead of the selection itself
+                    const borderCells = this.getCellsAroundArea(this.areaStartCell, point);
+                    this.renderer.highlightCells(borderCells);
                     this.updateEntityPanel(this.getEntitiesInSelectedCells());
                 }
             } else if (this.isLeftMouseDown && point && this.currentTool === 'pointer') {
@@ -431,6 +442,9 @@ export class Editor {
                     }
                     this.lastDragCell = point;
                 }
+            } else if (this.isRightMouseDown && point) {
+                // Original right-click placement behavior
+                this.handleRightClick(point);
             }
         });
 
@@ -749,7 +763,7 @@ export class Editor {
             const sortedEntities = this.getEntitiesSortedByZIndex(entities);
             const topEntity = sortedEntities[0];
             
-            // Clone the entity before putting it in clipboard
+            // Only copy to clipboard, don't place
             this.state.setEntityClipboard(topEntity.clone());
             logger.info('Copied entity to clipboard from world click');
         }
@@ -1141,7 +1155,11 @@ export class Editor {
     private getEntitiesInSelectedCells(): Entity[] {
         const entities: Entity[] = [];
         this.selectedCells.forEach(cell => {
-            entities.push(...this.world.getEntitiesAt(cell));
+            // Filter out the preview entity when getting entities
+            const cellEntities = this.world.getEntitiesAt(cell).filter(entity => 
+                entity !== this.previewEntity
+            );
+            entities.push(...cellEntities);
         });
         return entities;
     }
@@ -1159,9 +1177,18 @@ export class Editor {
         // Fill cells with clipboard contents
         cellsToFill.forEach(point => {
             if (clipboard.type === 'entity' && clipboard.entity) {
-                const entity = clipboard.entity.clone();
-                entity.setPosition(point.x, point.y);
-                this.world.addEntity(entity);
+                // Check if there's already a matching entity at this position
+                const entities = this.world.getEntitiesAt(point);
+                const hasMatchingEntity = entities.some(entity => 
+                    this.entitiesHaveSameComponents(entity, clipboard.entity)
+                );
+                
+                // Only place if no matching entity exists
+                if (!hasMatchingEntity) {
+                    const entity = clipboard.entity.clone();
+                    entity.setPosition(point.x, point.y);
+                    this.world.addEntity(entity);
+                }
             } else if (clipboard.type === 'components' && clipboard.components?.length) {
                 const entities = this.world.getEntitiesAt(point);
                 if (entities.length > 0) {
@@ -1729,6 +1756,28 @@ export class Editor {
         if (controls && controls instanceof HTMLElement) {
             controls.style.display = 'flex';
         }
+    }
+
+    private getCellsAroundArea(start: Point, end: Point): Point[] {
+        const cells: Point[] = [];
+        const minX = Math.min(start.x, end.x);
+        const maxX = Math.max(start.x, end.x);
+        const minY = Math.min(start.y, end.y);
+        const maxY = Math.max(start.y, end.y);
+
+        // Add top and bottom rows
+        for (let x = minX - 1; x <= maxX + 1; x++) {
+            cells.push({ x, y: minY - 1 });
+            cells.push({ x, y: maxY + 1 });
+        }
+
+        // Add left and right columns
+        for (let y = minY - 1; y <= maxY + 1; y++) {
+            cells.push({ x: minX - 1, y });
+            cells.push({ x: maxX + 1, y });
+        }
+
+        return cells;
     }
 }
 
