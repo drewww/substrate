@@ -10,3 +10,4 @@ import './emp.component';
 import './enemy-ai.component';
 import './stun.component';
 import './timestamp.component';
+import './pedestrian-navigation.component';

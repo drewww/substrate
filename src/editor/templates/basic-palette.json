@@ -375,6 +375,16 @@
             }
           }
         ]
+      },
+
+      {
+        "id": "pedestrian-nav-point",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "pedestrian-navigation"
+          }
+        ]
       }
     ]
   }

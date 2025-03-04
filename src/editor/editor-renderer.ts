@@ -5,6 +5,8 @@ import { Component } from '../entity/component';
 import { Display } from '../display/display';
 import { World } from '../world/world';
 import { BlendMode } from '../display/types';
+import { PedestrianNavigationComponent } from '../game/components/pedestrian-navigation.component';
+
 
 export class EditorRenderer extends BaseRenderer {
     private highlightTileId: string | null = null;
@@ -21,17 +23,41 @@ export class EditorRenderer extends BaseRenderer {
     }
 
     public handleEntityAdded(entity: Entity): void {
-        // Store the mapping between entity and tile
-        const tileId = this.entityTiles.get(entity.getId());
-
-        if(tileId) {
-            this.entityTiles.set(entity.getId(), tileId);
-            this.tileEntities.set(tileId, entity.getId());
-        }
+        this.updateEntityVisuals(entity);
     }
 
     public handleEntityModified(entity: Entity, componentType: string): void {
-       
+        this.updateEntityVisuals(entity);
+    }
+
+    private updateEntityVisuals(entity: Entity): void {
+        // First check if we need to create a tile
+        if (entity.hasComponent(PedestrianNavigationComponent.type)) {
+            let tileId = this.entityTiles.get(entity.getId());
+            const position = entity.getPosition();
+            
+            // Create tile if it doesn't exist
+            if (!tileId) {
+                tileId = this.display.createTile(
+                    position.x,
+                    position.y,
+                    '◊',  // Diamond shape for nav node
+                    '#00FF00AA',  // Semi-transparent green
+                    '#00000000',  // Transparent background
+                    1000  // High z-index to stay visible
+                );
+                this.entityTiles.set(entity.getId(), tileId);
+                this.tileEntities.set(tileId, entity.getId());
+                return;
+            }
+
+            // Update existing tile
+            this.display.updateTile(tileId, {
+                char: '◊',
+                fg: '#00FF00AA',
+                bg: '#00000000'
+            });
+        }
     }
 
     public handleComponentModified(entity: Entity, componentType: string): void {

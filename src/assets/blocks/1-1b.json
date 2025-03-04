@@ -4631,6 +4631,58 @@
           }
         }
       ]
+    },
+    {
+      "id": "e901",
+      "position": {
+        "x": 0,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
+    },
+    {
+      "id": "e1186",
+      "position": {
+        "x": 11,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
+    },
+    {
+      "id": "e1248",
+      "position": {
+        "x": 11,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
+    },
+    {
+      "id": "e1500",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "pedestrian-navigation",
+          "editorOnly": true
+        }
+      ]
     }
   ]
 }
