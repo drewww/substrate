@@ -23,6 +23,50 @@ export class CityBlockGenerator {
     private readonly blockWidth: number = 12;
     private readonly blockHeight: number = 12;
 
+    private rotateEntityPosition(entity: Entity, orientation: number, blockWidth: number, blockHeight: number): void {
+        const pos = entity.getPosition();
+        let newX = pos.x;
+        let newY = pos.y;
+
+        switch (orientation) {
+            case 1: // E/W
+                newX = blockWidth - 1 - pos.y;
+                newY = pos.x;
+                break;
+            case 2: // S/N
+                newX = blockWidth - 1 - pos.x;
+                newY = blockHeight - 1 - pos.y;
+                break;
+            case 3: // W/E
+                newX = pos.y;
+                newY = blockHeight - 1 - pos.x;
+                break;
+        }
+
+        entity.setPosition(newX, newY);
+
+        // Rotate facing component if it exists
+        const facing = entity.getComponent("facing") as FacingComponent;
+        if (facing) {
+            const currentFacing = facing.direction;
+            let newFacing = currentFacing;
+            
+            switch (orientation) {
+                case 1: // E/W
+                    newFacing = (currentFacing + 1) % 4;
+                    break;
+                case 2: // S/N
+                    newFacing = (currentFacing + 2) % 4;
+                    break;
+                case 3: // W/E
+                    newFacing = (currentFacing + 3) % 4;
+                    break;
+            }
+            
+            entity.setComponent(new FacingComponent(newFacing));
+        }
+    }
+
     async generate(): Promise<World> {
         // Create a new world with dimensions based on layout and block size
         const world = new World(
@@ -67,25 +111,24 @@ export class CityBlockGenerator {
                     const blockGenerator = await JsonWorldGenerator.fromUrl(blockUrl);
                     const blockWorld = blockGenerator.generate();
 
-                    // Copy entities from block to city world with offset
+                    // Copy and rotate entities from block to city world
                     const offsetX = x * this.blockWidth;
                     const offsetY = y * this.blockHeight;
 
                     blockWorld.getEntities().forEach(entity => {
-                        const pos = entity.getPosition();
                         const newEntity = entity.clone();
+                        
+                        // Apply rotation if this is a road
+                        if (cell.type === 'road' && cell.roadInfo?.orientation) {
+                            this.rotateEntityPosition(newEntity, cell.roadInfo.orientation, this.blockWidth, this.blockHeight);
+                        }
+                        
+                        // Apply block offset
+                        const pos = newEntity.getPosition();
                         newEntity.setPosition(pos.x + offsetX, pos.y + offsetY);
+                        
                         world.addEntity(newEntity);
                     });
-
-                    // just fill in the entire block with
-
-                    // just iterate from 0,0 in block coordinates to 11,11
-                    // for (let i = 0; i < this.blockWidth; i++) {
-                    //     for (let j = 0; j < this.blockHeight; j++) {
-                    //         this.placeRoad(i+x*this.blockWidth, j+y*this.blockHeight, world);
-                    //     }
-                    // }
 
                     // logger.info(`Loaded block at ${x},${y} with ${blockWorld.getEntities().length} entities`);
                 } catch (error) {

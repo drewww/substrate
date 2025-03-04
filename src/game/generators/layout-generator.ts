@@ -8,6 +8,7 @@ export interface ChunkMetadata {
         type: RoadType;
         weight: RoadWeight;
         connections: Direction[];  // Which directions have roads
+        orientation?: number;      // 0 = N/S, 1 = E/W, 2 = S/N, 3 = W/E
     };
 }
 

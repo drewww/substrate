@@ -101,18 +101,43 @@ export class StagedLayoutGenerator {
 
         // Determine road type based on connections
         let roadType: RoadType;
+        let orientation: number = 0; // 0 = N/S, 1 = E/W, 2 = S/N, 3 = W/E
+
         switch (connections.length) {
             case 1:
                 roadType = 'deadend';
+                // For dead ends, orient towards the connection
+                if (connections[0] === 'north') orientation = 0;
+                else if (connections[0] === 'east') orientation = 1;
+                else if (connections[0] === 'south') orientation = 2;
+                else if (connections[0] === 'west') orientation = 3;
                 break;
             case 2:
-                roadType = (connections.includes('north') && connections.includes('south')) ||
-                         (connections.includes('east') && connections.includes('west'))
-                         ? 'straight' : 'turn';
+                if ((connections.includes('north') && connections.includes('south')) ||
+                    (connections.includes('east') && connections.includes('west'))) {
+                    roadType = 'straight';
+                    // For straight roads, orient based on direction
+                    if (connections.includes('north')) orientation = 2;
+                    else if (connections.includes('east')) orientation = 1;
+                    else if (connections.includes('south')) orientation = 0;
+                    else if (connections.includes('west')) orientation = 3;
+                } else {
+                    roadType = 'turn';
+                    // For turns, orient based on the turn direction
+                    if (connections.includes('north') && connections.includes('east')) orientation = 0;
+                    else if (connections.includes('east') && connections.includes('south')) orientation = 1;
+                    else if (connections.includes('south') && connections.includes('west')) orientation = 2;
+                    else if (connections.includes('west') && connections.includes('north')) orientation = 3;
+                }
                 break;
             case 3:
             case 4:
                 roadType = 'intersection';
+                // For intersections, orient based on the first connection
+                if (connections[0] === 'north') orientation = 0;
+                else if (connections[0] === 'east') orientation = 1;
+                else if (connections[0] === 'south') orientation = 2;
+                else if (connections[0] === 'west') orientation = 3;
                 break;
             default:
                 roadType = 'unknown';
@@ -121,6 +146,7 @@ export class StagedLayoutGenerator {
         // Update the road info
         cell.roadInfo.type = roadType;
         cell.roadInfo.connections = connections;
+        cell.roadInfo.orientation = orientation;
     }
 
     private isValidPosition(x: number, y: number): boolean {
