@@ -123,11 +123,11 @@ export class StagedLayoutGenerator {
                     else if (connections.includes('west')) orientation = 3;
                 } else {
                     roadType = 'turn';
-                    // For turns, orient based on the turn direction
-                    if (connections.includes('north') && connections.includes('east')) orientation = 0;
-                    else if (connections.includes('east') && connections.includes('south')) orientation = 1;
-                    else if (connections.includes('south') && connections.includes('west')) orientation = 2;
-                    else if (connections.includes('west') && connections.includes('north')) orientation = 3;
+                    // For turns, orient based on the turn direction relative to S/E template
+                    if (connections.includes('south') && connections.includes('east')) orientation = 0;      // S/E template
+                    else if (connections.includes('east') && connections.includes('north')) orientation = 3;  // E/N -> rotate 270° clockwise (flipped from 1)
+                    else if (connections.includes('north') && connections.includes('west')) orientation = 2;  // N/W -> rotate 180°
+                    else if (connections.includes('west') && connections.includes('south')) orientation = 1;  // W/S -> rotate 90° clockwise (flipped from 3)
                 }
                 break;
             case 3:
