@@ -10,7 +10,7 @@ enum StepOutcome {
 export class StagedLayoutGenerator {
     private width: number;
     private height: number;
-    private layout!: ChunkMetadata[][];
+    protected layout!: ChunkMetadata[][];
     private readonly DIRECTIONS = [
         [0, -1], // North
         [1, 0],  // East
@@ -76,20 +76,21 @@ export class StagedLayoutGenerator {
         this.trunkTilesPlaced++;
     }
 
-    private placeRoad(x: number, y: number, weight: RoadWeight): void {
+    protected placeRoad(x: number, y: number, weight: RoadWeight, type: RoadType = 'straight', orientation: number = 0): void {
         if (!this.isValidPosition(x, y)) return;
         
         this.layout[y][x] = {
             type: 'road',
             roadInfo: {
-                type: 'straight', // Will be updated in post-processing
-                weight: weight,
+                type,
+                weight,
+                orientation,
                 connections: [] // Will be updated in post-processing
             }
         };
     }
 
-    private processRoadConnections(x: number, y: number): void {
+    protected processRoadConnections(x: number, y: number): void {
         const cell = this.layout[y][x];
         if (cell.type !== 'road' || !cell.roadInfo) return;
 
@@ -157,7 +158,7 @@ export class StagedLayoutGenerator {
         cell.roadInfo.orientation = orientation;
     }
 
-    private isValidPosition(x: number, y: number): boolean {
+    protected isValidPosition(x: number, y: number): boolean {
         return x >= 0 && x < this.width && y >= 0 && y < this.height;
     }
 
@@ -733,7 +734,7 @@ export class StagedLayoutGenerator {
         return this.layout;
     }
 
-    private processAllRoadConnections(): void {
+    protected processAllRoadConnections(): void {
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if (this.layout[y][x].type === 'road') {
