@@ -477,6 +477,8 @@ export class Editor {
             this.paletteDisplay.onCellHover((point: Point | null) => {
                 if (!point && this.paletteRenderer) {
                     this.paletteRenderer.hoverCell(null);
+                    const canvas = document.getElementById('palette-canvas') as HTMLCanvasElement;
+                    if (canvas) canvas.title = '';
                     return;
                 }
                 
@@ -484,6 +486,8 @@ export class Editor {
                     const index = point.y * PALETTE_WIDTH + point.x;
                     if (index >= 0 && index < paletteData.entities.length) {
                         this.paletteRenderer.hoverCell(point);
+                        const canvas = document.getElementById('palette-canvas') as HTMLCanvasElement;
+                        if (canvas) canvas.title = `${paletteData.entities[index].id}`;
                     }
                 }
             });

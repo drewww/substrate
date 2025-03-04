@@ -329,6 +329,21 @@
             "aiType": "emp_turret"
           }
         ]
+      },
+
+      {
+        "id": "background_letter",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "a",
+            "foreground": "#555555FF",
+            "background": "#00000000",
+            "zIndex": 100,
+            "alwaysRenderIfExplored": true
+          }
+        ]
       }
     ]
   }
