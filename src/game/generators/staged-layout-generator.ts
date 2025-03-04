@@ -30,6 +30,7 @@ export class StagedLayoutGenerator {
 
     // Add these new properties
     private readonly MAX_TRUNK_TILES = 80;
+    private readonly TRUNK_TILES_RATIO = 0.2; // 80/400 = 0.2 or 20% of total tiles
     private trunkTilesPlaced = 0;
     private unexploredDirections: number[] = [0, 1, 2, 3]; // Cardinal directions to explore from origin
     private originX: number = 0;
@@ -495,8 +496,9 @@ export class StagedLayoutGenerator {
 
     step(): StepOutcome {
         if (this.currentPhase === 'trunk') {
-            if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
-                console.log(`Ending trunk phase: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
+            const maxTrunkTiles = Math.floor(this.width * this.height * this.TRUNK_TILES_RATIO);
+            if (this.trunkTilesPlaced >= maxTrunkTiles) {
+                console.log(`Ending trunk phase: Hit max trunk tiles (${this.trunkTilesPlaced}/${maxTrunkTiles})`);
                 this.currentPhase = 'medium';  // Transition to medium phase
                 return StepOutcome.CONTINUE;   // Continue with new phase
             }
@@ -515,7 +517,7 @@ export class StagedLayoutGenerator {
             this.placeRoad(this.startX, this.startY, 'trunk');
             this.trunkTilesPlaced++;
             
-            console.log(`Placed trunk tile ${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES} at (${this.startX}, ${this.startY})`);
+            console.log(`Placed trunk tile ${this.trunkTilesPlaced}/${maxTrunkTiles} at (${this.startX}, ${this.startY})`);
             console.log(`Current length: ${this.currentLength}, Direction: ${this.currentDirection}`);
             console.log(`Unexplored directions: ${this.unexploredDirections.join(', ')}`);
             

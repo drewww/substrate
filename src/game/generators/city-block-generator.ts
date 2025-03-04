@@ -95,25 +95,47 @@ export class CityBlockGenerator {
                         const isThreeWay = cell.roadInfo.connections.length === 3;
                         if (cell.roadInfo.weight === 'trunk' && !isThreeWay) {
                             blockUrl = await blockFiles['../../assets/blocks/4-6i.json']();
+                        } else if (cell.roadInfo.weight === 'minor') {
+                            blockUrl = await blockFiles[isThreeWay ? 
+                                '../../assets/blocks/3-2i.json' : 
+                                '../../assets/blocks/4-2i.json']();
+                        } else if (cell.roadInfo.weight === 'medium') {
+                            blockUrl = await blockFiles[isThreeWay ? 
+                                '../../assets/blocks/3-4i.json' : 
+                                '../../assets/blocks/4-4i.json']();
                         } else {
                             blockUrl = await blockFiles[isThreeWay ? 
-                                '../../assets/blocks/4-3i.json' : 
-                                '../../assets/blocks/4-4i.json']();
+                                '../../assets/blocks/3-6i.json' : 
+                                '../../assets/blocks/4-6i.json']();
                         }
                     } else if (cell.roadInfo?.type === 'straight') {
-                        blockUrl = await blockFiles[cell.roadInfo.weight === 'trunk' ? 
-                            '../../assets/blocks/6-s.json' : 
-                            '../../assets/blocks/4-s.json']();
+                        if (cell.roadInfo.weight === 'trunk') {
+                            blockUrl = await blockFiles['../../assets/blocks/6-s.json']();
+                        } else if (cell.roadInfo.weight === 'minor') {
+                            blockUrl = await blockFiles['../../assets/blocks/2-s.json']();
+                        } else {
+                            blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
+                        }
                     } else if (cell.roadInfo?.type === 'turn') {
-                        blockUrl = await blockFiles[cell.roadInfo.weight === 'trunk' ? 
-                            '../../assets/blocks/6-t.json' : 
-                            '../../assets/blocks/4-t.json']();
+                        if (cell.roadInfo.weight === 'trunk') {
+                            blockUrl = await blockFiles['../../assets/blocks/6-t.json']();
+                        } else if (cell.roadInfo.weight === 'minor') {
+                            blockUrl = await blockFiles['../../assets/blocks/2-t.json']();
+                        } else {
+                            blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
+                        }
                     } else if (cell.roadInfo?.type === 'deadend') {
-                        blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
+                        if (cell.roadInfo.weight === 'minor') {
+                            blockUrl = await blockFiles['../../assets/blocks/2-d.json']();
+                        } else {
+                            blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
+                        }
                     } else if (cell.roadInfo?.type === 'unknown') {
                         blockUrl = await blockFiles['../../assets/blocks/unknown.json']();
                     } else {
-                        logger.error(`Unknown road type at ${x},${y}: ${cell.roadInfo?.type}`);
+                        logger.error(`Unknown road type at ${x},${y}: ${cell}`);
+                        blockUrl = await blockFiles['../../assets/blocks/unknown.json']();
+
                         continue;
                     }
                     
