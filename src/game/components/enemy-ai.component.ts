@@ -25,7 +25,8 @@ export class EnemyAIComponent extends Component {
         public turnsLocked: number = 0,
         public visionRadius: number = 5,
         public mode: EnemyAIMode = EnemyAIMode.IDLE,
-        public destination: Point | null = null
+        public destination: Point | null = null,
+        public previousDestination: Point | null = null
     ) {
         super();
     }

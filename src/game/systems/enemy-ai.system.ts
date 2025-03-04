@@ -72,7 +72,6 @@ export class EnemyAISystem {
                 const moveCooldown = cooldowns?.getCooldown('move');
 
                 if(moveCooldown && moveCooldown.ready) {
-                    // console.log(`Pedestrian at ${enemy.getPosition().x}, ${enemy.getPosition().y} has destination ${ai.destination?.x}, ${ai.destination?.y}`);
                     if(!ai.destination) {
                         const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation');
                         const sortedNavPoints = navPoints
@@ -81,24 +80,25 @@ export class EnemyAISystem {
                                 distance: Math.abs(point.getPosition().x - enemy.getPosition().x) + Math.abs(point.getPosition().y - enemy.getPosition().y)
                             }))
                             .sort((a, b) => a.distance - b.distance)
-                            .slice(0, 4)
-                            .filter(item => item.distance > 0)
+                            .slice(0, 6)
+                            .filter(destination => destination.distance > 0) // don't pick current location
+                            .filter(destination => !ai.previousDestination || 
+                                (ai.previousDestination.x !== destination.point.x || ai.previousDestination.y !== destination.point.y))
                             .map(item => item.point);
 
                         if(sortedNavPoints.length > 0) {
+                            ai.previousDestination = enemy.getPosition(); // Store current position as previous source
                             ai.destination = sortedNavPoints[Math.floor(Math.random() * sortedNavPoints.length)];
                             enemy.setComponent(ai);
                         }
                     }
 
-                    console.log(`Pedestrian at ${enemy.getPosition().x}, ${enemy.getPosition().y} has destination ${ai.destination?.x}, ${ai.destination?.y}`);
+
                     if(ai.destination) {
                         const path = this.world.findPath(enemy.getPosition(), ai.destination);
 
-                        console.log(`Path: ${path?.length}`);
                         if(path && path.length > 1) {
                             const nextPos = path[1];
-                            console.log(`Moving pedestrian from ${enemy.getPosition().x}, ${enemy.getPosition().y} to ${nextPos.x}, ${nextPos.y}`);
                             this.actionHandler.execute({
                                 type: 'entityMove',
                                 entityId: enemy.getId(),
