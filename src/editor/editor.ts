@@ -517,6 +517,12 @@ export class Editor {
         document.addEventListener('contextmenu', (e: Event) => {
             e.preventDefault();
         });
+
+        // Add world-rotate button handler
+        const worldRotateButton = document.getElementById('world-rotate-tool');
+        if (worldRotateButton) {
+            worldRotateButton.addEventListener('click', () => this.rotateWorld());
+        }
     }
 
     private async setupPalette(): Promise<void> {
@@ -1778,6 +1784,64 @@ export class Editor {
         }
 
         return cells;
+    }
+
+    private rotateWorld(): void {
+        // Create a new world with swapped dimensions
+        const newWorld = new World(this.world.getWorldHeight(), this.world.getWorldWidth());
+        
+        // Get all entities from current world
+        const entities = this.world.getEntities();
+        
+        // For each entity, rotate its position and facing
+        entities.forEach(entity => {
+            const pos = entity.getPosition();
+            const newEntity = entity.clone();
+            
+            // Rotate position 90 degrees clockwise:
+            // new_x = y
+            // new_y = width - 1 - x
+            newEntity.setPosition(
+                pos.y,
+                this.world.getWorldWidth() - 1 - pos.x
+            );
+            
+            // Rotate facing component if it exists
+            const facing = newEntity.getComponent("facing") as FacingComponent;
+            if (facing) {
+                const currentFacing = facing.direction;
+                // Rotate 90 degrees clockwise
+                const newFacing = (currentFacing + 1) % 4;
+                newEntity.setComponent(new FacingComponent(newFacing));
+            }
+            
+            newWorld.addEntity(newEntity);
+        });
+        
+        // Clean up old display
+        this.cleanupDisplay();
+        
+        // Store the new world
+        this.world = newWorld;
+        
+        // Recreate display with new dimensions
+        this.display = new Display({
+            elementId: CANVAS_ID,
+            cellWidth: 20,
+            cellHeight: 20,
+            worldWidth: newWorld.getWorldWidth(),
+            worldHeight: newWorld.getWorldHeight(),
+            viewportWidth: newWorld.getWorldWidth(),
+            viewportHeight: newWorld.getWorldHeight()
+        });
+        
+        // Create new renderer
+        this.renderer = new EditorRenderer(this.world, this.display);
+        
+        // Re-setup display callbacks
+        this.setupDisplayCallbacks();
+        
+        logger.info('Rotated world 90 degrees clockwise');
     }
 }
 
