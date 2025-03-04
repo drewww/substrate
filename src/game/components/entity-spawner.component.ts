@@ -5,7 +5,6 @@ import { RegisterComponent } from "../../entity/component-registry";
 
 export const SPAWNER_TYPES = {
     'vehicle-followable': {
-        'id': 'vehicle-followable',
         'position': { 'x': 0, 'y': 0 },
         'components': [
             {

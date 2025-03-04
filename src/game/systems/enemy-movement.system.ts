@@ -24,7 +24,7 @@ export class EnemyMovementSystem {
         logger.info(`movable enemies: ${movableEnemies.length}`);
 
         let moved = false;
-        for (const enemy of enemies) {
+        for (const enemy of movableEnemies) {
             const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
             const facing = enemy.getComponent('facing') as FacingComponent;
             
