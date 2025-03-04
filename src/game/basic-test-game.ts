@@ -34,6 +34,7 @@ import { WorldSystem } from './systems/world.system.ts';
 import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts';
 
 import testWorldUrl from '../assets/world/test-world.json?url';
+import { CityBlockGenerator } from './generators/city-block-generator.ts';
 
 
 
@@ -177,8 +178,8 @@ export class RuntimeGame extends Game {
     protected async setup(): Promise<void> {
         try {
             // Load the world from JSON using the URL
-            const generator = await JsonWorldGenerator.fromUrl(testWorldUrl);
-            const world = generator.generate();
+            const generator = new CityBlockGenerator();
+            const world = await generator.generate();
             this.world = world;
 
             // Find the player entity that was created by the generator
