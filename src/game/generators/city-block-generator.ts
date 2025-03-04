@@ -14,7 +14,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { CooldownComponent } from '../components/cooldown.component';
 
 // Import all block files with ?url suffix
-const blockFiles = import.meta.glob('../../assets/blocks/*.json', { as: 'url' });
+const blockFiles = import.meta.glob('../../assets/blocks/*.json', { query: 'url', import: 'default' });
 
 export class CityBlockGenerator {
     private readonly width: number = 10;
