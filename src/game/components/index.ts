@@ -12,3 +12,4 @@ import './stun.component';
 import './timestamp.component';
 import './pedestrian-navigation.component';
 import './entity-spawner.component';
+import './move.component';

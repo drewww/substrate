@@ -137,6 +137,13 @@ export class WorldSystem {
                         y: entity.getPosition().y + directionPoint.y
                     };
 
+                    // check that the target position is passable
+                    const targetPositionImpassable = this.world.getEntitiesAt(spawnPosition).some(e => e.hasComponent('impassable'));
+                    if (targetPositionImpassable) {
+                        logger.warn("Target position (", spawnPosition, ") is impassable, skipping spawn");
+                        return;
+                    }
+
                     // Get the entity template from SPAWNER_TYPES
                     const template = SPAWNER_TYPES[spawnType as keyof typeof SPAWNER_TYPES];
                     if (template) {
@@ -145,6 +152,9 @@ export class WorldSystem {
                             ...template,
                             position: spawnPosition
                         });
+
+                        spawner.setComponent(new FacingComponent(facing.direction));
+                        
                         this.world.addEntity(spawner);
                     }
                 }

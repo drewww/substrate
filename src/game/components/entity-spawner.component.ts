@@ -13,7 +13,8 @@ export const SPAWNER_TYPES = {
                 "char": "⧯",
                 "foreground": "#FFFFFF",
                 "background": "#0000FF",
-                "zIndex": 100
+                "zIndex": 100,
+                "lockRotationToFacing": true
             },
             {
                 "type": "facing",
@@ -26,18 +27,21 @@ export const SPAWNER_TYPES = {
                 "type": "impassable"
             },
             {
+                "type": "move"
+            },
+            {
                 "type": "followable"
             },
             {
                 "type": "cooldown",
                 "cooldowns": {
-                    "move": {
-                        "base": 4,
-                        "current": 4,
-                        "ready": false
-                    }
+                  "move": {
+                    "base": 4,
+                    "current": 4,
+                    "ready": false
+                  }
                 }
-            }
+              }
         ]
     }
 }
