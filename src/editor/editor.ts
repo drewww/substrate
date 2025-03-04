@@ -46,6 +46,7 @@ export class Editor {
     };
     private isExporting = false;
     private isImporting = false;
+    private rightClickMode: 'add' | 'remove' | null = null;
 
     constructor(width: number, height: number) {
         // Create world
@@ -325,20 +326,17 @@ export class Editor {
                 const dx = point.x - this.lastPanPoint.x;
                 const dy = point.y - this.lastPanPoint.y;
                 
-                // Update viewport position relative to initial pan point
                 this.display.setViewport(
                     viewport.x - dx,
                     viewport.y - dy
                 );
                 
-                // Don't update lastPanPoint - keep initial point for reference
                 return;
             }
 
             this.renderer.hoverCell(point);
             
             if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
-                // Calculate area selection
                 const newSelection = this.getCellsInArea(this.areaStartCell, point);
                 if (JSON.stringify(newSelection) !== JSON.stringify(this.selectedCells)) {
                     this.selectedCells = newSelection;
@@ -346,7 +344,6 @@ export class Editor {
                     this.updateEntityPanel(this.getEntitiesInSelectedCells());
                 }
             } else if (this.isLeftMouseDown && point && this.currentTool === 'pointer') {
-                // Drag-select behavior
                 if (!this.selectedCells.some(p => p.x === point.x && p.y === point.y)) {
                     this.selectedCells.push(point);
                     this.renderer.highlightCells(this.selectedCells);
@@ -354,12 +351,35 @@ export class Editor {
                 }
             }
             
-            // Right-click drag behavior
-            if (this.isRightMouseDown && point) {
+            // Right-click drag behavior with mode
+            if (this.isRightMouseDown && point && this.rightClickMode) {
                 if (!this.lastDragCell || 
                     this.lastDragCell.x !== point.x || 
                     this.lastDragCell.y !== point.y) {
-                    this.handleRightClick(point);
+                    
+                    const clipboard = this.state.getClipboard();
+                    if (clipboard.type === 'entity' && clipboard.entity) {
+                        if (this.rightClickMode === 'remove') {
+                            // Remove matching entities
+                            const entities = this.world.getEntitiesAt(point);
+                            entities.forEach(entity => {
+                                if (clipboard.entity && this.entitiesHaveSameComponents(entity, clipboard.entity)) {
+                                    this.world.removeEntity(entity.getId());
+                                }
+                            });
+                        } else if (this.rightClickMode === 'add') {
+                            // Add entity only if no matching entity exists
+                            const entities = this.world.getEntitiesAt(point);
+                            const hasMatchingEntity = entities.some(entity => 
+                                clipboard.entity && this.entitiesHaveSameComponents(entity, clipboard.entity)
+                            );
+                            if (!hasMatchingEntity) {
+                                const newEntity = clipboard.entity.clone();
+                                newEntity.setPosition(point.x, point.y);
+                                this.world.addEntity(newEntity);
+                            }
+                        }
+                    }
                     this.lastDragCell = point;
                 }
             }
@@ -371,6 +391,29 @@ export class Editor {
 
             this.isRightMouseDown = true;
             this.lastDragCell = point;
+
+            const clipboard = this.state.getClipboard();
+            if (clipboard.type === 'entity' && clipboard.entity) {
+                // Check if there's a matching entity at this position
+                const entities = this.world.getEntitiesAt(point);
+                const sortedEntities = this.getEntitiesSortedByZIndex(entities);
+                
+                if (sortedEntities.length > 0) {
+                    const topEntity = sortedEntities[0];
+                    if (this.entitiesHaveSameComponents(topEntity, clipboard.entity) && 
+                        topEntity.getPosition().x === point.x && 
+                        topEntity.getPosition().y === point.y) {
+                        // Set to remove mode
+                        this.rightClickMode = 'remove';
+                    } else {
+                        // Set to add mode
+                        this.rightClickMode = 'add';
+                    }
+                } else {
+                    // Set to add mode
+                    this.rightClickMode = 'add';
+                }
+            }
 
             if (this.currentTool === 'rotate') {
                 this.handleRotation(point);
@@ -390,6 +433,7 @@ export class Editor {
             if (e.button === 2) { // Right mouse button
                 this.isRightMouseDown = false;
                 this.lastDragCell = null;
+                this.rightClickMode = null;  // Reset the mode
                 // Clear any ongoing actions
                 if (this.currentTool === 'wall') {
                     this.keyStates.clear();
