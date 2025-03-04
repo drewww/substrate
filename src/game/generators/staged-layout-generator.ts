@@ -448,8 +448,9 @@ export class StagedLayoutGenerator {
     step(): StepOutcome {
         if (this.currentPhase === 'trunk') {
             if (this.trunkTilesPlaced >= this.MAX_TRUNK_TILES) {
-                console.log(`Ending: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
-                return StepOutcome.DONE; // Indicate done
+                console.log(`Ending trunk phase: Hit max trunk tiles (${this.trunkTilesPlaced}/${this.MAX_TRUNK_TILES})`);
+                this.currentPhase = 'medium';  // Transition to medium phase
+                return StepOutcome.CONTINUE;   // Continue with new phase
             }
 
             // Calculate next position
@@ -501,6 +502,7 @@ export class StagedLayoutGenerator {
                 return StepOutcome.RESET; // Indicate reset
             }
         } else if (this.currentPhase === 'medium') {
+            console.log('Processing medium phase step');
             // Calculate next position
             const nextX = this.startX + this.DIRECTIONS[this.currentDirection][0];
             const nextY = this.startY + this.DIRECTIONS[this.currentDirection][1];
@@ -607,6 +609,7 @@ export class StagedLayoutGenerator {
         while (true) {
             const outcome = this.step();
             if (outcome === StepOutcome.DONE) {
+                console.log('Trunk phase complete, transitioning to medium phase');
                 break;
             } else if (outcome === StepOutcome.RESET) {
                 consecutiveResets++;
@@ -630,6 +633,7 @@ export class StagedLayoutGenerator {
         while (true) {
             const outcome = this.step();
             if (outcome === StepOutcome.DONE) {
+                console.log('Medium phase complete, transitioning to minor phase');
                 break;
             } else if (outcome === StepOutcome.RESET) {
                 consecutiveResets++;

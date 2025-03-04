@@ -136,15 +136,6 @@ export class CityBlockGenerator {
         player.setComponent(new PlayerComponent());
         player.setComponent(new VisionComponent(20));
 
-        // player.setComponent(new InertiaComponent(Direction.North, 0));
-        // player.setComponent(new CooldownComponent({
-        //     move: {
-        //         base: 4,
-        //         current: 4,
-        //         ready: false
-        //     }
-        // }));
-
         world.addEntity(player);
     }
 
