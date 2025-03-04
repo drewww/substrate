@@ -1,4 +1,4 @@
-{
+  {
     "version": "1.0",
     "entities": [
       {
@@ -75,7 +75,7 @@
           "type": "symbol",
           "char": " ",
           "foreground": "#00000000",
-          "background": "#968b7299",
+          "background": "#666666FF",
           "zIndex": 1000,
           "alwaysRenderIfExplored": false,
           "blendMode": "screen"
@@ -92,12 +92,12 @@
         "type": "symbol",
         "char": " ",
         "foreground": "#00000000",
-        "background": "#91877199",
+        "background": "#666666FF",
         "zIndex": 1000,
         "alwaysRenderIfExplored": false,
         "blendMode": "screen"
       }
-     ]
+    ]
     },
 
       {
