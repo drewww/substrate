@@ -45,10 +45,12 @@ export class CityBlockGenerator {
                     let blockUrl: string | undefined;
                     if (cell.roadInfo?.type === 'intersection') {
                         blockUrl = await blockFiles['../../assets/blocks/4-4i.json']();
-                    } else if (cell.roadInfo?.type === 'straight') {
+                    } else if (cell.roadInfo?.type === 'straight' || cell.roadInfo?.type === 'deadend') {
                         blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
                     } else if (cell.roadInfo?.type === 'turn') {
                         blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
+                    } else if (cell.roadInfo?.type === 'unknown') {
+                        blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
                     } else {
                         logger.error(`Unknown road type at ${x},${y}: ${cell.roadInfo?.type}`);
                         continue;
@@ -89,7 +91,21 @@ export class CityBlockGenerator {
             }
         }
 
-        this.placePlayer(10, 10, world);
+
+        // look for a space that is not impassable to place the player
+        let playerX = 0;
+        let playerY = 0;
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (playerX === 0 && playerY === 0 && !world.getEntitiesAt({x, y}).some(entity => entity.hasComponent("impassable"))) {
+                    playerX = x;
+                    playerY = y;
+                    break;
+                }
+            }
+        }
+
+        this.placePlayer(playerX, playerY, world);
 
         return world;
     }

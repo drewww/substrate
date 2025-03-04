@@ -81,11 +81,46 @@ export class StagedLayoutGenerator {
         this.layout[y][x] = {
             type: 'road',
             roadInfo: {
-                type: 'straight', // Will be updated in postProcess
+                type: 'straight', // Will be updated in post-processing
                 weight: weight,
-                connections: [] // Will be updated in postProcess
+                connections: [] // Will be updated in post-processing
             }
         };
+    }
+
+    private processRoadConnections(x: number, y: number): void {
+        const cell = this.layout[y][x];
+        if (cell.type !== 'road' || !cell.roadInfo) return;
+
+        // Find connected roads
+        const connections: Direction[] = [];
+        if (y > 0 && this.layout[y-1][x].type === 'road') connections.push('north');
+        if (x < this.width-1 && this.layout[y][x+1].type === 'road') connections.push('east');
+        if (y < this.height-1 && this.layout[y+1][x].type === 'road') connections.push('south');
+        if (x > 0 && this.layout[y][x-1].type === 'road') connections.push('west');
+
+        // Determine road type based on connections
+        let roadType: RoadType;
+        switch (connections.length) {
+            case 1:
+                roadType = 'deadend';
+                break;
+            case 2:
+                roadType = (connections.includes('north') && connections.includes('south')) ||
+                         (connections.includes('east') && connections.includes('west'))
+                         ? 'straight' : 'turn';
+                break;
+            case 3:
+            case 4:
+                roadType = 'intersection';
+                break;
+            default:
+                roadType = 'unknown';
+        }
+
+        // Update the road info
+        cell.roadInfo.type = roadType;
+        cell.roadInfo.connections = connections;
     }
 
     private isValidPosition(x: number, y: number): boolean {
@@ -634,9 +669,22 @@ export class StagedLayoutGenerator {
             }
         }
 
+        // After all phases are complete, process all road connections
+        this.processAllRoadConnections();
+
         this.dumpLayout();
         this.dumpLayoutByType();
         return this.layout;
+    }
+
+    private processAllRoadConnections(): void {
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (this.layout[y][x].type === 'road') {
+                    this.processRoadConnections(x, y);
+                }
+            }
+        }
     }
 
     getCurrentLayout(): ChunkMetadata[][] {
@@ -687,10 +735,13 @@ export class StagedLayoutGenerator {
             for (let x = 0; x < this.width; x++) {
                 const cell = this.layout[y][x];
                 const roadInfo = cell.roadInfo;
+
+                const roadType = roadInfo?.type;
                 if (cell.type === 'road') {
-                    row += roadInfo?.type === 'straight' ? 'S' : 
-                           roadInfo?.type === 'corner' ? 'C' : 
-                           roadInfo?.type === 't-intersection' ? 'T' : 'X';
+                    row += roadType === 'straight' ? 'S' : 
+                           roadType === 'turn' ? 'T' : 
+                           roadType === 'intersection' ? 'X' : 
+                           roadType === 'deadend' ? 'D' : '?';
                 } else {
                     row += '.';
                 }

@@ -1,5 +1,5 @@
 export type RoadWeight = 'trunk' | 'medium' | 'minor';
-export type RoadType = 'straight' | 'turn' | 'intersection' | 'deadend';
+export type RoadType = 'straight' | 'turn' | 'intersection' | 'deadend' | 'unknown';
 export type Direction = 'north' | 'east' | 'south' | 'west';
 
 export interface ChunkMetadata {
