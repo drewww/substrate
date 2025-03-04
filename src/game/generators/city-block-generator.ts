@@ -14,7 +14,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { CooldownComponent } from '../components/cooldown.component';
 
 // Import all block files with ?url suffix
-const blockFiles = import.meta.glob('../../assets/blocks/*.json', { query: 'url', import: 'default' });
+const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
 
 export class CityBlockGenerator {
     private readonly width: number = 10;
@@ -41,18 +41,21 @@ export class CityBlockGenerator {
                 if (!cell) continue;
 
                 try {
-                    // Get the block file URL from the imported files
-                    // always use 4-4i for now. we will diversify later.
-                    // choose between 4-4i and 4-6i randomly. those are our two options now.
-                    let blockUrl;
-                    if(Math.random() > 0.5) {
+                    // Get the block file URL based on road shape metadata
+                    let blockUrl: string | undefined;
+                    if (cell.roadInfo?.type === 'intersection') {
                         blockUrl = await blockFiles['../../assets/blocks/4-4i.json']();
+                    } else if (cell.roadInfo?.type === 'straight') {
+                        blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
+                    } else if (cell.roadInfo?.type === 'turn') {
+                        blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
                     } else {
-                        blockUrl = await blockFiles['../../assets/blocks/4-6i.json']();
+                        logger.error(`Unknown road type at ${x},${y}: ${cell.roadInfo?.type}`);
+                        continue;
                     }
                     
                     if (!blockUrl) {
-                        logger.error(`No block file found at 4-4i.json`);
+                        logger.error(`No block file found for type ${cell.roadInfo?.type}`);
                         continue;
                     }
 
