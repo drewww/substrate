@@ -66,7 +66,30 @@ export class EnemyAISystem {
 
                 enemy.setComponent(ai);
                 break;
+            case EnemyAIType.PEDESTRIAN:      
+            
+                const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
+                const moveCooldown = cooldowns?.getCooldown('move');
 
+                if(moveCooldown && moveCooldown.ready) {
+                    // pick an adjacent tile that is not impassable
+                    const adjacentPassableLocations = this.world.getAdjacentPassableLocations(enemy.getPosition());
+
+                    console.log(`Adjacent passable locations: ${adjacentPassableLocations.length}`);
+
+                    if(adjacentPassableLocations.length > 0) {
+                        const nextPos = adjacentPassableLocations[Math.floor(Math.random() * adjacentPassableLocations.length)];
+
+                    console.log(`Moving pedestrian from ${enemy.getPosition().x}, ${enemy.getPosition().y} to ${nextPos.x}, ${nextPos.y}`);
+                    this.actionHandler.execute({
+                        type: 'entityMove',
+                        entityId: enemy.getId(),
+                        data: { to: nextPos }
+                        });
+                    }
+                }
+
+                break;
             case EnemyAIType.EMP_TURRET:
                 if (canSeePlayer) {
                     ai.turnsLocked += 1

@@ -289,6 +289,20 @@ export class World {
             .filter((entity): entity is Entity => entity !== undefined);
     }
 
+    public getAdjacentPassableLocations(position: Point): Point[] {
+        const adjacentLocations: Point[] = [];
+        for(let dx = -1; dx <= 1; dx++) {
+            for(let dy = -1; dy <= 1; dy++) {
+                if(dx === 0 && dy === 0) continue;
+                const adjacentLocation = { x: position.x + dx, y: position.y + dy };
+                if(this.isPassable(adjacentLocation.x, adjacentLocation.y, adjacentLocation.x + dx, adjacentLocation.y + dy)) {
+                    adjacentLocations.push(adjacentLocation);
+                }
+            }
+        }
+        return adjacentLocations;
+    }
+
     public getSize(): Point {
         return { x: this.width, y: this.height };
     }
