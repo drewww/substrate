@@ -52,8 +52,8 @@ export class Editor {
         this.world = new World(width, height);
         
         // Create display with smaller viewport
-        const viewportWidth = Math.floor(width * 0.75);  // 25% smaller
-        const viewportHeight = Math.floor(height * 0.75);
+        const viewportWidth = width;
+        const viewportHeight = height;
         
         this.display = new Display({
             elementId: CANVAS_ID,
