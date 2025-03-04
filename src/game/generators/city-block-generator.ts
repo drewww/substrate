@@ -93,13 +93,21 @@ export class CityBlockGenerator {
                     } else if (cell.roadInfo?.type === 'intersection') {
                         // Use different blocks for 3-way vs 4-way intersections
                         const isThreeWay = cell.roadInfo.connections.length === 3;
-                        blockUrl = await blockFiles[isThreeWay ? 
-                            '../../assets/blocks/4-3i.json' : 
-                            '../../assets/blocks/4-4i.json']();
+                        if (cell.roadInfo.weight === 'trunk' && !isThreeWay) {
+                            blockUrl = await blockFiles['../../assets/blocks/4-6i.json']();
+                        } else {
+                            blockUrl = await blockFiles[isThreeWay ? 
+                                '../../assets/blocks/4-3i.json' : 
+                                '../../assets/blocks/4-4i.json']();
+                        }
                     } else if (cell.roadInfo?.type === 'straight') {
-                        blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
+                        blockUrl = await blockFiles[cell.roadInfo.weight === 'trunk' ? 
+                            '../../assets/blocks/6-s.json' : 
+                            '../../assets/blocks/4-s.json']();
                     } else if (cell.roadInfo?.type === 'turn') {
-                        blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
+                        blockUrl = await blockFiles[cell.roadInfo.weight === 'trunk' ? 
+                            '../../assets/blocks/6-t.json' : 
+                            '../../assets/blocks/4-t.json']();
                     } else if (cell.roadInfo?.type === 'deadend') {
                         blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
                     } else if (cell.roadInfo?.type === 'unknown') {
