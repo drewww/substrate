@@ -11,6 +11,10 @@ import { FacingComponent } from '../../entity/components/facing-component';
 import { directionToPoint } from '../../util';
 import { logger } from '../../util/logger';
 
+const MIN_VEHICLE_COOLDOWN = 15;
+const MAX_VEHICLE_COOLDOWN = 50;
+const MAX_FOLLOWERS = 4;
+
 export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
 
@@ -126,37 +130,73 @@ export class WorldSystem {
             const spawnerState = entity.getComponent('entity-spawner') as EntitySpawnerComponent;
             const spawnCooldown = cooldowns.getCooldown('spawn');
             const facing = entity.getComponent('facing') as FacingComponent;
-            if (spawnerState && facing) {
-                if (spawnerState.spawnTypes.length > 0 && spawnCooldown && spawnCooldown.ready) {
-                    // TODO Package this in an action
-                    const spawnType = spawnerState.spawnTypes[0];
-                    
-                    const directionPoint = directionToPoint(facing.direction);
-                    const spawnPosition = {
-                        x: entity.getPosition().x + directionPoint.x,
-                        y: entity.getPosition().y + directionPoint.y
-                    };
+            
+            if (spawnerState && facing && spawnerState.spawnTypes.length > 0 && spawnCooldown?.ready) {
+                const spawnType = spawnerState.spawnTypes[0];
+                const directionPoint = directionToPoint(facing.direction);
+                const spawnPosition = {
+                    x: entity.getPosition().x + directionPoint.x,
+                    y: entity.getPosition().y + directionPoint.y
+                };
 
-                    // check that the target position is passable
-                    const targetPositionImpassable = this.world.getEntitiesAt(spawnPosition).some(e => e.hasComponent('impassable'));
-                    if (targetPositionImpassable) {
-                        logger.warn("Target position (", spawnPosition, ") is impassable, skipping spawn");
-                        return;
+                // Check for impassable entities
+                const targetPositionImpassable = this.world.getEntitiesAt(spawnPosition).some(e => e.hasComponent('impassable'));
+                if (targetPositionImpassable) {
+                    logger.warn("Target position (", spawnPosition, ") is impassable, skipping spawn");
+                    return;
+                }
+
+                let template = SPAWNER_TYPES[spawnType as keyof typeof SPAWNER_TYPES];
+                if (template) {
+                    // If we're not currently spawning a vehicle, decide if we should start one
+                    if (!spawnerState.isSpawningVehicle) {
+                        // Determine if this should be a vehicle leader
+                        if (template.components.some(c => c.type === 'followable')) {
+                            spawnerState.isSpawningVehicle = true;
+                            spawnerState.maxVehicleLength = Math.floor(Math.random() * (MAX_FOLLOWERS + 1));
+                            spawnerState.currentVehicleLength = 0;
+                            logger.info(`Starting new vehicle spawn with ${spawnerState.maxVehicleLength} followers`);
+                        }
+                    } else {
+                        // we're currently spawning a vehicle, switch templates
+                        template = SPAWNER_TYPES['vehicle-follower'];
                     }
 
-                    // Get the entity template from SPAWNER_TYPES
-                    const template = SPAWNER_TYPES[spawnType as keyof typeof SPAWNER_TYPES];
-                    if (template) {
-                        logger.info(`Spawning entity ${spawnType} at ${spawnPosition} facing ${facing.direction}`);
-                        this.actionHandler.execute({
-                            type: 'spawn',
-                            entityId: entity.getId(),
-                            data: {
-                                template,
-                                position: spawnPosition,
-                                facing: facing.direction
-                            }
-                        });
+                    // Spawn the entity
+                    this.actionHandler.execute({
+                        type: 'spawn',
+                        entityId: entity.getId(),
+                        data: {
+                            template,
+                            position: spawnPosition,
+                            facing: facing.direction
+                        }
+                    });
+
+                    // Handle vehicle spawning logic
+                    if (spawnerState.isSpawningVehicle) {
+                        spawnerState.currentVehicleLength++;
+                        
+                        // If we haven't finished the vehicle yet, set a short cooldown
+                        if (spawnerState.currentVehicleLength <= spawnerState.maxVehicleLength) {
+                            spawnCooldown.current = 1;
+                            spawnCooldown.base = 1;
+                            spawnCooldown.ready = false;
+                        } else {
+                            // Vehicle is complete, reset and set longer cooldown
+                            spawnerState.isSpawningVehicle = false;
+                            spawnerState.currentVehicleLength = 0;
+                            spawnerState.maxVehicleLength = 0;
+                            
+                            const newCooldown = MIN_VEHICLE_COOLDOWN + 
+                            Math.floor(Math.random() * (MAX_VEHICLE_COOLDOWN - MIN_VEHICLE_COOLDOWN));
+                            spawnCooldown.current = newCooldown;
+                            spawnCooldown.base = newCooldown;
+                            spawnCooldown.ready = false;
+                        }
+                        
+                        entity.setComponent(spawnerState);
+                        entity.setComponent(cooldowns);
                     }
                 }
             }

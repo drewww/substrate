@@ -42,6 +42,38 @@ export const SPAWNER_TYPES = {
                 }
               }
         ]
+    },
+
+    'vehicle-follower': {
+        'position': { 'x': 0, 'y': 0 },
+        'components': [
+            {
+                "type": "symbol",
+                "char": "⧯",
+                "foreground": "#FFFFFF66",
+                "background": "#FF00FF66",
+                "zIndex": 100,
+                "lockRotationToFacing": true
+            },
+            {
+                "type": "facing",
+                "direction": 1
+            },
+            {
+                "type": "opacity"
+            },
+            {
+                "type": "impassable"
+            },
+            {
+                "type": "move"
+            },
+            {
+                "type": "follower",
+                "followedEntityId": null,
+                "lastKnownPosition": null      
+            }
+        ]
     }
 }
 
@@ -54,6 +86,9 @@ export class EntitySpawnerComponent extends Component {
 
     constructor(
         public spawnTypes: SpawnerType[] = [],
+        public maxVehicleLength: number = 4,
+        public currentVehicleLength: number = 0,
+        public isSpawningVehicle: boolean = false
     ) {
         super();
     }
