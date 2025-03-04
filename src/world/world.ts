@@ -1274,15 +1274,7 @@ export class World {
      * Find a path between two points, respecting walls and impassable entities
      */
     public findPath(start: Point, end: Point): Point[] | null {
-        // Early exit if start is impassable (except for the end position)
-        if (!this.isValidPosition(start) || 
-            (this.getEntitiesAt(start).some(e => e.hasComponent('impassable')) && 
-             this.pointToKey(start) !== this.pointToKey(end))) {
-            return null;
-        }
-
-        // Allow pathfinding TO out of bounds or impassable end positions
-        if (!this.isInBounds(end)) {
+        if (!this.isValidPosition(start) || !this.isValidPosition(end)) {
             return null;
         }
 
