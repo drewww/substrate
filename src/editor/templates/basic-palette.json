@@ -344,6 +344,37 @@
             "alwaysRenderIfExplored": true
           }
         ]
+      },
+
+      {
+        "id": "pedestrian",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "i",
+            "foreground": "#FFFFFFFF",
+            "background": "#00000000",
+            "zIndex": 100
+          },
+          {
+            "type": "enemyAI",
+            "aiType": "pedestrian"
+          },
+          {
+            "type": "impassable"
+          },
+          {
+            "type": "cooldown",
+            "cooldowns": {
+              "move": {
+                "base": 6,
+                "current": 6,
+                "ready": false
+              }
+            }
+          }
+        ]
       }
     ]
   }

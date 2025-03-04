@@ -28,8 +28,10 @@ export class EnemyAISystem {
     private updateEnemy(enemy: Entity): void {
         const ai = enemy.getComponent('enemyAI') as EnemyAIComponent;
 
-        const canSeePlayer = this.world.canEntitySeeEntity(enemy, this.world.getPlayer());
-
+        let canSeePlayer = false;
+        if(enemy.hasComponent('vision')) {
+            canSeePlayer = this.world.canEntitySeeEntity(enemy, this.world.getPlayer());
+        }
 
         switch (ai.aiType) {
             case EnemyAIType.FOLLOWER:
