@@ -75,7 +75,7 @@
           "type": "symbol",
           "char": " ",
           "foreground": "#00000000",
-          "background": "#666666FF",
+          "background": "#4c3200",
           "zIndex": 1000,
           "alwaysRenderIfExplored": false,
           "blendMode": "screen"
@@ -92,7 +92,7 @@
         "type": "symbol",
         "char": " ",
         "foreground": "#00000000",
-        "background": "#666666FF",
+        "background": "#160f00",
         "zIndex": 1000,
         "alwaysRenderIfExplored": false,
         "blendMode": "screen"
