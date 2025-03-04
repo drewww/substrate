@@ -47,6 +47,7 @@ export class Editor {
     private isExporting = false;
     private isImporting = false;
     private rightClickMode: 'add' | 'remove' | null = null;
+    private previewEntity: Entity | null = null;
 
     constructor(width: number, height: number) {
         // Create world
@@ -333,8 +334,43 @@ export class Editor {
                 
                 return;
             }
+            
+            // Handle clipboard entity preview
+            const clipboard = this.state.getClipboard();
+            if (clipboard.type === 'entity' && clipboard.entity) {
+                // Remove old preview if it exists
+                if (this.previewEntity) {
+                    this.world.removeEntity(this.previewEntity.getId());
+                }
 
-            this.renderer.hoverCell(point);
+                if (point) {
+                    // Create new preview entity
+                    this.previewEntity = clipboard.entity.clone();
+                    this.previewEntity.setPosition(point.x, point.y);
+                    
+                    // Set opacity to 75% for all color components
+                    this.previewEntity.getComponents().forEach(component => {
+                        const data = component.serialize();
+                        Object.entries(data).forEach(([key, value]) => {
+                            if (typeof value === 'string' && value.startsWith('#')) {
+                                // Only apply alpha to fg/bg color values
+                                if (key === 'fg' || key === 'bg') {
+                                const baseColor = value.slice(0, 7); // Remove any existing alpha
+                                data[key] = baseColor + '66'; 
+                            }
+                            }
+                        });
+                        this.previewEntity?.setComponent(ComponentRegistry.fromJSON(data));
+                    });
+
+                    // Add to world
+                    this.world.addEntity(this.previewEntity);
+                }
+            } else if (this.previewEntity) {
+                // Remove preview if no entity in clipboard or no point
+                this.world.removeEntity(this.previewEntity.getId());
+                this.previewEntity = null;
+            }
             
             if (this.isLeftMouseDown && point && this.currentTool === 'area' && this.areaStartCell) {
                 const newSelection = this.getCellsInArea(this.areaStartCell, point);
@@ -441,6 +477,12 @@ export class Editor {
             } else if (e.button === 0) { // Left mouse button
                 this.isLeftMouseDown = false;
                 this.areaStartCell = null;
+            }
+            
+            // Remove preview entity when mouse is released
+            if (this.previewEntity) {
+                this.world.removeEntity(this.previewEntity.getId());
+                this.previewEntity = null;
             }
         });
 
