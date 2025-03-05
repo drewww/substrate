@@ -726,6 +726,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 delayBetweenChars: number;  // Delay in seconds between each character
                 initialDelay?: number;      // Initial delay before first character
             }
+            fontWeight?: string;
+            fontStyle?: string;
+            fontFamily?: string;
         }
     ): TileId[] {
         const segments = this.textParser.parse(text);
@@ -742,7 +745,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     segment.color,
                     "#000000FF",  // Default background
                     zIndex,
-                    { bgPercent: options?.animate ? 0 : 1 }  // Start invisible if animating
+                    { 
+                        bgPercent: options?.animate ? 0 : 1,  // Start invisible if animating
+                        fontWeight: options?.fontWeight,
+                        fontStyle: options?.fontStyle,
+                        fontFamily: options?.fontFamily
+                    }
                 );
                 tileIds.push(tileId);
 
@@ -844,7 +852,13 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                         char,
                         options.animate ? segmentBaseColor + "00" : segment.color,  // Start transparent if animating
                         textBackgroundColor,
-                        zIndex
+                        zIndex,
+                        { 
+                            bgPercent: options?.animate ? 0 : 1,  // Start invisible if animating
+                            fontWeight: options?.fontWeight,
+                            fontStyle: options?.fontStyle,
+                            fontFamily: options?.fontFamily
+                        }
                     );
                     wordTileIds.push(tileId);
 

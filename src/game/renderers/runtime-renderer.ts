@@ -145,7 +145,7 @@ export class RuntimeRenderer extends GameRenderer {
                 // check our inertia. if it's > 2, leave behind a fading "trail" tile
                 const inertia = entity.getComponent('inertia') as InertiaComponent;
                 const turbo = entity.getComponent('turbo') as TurboComponent;
-                
+
                 if (inertia && inertia.magnitude >= 2) {
 
                     const baseColor = turbo ? '#e8e7a9' : '#005577';
@@ -212,12 +212,12 @@ export class RuntimeRenderer extends GameRenderer {
             const prediction = this.movementPredictor.predictMove(entity);
             const tileId = this.bufferedMoveTiles.get(entity.getId());
             const speedTileId = this.speedIndicatorTiles.get(entity.getId());
-            
+
             // Update speed indicator if it exists
             if (speedTileId && prediction.finalInertia) {
                 const finalAction = prediction.actions[prediction.actions.length - 1];
                 const pos = finalAction?.data.to ?? entity.getPosition();
-                
+
                 this.display.moveTile(speedTileId, pos.x, pos.y);
                 this.display.updateTile(speedTileId, {
                     char: prediction.finalInertia.magnitude.toString(),
@@ -229,7 +229,7 @@ export class RuntimeRenderer extends GameRenderer {
                     // Get the final destination from the last action
                     const finalAction = prediction.actions[prediction.actions.length - 1];
                     this.display.moveTile(tileId, finalAction.data.to.x, finalAction.data.to.y);
-                    
+
                 } else {
                     // If no actions, remove the destination tile
                     this.display.removeTile(tileId);
@@ -238,19 +238,19 @@ export class RuntimeRenderer extends GameRenderer {
             }
         }
 
-        if(componentType === 'turbo') {
+        if (componentType === 'turbo') {
             const turbo = entity.getComponent('turbo') as TurboComponent;
-            if(turbo.turnsSinceEngaged < 4 && turbo.turnsSinceEngaged > 0) {
+            if (turbo.turnsSinceEngaged < 4 && turbo.turnsSinceEngaged > 0) {
                 this.makeTurboSmoke(entity);
             }
         }
 
-        if(componentType === 'enemyAI') {
+        if (componentType === 'enemyAI') {
             const ai = entity.getComponent('enemyAI') as EnemyAIComponent;
-            
-            if(ai.turnsLocked > 0) {
+
+            if (ai.turnsLocked > 0) {
                 const tileId = this.entityTiles.get(entity.getId());
-                if(tileId) {
+                if (tileId) {
                     this.display.updateTile(tileId, {
                         bg: '#990000FF',
                     });
@@ -264,7 +264,7 @@ export class RuntimeRenderer extends GameRenderer {
             const tileId = this.entityTiles.get(entity.getId());
             const player = entity.hasComponent('player');
 
-            if(!tileId) {
+            if (!tileId) {
                 return;
             }
 
@@ -286,7 +286,7 @@ export class RuntimeRenderer extends GameRenderer {
                         bgPercent: {
                             start: 1.0,
                             end: 0.0,
-                            duration: stunState.base*TICK_MS/1000, // Convert ms to seconds
+                            duration: stunState.base * TICK_MS / 1000, // Convert ms to seconds
                             easing: Easing.linear,
                             loop: false,
                         }
@@ -311,7 +311,7 @@ export class RuntimeRenderer extends GameRenderer {
     }
 
     public handleComponentAdded(entity: Entity, componentType: string): void {
-       
+
         // Handle bumping animation
         logger.info(`Component added: ${entity.getId()} - ${componentType}`);
         if (componentType === 'bumping') {
@@ -401,7 +401,7 @@ export class RuntimeRenderer extends GameRenderer {
         //         this.bufferedMoveTiles.set(entity.getId(), tileId);
         //     }
         // } 
-        
+
         // if(componentType === 'turbo') {
         //     this.makeTurboSmoke(entity);
         // }
@@ -417,8 +417,8 @@ export class RuntimeRenderer extends GameRenderer {
         let rightOffset: Point;
 
         let behindOffset: Point;
-        
-        switch(direction) {
+
+        switch (direction) {
             case Direction.North:
                 behindOffset = { x: 0, y: 1 };
                 leftOffset = { x: -1, y: 0 };
@@ -480,7 +480,7 @@ export class RuntimeRenderer extends GameRenderer {
                 start: '#888888FF',
                 end: '#00000000',
                 duration: 0.3,
-                easing: Easing.linear,  
+                easing: Easing.linear,
                 loop: false,
                 removeOnComplete: true
             },
@@ -503,13 +503,13 @@ export class RuntimeRenderer extends GameRenderer {
     private createDestinationTile(entity: Entity): TileId | null {
         const prediction = this.movementPredictor.predictMove(entity);
 
-        if(prediction.actions.length === 0) {
+        if (prediction.actions.length === 0) {
             return null;
         }
 
         const finalAction = prediction.actions[prediction.actions.length - 1];
 
-        if(prediction.finalInertia.direction === Direction.None) {
+        if (prediction.finalInertia.direction === Direction.None) {
             return null;
         }
 
@@ -535,6 +535,64 @@ export class RuntimeRenderer extends GameRenderer {
 
     public handleUpdate(timestamp: number): void {
         throw new Error('Method not implemented.');
+    }
+
+    public displayGameOver(): void {
+        const worldSize = this.world.getSize();
+        const wipeDelay = 10; // ms between each row
+        const wipeAlpha = 'AA';
+
+        // Create wipe effect from top to bottom
+        for (let y = 0; y < worldSize.y; y++) {
+            setTimeout(() => {
+                for (let x = 0; x < worldSize.x; x++) {
+                    this.display.createTile(
+                        x,
+                        y,
+                        ' ',
+                        '#000000FF',
+                        `#000000${wipeAlpha}`,
+                        2000, // Very high z-index to cover everything
+                    );
+                }
+            }, y * wipeDelay);
+        }
+
+        // After wipe completes, show game over text
+        setTimeout(() => {
+            const centerX = Math.floor(this.display.getViewportWidth() / 2) - 4; // "GAME OVER" is 9 chars
+            const centerY = Math.floor(this.display.getViewportHeight() / 2);
+
+            // Create black background behind text
+            for (let y = centerY - 1; y <= centerY + 1; y++) {
+                for (let x = centerX - 2; x <= centerX + 10; x++) {
+                    this.display.createTile(
+                        x,
+                        y,
+                        ' ',
+                        '#FFFFFFFF',
+                        '#000000CC',
+                        2001
+                    );
+                }
+            }
+
+            // Create the text
+            const gameOverTileIds = this.display.createString(
+                centerX,
+                centerY,
+                "{w}GAME OVER{/}",
+                2002, // Above the background
+                {
+                    animate: {
+                        delayBetweenChars: 0.02,  // 100ms between characters
+                        // initialDelay: 0.5        // Wait 500ms before starting
+                    },
+                    fontWeight: 'bold',
+                }
+            );
+
+        }); // Start after wipe + small delay
     }
 
 }

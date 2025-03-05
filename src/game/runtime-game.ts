@@ -163,7 +163,8 @@ export class RuntimeGame extends Game {
         this.world.on('player-death', (data: { entityId: string }) => {
             logger.info('Player death:', data);
             this.engine?.stop();
-        });
+            (this.renderer as RuntimeRenderer).displayGameOver();
+        }); 
     }
     
     protected createRenderer(): BaseRenderer {
