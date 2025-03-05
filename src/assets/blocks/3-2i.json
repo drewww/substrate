@@ -4259,33 +4259,6 @@
       ]
     },
     {
-      "id": "e9797",
-      "position": {
-        "x": 6,
-        "y": 6
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": " ",
-          "foreground": "#00000000",
-          "background": "#160f00",
-          "zIndex": 1000,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": false,
-          "blendMode": "screen"
-        }
-      ]
-    },
-    {
       "id": "e9798",
       "position": {
         "x": 6,
@@ -5490,6 +5463,68 @@
       "position": {
         "x": 1,
         "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#00000000",
+          "background": "#160f00",
+          "zIndex": 1000,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "screen"
+        }
+      ]
+    },
+    {
+      "id": "e11336",
+      "position": {
+        "x": 6,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "^",
+          "foreground": "#FFFFFFFF",
+          "background": "#000000FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0.2,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 1
+        },
+        {
+          "type": "turn",
+          "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e13189",
+      "position": {
+        "x": 6,
+        "y": 6
       },
       "components": [
         {

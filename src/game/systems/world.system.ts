@@ -150,8 +150,18 @@ export class WorldSystem {
                             y: entity.getPosition().y + (directionPoint.y * (numFollowers - i))
                         };
 
-                        // Check if position is blocked
-                        if (this.world.getEntitiesAt(spawnPosition).some(e => e.hasComponent('impassable'))) {
+                        // Remove any existing followable entities at the spawn position
+                        const existingEntities = this.world.getEntitiesAt(spawnPosition);
+                        const followableEntities = existingEntities.filter(e => e.hasComponent('followable'));
+                        for (const entity of followableEntities) {
+                            // todo package in an action
+                            this.world.removeEntity(entity.getId());
+                        }
+
+                        // Check if position is still blocked by any impassable non-followable entities
+                        if (existingEntities.some(e => 
+                            e.hasComponent('impassable') && !e.hasComponent('followable')
+                        )) {
                             logger.info(`Blocked spawn at ${spawnPosition.x},${spawnPosition.y} (spawner at ${entity.getPosition().x},${entity.getPosition().y})`);
                             break;
                         }
@@ -173,9 +183,6 @@ export class WorldSystem {
                                 followableComponent.followPriority = followPriority;
                             }
                         }
-
-                        template
-
 
                         // Spawn the entity with the pre-generated ID
                         this.actionHandler.execute({

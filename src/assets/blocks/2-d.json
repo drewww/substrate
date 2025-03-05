@@ -3981,33 +3981,6 @@
       ]
     },
     {
-      "id": "e6720",
-      "position": {
-        "x": 5,
-        "y": 5
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": " ",
-          "foreground": "#00000000",
-          "background": "#160f00",
-          "zIndex": 1000,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": false,
-          "blendMode": "screen"
-        }
-      ]
-    },
-    {
       "id": "e6761",
       "position": {
         "x": 5,
@@ -5138,6 +5111,59 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "source-over"
+        }
+      ]
+    },
+    {
+      "id": "e14566",
+      "position": {
+        "x": 5,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "^",
+          "foreground": "#FFFFFFFF",
+          "background": "#5335FFFF",
+          "zIndex": 20,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 2
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "entity-spawner",
+          "spawnTypes": [
+            "vehicle-followable"
+          ]
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "spawn": {
+              "base": 20,
+              "current": 20,
+              "ready": false
+            }
+          }
         }
       ]
     }

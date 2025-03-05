@@ -18,8 +18,8 @@ import { TestLayoutGenerator } from './test-layout-generator';
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
 
 export class CityBlockGenerator {
-    private readonly width: number = 4;
-    private readonly height: number = 4;
+    private readonly width: number = 10;
+    private readonly height: number = 10;
 
     private readonly blockWidth: number = 12;
     private readonly blockHeight: number = 12;
@@ -76,7 +76,7 @@ export class CityBlockGenerator {
         );
 
         // Create and use the staged layout generator
-        const layoutGenerator = new TestLayoutGenerator();
+        const layoutGenerator = new StagedLayoutGenerator(this.width, this.height);
         const layout = layoutGenerator.generate();
 
         // Process each cell in the layout
