@@ -34,6 +34,15 @@ export class EnemyAISystem {
         }
 
         switch (ai.aiType) {
+
+            case EnemyAIType.HELICOPTER:
+
+                if(canSeePlayer) {
+                    this.moveTowardsPlayer(enemy);
+                }
+
+                break;
+
             case EnemyAIType.FOLLOWER:
                 if (canSeePlayer) {
                     ai.turnsLocked += 1
@@ -43,34 +52,12 @@ export class EnemyAISystem {
 
                 if(ai.turnsLocked > 3) {
                     // move towards the player
-                    const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition());
-                    if(path && path.length > 1) {
-                        const nextPos = path[1];
-
-                        const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
-                        const moveCooldown = cooldowns?.getCooldown('move');
-                        
-                        if(nextPos.x === enemy.getPosition().x && nextPos.y === enemy.getPosition().y) {
-                            break;
-                        }
-
-                        if(moveCooldown && moveCooldown.ready) {
-                            this.actionHandler.execute({
-                                type: 'entityMove',
-                                entityId: enemy.getId(),
-                                data: { to: nextPos }
-                            });
-                        }
-                    }
+                    this.moveTowardsPlayer(enemy);
                 }
 
                 enemy.setComponent(ai);
                 break;
-            case EnemyAIType.HELICOPTER:
-                // TODO: Implement helicopter AI
-
-                
-                break;
+           
             case EnemyAIType.PEDESTRIAN:      
             
                 const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   
@@ -176,4 +163,27 @@ export class EnemyAISystem {
                 break;
         }
     }
+
+    private moveTowardsPlayer(enemy: Entity): void {
+        const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition());
+        if (path && path.length > 1) {
+            const nextPos = path[1];
+
+            const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
+            const moveCooldown = cooldowns?.getCooldown('move');
+
+            if (nextPos.x === enemy.getPosition().x && nextPos.y === enemy.getPosition().y) {
+                return;
+            }
+
+            if (moveCooldown && moveCooldown.ready) {
+                this.actionHandler.execute({
+                    type: 'entityMove',
+                    entityId: enemy.getId(),
+                    data: { to: nextPos }
+                });
+            }
+        }
+    }
 } 
+
