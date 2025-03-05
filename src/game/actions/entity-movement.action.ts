@@ -15,6 +15,7 @@ import { FollowableComponent } from '../../entity/components/followable-componen
 
 interface EntityMoveActionData {
     to: Point;
+    force?: boolean;
 }
 
 export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
@@ -26,7 +27,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         const to = action.data.to;
 
         // Check if movement is possible
-        if (!world.isPassable(from.x, from.y, to.x, to.y)) {
+        if (!world.isPassable(from.x, from.y, to.x, to.y, action.data.force)) {
             entity.setComponent(new BumpingComponent({
                 x: to.x - from.x,
                 y: to.y - from.y

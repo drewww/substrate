@@ -42,7 +42,7 @@ export class FollowingSystem {
                 this.actionHandler.execute({
                     type: 'entityMove',
                     entityId: follower.getId(),
-                    data: { to: followable.lastPosition }
+                    data: { to: followable.lastPosition, force: true }
                 });
                 followerComponent.lastKnownPosition = followedPos;
                 follower.setComponent(followerComponent);

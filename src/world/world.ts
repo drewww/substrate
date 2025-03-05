@@ -1211,14 +1211,17 @@ export class World {
      * Check if movement between two adjacent tiles is possible
      * @returns false if tiles aren't adjacent, if there's an impassable wall between them, or if destination is impassable
      */
-    public isPassable(fromX: number, fromY: number, toX: number, toY: number): boolean {
+    public isPassable(fromX: number, fromY: number, toX: number, toY: number, force: boolean = false): boolean {
         // Check if tiles are adjacent in cardinal directions
         const dx = toX - fromX;
         const dy = toY - fromY;
         
-        // Must be adjacent in exactly one direction
-        if (Math.abs(dx) + Math.abs(dy) !== 1) {
-            return false;
+        // Skip adjacency check if force is true
+        if (!force) {
+            // Must be adjacent in exactly one direction
+            if (Math.abs(dx) + Math.abs(dy) !== 1) {
+                return false;
+            }
         }
 
         // Check walls between tiles
