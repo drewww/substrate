@@ -793,7 +793,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             animate?: {
                 delayBetweenChars: number;
                 initialDelay?: number;
-            }
+            };
+            fontWeight?: string;
+            fontStyle?: string;
+            fontFamily?: string;
         } = {}
     ): TileId[] {
         const {

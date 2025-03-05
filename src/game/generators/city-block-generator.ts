@@ -231,7 +231,7 @@ export class CityBlockGenerator {
 
         this.placePlayer(12, 12, world);
 
-        this.placeHelicopter(11, 11, world);
+        this.placeHelicopter(9, 9, world);
 
         return world;
     }
@@ -242,8 +242,8 @@ export class CityBlockGenerator {
 
         const symbol = new SymbolComponent();
         symbol.char = '🜛';
-        symbol.foreground = '#FFFFFF99';
-        symbol.background = '#FF194D66';
+        symbol.foreground = '#FFFFFF00';
+        symbol.background = '#FF194D00';
         symbol.zIndex = 500;
         symbol.scaleSymbolX = 1.4;
         symbol.scaleSymbolY = 1.4;
@@ -270,8 +270,8 @@ export class CityBlockGenerator {
 
         helicopter.setComponent(new CooldownComponent({
             "move": {
-                "base": 3,
-                "current": 3,
+                "base": 2,
+                "current": 2,
                 "ready": false
             }
         }));
