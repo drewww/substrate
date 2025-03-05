@@ -56,7 +56,10 @@ export abstract class AnimationModule<TValue, TConfig extends AnimationConfig> {
     }
 
     public add(id: string, config: Omit<TConfig, 'running'>, onComplete?: () => void): void {
+        const existingAnimation = this.animations.get(id);
+        
         this.animations.set(id, {
+            ...(existingAnimation ?? {}),
             ...config,
             startTime: config.startTime ?? performance.now(),
             running: true

@@ -248,14 +248,16 @@ export class CityBlockGenerator {
         symbol.offsetSymbolY = -0.1;
         symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
-        symbol.animations = {
-            rotation: {
-                duration: 30,
-                loop: true,
-                start: 0,
-                end: 360
-            }
-        };  
+
+        
+        // symbol.animations = {
+        //     rotation: {
+        //         duration: 1,
+        //         loop: true,
+        //         start: 0,
+        //         end: 360
+        //     }
+        // };  
 
         helicopter.setComponent(symbol);
         helicopter.setComponent(new FacingComponent(Direction.None));

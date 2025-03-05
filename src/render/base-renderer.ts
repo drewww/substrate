@@ -992,39 +992,37 @@ export abstract class BaseRenderer implements Renderer {
             }
         }
 
-        // Value animations for offset
+        // Value animations - merge instead of replace
+        const valueAnimations: Record<string, any> = {};
+
+        // Offset animations
         if (animations.offset) {
             if (animations.offset.x) {
-                this.display.addValueAnimation(tileId, {
-                    offsetSymbolX: animations.offset.x
-                });
+                valueAnimations.offsetSymbolX = animations.offset.x;
             }
             if (animations.offset.y) {
-                this.display.addValueAnimation(tileId, {
-                    offsetSymbolY: animations.offset.y
-                });
+                valueAnimations.offsetSymbolY = animations.offset.y;
             }
         }
 
-        // Value animations for scale
+        // Scale animations
         if (animations.scale) {
             if (animations.scale.x) {
-                this.display.addValueAnimation(tileId, {
-                    scaleSymbolX: animations.scale.x
-                });
+                valueAnimations.scaleSymbolX = animations.scale.x;
             }
             if (animations.scale.y) {
-                this.display.addValueAnimation(tileId, {
-                    scaleSymbolY: animations.scale.y
-                });
+                valueAnimations.scaleSymbolY = animations.scale.y;
             }
         }
 
         // Rotation animation
         if (animations.rotation) {
-            this.display.addValueAnimation(tileId, {
-                rotation: animations.rotation
-            });
+            valueAnimations.rotation = animations.rotation;
+        }
+
+        // Add all value animations at once with merge flag
+        if (Object.keys(valueAnimations).length > 0) {
+            this.display.addValueAnimation(tileId, valueAnimations);
         }
     }
 

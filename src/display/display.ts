@@ -908,6 +908,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public addSymbolAnimation(id: string, config: Omit<SymbolAnimationConfig, 'running'>): void {
+        // Always merge with existing animations
         this.symbolAnimations.add(id, config);
     }
 
@@ -920,10 +921,12 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public addColorAnimation(id: string, config: Omit<ColorAnimationConfig, 'running'>): void {
+        // Always merge with existing animations
         this.colorAnimations.add(id, config);
     }
 
     public addValueAnimation(id: string, config: Omit<ValueAnimationConfig, 'running'>): void {
+        // Always merge with existing animations
         this.valueAnimations.add(id, config);
     }
 
