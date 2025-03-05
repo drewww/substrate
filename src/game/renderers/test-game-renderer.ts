@@ -1,5 +1,5 @@
 import { Display } from "../../display/display";
-import { FillDirection, Easing, TileId } from "../../display/types";
+import { FillDirection, Easing, TileId, BlendMode } from "../../display/types";
 import { Component } from "../../entity/component";
 import { BumpingComponent } from "../../entity/components/bumping-component";
 import { VisionComponent } from "../../entity/components/vision-component";
@@ -150,8 +150,9 @@ export class RuntimeRenderer extends GameRenderer {
 
                     const baseColor = turbo ? '#e8e7a9' : '#005577';
 
-                    const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', baseColor + 'aa', 999, {
-                        bgPercent: 1
+                    const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', baseColor + '44', 300, {
+                        bgPercent: 1,
+                        blendMode: BlendMode.Screen
                     });
 
                     this.display.addColorAnimation(trailTileId, {

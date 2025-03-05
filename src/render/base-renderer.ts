@@ -843,6 +843,8 @@ export abstract class BaseRenderer implements Renderer {
                 return Math.pow(normalized, 4) * intensity;
             case 'step':
                 return normalized <= 0.95 ? intensity : 0;
+            case 'step-soft':
+                return normalized <= 0.50 ? intensity : (normalized * 2) * intensity;
             case 'none':
                 return 1;
             default:

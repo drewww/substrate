@@ -2,7 +2,7 @@ import { Component } from '../component';
 import { LightAnimationType } from '../../render/light-animations';
 import { RegisterComponent } from '../component-registry';
 
-export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step' | 'none';
+export type LightFalloff = 'linear' | 'quadratic' | 'exponential' | 'step' | 'step-soft' | 'none';
 export type LightMode = 'bg' | 'fg';
 
 export interface LightEmitterConfig {

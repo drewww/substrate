@@ -16,6 +16,7 @@ import { TestLayoutGenerator } from './test-layout-generator';
 import { EnemyAIComponent } from '../components/enemy-ai.component';
 import { EnemyAIType } from '../components/enemy-ai.component';
 import { MoveComponent } from '../components/move.component';
+import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -261,6 +262,13 @@ export class CityBlockGenerator {
                 "ready": false
             }
         }));
+        
+        helicopter.setComponent(new LightEmitterComponent({
+            "radius": 3,
+            "color": "#FF194DFF",
+            "intensity": 0.6,
+            "distanceFalloff": "step-soft",
+        }));
 
         world.addEntity(helicopter);
     }
@@ -283,7 +291,6 @@ export class CityBlockGenerator {
         player.setComponent(symbol);
 
         player.setComponent(new FacingComponent(Direction.None));
-        player.setComponent(new OpacityComponent());
         player.setComponent(new ImpassableComponent());
         player.setComponent(new PlayerComponent());
 
