@@ -4591,55 +4591,6 @@
           "editorOnly": true
         }
       ]
-    },
-    {
-      "id": "e1686",
-      "position": {
-        "x": 2,
-        "y": 11
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "i",
-          "foreground": "#FFFFFFFF",
-          "background": "#00000000",
-          "zIndex": 100,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": false,
-          "blendMode": "source-over"
-        },
-        {
-          "type": "enemyAI",
-          "aiType": "pedestrian",
-          "turnsLocked": 0,
-          "visionRadius": 5,
-          "mode": "idle",
-          "destination": null,
-          "previousDestination": null
-        },
-        {
-          "type": "impassable"
-        },
-        {
-          "type": "cooldown",
-          "cooldowns": {
-            "move": {
-              "base": 12,
-              "current": 12,
-              "ready": false
-            }
-          }
-        }
-      ]
     }
   ]
 }

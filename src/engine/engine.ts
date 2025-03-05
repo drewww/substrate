@@ -5,7 +5,6 @@ import { ActionHandler } from '../action/action-handler';
 import { EngineLoop } from './engine-loop';
 
 // these imports should not be so deep in a non-game file. but too late to fix for now.
-import { MoveAction } from '../game/basic-test-game';
 import { TICK_MS } from '../game/constants';
 
 export interface EngineOptions {
@@ -40,7 +39,6 @@ export class Engine {
 
     constructor(private options: EngineOptions) {
         this.actionHandler = new ActionHandler(options.world);
-        this.actionHandler.registerAction('move', MoveAction);
         
         // Create engine loop with 200ms timestep (5 Hz)
         this.engineLoop = new EngineLoop(

@@ -2,16 +2,15 @@ import { ActionClass, BaseAction } from '../../action/action-handler';
 import { World } from '../../world/world';
 import { Point } from '../../types';
 import { BumpingComponent } from '../../entity/components/bumping-component';
-import { MoveCooldownComponent } from '../components/move-cooldown.component';
 import { logger } from '../../util/logger';
 import { VisionComponent } from '../../entity/components/vision-component';
 import { FacingComponent } from '../../entity/components/facing-component';
-import { TurnComponent } from '../../entity/components/turn-component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
 import { ApplyTimestampComponent } from '../components/apply.timestamp.component';
 import { ApplyTimestampType } from '../components/apply.timestamp.component';
 import { TimestampComponent } from '../components/timestamp.component';
 import { FollowableComponent } from '../../entity/components/followable-component';
+import { MoveComponent } from '../components/move.component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -26,8 +25,17 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         const from = entity.getPosition();
         const to = action.data.to;
 
+        let shouldIgnoreImpassable = action.data.force? true : false;
+
+        // Get the move component to check ignoreImpassable
+        const moveComponent = entity.getComponent('move') as MoveComponent;
+
+        if(moveComponent?.ignoreImpassable) {
+            shouldIgnoreImpassable = true;
+        }
+
         // Check if movement is possible
-        if (!world.isPassable(from.x, from.y, to.x, to.y, action.data.force)) {
+        if (!shouldIgnoreImpassable && !world.isPassable(from.x, from.y, to.x, to.y)) {
             entity.setComponent(new BumpingComponent({
                 x: to.x - from.x,
                 y: to.y - from.y

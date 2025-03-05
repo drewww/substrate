@@ -4,7 +4,6 @@ import { ActionHandler, ActionClass, BaseAction } from '../action/action-handler
 import { Display } from '../display/display.ts';
 import { Easing } from '../display/types.ts';
 import { Engine } from '../engine/engine.ts';
-import { BumpingComponent } from '../entity/components/bumping-component.ts';
 import { VisionComponent } from '../entity/components/vision-component.ts';
 import { Entity } from '../entity/entity.ts';
 import { BaseRenderer } from '../render/base-renderer.ts';
@@ -467,46 +466,4 @@ export class RuntimeGame extends Game {
             this.uiSpeedRenderer.update(timestamp);
         });
     }
-} 
-
-
-// Example action implementations
-
-// Example action types
-interface MoveActionData {
-    to: Point;
 }
-
-export const MoveAction: ActionClass<MoveActionData> = {
-    canExecute(world: World, action: BaseAction<MoveActionData>): boolean {
-        const entity = world.getEntity(action.entityId);
-        if (!entity) return false;
-
-        const from = entity.getPosition();
-        const to = action.data.to;
-
-        // Check if movement is possible using the new isPassable method
-        if (!world.isPassable(from.x, from.y, to.x, to.y)) {
-            // If movement is blocked, trigger bump animation
-            entity.setComponent(new BumpingComponent({
-                x: to.x - from.x,
-                y: to.y - from.y
-            }));
-            return false;
-        }
-
-        return true;
-    },
-
-    execute(world: World, action: BaseAction<MoveActionData>): boolean {
-        const result = world.moveEntity(action.entityId, action.data.to);
-        const entity = world.getEntity(action.entityId);
-        if (result && entity?.hasComponent('player')) {
-            const visionComponent = entity.getComponent('vision') as VisionComponent;
-            const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
-            world.updateVision(action.data.to, radius);
-        }
-        return result;
-    }
-};
-

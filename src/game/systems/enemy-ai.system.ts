@@ -6,6 +6,7 @@ import { EnemyAIComponent, EnemyAIType } from '../components/enemy-ai.component'
 import { InertiaComponent } from '../components/inertia.component';
 import { directionToPoint } from '../../util';
 import { CooldownComponent } from '../components/cooldown.component';
+import { MoveComponent } from '../components/move.component';
 
 
 export class EnemyAISystem {
@@ -165,7 +166,12 @@ export class EnemyAISystem {
     }
 
     private moveTowardsPlayer(enemy: Entity): void {
-        const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition());
+
+        const moveComponent = enemy.getComponent('move') as MoveComponent;
+        const ignoreImpassable = moveComponent?.ignoreImpassable || false;
+
+        const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition(), ignoreImpassable);
+        
         if (path && path.length > 1) {
             const nextPos = path[1];
 
@@ -180,7 +186,7 @@ export class EnemyAISystem {
                 this.actionHandler.execute({
                     type: 'entityMove',
                     entityId: enemy.getId(),
-                    data: { to: nextPos }
+                    data: { to: nextPos, force: ignoreImpassable }
                 });
             }
         }

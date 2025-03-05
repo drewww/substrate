@@ -1352,5 +1352,27 @@ describe('World', () => {
             expect(pathThroughObstacle).not.toBeNull();
             expect(pathThroughObstacle).not.toContainEqual(middle);
         });
+
+        it('should respect ignoreImpassable parameter', () => {
+            const start = { x: 1, y: 1 };
+            const end = { x: 3, y: 1 };
+            
+            // Place impassable entity between start and end
+            const obstacle = new Entity({ x: 2, y: 1 });
+            obstacle.setComponent(new ImpassableComponent());
+            world.addEntity(obstacle);
+            
+            // Without ignoreImpassable, should find alternate path
+            const normalPath = world.findPath(start, end, false);
+            expect(normalPath).not.toContainEqual({ x: 2, y: 1 }); // Should avoid obstacle
+            
+            // With ignoreImpassable, should path straight through
+            const ignoringPath = world.findPath(start, end, true);
+            expect(ignoringPath).toEqual([
+                { x: 1, y: 1 },
+                { x: 2, y: 1 }, // Should go through obstacle
+                { x: 3, y: 1 }
+            ]);
+        });
     });
 }); 
