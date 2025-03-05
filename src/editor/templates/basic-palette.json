@@ -179,7 +179,7 @@
             "type": "symbol",
             "char": "⧋",
             "foreground": "#FFFFFFFF",
-            "background": "#00D3EFFF",
+            "background": "#00D3EF00",
             "zIndex": 300,
             "alwaysRenderIfExplored": false,
             "lockRotationToFacing": true,
@@ -229,25 +229,29 @@
         "components": [
           {
             "type": "symbol",
-            "char": "E",
-            "foreground": "#FFFFFF",
-            "background": "#0000FF",
-            "zIndex": 100
-          },
-          {
+            "char": "⧯",
+            "foreground": "#FFFFFFFF",
+            "background": "#0000FF00",
+            "zIndex": 100,
+            "lockRotationToFacing": true
+        },
+        {
             "type": "facing",
-            "direction": 1
-          },
-          {
+            "direction": 0
+        },
+        {
             "type": "opacity"
-          },
-          {
+        },
+        {
             "type": "impassable"
-          },
-          {
+        },
+        {
+            "type": "move"
+        },
+        {
             "type": "followable"
-          },
-          {
+        },
+        {
             "type": "cooldown",
             "cooldowns": {
               "move": {

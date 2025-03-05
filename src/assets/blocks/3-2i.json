@@ -4650,80 +4650,6 @@
       ]
     },
     {
-      "id": "e9812",
-      "position": {
-        "x": 8,
-        "y": 6
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "⍠",
-          "foreground": "#666666",
-          "background": "#000D12",
-          "zIndex": 10,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
-        },
-        {
-          "type": "facing",
-          "direction": 2
-        },
-        {
-          "type": "traffic-light",
-          "blockId": 0,
-          "phase": 0,
-          "phaseOffset": 0
-        }
-      ]
-    },
-    {
-      "id": "e9813",
-      "position": {
-        "x": 3,
-        "y": 5
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "⍠",
-          "foreground": "#666666",
-          "background": "#000D12",
-          "zIndex": 10,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
-        },
-        {
-          "type": "facing",
-          "direction": 2
-        },
-        {
-          "type": "traffic-light",
-          "blockId": 0,
-          "phase": 0,
-          "phaseOffset": 0
-        }
-      ]
-    },
-    {
       "id": "e9814",
       "position": {
         "x": 7,
@@ -5589,6 +5515,80 @@
               "ready": false
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "e13319",
+      "position": {
+        "x": 8,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⍠",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 0,
+          "phaseOffset": 0
+        }
+      ]
+    },
+    {
+      "id": "e13575",
+      "position": {
+        "x": 3,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⍠",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 0,
+          "phaseOffset": 0
         }
       ]
     }

@@ -5115,7 +5115,77 @@
       ]
     },
     {
-      "id": "e14566",
+      "id": "e15025",
+      "position": {
+        "x": 5,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "^",
+          "foreground": "#FFFFFFFF",
+          "background": "#000000FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0.2,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 2
+        },
+        {
+          "type": "turn",
+          "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e15067",
+      "position": {
+        "x": 6,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "^",
+          "foreground": "#FFFFFFFF",
+          "background": "#000000FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0.2,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 3
+        },
+        {
+          "type": "turn",
+          "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e15841",
       "position": {
         "x": 5,
         "y": 5
@@ -5123,10 +5193,37 @@
       "components": [
         {
           "type": "symbol",
-          "char": "^",
+          "char": " ",
+          "foreground": "#00000000",
+          "background": "#160f00",
+          "zIndex": 1000,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "screen"
+        }
+      ]
+    },
+    {
+      "id": "e16487",
+      "position": {
+        "x": 5,
+        "y": 10
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⧯",
           "foreground": "#FFFFFFFF",
-          "background": "#5335FFFF",
-          "zIndex": 20,
+          "background": "#0000FF00",
+          "zIndex": 100,
           "alwaysRenderIfExplored": false,
           "rotation": 0,
           "offsetSymbolX": 0,
@@ -5150,17 +5247,18 @@
           "type": "impassable"
         },
         {
-          "type": "entity-spawner",
-          "spawnTypes": [
-            "vehicle-followable"
-          ]
+          "type": "move"
+        },
+        {
+          "type": "followable",
+          "followPriority": 100
         },
         {
           "type": "cooldown",
           "cooldowns": {
-            "spawn": {
-              "base": 20,
-              "current": 20,
+            "move": {
+              "base": 4,
+              "current": 4,
               "ready": false
             }
           }
@@ -5168,19 +5266,19 @@
       ]
     },
     {
-      "id": "e14793",
+      "id": "e16558",
       "position": {
-        "x": 6,
-        "y": 5
+        "x": 5,
+        "y": 9
       },
       "components": [
         {
           "type": "symbol",
-          "char": "C",
-          "foreground": "#666666",
-          "background": "#000D12",
-          "zIndex": 10,
-          "alwaysRenderIfExplored": true,
+          "char": "⧯",
+          "foreground": "#5335FFFF",
+          "background": "#00000000",
+          "zIndex": 20,
+          "alwaysRenderIfExplored": false,
           "rotation": 0,
           "offsetSymbolX": 0,
           "offsetSymbolY": 0,
@@ -5189,11 +5287,73 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": false,
+          "lockRotationToFacing": true,
           "blendMode": "source-over"
         },
         {
-          "type": "entity-consumer"
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable",
+          "followPriority": 90
+        }
+      ]
+    },
+    {
+      "id": "e16585",
+      "position": {
+        "x": 5,
+        "y": 8
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⧯",
+          "foreground": "#5335FFFF",
+          "background": "#00000000",
+          "zIndex": 20,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "follower",
+          "followedEntityId": null,
+          "lastKnownPosition": null
+        },
+        {
+          "type": "followable",
+          "followPriority": 80
         }
       ]
     }
