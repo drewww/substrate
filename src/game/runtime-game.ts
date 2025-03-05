@@ -22,7 +22,7 @@ import { InertiaComponent } from './components/inertia.component.ts';
 import { TurboComponent } from './components/turbo.component.ts';
 import { RuntimeSoundRenderer } from './game-sound-renderer.ts';
 import { Game } from './game.ts';
-import { RuntimeRenderer } from './renderers/test-game-renderer.ts';
+import { RuntimeRenderer } from './renderers/runtime-renderer.ts';
 import { CooldownCleanupSystem } from './systems/cooldown-cleanup.system.ts';
 import { CooldownSystem } from './systems/cooldown.system.ts';
 import { EnemyAISystem } from './systems/enemy-ai.system.ts';

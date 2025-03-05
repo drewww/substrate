@@ -1,4 +1,4 @@
-import { RuntimeGame } from './basic-test-game';
+import { RuntimeGame } from './runtime-game';
 import { logger, LogLevel } from '../util/logger';
 import { WorldDebugOverlay } from '../world/debug-overlay';
 import { DebugOverlay } from '../display/test/debug-overlay';
