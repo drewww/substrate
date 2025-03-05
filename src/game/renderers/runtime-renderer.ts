@@ -21,6 +21,7 @@ export class RuntimeRenderer extends GameRenderer {
     private bufferedMoveTiles: Map<string, string> = new Map(); // entityId -> tileId
     private movementPredictor: MovementPredictor;
     private speedIndicatorTiles: Map<string, string> = new Map(); // entityId -> tileId
+    private targetingIndicators: Map<string, string> = new Map(); // entityId -> tileId
 
     constructor(display: Display, world: World) {
         super(world, display);
@@ -114,6 +115,20 @@ export class RuntimeRenderer extends GameRenderer {
                     bgPercent: 0.0,
                     fillDirection: FillDirection.TOP
                 });
+            }
+        }
+
+        if (componentType === 'locked') {
+            const indicatorTileId = this.targetingIndicators.get(entity.getId());
+            if (indicatorTileId) {
+                this.display.removeTile(indicatorTileId);
+                this.targetingIndicators.delete(entity.getId());
+                
+                // Remove the move callback from the entity's main tile
+                const entityTileId = this.entityTiles.get(entity.getId());
+                if (entityTileId) {
+                    this.display.removeTileMoveCallback(entityTileId);
+                }
             }
         }
     }
@@ -405,6 +420,31 @@ export class RuntimeRenderer extends GameRenderer {
         // if(componentType === 'turbo') {
         //     this.makeTurboSmoke(entity);
         // }
+
+        if (componentType === 'locked' && entity.hasComponent('player')) {
+            const pos = entity.getPosition();
+            const tileId = this.display.createTile(
+                pos.x,
+                pos.y,
+                '⛶',
+                '#FFFFFFFF',
+                '#00000000',
+                1000,
+                {
+                    // offsetSymbolY: -0.5, // Position above the player
+                    scaleSymbolX: 1.4,
+                    scaleSymbolY: 1.4
+                }
+            );
+            
+            // Store the indicator tile ID
+            this.targetingIndicators.set(entity.getId(), tileId);
+            
+            // Set up a move callback to update the indicator position
+            this.display.setTileMoveCallback(this.entityTiles.get(entity.getId())!, (_, x, y) => {
+                this.display.moveTile(tileId, x, y);
+            });
+        }
     }
 
     private makeTurboSmoke(entity: Entity): void {

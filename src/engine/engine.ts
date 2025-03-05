@@ -6,6 +6,7 @@ import { EngineLoop } from './engine-loop';
 
 // these imports should not be so deep in a non-game file. but too late to fix for now.
 import { TICK_MS } from '../game/constants';
+import { logger } from '../util/logger';
 
 export interface EngineOptions {
     mode: 'turn-based' | 'realtime';
@@ -16,7 +17,7 @@ export interface EngineOptions {
 }
 
 export class Engine {
-    private systems: (() => void)[] = [];
+    private systems: ((totalUpdates?: number) => void)[] = [];
     private actionHandler: ActionHandler;
     private isRunning: boolean = false;
     private engineLoop: EngineLoop;
@@ -57,7 +58,7 @@ export class Engine {
         this.engineLoop.stop();
     }
 
-    addSystem(system: () => void): void {
+    addSystem(system: (totalUpdates?: number) => void): void {
         this.systems.push(system);
     }
 
@@ -78,7 +79,7 @@ export class Engine {
         // Run systems first
         this.systems.forEach((system, index) => {
             const systemStart = performance.now();
-            system();
+            system(this.metrics.totalUpdates);
             const systemDuration = performance.now() - systemStart;
             
             // Update system metrics

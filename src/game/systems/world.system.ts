@@ -18,6 +18,7 @@ import { TrafficControllerComponent } from '../components/traffic-controller.com
 import { ImpathableComponent } from '../../entity/components/impathable-component';
 import { AOEDamageComponent } from '../components/aoe-damage.component';
 import { HealthComponent } from '../../entity/components/health.component';
+import { LockedComponent } from '../components/locked.component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -27,7 +28,7 @@ const VEHICLE_COOLDOWN = 40;
 export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
 
-    tick(): void {
+    tick(totalUpdates?: number): void {
         const cooldownEntities = this.world.getEntitiesWithComponent('cooldown');
 
         for (const entity of cooldownEntities) {
@@ -309,6 +310,18 @@ export class WorldSystem {
                 this.world.emit('player-death', {
                     entityId: player.getId(),
                 });
+            }
+        }
+
+        const lockedEntities = this.world.getEntitiesWithComponent('locked');
+        for (const entity of lockedEntities) {
+            const locked = entity.getComponent('locked') as LockedComponent;
+            if(locked) {
+                // logger.warn(`Locked entity ${entity.getId()} lastTurnLocked: ${locked.lastTurnLocked} totalUpdates: ${totalUpdates}`);
+
+                if(locked.lastTurnLocked !== totalUpdates) {
+                    entity.removeComponent('locked');
+                }
             }
         }
 

@@ -16,3 +16,5 @@ import './move.component';
 import './entity-consumer.component';
 import './traffic-light.component';
 import './traffic-controller.component';
+import './locked.component';
+import './aoe-damage.component';

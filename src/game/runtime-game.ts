@@ -131,31 +131,31 @@ export class RuntimeGame extends Game {
         this.cooldownCleanupSystem = new CooldownCleanupSystem(this.world);
 
         // Add systems to engine update loop - cooldown system must run first
-        this.engine.addSystem(() => {
+        this.engine.addSystem((totalUpdates) => {
             this.cooldownSystem.tick();
         });
 
-        this.engine.addSystem(() => {
-            this.enemyAISystem.tick();
+        this.engine.addSystem((totalUpdates) => {
+            this.enemyAISystem.tick(totalUpdates);
         });
 
-        this.engine.addSystem(() => {
+        this.engine.addSystem((totalUpdates) => {
             this.enemyMovementSystem.tick();
         });
 
-        this.engine.addSystem(() => {
+        this.engine.addSystem((totalUpdates) => {
             this.playerMovementSystem.tick();
         });
 
-        this.engine.addSystem(() => {
-            this.worldSystem.tick();
+        this.engine.addSystem((totalUpdates) => {
+            this.worldSystem.tick(totalUpdates);
         });
 
-        this.engine.addSystem(() => {
+        this.engine.addSystem((totalUpdates) => {
             this.followingSystem.tick();
         });
 
-        this.engine.addSystem(() => {
+        this.engine.addSystem((totalUpdates) => {
             this.cooldownCleanupSystem.tick();
         });
 

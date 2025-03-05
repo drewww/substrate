@@ -7,6 +7,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { directionToPoint } from '../../util';
 import { CooldownComponent } from '../components/cooldown.component';
 import { MoveComponent } from '../components/move.component';
+import { LockedComponent } from '../components/locked.component';
 
 
 export class EnemyAISystem {
@@ -16,22 +17,31 @@ export class EnemyAISystem {
     ) {
     }
 
-    tick(): void {
+    tick(totalUpdates?: number): void {
         // Get all enemies (entities with enemy component and AI component)
         // TODO we need to optimize this. iterating over all the immobile world tiles is not useful
         const enemies = this.world.getEntitiesWithComponent('enemyAI');
 
         for (const enemy of enemies) {
-            this.updateEnemy(enemy);
+            this.updateEnemy(enemy, totalUpdates);
         }
     }
 
-    private updateEnemy(enemy: Entity): void {
+    private updateEnemy(enemy: Entity, totalUpdates?: number): void {
         const ai = enemy.getComponent('enemyAI') as EnemyAIComponent;
 
         let canSeePlayer = false;
         if(enemy.hasComponent('vision')) {
             canSeePlayer = this.world.canEntitySeeEntity(enemy, this.world.getPlayer());
+
+            if(canSeePlayer) {
+                // Lock the player when enemy sees them
+                const player = this.world.getPlayer();
+                if (!player.hasComponent('locked')) {
+                    logger.warn(`Locking player at ${player.getPosition().x}, ${player.getPosition().y} and totalUpdates: ${totalUpdates}`);
+                    player.setComponent(new LockedComponent(totalUpdates));
+                }
+            }
         }
 
         switch (ai.aiType) {
