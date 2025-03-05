@@ -13,7 +13,8 @@ export enum EnemyAIType {
     EMP_TURRET = 'emp_turret',
     FOLLOWER = 'follower',
     FAST_FOLLOWER = 'fast_follower',
-    PEDESTRIAN = 'pedestrian'
+    PEDESTRIAN = 'pedestrian',
+    HELICOPTER = 'helicopter'
 }
 
 @RegisterComponent('enemyAI')

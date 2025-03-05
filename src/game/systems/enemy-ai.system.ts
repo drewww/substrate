@@ -66,6 +66,11 @@ export class EnemyAISystem {
 
                 enemy.setComponent(ai);
                 break;
+            case EnemyAIType.HELICOPTER:
+                // TODO: Implement helicopter AI
+
+                
+                break;
             case EnemyAIType.PEDESTRIAN:      
             
                 const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;   

@@ -5,15 +5,7 @@ import { RegisterComponent } from "../../entity/component-registry";
 export class MoveComponent extends Component {
     type: 'move' = 'move';
 
-    constructor() {
+    constructor(public ignoreImpassable: boolean = false) {
         super();
-    }
-
-    static fromJSON(data: any): MoveComponent {
-        return new MoveComponent();
-    }
-
-    toJSON(): any {
-        return {};
     }
 }

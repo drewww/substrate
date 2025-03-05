@@ -15,6 +15,7 @@ import { CooldownComponent } from '../components/cooldown.component';
 import { TestLayoutGenerator } from './test-layout-generator';
 import { EnemyAIComponent } from '../components/enemy-ai.component';
 import { EnemyAIType } from '../components/enemy-ai.component';
+import { MoveComponent } from '../components/move.component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -206,6 +207,8 @@ export class CityBlockGenerator {
 
         this.placePlayer(12, 12, world);
 
+        this.placeHelicopter(11, 11, world);
+
         return world;
     }
 
@@ -215,9 +218,13 @@ export class CityBlockGenerator {
 
         const symbol = new SymbolComponent();
         symbol.char = '🜛';
-        symbol.foreground = '#FF194DFF';
-        symbol.background = '#7EECF4FF';
+        symbol.foreground = '#FFFFFFFF';
+        symbol.background = '#FF194DFF';
         symbol.zIndex = 500;
+        symbol.scaleSymbolX = 1.4;
+        symbol.scaleSymbolY = 1.4;
+        symbol.offsetSymbolY = -0.1;
+        symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
         
 
@@ -225,7 +232,14 @@ export class CityBlockGenerator {
         helicopter.setComponent(new FacingComponent(Direction.None));
         helicopter.setComponent(new VisionComponent(10, true));
         helicopter.setComponent(new EnemyAIComponent(EnemyAIType.HELICOPTER));
-
+        helicopter.setComponent(new MoveComponent(true)); // true lets it move through walls
+        helicopter.setComponent(new CooldownComponent({
+            "move": {
+                "base": 3,
+                "current": 3,
+                "ready": false
+            }
+        }));
 
         world.addEntity(helicopter);
     }
