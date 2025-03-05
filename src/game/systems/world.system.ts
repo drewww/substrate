@@ -292,6 +292,12 @@ export class WorldSystem {
         const playerHealth = player.getComponent('health') as HealthComponent;
         if (!playerHealth) return;
 
+        if(playerHealth.health >= 0) {
+            if(!player.hasComponent('locked')) {
+                playerHealth.health += 1;
+                player.setComponent(playerHealth);
+            }
+        }
         for (const entity of aoeDamageEntities) {
             const aoeDamage = entity.getComponent('aoe-damage') as AOEDamageComponent;
             const entityPos = entity.getPosition();
@@ -323,8 +329,10 @@ export class WorldSystem {
                 if(locked.lastTurnLocked + 1 < (totalUpdates ?? 0)) {
                     entity.removeComponent('locked');
                 }
-            }
+            } 
         }
+
+
 
         const entityConsumerEntities = this.world.getEntitiesWithComponent('entity-consumer');
         for (const entity of entityConsumerEntities) {
