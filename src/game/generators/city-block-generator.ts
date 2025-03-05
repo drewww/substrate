@@ -233,7 +233,11 @@ export class CityBlockGenerator {
 
         // this.placeHelicopter(9, 9, world);
 
-        this.placeCamera(11, 11, world);
+        // this.placeCamera(11, 11, world);
+
+        // this.placeTurret(11, 11, world);
+        
+        this.placeHomingBot(16, 16, world);
 
         return world;
     }
@@ -288,6 +292,60 @@ export class CityBlockGenerator {
         world.addEntity(helicopter);
     }
 
+    private placeTurret(x: number, y: number, world: World) {
+        const turret = new Entity({x, y});
+        
+        const symbol = new SymbolComponent();
+        symbol.char = '⛣';
+        symbol.foreground = '#FF194DFF';
+        symbol.background = '#00000000';
+        symbol.zIndex = 500;
+        symbol.alwaysRenderIfExplored = false;
+        symbol.scaleSymbolX = 1.5;
+        symbol.scaleSymbolY = 1.5;
+        symbol.fontWeight = 'bold';
+
+        turret.setComponent(symbol);
+        turret.setComponent(new VisionComponent(10, false));
+        turret.setComponent(new EnemyAIComponent(EnemyAIType.EMP_TURRET));
+
+        world.addEntity(turret);
+    }
+
+
+    //
+    private placeHomingBot(x: number, y: number, world: World) {
+        const homingBot = new Entity({x, y});
+
+        // CONCEPT
+        // bot activates when it sees you, moves FAST at you (turbo speed?? or "normal" speed?)
+        // when it gets to you...
+        //    ... pops some decaying obstacles?
+        //    ... if it's within N tiles, shoots you? 
+        const symbol = new SymbolComponent();
+        symbol.char = '🜻';
+        symbol.foreground = '#FF194DFF';
+        symbol.background = '#00000000';
+        symbol.scaleSymbolX = 1.5;  
+        symbol.scaleSymbolY = 1.5;
+        symbol.fontWeight = 'bold';
+        symbol.zIndex = 500;
+        symbol.alwaysRenderIfExplored = false;
+
+        homingBot.setComponent(symbol);
+        homingBot.setComponent(new VisionComponent(10, false));
+        homingBot.setComponent(new EnemyAIComponent(EnemyAIType.FOLLOWER));
+        
+        homingBot.setComponent(new CooldownComponent({
+            "move": {
+                "base": 2,
+                "current": 2,
+                "ready": false
+            }
+        }));
+
+        world.addEntity(homingBot);
+    }
 
     private placeCamera(x: number, y: number, world: World) {
         const camera = new Entity({x, y});

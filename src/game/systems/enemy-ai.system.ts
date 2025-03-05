@@ -53,20 +53,22 @@ export class EnemyAISystem {
             }
         }
 
+        const symbol = enemy.getComponent('symbol') as SymbolComponent;
+        if (symbol && canSeePlayer) {
+            symbol.foreground = '#FFFFFFFF';
+            symbol.background = '#FF194DFF';
+        } else if (symbol && !canSeePlayer) {
+            symbol.background = '#00000000';
+            symbol.foreground = '#FF194DFF';
+        }
+
+        enemy.setComponent(symbol);
+
         switch (ai.aiType) {
             case EnemyAIType.CAMERA:
                 // does nothing, but having an AI triggers the lock logic above.
 
-                const symbol = enemy.getComponent('symbol') as SymbolComponent;
-                if (symbol && canSeePlayer) {
-                    symbol.foreground = '#FFFFFFFF';
-                    symbol.background = '#FF194DFF';
-                } else if (symbol && !canSeePlayer) {
-                    symbol.background = '#00000000';
-                    symbol.foreground = '#FF194DFF';
-                }
-
-                enemy.setComponent(symbol);
+               
                 break;
             case EnemyAIType.HELICOPTER:
 
@@ -161,7 +163,7 @@ export class EnemyAISystem {
                     ai.turnsLocked += 1
                     // logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} can see player at ${this.world.getPlayer().getPosition().x}, ${this.world.getPlayer().getPosition().y}`);
 
-                    if (ai.turnsLocked > 6) {
+                    if (ai.turnsLocked > 16) {
                         // compute the position of the projectile based on the player's inertia
                         const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
                         let playerFuturePos = this.world.getPlayer().getPosition();
@@ -206,6 +208,8 @@ export class EnemyAISystem {
 
         const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition(), ignoreImpassable);
         
+        logger.warn("Next move: ", path);
+
         if (path && path.length > 1) {
             const nextPos = path[1];
 

@@ -1331,17 +1331,25 @@ export class World {
                     continue;
                 }
 
-                // Allow path to end at impassable destination
-                if (!this.isPassable(currentPoint.x, currentPoint.y, neighbor.x, neighbor.y, ignoreImpassable) 
-                    && neighborKey !== this.pointToKey(end)) {
+                // Skip impassable checks for start and end positions
+                const isStartOrEnd = (
+                    (neighbor.x === start.x && neighbor.y === start.y) ||
+                    (neighbor.x === end.x && neighbor.y === end.y)
+                );
+
+                // Check passability only for tiles that aren't start/end
+                if (!isStartOrEnd && 
+                    !this.isPassable(currentPoint.x, currentPoint.y, neighbor.x, neighbor.y, ignoreImpassable)) {
                     continue;
                 }
                 
                 const entitiesAtNeighbor = this.getEntitiesAt(neighbor);
 
-                // Only check for impassable entities if we're not ignoring them
-                if (!ignoreImpassable && entitiesAtNeighbor.some(e => 
-                    e.hasComponent('impathable') || e.hasComponent('impassable'))) {
+                // Only check for impassable entities if:
+                // - we're not ignoring them AND
+                // - this isn't the start or end position
+                if (!ignoreImpassable && !isStartOrEnd && 
+                    entitiesAtNeighbor.some(e => e.hasComponent('impathable') || e.hasComponent('impassable'))) {
                     continue;
                 }
 
