@@ -294,8 +294,8 @@ export class CityBlockGenerator {
 
         const symbol = new SymbolComponent();
         symbol.char = '⏚';
-        symbol.foreground = '#FFFFFFFF';
-        symbol.background = '#FF194DFF';
+        symbol.foreground = '#FF194DFF';
+        symbol.background = '#00000000';
         symbol.zIndex = 500;
         symbol.alwaysRenderIfExplored = false;
         // symbol.lockRotationToFacing = true;

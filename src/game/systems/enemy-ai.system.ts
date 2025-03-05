@@ -56,6 +56,17 @@ export class EnemyAISystem {
         switch (ai.aiType) {
             case EnemyAIType.CAMERA:
                 // does nothing, but having an AI triggers the lock logic above.
+
+                const symbol = enemy.getComponent('symbol') as SymbolComponent;
+                if (symbol && canSeePlayer) {
+                    symbol.foreground = '#FFFFFFFF';
+                    symbol.background = '#FF194DFF';
+                } else if (symbol && !canSeePlayer) {
+                    symbol.background = '#00000000';
+                    symbol.foreground = '#FF194DFF';
+                }
+
+                enemy.setComponent(symbol);
                 break;
             case EnemyAIType.HELICOPTER:
 
