@@ -26,7 +26,8 @@ export class EnemyAIComponent extends Component {
         public visionRadius: number = 5,
         public mode: EnemyAIMode = EnemyAIMode.IDLE,
         public destination: Point | null = null,
-        public previousDestination: Point | null = null
+        public previousDestination: Point | null = null,
+        public lastPosition?: Point | null
     ) {
         super();
     }
