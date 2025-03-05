@@ -12,6 +12,7 @@ import { VisionComponent } from '../../entity/components/vision-component';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 import { InertiaComponent } from '../components/inertia.component';
 import { CooldownComponent } from '../components/cooldown.component';
+import { TestLayoutGenerator } from './test-layout-generator';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -79,6 +80,7 @@ export class CityBlockGenerator {
         const layout = layoutGenerator.generate();
 
         // Process each cell in the layout
+        let blockId = 0;  // Add block ID counter
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 const cell = layout[y][x];
@@ -127,6 +129,8 @@ export class CityBlockGenerator {
                     } else if (cell.roadInfo?.type === 'deadend') {
                         if (cell.roadInfo.weight === 'minor') {
                             blockUrl = await blockFiles['../../assets/blocks/2-d.json']();
+                        } else if (cell.roadInfo.weight === 'trunk') {
+                            blockUrl = await blockFiles['../../assets/blocks/6-d.json']();
                         } else {
                             blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
                         }
@@ -163,10 +167,21 @@ export class CityBlockGenerator {
                         const pos = newEntity.getPosition();
                         newEntity.setPosition(pos.x + offsetX, pos.y + offsetY);
                         
+                        // Check all components for blockId field and set it
+                        for (const componentType of newEntity.getComponentTypes()) {
+                            const component = newEntity.getComponent(componentType);
+                            if (component && 'blockId' in component) {
+                                (component as any).blockId = blockId;
+                                newEntity.setComponent(component);
+
+                                logger.info(`Setting blockId ${blockId} for entity ${newEntity.getId()}`);
+                            }
+                        }
+                        
                         world.addEntity(newEntity);
                     });
 
-                    // logger.info(`Loaded block at ${x},${y} with ${blockWorld.getEntities().length} entities`);
+                    blockId++; // Increment block ID after processing each block
                 } catch (error) {
                     logger.error(`Failed to load block at ${x},${y}:`, error);
                 }
@@ -175,19 +190,19 @@ export class CityBlockGenerator {
 
 
         // look for a space that is not impassable to place the player
-        let playerX = 0;
-        let playerY = 0;
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                if (playerX === 0 && playerY === 0 && !world.getEntitiesAt({x, y}).some(entity => entity.hasComponent("impassable"))) {
-                    playerX = x;
-                    playerY = y;
-                    break;
-                }
-            }
-        }
+        // let playerX = 0;
+        // let playerY = 0;
+        // for (let y = 0; y < this.height; y++) {
+        //     for (let x = 0; x < this.width; x++) {
+        //         if (playerX === 0 && playerY === 0 && !world.getEntitiesAt({x, y}).some(entity => entity.hasComponent("impassable"))) {
+        //             playerX = x;
+        //             playerY = y;
+        //             break;
+        //         }
+        //     }
+        // }
 
-        this.placePlayer(playerX, playerY, world);
+        this.placePlayer(12, 12, world);
 
         return world;
     }

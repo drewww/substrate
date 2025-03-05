@@ -116,6 +116,11 @@
           {
             "type": "facing",
             "direction": 0
+          },
+          {
+            "type": "traffic-light",
+            "phase": 0,
+            "phaseOffset": 0
           }
         ]
       },
@@ -156,7 +161,13 @@
           {
             "type": "facing",
             "direction": 0
-          }
+          },
+          {
+            "type": "traffic-light",
+            "phase": 2,
+            "phaseOffset": 1
+          },
+          { "type":"impassable" }
         ]
       },
 
@@ -168,7 +179,7 @@
             "type": "symbol",
             "char": "⧋",
             "foreground": "#FFFFFFFF",
-            "background": "#00D3EFFF",
+            "background": "#00D3EF00",
             "zIndex": 300,
             "alwaysRenderIfExplored": false,
             "lockRotationToFacing": true,
@@ -218,25 +229,29 @@
         "components": [
           {
             "type": "symbol",
-            "char": "E",
-            "foreground": "#FFFFFF",
-            "background": "#0000FF",
-            "zIndex": 100
-          },
-          {
+            "char": "⧯",
+            "foreground": "#FFFFFFFF",
+            "background": "#0000FF00",
+            "zIndex": 100,
+            "lockRotationToFacing": true
+        },
+        {
             "type": "facing",
-            "direction": 1
-          },
-          {
+            "direction": 0
+        },
+        {
             "type": "opacity"
-          },
-          {
+        },
+        {
             "type": "impassable"
-          },
-          {
+        },
+        {
+            "type": "move"
+        },
+        {
             "type": "followable"
-          },
-          {
+        },
+        {
             "type": "cooldown",
             "cooldowns": {
               "move": {
@@ -385,6 +400,90 @@
             "type": "pedestrian-navigation"
           }
         ]
+      },
+
+
+      {
+        "id": "traffic-controller",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "traffic-controller",
+            "currentPhase": 0,
+            "blockId": 0
+          },
+          {
+            "type": "cooldown",
+            "cooldowns": {
+              "toggle": {
+                "base": 40,
+                "current": 40,
+                "ready": false
+              }
+            }
+          }
+        ]
+      },
+      
+      
+      
+
+      {
+        "id": "entity-consumer",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "C",
+            "foreground": "#666666",
+            "background": "#000D12",
+            "zIndex": 10,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type": "entity-consumer"
+          }
+        ]
+      },
+
+      {
+        "id": "vehicle_spawner",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "^",
+            "foreground": "#FFFFFFFF",
+            "background": "#5335FFFF",
+            "zIndex": 20,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          },
+          {
+            "type": "opacity"
+          },
+          {
+            "type": "impassable"
+          },
+          {
+            "type": "entity-spawner",
+            "spawnTypes": ["vehicle-followable"]
+          },
+          {
+            "type": "cooldown",
+            "cooldowns": {
+              "spawn": {
+                "base": 20,
+                "current": 20,
+                "ready": false
+              }
+            }
+          }
+        ]
       }
+
     ]
   }

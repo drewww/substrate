@@ -2,6 +2,7 @@ import { Display } from '../../../display/display';
 import { World } from '../../../world/world';
 import { StagedLayoutGenerator } from '../staged-layout-generator';
 import { LayoutRenderer } from '../layout-renderer';
+import { TestLayoutGenerator } from '../test-layout-generator';
 
 // Create a simple 20x20 world
 const world = new World(20, 20);
@@ -21,7 +22,7 @@ const display = new Display({
 const width = 20;
 const height = 20;
 
-let generator = new StagedLayoutGenerator(width, height);
+let generator:StagedLayoutGenerator = new StagedLayoutGenerator(width, height);
 const renderer = new LayoutRenderer(display);
 
 // Add keyboard listener for step-by-step generation

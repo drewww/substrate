@@ -14,11 +14,17 @@ export class EnemyMovementSystem {
 
     tick(): void {
 
-        // THIS IS DANGEORUS and will pick up other entities indirectly, I suspect. Fix later.
-        const enemies = this.world.getEntitiesWithComponent('cooldown').filter(e => !e.hasComponent('player') && e.hasComponent('facing'));
+        const enemies = this.world.getEntitiesWithComponent('cooldown');
+        
+        const movableEnemies = enemies.filter(e => !e.hasComponent('player')
+            && e.hasComponent('facing')
+            && e.hasComponent('move'));
+
+        logger.info(`all entities with CD: ${enemies.length}`);
+        logger.info(`movable enemies: ${movableEnemies.length}`);
 
         let moved = false;
-        for (const enemy of enemies) {
+        for (const enemy of movableEnemies) {
             const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
             const facing = enemy.getComponent('facing') as FacingComponent;
             
@@ -27,7 +33,7 @@ export class EnemyMovementSystem {
 
             // logger.info(`Enemy ${enemy.getId()} has move cooldown ready: ${moveState?.ready} and canMove: ${this.canMoveInDirection(enemy, facing.direction)}`);
 
-            if (moveState?.ready && this.canMoveInDirection(enemy, facing.direction)) {
+            if (moveState?.ready && facing && this.canMoveInDirection(enemy, facing.direction)) {
                 this.moveEnemy(enemy, facing.direction);
                 cooldowns.setCooldown('move', moveState.base);
                 moved = true;
@@ -46,7 +52,7 @@ export class EnemyMovementSystem {
 
         // Check if two spaces ahead is impassable
         const entitiesTwoAhead = this.world.getEntitiesAt(twoAhead);
-        if (entitiesTwoAhead.some(e => e.hasComponent('impassable'))) {
+        if (entitiesTwoAhead.some(e => e.hasComponent('impassable') || e.hasComponent('impathable'))) {
             return false;
         }
 

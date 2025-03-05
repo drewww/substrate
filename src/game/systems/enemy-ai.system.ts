@@ -72,6 +72,19 @@ export class EnemyAISystem {
                 const moveCooldown = cooldowns?.getCooldown('move');
 
                 if(moveCooldown && moveCooldown.ready) {
+                    const currentPos = enemy.getPosition();
+                    
+                    // Check if entity is stuck in the same position
+                    if (ai.lastPosition && 
+                        currentPos.x === ai.lastPosition.x && 
+                        currentPos.y === ai.lastPosition.y) {
+                        // Force destination reset if we haven't moved
+                        ai.destination = null;
+                    }
+                    
+                    // Store current position for next tick comparison
+                    ai.lastPosition = currentPos;
+
                     if(!ai.destination) {
                         const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation');
                         const sortedNavPoints = navPoints
@@ -108,6 +121,9 @@ export class EnemyAISystem {
                             if(nextPos.x === ai.destination.x && nextPos.y === ai.destination.y) {
                                 ai.destination = null;
                             }
+                        } else {
+                            // Reset destination if no valid path is found
+                            ai.destination = null;
                         }
                     }
                 }

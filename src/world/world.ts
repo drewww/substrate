@@ -55,6 +55,9 @@ export class World {
 
     private readonly STATS_INTERVAL = 1000; // Reset stats every second
     
+    // Add this property near the top of the World class
+    private godMode: boolean = false;
+
     constructor(private readonly width: number, private readonly height: number) {
         // Initialize FOV map
         this.fovMap = new FieldOfViewMap(width, height);
@@ -783,6 +786,19 @@ export class World {
         const visibleTiles = new Set<string>();
         const radiusInteger = Math.ceil(radius);
 
+        if (this.godMode) {
+            // In god mode, just return all tiles within radius without checking FOV
+            for (let y = Math.floor(position.y - radiusInteger); y <= Math.ceil(position.y + radiusInteger); y++) {
+                for (let x = Math.floor(position.x - radiusInteger); x <= Math.ceil(position.x + radiusInteger); x++) {
+                    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+                        continue;
+                    }
+                    visibleTiles.add(this.pointToKey({ x, y }));
+                }
+            }
+            return visibleTiles;
+        }
+
         // Update FOV map to ensure it's current
         // this.rebuildFOVMap();
         
@@ -1195,14 +1211,17 @@ export class World {
      * Check if movement between two adjacent tiles is possible
      * @returns false if tiles aren't adjacent, if there's an impassable wall between them, or if destination is impassable
      */
-    public isPassable(fromX: number, fromY: number, toX: number, toY: number): boolean {
+    public isPassable(fromX: number, fromY: number, toX: number, toY: number, force: boolean = false): boolean {
         // Check if tiles are adjacent in cardinal directions
         const dx = toX - fromX;
         const dy = toY - fromY;
         
-        // Must be adjacent in exactly one direction
-        if (Math.abs(dx) + Math.abs(dy) !== 1) {
-            return false;
+        // Skip adjacency check if force is true
+        if (!force) {
+            // Must be adjacent in exactly one direction
+            if (Math.abs(dx) + Math.abs(dy) !== 1) {
+                return false;
+            }
         }
 
         // Check walls between tiles
@@ -1313,6 +1332,11 @@ export class World {
                 // Allow path to end at impassable destination
                 if (!this.isPassable(currentPoint.x, currentPoint.y, neighbor.x, neighbor.y) 
                     && neighborKey !== this.pointToKey(end)) {
+                    continue;
+                }
+                
+                const entitiesAtNeighbor = this.getEntitiesAt(neighbor);
+                if (entitiesAtNeighbor.some(e => e.hasComponent('impathable'))) {
                     continue;
                 }
 
@@ -1435,5 +1459,16 @@ export class World {
         }
 
         return result;
+    }
+
+    // Add these methods
+    public enableGodMode(): void {
+        this.godMode = true;
+        this.updatePlayerVision(); // Refresh vision
+    }
+
+    public disableGodMode(): void {
+        this.godMode = false;
+        this.updatePlayerVision(); // Refresh vision
     }
 }

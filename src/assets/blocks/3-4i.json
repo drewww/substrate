@@ -3404,6 +3404,12 @@
           "blendMode": "source-over"
         },
         {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 0,
+          "phaseOffset": 0
+        },
+        {
           "type": "facing",
           "direction": 2
         }
@@ -3433,6 +3439,12 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": true,
           "blendMode": "source-over"
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 0,
+          "phaseOffset": 0
         },
         {
           "type": "facing",
@@ -3466,8 +3478,17 @@
           "blendMode": "source-over"
         },
         {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
           "type": "facing",
           "direction": 1
+        },
+        {
+          "type": "impassable"
         }
       ]
     },
@@ -3499,6 +3520,15 @@
         {
           "type": "facing",
           "direction": 1
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
+          "type": "impassable"
         }
       ]
     },
@@ -3530,6 +3560,15 @@
         {
           "type": "facing",
           "direction": 3
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
+          "type": "impassable"
         }
       ]
     },
@@ -3561,6 +3600,15 @@
         {
           "type": "facing",
           "direction": 3
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
+          "type": "impassable"
         }
       ]
     },
@@ -5548,6 +5596,100 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "screen"
+        }
+      ]
+    },
+    {
+      "id": "e64020",
+      "position": {
+        "x": 8,
+        "y": 8
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "^",
+          "foreground": "#FFFFFFFF",
+          "background": "#000000FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0.2,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 1
+        },
+        {
+          "type": "turn",
+          "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e64137",
+      "position": {
+        "x": 6,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "^",
+          "foreground": "#FFFFFFFF",
+          "background": "#000000FF",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0.2,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 1
+        },
+        {
+          "type": "turn",
+          "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e64198",
+      "position": {
+        "x": 5,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "traffic-controller",
+          "currentPhase": 0,
+          "blockId": 0
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "toggle": {
+              "base": 60,
+              "current": 60,
+              "ready": false
+            }
+          }
         }
       ]
     }

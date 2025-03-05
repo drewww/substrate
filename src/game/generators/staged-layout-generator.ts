@@ -10,7 +10,7 @@ enum StepOutcome {
 export class StagedLayoutGenerator {
     private width: number;
     private height: number;
-    private layout!: ChunkMetadata[][];
+    protected layout!: ChunkMetadata[][];
     private readonly DIRECTIONS = [
         [0, -1], // North
         [1, 0],  // East
@@ -76,76 +76,100 @@ export class StagedLayoutGenerator {
         this.trunkTilesPlaced++;
     }
 
-    private placeRoad(x: number, y: number, weight: RoadWeight): void {
+    protected placeRoad(x: number, y: number, weight: RoadWeight, type: RoadType = 'straight', orientation: number = 0): void {
         if (!this.isValidPosition(x, y)) return;
         
         this.layout[y][x] = {
             type: 'road',
             roadInfo: {
-                type: 'straight', // Will be updated in post-processing
-                weight: weight,
+                type,
+                weight,
+                orientation,
                 connections: [] // Will be updated in post-processing
             }
         };
     }
 
-    private processRoadConnections(x: number, y: number): void {
+    protected processRoadConnections(x: number, y: number): void {
         const cell = this.layout[y][x];
         if (cell.type !== 'road' || !cell.roadInfo) return;
 
-        // Find connected roads
+        // Find connected roads and their weights
         const connections: Direction[] = [];
-        if (y > 0 && this.layout[y-1][x].type === 'road') connections.push('north');
-        if (x < this.width-1 && this.layout[y][x+1].type === 'road') connections.push('east');
-        if (y < this.height-1 && this.layout[y+1][x].type === 'road') connections.push('south');
-        if (x > 0 && this.layout[y][x-1].type === 'road') connections.push('west');
+        const connectedWeights: RoadWeight[] = [];
+        
+        if (y > 0 && this.layout[y-1][x].type === 'road') {
+            connections.push('north');
+            connectedWeights.push(this.layout[y-1][x].roadInfo?.weight || 'minor');
+        }
+        if (x < this.width-1 && this.layout[y][x+1].type === 'road') {
+            connections.push('east');
+            connectedWeights.push(this.layout[y][x+1].roadInfo?.weight || 'minor');
+        }
+        if (y < this.height-1 && this.layout[y+1][x].type === 'road') {
+            connections.push('south');
+            connectedWeights.push(this.layout[y+1][x].roadInfo?.weight || 'minor');
+        }
+        if (x > 0 && this.layout[y][x-1].type === 'road') {
+            connections.push('west');
+            connectedWeights.push(this.layout[y][x-1].roadInfo?.weight || 'minor');
+        }
+
+        // Get the largest weight from connected roads
+        const largestWeight = connectedWeights.reduce((max, current) => {
+            if (current === 'trunk') return 'trunk';
+            if (current === 'medium' && max !== 'trunk') return 'medium';
+            return max;
+        }, 'minor' as RoadWeight);
 
         // Determine road type based on connections
         let roadType: RoadType;
-        let orientation: number = 0; // 0 = N/S, 1 = E/W, 2 = S/N, 3 = W/E
+        let orientation: number = 0;
 
         switch (connections.length) {
             case 1:
                 roadType = 'deadend';
-                // For dead ends, orient away from the connection (flipped from before)
-                if (connections[0] === 'north') orientation = 2;  // Was 0
-                else if (connections[0] === 'east') orientation = 3;  // Was 1
-                else if (connections[0] === 'south') orientation = 0;  // Was 2
-                else if (connections[0] === 'west') orientation = 1;  // Was 3
+                if (connections[0] === 'north') orientation = 2;
+                else if (connections[0] === 'east') orientation = 3;
+                else if (connections[0] === 'south') orientation = 0;
+                else if (connections[0] === 'west') orientation = 1;
                 break;
             case 2:
                 if ((connections.includes('north') && connections.includes('south')) ||
                     (connections.includes('east') && connections.includes('west'))) {
                     roadType = 'straight';
-                    // For straight roads, orient based on direction
                     if (connections.includes('north')) orientation = 2;
                     else if (connections.includes('east')) orientation = 1;
                     else if (connections.includes('south')) orientation = 0;
                     else if (connections.includes('west')) orientation = 3;
                 } else {
                     roadType = 'turn';
-                    // For turns, orient based on the turn direction relative to S/E template
-                    if (connections.includes('south') && connections.includes('east')) orientation = 0;      // S/E template
-                    else if (connections.includes('east') && connections.includes('north')) orientation = 3;  // E/N -> rotate 270° clockwise (flipped from 1)
-                    else if (connections.includes('north') && connections.includes('west')) orientation = 2;  // N/W -> rotate 180°
-                    else if (connections.includes('west') && connections.includes('south')) orientation = 1;  // W/S -> rotate 90° clockwise (flipped from 3)
+                    // For turns, use the largest weight of connected roads
+                    cell.roadInfo.weight = largestWeight;
+                    
+                    if (connections.includes('south') && connections.includes('east')) orientation = 0;
+                    else if (connections.includes('east') && connections.includes('north')) orientation = 3;
+                    else if (connections.includes('north') && connections.includes('west')) orientation = 2;
+                    else if (connections.includes('west') && connections.includes('south')) orientation = 1;
                 }
                 break;
             case 3:
-                roadType = 'intersection';
-                // For 3-way intersections, orient based on the missing direction
-                if (!connections.includes('north')) orientation = 0;      // T facing down (template)
-                else if (!connections.includes('east')) orientation = 1;  // T facing left
-                else if (!connections.includes('south')) orientation = 2; // T facing up
-                else if (!connections.includes('west')) orientation = 3;  // T facing right
-                break;
             case 4:
                 roadType = 'intersection';
-                // For 4-way intersections, orient based on the first connection
-                if (connections[0] === 'north') orientation = 0;
-                else if (connections[0] === 'east') orientation = 1;
-                else if (connections[0] === 'south') orientation = 2;
-                else if (connections[0] === 'west') orientation = 3;
+                // For intersections, use the largest weight of connected roads
+                cell.roadInfo.weight = largestWeight;
+                
+                if (connections.length === 3) {
+                    if (!connections.includes('north')) orientation = 0;
+                    else if (!connections.includes('east')) orientation = 1;
+                    else if (!connections.includes('south')) orientation = 2;
+                    else if (!connections.includes('west')) orientation = 3;
+                } else {
+                    if (connections[0] === 'north') orientation = 0;
+                    else if (connections[0] === 'east') orientation = 1;
+                    else if (connections[0] === 'south') orientation = 2;
+                    else if (connections[0] === 'west') orientation = 3;
+                }
                 break;
             default:
                 roadType = 'unknown';
@@ -157,7 +181,7 @@ export class StagedLayoutGenerator {
         cell.roadInfo.orientation = orientation;
     }
 
-    private isValidPosition(x: number, y: number): boolean {
+    protected isValidPosition(x: number, y: number): boolean {
         return x >= 0 && x < this.width && y >= 0 && y < this.height;
     }
 
@@ -733,7 +757,7 @@ export class StagedLayoutGenerator {
         return this.layout;
     }
 
-    private processAllRoadConnections(): void {
+    protected processAllRoadConnections(): void {
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 if (this.layout[y][x].type === 'road') {
