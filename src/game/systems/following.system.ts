@@ -35,16 +35,17 @@ export class FollowingSystem {
             }
 
             const followedPos = followedEntity.getPosition();
-            if (!this.pointsEqual(followedPos, followerComponent.lastKnownPosition)) {
-                // Move to last known position
-                if (followerComponent.lastKnownPosition) {
-                    this.actionHandler.execute({
-                        type: 'entityMove',
-                        entityId: follower.getId(),
-                        data: { to: followerComponent.lastKnownPosition }
-                    });
-                }
+            const followable = followedEntity.getComponent('followable') as FollowableComponent;
+            
+            // If the followed entity has moved and has a valid last position
+            if (followable.lastPosition && !this.pointsEqual(followedPos, followerComponent.lastKnownPosition)) {
+                this.actionHandler.execute({
+                    type: 'entityMove',
+                    entityId: follower.getId(),
+                    data: { to: followable.lastPosition }
+                });
                 followerComponent.lastKnownPosition = followedPos;
+                follower.setComponent(followerComponent);
             }
         }
     }

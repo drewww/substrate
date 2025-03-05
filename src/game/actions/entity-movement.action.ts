@@ -11,6 +11,7 @@ import { LightEmitterComponent } from '../../entity/components/light-emitter-com
 import { ApplyTimestampComponent } from '../components/apply.timestamp.component';
 import { ApplyTimestampType } from '../components/apply.timestamp.component';
 import { TimestampComponent } from '../components/timestamp.component';
+import { FollowableComponent } from '../../entity/components/followable-component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -39,6 +40,15 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
     execute(world: World, action: BaseAction<EntityMoveActionData>): boolean {
         const entity = world.getEntity(action.entityId);
         if (!entity) return false;
+
+        const currentPos = entity.getPosition();
+        
+        // Store the current position before moving if entity is followable
+        if (entity.hasComponent('followable')) {
+            const followable = entity.getComponent('followable') as FollowableComponent;
+            followable.lastPosition = currentPos;
+            entity.setComponent(followable);
+        }
 
         const result = world.moveEntity(action.entityId, action.data.to);
         
