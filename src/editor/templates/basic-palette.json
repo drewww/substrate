@@ -387,6 +387,25 @@
         ]
       },
 
+
+      {
+        "id": "entity-consumer",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "C",
+            "foreground": "#666666",
+            "background": "#000D12",
+            "zIndex": 10,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type": "entity-consumer"
+          }
+        ]
+      },
+
       {
         "id": "vehicle_spawner",
         "position": { "x": 0, "y": 0 },

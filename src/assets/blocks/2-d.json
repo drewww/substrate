@@ -5166,6 +5166,36 @@
           }
         }
       ]
+    },
+    {
+      "id": "e14793",
+      "position": {
+        "x": 6,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "C",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "entity-consumer"
+        }
+      ]
     }
   ]
 }

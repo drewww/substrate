@@ -12,6 +12,7 @@ import { directionToPoint } from '../../util';
 import { logger } from '../../util/logger';
 import { FollowerComponent } from '../../entity/components/follower-component';
 import { FollowableComponent } from '../../entity/components/followable-component';
+import { EntityConsumerComponent } from '../components/entity-consumer.component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -202,6 +203,42 @@ export class WorldSystem {
                     spawnCooldown.base = VEHICLE_COOLDOWN;
                     spawnCooldown.ready = false;
                     entity.setComponent(cooldowns);
+                }
+            }
+        }
+
+        const entityConsumerEntities = this.world.getEntitiesWithComponent('entity-consumer');
+        for (const entity of entityConsumerEntities) {
+            const entityConsumer = entity.getComponent('entity-consumer') as EntityConsumerComponent;
+            const visited = new Set<string>();
+            const toProcess = [{entity: entity, distance: 0}];
+
+            while (toProcess.length > 0) {
+                const current = toProcess.shift()!;
+                
+                if (current.distance > 5) continue;
+                
+                const adjacentPositions = [
+                    { x: current.entity.getPosition().x + 1, y: current.entity.getPosition().y },
+                    { x: current.entity.getPosition().x - 1, y: current.entity.getPosition().y }, 
+                    { x: current.entity.getPosition().x, y: current.entity.getPosition().y + 1 },
+                    { x: current.entity.getPosition().x, y: current.entity.getPosition().y - 1 }
+                ];
+
+                let adjacentEntities: Entity[] = [];
+                for (const pos of adjacentPositions) {
+                    adjacentEntities = adjacentEntities.concat(this.world.getEntitiesAt(pos));
+                }
+
+                const followableEntities = adjacentEntities.filter(e => 
+                    e.hasComponent('followable') && !visited.has(e.getId())
+                );
+
+                for (const followable of followableEntities) {
+                    visited.add(followable.getId());
+                    // todo package in an action
+                    this.world.removeEntity(followable.getId());
+                    toProcess.push({entity: followable, distance: current.distance + 1});
                 }
             }
         }

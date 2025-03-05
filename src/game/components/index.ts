@@ -13,3 +13,4 @@ import './timestamp.component';
 import './pedestrian-navigation.component';
 import './entity-spawner.component';
 import './move.component';
+import './entity-consumer.component';
