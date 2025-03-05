@@ -4637,6 +4637,15 @@
         {
           "type": "facing",
           "direction": 2
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
+          "type": "impassable"
         }
       ]
     },
@@ -4668,6 +4677,12 @@
         {
           "type": "facing",
           "direction": 2
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 0,
+          "phaseOffset": 0
         }
       ]
     },
@@ -4699,6 +4714,12 @@
         {
           "type": "facing",
           "direction": 2
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 0,
+          "phaseOffset": 0
         }
       ]
     },
@@ -5544,6 +5565,30 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "screen"
+        }
+      ]
+    },
+    {
+      "id": "e13248",
+      "position": {
+        "x": 5,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "traffic-controller",
+          "currentPhase": 0,
+          "blockId": 0
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "toggle": {
+              "base": 40,
+              "current": 40,
+              "ready": false
+            }
+          }
         }
       ]
     }
