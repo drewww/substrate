@@ -6,6 +6,7 @@ import { Display } from '../display/display';
 import { World } from '../world/world';
 import { BlendMode } from '../display/types';
 import { PedestrianNavigationComponent } from '../game/components/pedestrian-navigation.component';
+import { TrafficControllerComponent } from '../game/components/traffic-controller.component';
 
 
 export class EditorRenderer extends BaseRenderer {
@@ -31,11 +32,10 @@ export class EditorRenderer extends BaseRenderer {
     }
 
     private updateEntityVisuals(entity: Entity): void {
-        // First check if we need to create a tile
+        let tileId = this.entityTiles.get(entity.getId());
+        const position = entity.getPosition();
+
         if (entity.hasComponent(PedestrianNavigationComponent.type)) {
-            let tileId = this.entityTiles.get(entity.getId());
-            const position = entity.getPosition();
-            
             // Create tile if it doesn't exist
             if (!tileId) {
                 tileId = this.display.createTile(
@@ -54,6 +54,28 @@ export class EditorRenderer extends BaseRenderer {
             // Update existing tile
             this.display.updateTile(tileId, {
                 char: '◊',
+                fg: '#00FF00AA',
+                bg: '#00000000'
+            });
+        } else if (entity.hasComponent('traffic-controller')) {
+            // Create tile if it doesn't exist
+            if (!tileId) {
+                tileId = this.display.createTile(
+                    position.x,
+                    position.y,
+                    '⍠',  // Traffic controller symbol
+                    '#00FF00AA',  // Same semi-transparent green as nav points
+                    '#00000000',  // Transparent background
+                    1000  // High z-index to stay visible
+                );
+                this.entityTiles.set(entity.getId(), tileId);
+                this.tileEntities.set(tileId, entity.getId());
+                return;
+            }
+
+            // Update existing tile
+            this.display.updateTile(tileId, {
+                char: '⍠',
                 fg: '#00FF00AA',
                 bg: '#00000000'
             });

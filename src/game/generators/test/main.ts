@@ -22,7 +22,7 @@ const display = new Display({
 const width = 20;
 const height = 20;
 
-let generator:StagedLayoutGenerator = new TestLayoutGenerator(width, height);
+let generator:StagedLayoutGenerator = new StagedLayoutGenerator(width, height);
 const renderer = new LayoutRenderer(display);
 
 // Add keyboard listener for step-by-step generation

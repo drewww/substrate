@@ -116,6 +116,11 @@
           {
             "type": "facing",
             "direction": 0
+          },
+          {
+            "type": "traffic-light",
+            "phase": 0,
+            "phaseOffset": 0
           }
         ]
       },
@@ -156,6 +161,11 @@
           {
             "type": "facing",
             "direction": 0
+          },
+          {
+            "type": "traffic-light",
+            "phase": 1,
+            "phaseOffset": 1
           }
         ]
       },
@@ -387,6 +397,32 @@
         ]
       },
 
+
+      {
+        "id": "traffic-controller",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "traffic-controller",
+            "currentPhase": 0,
+            "blockId": 0
+          },
+          {
+
+            "type": "cooldown",
+            "cooldowns": {
+              "toggle": {
+                "base": 40,
+                "current": 40,
+                "ready": false
+              }
+            }
+          }
+        ]
+      },
+      
+      
+      
 
       {
         "id": "entity-consumer",

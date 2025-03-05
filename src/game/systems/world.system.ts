@@ -13,6 +13,8 @@ import { logger } from '../../util/logger';
 import { FollowerComponent } from '../../entity/components/follower-component';
 import { FollowableComponent } from '../../entity/components/followable-component';
 import { EntityConsumerComponent } from '../components/entity-consumer.component';
+import { TrafficLightComponent } from '../components/traffic-light.component';
+import { TrafficControllerComponent } from '../components/traffic-controller.component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -27,6 +29,55 @@ export class WorldSystem {
 
         for (const entity of cooldownEntities) {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+            
+            // Check if this is a traffic controller
+            if (entity.hasComponent('trafficController')) {
+                const controller = entity.getComponent('trafficController') as TrafficControllerComponent;
+                const cycleState = cooldowns.getCooldown('cycle');
+                
+                if (cycleState?.ready) {
+                    // Find all traffic lights with matching blockId
+                    const trafficLights = this.world.getEntitiesWithComponent('trafficLight')
+                        .filter(light => {
+                            const lightComponent = light.getComponent('trafficLight') as TrafficLightComponent;
+                            return lightComponent.blockId === controller.blockId;
+                        });
+
+                    // Update each light
+                    for (const light of trafficLights) {
+                        const trafficLight = light.getComponent('trafficLight') as TrafficLightComponent;
+                        const symbol = light.getComponent('symbol') as SymbolComponent;
+                        
+                        // Toggle phase
+                        trafficLight.phase = trafficLight.phase === 0 ? 1 : 0;
+
+                        logger.info(`Traffic light ${light.getId()} phase: ${trafficLight.phase}`);
+                        
+                        if (trafficLight.phase === 0) {
+                            // Grey and passable
+                            symbol.foreground = '#666666';
+                            symbol.background = '#000D12';
+                            light.removeComponent('impassable');
+                            light.removeComponent('opacity');
+                        } else {
+                            // Red and impassable
+                            symbol.foreground = '#FF194D';
+                            symbol.background = '#590426';
+                            light.setComponent(new ImpassableComponent());
+                            light.setComponent(new OpacityComponent());
+                        }
+                        
+                        light.setComponent(trafficLight);
+                        light.setComponent(symbol);
+                    }
+                    
+                    // Reset the controller's cooldown
+                    cycleState.current = cycleState.base;
+                    cycleState.ready = false;
+                    entity.setComponent(cooldowns);
+                }
+            }
+
             const toggleState = cooldowns.getCooldown('toggle');
 
             if (toggleState) {

@@ -14,3 +14,5 @@ import './pedestrian-navigation.component';
 import './entity-spawner.component';
 import './move.component';
 import './entity-consumer.component';
+import './traffic-light.component';
+import './traffic-controller.component';
