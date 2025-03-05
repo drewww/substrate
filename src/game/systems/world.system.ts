@@ -50,7 +50,7 @@ export class WorldSystem {
                     
                     let newPhase = false;
                     // Check for yellow phase transition first
-                    if (trafficLight.phase === 0 && cycleState && cycleState.current <= 18) {
+                    if (trafficLight.phase === 0 && cycleState && cycleState.current <= 24) {
                         // Set to yellow when grey is about to end
                         trafficLight.phase = 1;
                         newPhase = true;

@@ -5342,8 +5342,8 @@
           "type": "cooldown",
           "cooldowns": {
             "toggle": {
-              "base": 40,
-              "current": 40,
+              "base": 80,
+              "current": 80,
               "ready": false
             }
           }

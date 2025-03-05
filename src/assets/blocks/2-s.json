@@ -5567,7 +5567,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         },
         {
           "type": "cooldown",
@@ -5621,7 +5622,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         },
         {
           "type": "cooldown",
@@ -5675,7 +5677,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         },
         {
           "type": "cooldown",
@@ -5731,7 +5734,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         }
       ]
     },
@@ -5777,7 +5781,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 90
+          "followPriority": 90,
+          "lastPosition": null
         }
       ]
     },
@@ -5823,7 +5828,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 80
+          "followPriority": 80,
+          "lastPosition": null
         }
       ]
     },
@@ -5869,7 +5875,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 70
+          "followPriority": 70,
+          "lastPosition": null
         }
       ]
     },
@@ -5915,7 +5922,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         }
       ]
     },
@@ -5959,7 +5967,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         },
         {
           "type": "cooldown",
@@ -6013,7 +6022,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 100
+          "followPriority": 100,
+          "lastPosition": null
         },
         {
           "type": "cooldown",
@@ -6067,7 +6077,8 @@
         },
         {
           "type": "followable",
-          "followPriority": 10
+          "followPriority": 10,
+          "lastPosition": null
         },
         {
           "type": "cooldown",
@@ -6078,6 +6089,126 @@
               "ready": false
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "e8907",
+      "position": {
+        "x": 1,
+        "y": 8
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "C",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "entity-consumer"
+        }
+      ]
+    },
+    {
+      "id": "e8979",
+      "position": {
+        "x": 10,
+        "y": 8
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "C",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "entity-consumer"
+        }
+      ]
+    },
+    {
+      "id": "e9009",
+      "position": {
+        "x": 10,
+        "y": 3
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "C",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "entity-consumer"
+        }
+      ]
+    },
+    {
+      "id": "e9080",
+      "position": {
+        "x": 1,
+        "y": 3
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "C",
+          "foreground": "#666666",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "entity-consumer"
         }
       ]
     }

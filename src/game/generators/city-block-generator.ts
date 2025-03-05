@@ -129,6 +129,8 @@ export class CityBlockGenerator {
                     } else if (cell.roadInfo?.type === 'deadend') {
                         if (cell.roadInfo.weight === 'minor') {
                             blockUrl = await blockFiles['../../assets/blocks/2-d.json']();
+                        } else if (cell.roadInfo.weight === 'trunk') {
+                            blockUrl = await blockFiles['../../assets/blocks/6-d.json']();
                         } else {
                             blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
                         }
