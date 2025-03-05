@@ -183,6 +183,8 @@ export class RuntimeGame extends Game {
             const world = await generator.generate();
             this.world = world;
 
+            this.world.enableGodMode();
+
             // Find the player entity that was created by the generator
             this.player = world.getEntitiesWithComponent('player')[0];
 

@@ -55,6 +55,9 @@ export class World {
 
     private readonly STATS_INTERVAL = 1000; // Reset stats every second
     
+    // Add this property near the top of the World class
+    private godMode: boolean = false;
+
     constructor(private readonly width: number, private readonly height: number) {
         // Initialize FOV map
         this.fovMap = new FieldOfViewMap(width, height);
@@ -783,6 +786,19 @@ export class World {
         const visibleTiles = new Set<string>();
         const radiusInteger = Math.ceil(radius);
 
+        if (this.godMode) {
+            // In god mode, just return all tiles within radius without checking FOV
+            for (let y = Math.floor(position.y - radiusInteger); y <= Math.ceil(position.y + radiusInteger); y++) {
+                for (let x = Math.floor(position.x - radiusInteger); x <= Math.ceil(position.x + radiusInteger); x++) {
+                    if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+                        continue;
+                    }
+                    visibleTiles.add(this.pointToKey({ x, y }));
+                }
+            }
+            return visibleTiles;
+        }
+
         // Update FOV map to ensure it's current
         // this.rebuildFOVMap();
         
@@ -1440,5 +1456,16 @@ export class World {
         }
 
         return result;
+    }
+
+    // Add these methods
+    public enableGodMode(): void {
+        this.godMode = true;
+        this.updatePlayerVision(); // Refresh vision
+    }
+
+    public disableGodMode(): void {
+        this.godMode = false;
+        this.updatePlayerVision(); // Refresh vision
     }
 }
