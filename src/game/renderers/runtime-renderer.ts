@@ -15,6 +15,7 @@ import { InertiaComponent } from "../components/inertia.component";
 import { TurboComponent } from "../components/turbo.component";
 import { TICK_MS } from "../constants";
 import { MovementPredictor } from "../systems/movement-predictor";
+import { SymbolComponent } from "../../entity/components/symbol-component";
 
 export class RuntimeRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -321,6 +322,28 @@ export class RuntimeRenderer extends GameRenderer {
                         fillDirection: FillDirection.BOTTOM
                     });
                 }
+            }
+        }
+
+        if (componentType === 'symbol') {
+            const tileId = this.entityTiles.get(entity.getId());
+            const symbol = entity.getComponent('symbol') as SymbolComponent;
+            if (tileId && symbol) {
+                // Update tile properties including rotation
+                this.display.updateTile(tileId, {
+                    char: symbol.char,
+                    fg: symbol.foreground,
+                    bg: symbol.background,
+                    rotation: symbol.rotation,
+
+                    scaleSymbolX: symbol.scaleSymbolX,
+                    scaleSymbolY: symbol.scaleSymbolY,
+                    offsetSymbolX: symbol.offsetSymbolX,
+                    offsetSymbolY: symbol.offsetSymbolY,
+                    zIndex: symbol.zIndex,
+                    alwaysRenderIfExplored: symbol.alwaysRenderIfExplored,
+                    lockRotationToFacing: symbol.lockRotationToFacing,
+                });
             }
         }
     }

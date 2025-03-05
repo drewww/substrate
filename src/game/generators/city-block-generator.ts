@@ -231,7 +231,9 @@ export class CityBlockGenerator {
 
         this.placePlayer(12, 12, world);
 
-        this.placeHelicopter(9, 9, world);
+        // this.placeHelicopter(9, 9, world);
+
+        this.placeCamera(11, 11, world);
 
         return world;
     }
@@ -284,6 +286,26 @@ export class CityBlockGenerator {
         }));
 
         world.addEntity(helicopter);
+    }
+
+
+    private placeCamera(x: number, y: number, world: World) {
+        const camera = new Entity({x, y});
+
+        const symbol = new SymbolComponent();
+        symbol.char = '⏚';
+        symbol.foreground = '#FFFFFFFF';
+        symbol.background = '#FF194DFF';
+        symbol.zIndex = 500;
+        symbol.alwaysRenderIfExplored = false;
+        // symbol.lockRotationToFacing = true;
+        
+
+        camera.setComponent(symbol);
+        camera.setComponent(new VisionComponent(10, false));
+        camera.setComponent(new EnemyAIComponent(EnemyAIType.CAMERA));
+
+        world.addEntity(camera);
     }
 
     private placePlayer(x: number, y:number, world: World) {

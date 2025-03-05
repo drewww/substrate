@@ -1184,6 +1184,11 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         if (config.fontStyle !== undefined) tile.fontStyle = config.fontStyle;
         if (config.fontFamily !== undefined) tile.fontFamily = config.fontFamily;
         if (config.rotation !== undefined) tile.rotation = config.rotation;
+        if (config.scaleSymbolX !== undefined) tile.scaleSymbolX = config.scaleSymbolX;
+        if (config.scaleSymbolY !== undefined) tile.scaleSymbolY = config.scaleSymbolY;
+        if (config.offsetSymbolX !== undefined) tile.offsetSymbolX = config.offsetSymbolX;
+        if (config.offsetSymbolY !== undefined) tile.offsetSymbolY = config.offsetSymbolY;
+        // if (config.lockRotationToFacing !== undefined) tile.lockRotationToFacing = config.lockRotationToFacing;
 
         this.dirtyMask.markDirty(tile);
         this.hasChanges = true;

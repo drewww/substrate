@@ -189,6 +189,9 @@ export interface TileUpdateConfig {
     fontWeight?: string;
     fontStyle?: string;
     fontFamily?: string;
+    scaleSymbolX?: number;
+    scaleSymbolY?: number;
+    lockRotationToFacing?: boolean;
 }
 
 export interface PerformanceMetrics {

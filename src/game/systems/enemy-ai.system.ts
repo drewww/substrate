@@ -8,6 +8,7 @@ import { directionToPoint } from '../../util';
 import { CooldownComponent } from '../components/cooldown.component';
 import { MoveComponent } from '../components/move.component';
 import { LockedComponent } from '../components/locked.component';
+import { SymbolComponent } from '../../entity/components/symbol-component';
 
 
 export class EnemyAISystem {
@@ -41,11 +42,21 @@ export class EnemyAISystem {
                     logger.warn(`Locking player at ${player.getPosition().x}, ${player.getPosition().y} and totalUpdates: ${totalUpdates}`);
                     player.setComponent(new LockedComponent(totalUpdates));
                 }
+
+                // set rotation to point to the player
+                const symbol = enemy.getComponent('symbol') as SymbolComponent;
+                if(symbol) {
+                    symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + Math.PI / 2 + Math.PI;
+                    logger.warn(`Setting rotation to ${symbol.rotation} for enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y}`);
+                    enemy.setComponent(symbol);
+                }
             }
         }
 
         switch (ai.aiType) {
-
+            case EnemyAIType.CAMERA:
+                // does nothing, but having an AI triggers the lock logic above.
+                break;
             case EnemyAIType.HELICOPTER:
 
                 const playerLocked = this.world.getPlayer().getComponent('locked') as LockedComponent;
