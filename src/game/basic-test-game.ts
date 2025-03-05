@@ -35,6 +35,7 @@ import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts'
 import testWorldUrl from '../assets/world/test-world.json?url';
 import { CityBlockGenerator } from './generators/city-block-generator.ts';
 import { EntitySpawnAction } from './actions/entity-spawn.action.ts';
+import { tileFlagsHasCardinalDirection } from 'wally-fov/lib/tile-flags';
 
 
 
@@ -156,6 +157,12 @@ export class RuntimeGame extends Game {
 
         this.engine.addSystem(() => {
             this.cooldownCleanupSystem.tick();
+        });
+
+
+        this.world.on('player-death', (data: { entityId: string }) => {
+            logger.info('Player death:', data);
+            this.engine?.stop();
         });
     }
     

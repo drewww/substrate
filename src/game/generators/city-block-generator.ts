@@ -266,7 +266,7 @@ export class CityBlockGenerator {
         helicopter.setComponent(new VisionComponent(10, true));
         helicopter.setComponent(new EnemyAIComponent(EnemyAIType.HELICOPTER));
         helicopter.setComponent(new MoveComponent(true)); // true lets it move through walls
-        helicopter.setComponent(new AOEDamageComponent(3, 1));
+        helicopter.setComponent(new AOEDamageComponent(3, 0.5));
 
         helicopter.setComponent(new CooldownComponent({
             "move": {

@@ -304,6 +304,12 @@ export class WorldSystem {
                 playerHealth.health = Math.max(0, playerHealth.health - aoeDamage.damage);
                 player.setComponent(playerHealth);
             }
+
+            if(playerHealth.health <= 0) {
+                this.world.emit('player-death', {
+                    entityId: player.getId(),
+                });
+            }
         }
 
         const entityConsumerEntities = this.world.getEntitiesWithComponent('entity-consumer');
