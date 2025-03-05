@@ -10,10 +10,13 @@ import { EntitySpawnerComponent, SPAWNER_TYPES } from '../components/entity-spaw
 import { FacingComponent } from '../../entity/components/facing-component';
 import { directionToPoint } from '../../util';
 import { logger } from '../../util/logger';
+import { FollowerComponent } from '../../entity/components/follower-component';
+import { FollowableComponent } from '../../entity/components/followable-component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
 const MAX_FOLLOWERS = 4;
+const VEHICLE_COOLDOWN = 40;
 
 export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
@@ -134,70 +137,64 @@ export class WorldSystem {
             if (spawnerState && facing && spawnerState.spawnTypes.length > 0 && spawnCooldown?.ready) {
                 const spawnType = spawnerState.spawnTypes[0];
                 const directionPoint = directionToPoint(facing.direction);
-                const spawnPosition = {
-                    x: entity.getPosition().x + directionPoint.x,
-                    y: entity.getPosition().y + directionPoint.y
-                };
+                
+                // Only proceed if the spawn type is a followable vehicle
+                if (spawnType === 'vehicle-followable') {
+                    // Determine vehicle length
+                    const numFollowers = Math.floor(Math.random() * (MAX_FOLLOWERS + 1));
+                    
+                    // Spawn each part of the vehicle
+                    for (let i = 0; i <= numFollowers; i++) {
+                        const spawnPosition = {
+                            x: entity.getPosition().x + (directionPoint.x * (numFollowers - i)),
+                            y: entity.getPosition().y + (directionPoint.y * (numFollowers - i))
+                        };
 
-                // Check for impassable entities
-                const targetPositionImpassable = this.world.getEntitiesAt(spawnPosition).some(e => e.hasComponent('impassable'));
-                if (targetPositionImpassable) {
-                    logger.warn("Target position (", spawnPosition, ") is impassable, skipping spawn");
-                    return;
-                }
-
-                let template = SPAWNER_TYPES[spawnType as keyof typeof SPAWNER_TYPES];
-                if (template) {
-                    // If we're not currently spawning a vehicle, decide if we should start one
-                    if (!spawnerState.isSpawningVehicle) {
-                        // Determine if this should be a vehicle leader
-                        if (template.components.some(c => c.type === 'followable')) {
-                            spawnerState.isSpawningVehicle = true;
-                            spawnerState.maxVehicleLength = Math.floor(Math.random() * (MAX_FOLLOWERS + 1));
-                            spawnerState.currentVehicleLength = 0;
-                            logger.info(`Starting new vehicle spawn with ${spawnerState.maxVehicleLength} followers`);
+                        // Check if position is blocked
+                        if (this.world.getEntitiesAt(spawnPosition).some(e => e.hasComponent('impassable'))) {
+                            logger.info(`Blocked spawn at ${spawnPosition.x},${spawnPosition.y} (spawner at ${entity.getPosition().x},${entity.getPosition().y})`);
+                            break;
                         }
-                    } else {
-                        // we're currently spawning a vehicle, switch templates
-                        template = SPAWNER_TYPES['vehicle-follower'];
+
+                        // Determine if this is the leader or a follower
+                        const template = i === 0 ? 
+                            SPAWNER_TYPES['vehicle-followable'] : 
+                            SPAWNER_TYPES['vehicle-follower'];
+
+                        // Generate a unique ID for this entity
+                        const entityId = Math.random().toString(36).substr(2, 9);
+
+                        // Set descending follow priorities
+                        // Leader gets highest priority, followers get decreasing priorities
+                        const followPriority = numFollowers - i + 1;
+                        if (template.components) {
+                            const followableComponent = template.components.find(c => c.type === 'followable') as FollowableComponent;
+                            if (followableComponent) {
+                                followableComponent.followPriority = followPriority;
+                            }
+                        }
+
+                        template
+
+
+                        // Spawn the entity with the pre-generated ID
+                        this.actionHandler.execute({
+                            type: 'spawn',
+                            entityId: entityId,
+                            data: {
+                                template,
+                                position: spawnPosition,
+                                facing: facing.direction,
+                                id: entityId
+                            }
+                        });
                     }
 
-                    // Spawn the entity
-                    this.actionHandler.execute({
-                        type: 'spawn',
-                        entityId: entity.getId(),
-                        data: {
-                            template,
-                            position: spawnPosition,
-                            facing: facing.direction
-                        }
-                    });
-
-                    // Handle vehicle spawning logic
-                    if (spawnerState.isSpawningVehicle) {
-                        spawnerState.currentVehicleLength++;
-                        
-                        // If we haven't finished the vehicle yet, set a short cooldown
-                        if (spawnerState.currentVehicleLength <= spawnerState.maxVehicleLength) {
-                            spawnCooldown.current = 1;
-                            spawnCooldown.base = 1;
-                            spawnCooldown.ready = false;
-                        } else {
-                            // Vehicle is complete, reset and set longer cooldown
-                            spawnerState.isSpawningVehicle = false;
-                            spawnerState.currentVehicleLength = 0;
-                            spawnerState.maxVehicleLength = 0;
-                            
-                            const newCooldown = MIN_VEHICLE_COOLDOWN + 
-                            Math.floor(Math.random() * (MAX_VEHICLE_COOLDOWN - MIN_VEHICLE_COOLDOWN));
-                            spawnCooldown.current = newCooldown;
-                            spawnCooldown.base = newCooldown;
-                            spawnCooldown.ready = false;
-                        }
-                        
-                        entity.setComponent(spawnerState);
-                        entity.setComponent(cooldowns);
-                    }
+                    // Reset cooldown
+                    spawnCooldown.current = VEHICLE_COOLDOWN;
+                    spawnCooldown.base = VEHICLE_COOLDOWN;
+                    spawnCooldown.ready = false;
+                    entity.setComponent(cooldowns);
                 }
             }
         }

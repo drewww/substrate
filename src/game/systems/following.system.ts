@@ -4,6 +4,7 @@ import { Entity } from '../../entity/entity';
 import { FollowerComponent } from '../../entity/components/follower-component';
 import { Point } from '../../types';
 import { logger } from '../../util/logger';
+import { FollowableComponent } from '../../entity/components/followable-component';
 
 export class FollowingSystem {
     constructor(
@@ -52,18 +53,23 @@ export class FollowingSystem {
         const pos = follower.getPosition();
         const adjacentPositions = this.getAdjacentPositions(pos);
 
-        for (const adjPos of adjacentPositions) {
-            const entities = this.world.getEntitiesAt(adjPos)
-                .filter(e => e.hasComponent('followable') && !e.hasComponent('player'));
+        // Collect all adjacent followable entities
+        const followableEntities = adjacentPositions.flatMap(adjPos => 
+            this.world.getEntitiesAt(adjPos)
+                .filter(e => e.hasComponent('followable') && !e.hasComponent('player'))
+                .map(e => ({
+                    entity: e,
+                    priority: (e.getComponent('followable') as FollowableComponent).followPriority
+                }))
+        );
 
-            if (entities.length > 0) {
-                const followedEntity = entities[0];
-                const followerComponent = follower.getComponent('follower') as FollowerComponent;
-                followerComponent.followedEntityId = followedEntity.getId();
-                followerComponent.lastKnownPosition = pos;
-                follower.setComponent(followerComponent);
-                break;
-            }
+        // Sort by priority (highest first) and take the highest priority entity
+        if (followableEntities.length > 0) {
+            const highestPriority = followableEntities.sort((a, b) => b.priority - a.priority)[0];
+            const followerComponent = follower.getComponent('follower') as FollowerComponent;
+            followerComponent.followedEntityId = highestPriority.entity.getId();
+            followerComponent.lastKnownPosition = pos;
+            follower.setComponent(followerComponent);
         }
     }
 

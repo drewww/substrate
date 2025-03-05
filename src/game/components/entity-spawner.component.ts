@@ -72,6 +72,10 @@ export const SPAWNER_TYPES = {
                 "type": "follower",
                 "followedEntityId": null,
                 "lastKnownPosition": null      
+            },
+            {
+                "type": "followable",
+                "followPriority": 1
             }
         ]
     }
@@ -85,10 +89,7 @@ export class EntitySpawnerComponent extends Component {
     type: 'entity-spawner' = 'entity-spawner';
 
     constructor(
-        public spawnTypes: SpawnerType[] = [],
-        public maxVehicleLength: number = 4,
-        public currentVehicleLength: number = 0,
-        public isSpawningVehicle: boolean = false
+        public spawnTypes: SpawnerType[] = []
     ) {
         super();
     }

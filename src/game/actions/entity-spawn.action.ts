@@ -35,6 +35,8 @@ export const EntitySpawnAction: ActionClass<EntitySpawnActionData> = {
                 entity.setComponent(new FacingComponent(facing));
             }
 
+            logger.info(`Spawning entity:`, entity);
+
             world.addEntity(entity);
             return true;
         } catch (error) {
