@@ -17,6 +17,8 @@ import { EnemyAIComponent } from '../components/enemy-ai.component';
 import { EnemyAIType } from '../components/enemy-ai.component';
 import { MoveComponent } from '../components/move.component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
+import { HealthComponent } from '../../entity/components/health.component';
+import { AOEDamageComponent } from '../components/aoe-damage.component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -249,7 +251,7 @@ export class CityBlockGenerator {
         symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
 
-        
+
         // symbol.animations = {
         //     rotation: {
         //         duration: 1,
@@ -264,6 +266,8 @@ export class CityBlockGenerator {
         helicopter.setComponent(new VisionComponent(10, true));
         helicopter.setComponent(new EnemyAIComponent(EnemyAIType.HELICOPTER));
         helicopter.setComponent(new MoveComponent(true)); // true lets it move through walls
+        helicopter.setComponent(new AOEDamageComponent(3, 1));
+
         helicopter.setComponent(new CooldownComponent({
             "move": {
                 "base": 3,
@@ -302,6 +306,8 @@ export class CityBlockGenerator {
         player.setComponent(new FacingComponent(Direction.None));
         player.setComponent(new ImpassableComponent());
         player.setComponent(new PlayerComponent());
+
+        player.setComponent(new HealthComponent(12, 12));
 
         // TRUE here sets "ignore walls" vision
         player.setComponent(new VisionComponent(20, true));

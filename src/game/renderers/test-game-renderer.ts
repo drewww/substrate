@@ -394,13 +394,13 @@ export class RuntimeRenderer extends GameRenderer {
 
         //     this.speedIndicatorTiles.set(entity.getId(), speedTileId);
         // }
-        if(componentType === 'bufferedMove') {
-            const tileId = this.createDestinationTile(entity);
+        // if(componentType === 'bufferedMove') {
+        //     const tileId = this.createDestinationTile(entity);
 
-            if(tileId) {
-                this.bufferedMoveTiles.set(entity.getId(), tileId);
-            }
-        } 
+        //     if(tileId) {
+        //         this.bufferedMoveTiles.set(entity.getId(), tileId);
+        //     }
+        // } 
         
         // if(componentType === 'turbo') {
         //     this.makeTurboSmoke(entity);

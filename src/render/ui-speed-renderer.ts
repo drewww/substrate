@@ -6,13 +6,16 @@ import { Renderer } from './renderer';
 import { InertiaComponent } from '../game/components/inertia.component';
 import { TimestampComponent } from '../game/components/timestamp.component';
 import { logger } from '../util/logger';
+import { HealthComponent } from '../entity/components/health.component';
 
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string[]> = new Map(); // region -> tileIds[]
     private readonly uiDisplay: Display;
     private readonly MAX_SPEED = 12;  // Updated to 12 from 8
+    private readonly MAX_HEALTH = 12;
     private readonly GEAR_X = 0;  // Gear indicator position
     private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
+    private readonly HEALTH_START_X = 15;  // Start health display after speed
     private readonly TIME_X = 35;  // Position for time display
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
@@ -27,6 +30,20 @@ export class UISpeedRenderer implements Renderer {
         '#bb000088',  // Speed 10
         '#990000aa',  // Speed 11
         '#770000cc'   // Speed 12 - deep red with higher opacity
+    ];
+    private readonly HEALTH_COLORS = [
+        '#ff0000FF',  // Low health - light red
+        '#dd0000FF',
+        '#cc0000FF',
+        '#bb0000FF',
+        '#aa0000FF',
+        '#990000FF',
+        '#880000FF',
+        '#770000FF',
+        '#660000FF',
+        '#550000FF',
+        '#440000FF',
+        '#330000FF'   // Full health - deep red
     ];
 
     constructor(
@@ -86,6 +103,23 @@ export class UISpeedRenderer implements Renderer {
         // );
         // this.uiTiles.set('gear', gearTileId);
 
+        // Create health indicator tiles
+        for (let i = 0; i < this.MAX_HEALTH; i++) {
+            const healthTileId = this.uiDisplay.createTile(
+                this.HEALTH_START_X + i,
+                0,
+                ' ',
+                '#FFFFFFFF',
+                '#00000000',
+                1001,
+                {
+                    walls: [true, false],
+                    wallColors: ['#FFFFFF88', null]
+                }
+            );
+            this.uiTiles.set(`health_${i}`, [healthTileId]);
+        }
+
         // Create speed indicator tiles (shifted right)
         for (let i = 0; i < this.MAX_SPEED; i++) {
             const speedTileId = this.uiDisplay.createTile(
@@ -113,6 +147,7 @@ export class UISpeedRenderer implements Renderer {
         // this.uiTiles.set('time', timeTileIds);
 
         this.updateSpeedIndicator();
+        this.updateHealthIndicator();
     }
 
     private updateSpeedIndicator(): void {
@@ -128,6 +163,22 @@ export class UISpeedRenderer implements Renderer {
                 for (const speedTileId of speedTileIds) {
                     this.uiDisplay.updateTile(speedTileId, {
                         bg: i < magnitude ? this.SPEED_COLORS[i] : '#00000000'
+                    });
+                }
+            }
+        }
+    }
+
+    private updateHealthIndicator(): void {
+        const health = this.player.getComponent('health') as HealthComponent;
+        const currentHealth = health?.health ?? 0;
+
+        for (let i = 0; i < this.MAX_HEALTH; i++) {
+            const healthTileIds = this.uiTiles.get(`health_${i}`);
+            if (healthTileIds) {
+                for (const healthTileId of healthTileIds) {
+                    this.uiDisplay.updateTile(healthTileId, {
+                        bg: i < currentHealth ? this.HEALTH_COLORS[i] : '#00000000'
                     });
                 }
             }
@@ -200,6 +251,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateSpeedIndicator();
             } else if (componentType === 'timestamp') {
                 // this.updateTimeDisplay();
+            } else if (componentType === 'health') {
+                this.updateHealthIndicator();
             }
         }
     }
@@ -209,6 +262,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateSpeedIndicator();
             } else if (componentType === 'timestamp') {
                 // this.updateTimeDisplay();
+            } else if (componentType === 'health') {
+                this.updateHealthIndicator();
             }
         }
     }

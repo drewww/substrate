@@ -16,6 +16,8 @@ import { EntityConsumerComponent } from '../components/entity-consumer.component
 import { TrafficLightComponent } from '../components/traffic-light.component';
 import { TrafficControllerComponent } from '../components/traffic-controller.component';
 import { ImpathableComponent } from '../../entity/components/impathable-component';
+import { AOEDamageComponent } from '../components/aoe-damage.component';
+import { HealthComponent } from '../../entity/components/health.component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -277,6 +279,30 @@ export class WorldSystem {
                     spawnCooldown.ready = false;
                     entity.setComponent(cooldowns);
                 }
+            }
+        }
+
+        // Handle AOE damage
+        const aoeDamageEntities = this.world.getEntitiesWithComponent('aoe-damage');
+        const player = this.world.getPlayer();
+        if (!player) return;
+
+        const playerPos = player.getPosition();
+        const playerHealth = player.getComponent('health') as HealthComponent;
+        if (!playerHealth) return;
+
+        for (const entity of aoeDamageEntities) {
+            const aoeDamage = entity.getComponent('aoe-damage') as AOEDamageComponent;
+            const entityPos = entity.getPosition();
+
+            // Check if player is within radius
+            const dx = playerPos.x - entityPos.x;
+            const dy = playerPos.y - entityPos.y;
+            const distanceSquared = dx * dx + dy * dy;
+
+            if (distanceSquared <= aoeDamage.radius * aoeDamage.radius) {
+                playerHealth.health = Math.max(0, playerHealth.health - aoeDamage.damage);
+                player.setComponent(playerHealth);
             }
         }
 
