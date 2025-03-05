@@ -4,7 +4,7 @@ import { Entity } from '../entity/entity';
 import { World } from '../world/world';
 import { Point } from '../types';
 import { logger } from '../util/logger';
-import { SymbolComponent } from '../entity/components/symbol-component';
+import { SymbolComponent, SymbolConfig } from '../entity/components/symbol-component';
 import { LightEmitterComponent, LightFalloff } from '../entity/components/light-emitter-component';
 import { ValueAnimationModule } from '../animation/value-animation';
 import { LIGHT_ANIMATIONS } from './light-animations';
@@ -159,32 +159,15 @@ export abstract class BaseRenderer implements Renderer {
         // Handle symbol component if present
         const symbolComponent = entity.getComponent('symbol') as SymbolComponent;
         if (symbolComponent) {
-            const position = entity.getPosition();
-            const effectiveRotation = this.getEffectiveSymbolRotation(entity, symbolComponent);
-            
-            const tileId = this.display.createTile(
-                position.x,
-                position.y,
-                symbolComponent.char,
-                symbolComponent.foreground,
-                symbolComponent.background,
-                symbolComponent.zIndex, 
-                {
-                    alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored,
-                    rotation: effectiveRotation/180 * Math.PI,
-                    offsetSymbolX: symbolComponent.offsetSymbolX,
-                    offsetSymbolY: symbolComponent.offsetSymbolY,
-                    scaleSymbolX: symbolComponent.scaleSymbolX,
-                    scaleSymbolY: symbolComponent.scaleSymbolY,
-                    fontWeight: symbolComponent.fontWeight,
-                    fontStyle: symbolComponent.fontStyle,
-                    fontFamily: symbolComponent.fontFamily,
-                    blendMode: symbolComponent.blendMode as BlendMode  // Convert string to enum
-                }
-            );
+            const tileId = this.createOrUpdateSymbolTile(entity, symbolComponent);
             
             this.entityTiles.set(entity.getId(), tileId);
             this.tileEntities.set(tileId, entity.getId());
+
+            // Add animations if configured
+            if (symbolComponent.animations) {
+                this.handleSymbolAnimations(tileId, symbolComponent.animations);
+            }
         }
         
         // Handle light emitter independently
@@ -233,20 +216,16 @@ export abstract class BaseRenderer implements Renderer {
             const tileId = this.entityTiles.get(entity.getId());
             const symbol = entity.getComponent('symbol') as SymbolComponent;
             if (tileId && symbol) {
-                const effectiveRotation = this.getEffectiveSymbolRotation(entity, symbol);
-                this.display.updateTile(tileId, {
-                    char: symbol.char,
-                    fg: symbol.foreground,
-                    bg: symbol.background,
-                    zIndex: symbol.zIndex,
-                    alwaysRenderIfExplored: symbol.alwaysRenderIfExplored,
-                    rotation: effectiveRotation/180 * Math.PI,
-                    offsetSymbolX: symbol.offsetSymbolX,
-                    offsetSymbolY: symbol.offsetSymbolY,
-                    fontWeight: symbol.fontWeight,
-                    fontStyle: symbol.fontStyle,
-                    fontFamily: symbol.fontFamily
-                });
+                // Clear existing animations
+                this.display.clearAnimations(tileId);
+                
+                // Update tile properties
+                this.createOrUpdateSymbolTile(entity, symbol, tileId);
+
+                // Re-add animations if configured
+                if (symbol.animations) {
+                    this.handleSymbolAnimations(tileId, symbol.animations);
+                }
             }
         } 
 
@@ -317,7 +296,9 @@ export abstract class BaseRenderer implements Renderer {
         const tileId = this.entityTiles.get(entity.getId());
         
         if (tileId) {
-            logger.debug(`Found tile ${tileId} for entity ${entity.getId()}, removing...`);
+            // Clear animations before removing tile
+            this.display.clearAnimations(tileId);
+            
             this.tileEntities.delete(tileId);
             this.entityTiles.delete(entity.getId());
             this.display.removeTile(tileId);
@@ -979,6 +960,113 @@ export abstract class BaseRenderer implements Renderer {
             case Direction.South: return 180;
             case Direction.West: return 270;
             default: return symbol.rotation;
+        }
+    }
+
+    // Add these new methods after the existing private methods but before the public methods
+    private handleSymbolAnimations(tileId: string, animations: SymbolConfig['animations']): void {
+        if (!animations) return;
+
+        // Symbol animation
+
+        // TODO: fix symbol animations
+        // if (animations.symbol) {
+        //     this.display.addSymbolAnimation(tileId, {
+        //         symbols: animations.symbol.symbols,
+        //         duration: animations.symbol.duration,
+        //         loop: animations.symbol.loop
+        //     });
+        // }
+
+        // Color animations
+        if (animations.color) {
+            if (animations.color.fg) {
+                this.display.addColorAnimation(tileId, {
+                    fg: animations.color.fg
+                });
+            }
+            if (animations.color.bg) {
+                this.display.addColorAnimation(tileId, {
+                    bg: animations.color.bg
+                });
+            }
+        }
+
+        // Value animations for offset
+        if (animations.offset) {
+            if (animations.offset.x) {
+                this.display.addValueAnimation(tileId, {
+                    offsetSymbolX: animations.offset.x
+                });
+            }
+            if (animations.offset.y) {
+                this.display.addValueAnimation(tileId, {
+                    offsetSymbolY: animations.offset.y
+                });
+            }
+        }
+
+        // Value animations for scale
+        if (animations.scale) {
+            if (animations.scale.x) {
+                this.display.addValueAnimation(tileId, {
+                    scaleSymbolX: animations.scale.x
+                });
+            }
+            if (animations.scale.y) {
+                this.display.addValueAnimation(tileId, {
+                    scaleSymbolY: animations.scale.y
+                });
+            }
+        }
+
+        // Rotation animation
+        if (animations.rotation) {
+            this.display.addValueAnimation(tileId, {
+                rotation: animations.rotation
+            });
+        }
+    }
+
+    private createOrUpdateSymbolTile(
+        entity: Entity, 
+        symbolComponent: SymbolComponent, 
+        existingTileId?: string
+    ): string {
+        const position = entity.getPosition();
+        const effectiveRotation = this.getEffectiveSymbolRotation(entity, symbolComponent);
+        
+        const tileConfig = {
+            char: symbolComponent.char,
+            fg: symbolComponent.foreground,
+            bg: symbolComponent.background,
+            zIndex: symbolComponent.zIndex,
+            alwaysRenderIfExplored: symbolComponent.alwaysRenderIfExplored,
+            rotation: effectiveRotation/180 * Math.PI,
+            offsetSymbolX: symbolComponent.offsetSymbolX,
+            offsetSymbolY: symbolComponent.offsetSymbolY,
+            scaleSymbolX: symbolComponent.scaleSymbolX,
+            scaleSymbolY: symbolComponent.scaleSymbolY,
+            fontWeight: symbolComponent.fontWeight,
+            fontStyle: symbolComponent.fontStyle,
+            fontFamily: symbolComponent.fontFamily,
+            blendMode: symbolComponent.blendMode as BlendMode
+        };
+
+        if (existingTileId) {
+            this.display.updateTile(existingTileId, tileConfig);
+            return existingTileId;
+        } else {
+            const tileId = this.display.createTile(
+                position.x,
+                position.y,
+                tileConfig.char,
+                tileConfig.fg,
+                tileConfig.bg,
+                tileConfig.zIndex,
+                tileConfig
+            );
+            return tileId;
         }
     }
 }  

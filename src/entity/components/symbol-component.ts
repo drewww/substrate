@@ -2,6 +2,31 @@ import { Component } from "../component";
 import { RegisterComponent } from "../component-registry";
 import { BlendMode } from "../../display/types";
 
+export interface SymbolAnimationConfig {
+  symbols: string[];
+  duration: number;
+  loop?: boolean;
+  running?: boolean;
+}
+
+export interface ColorAnimationConfig {
+  start: string;
+  end: string;
+  duration: number;
+  reverse?: boolean;
+  easing?: (t: number) => number;
+  loop?: boolean;
+}
+
+export interface ValueAnimationConfig {
+  start: number;
+  end: number;
+  duration: number;
+  reverse?: boolean;
+  easing?: (t: number) => number;
+  loop?: boolean;
+}
+
 export interface SymbolConfig {
   char: string;
   foreground?: string;
@@ -12,7 +37,23 @@ export interface SymbolConfig {
   fontStyle?: string;
   fontFamily?: string;
   lockRotationToFacing?: boolean;
-  blendMode?: string;  // Store as string for JSON serialization
+  blendMode?: string;
+  animations?: {
+    symbol?: SymbolAnimationConfig;
+    color?: {
+      fg?: ColorAnimationConfig;
+      bg?: ColorAnimationConfig;
+    };
+    offset?: {
+      x?: ValueAnimationConfig;
+      y?: ValueAnimationConfig;
+    };
+    scale?: {
+      x?: ValueAnimationConfig;
+      y?: ValueAnimationConfig;
+    };
+    rotation?: ValueAnimationConfig;
+  };
 }
 
 /**
@@ -37,7 +78,8 @@ export class SymbolComponent extends Component {
     public fontStyle: string = 'normal',
     public fontFamily: string = 'monospace',
     public lockRotationToFacing: boolean = false,
-    public blendMode: string = BlendMode.SourceOver  // Store as string, default to enum value
+    public blendMode: string = BlendMode.SourceOver,
+    public animations?: SymbolConfig['animations']
   ) {
     super();
   }

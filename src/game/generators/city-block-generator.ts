@@ -240,15 +240,22 @@ export class CityBlockGenerator {
 
         const symbol = new SymbolComponent();
         symbol.char = '🜛';
-        symbol.foreground = '#FFFFFFFF';
-        symbol.background = '#FF194DFF';
+        symbol.foreground = '#FFFFFF99';
+        symbol.background = '#FF194D66';
         symbol.zIndex = 500;
         symbol.scaleSymbolX = 1.4;
         symbol.scaleSymbolY = 1.4;
         symbol.offsetSymbolY = -0.1;
         symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
-        
+        symbol.animations = {
+            rotation: {
+                duration: 30,
+                loop: true,
+                start: 0,
+                end: 360
+            }
+        };  
 
         helicopter.setComponent(symbol);
         helicopter.setComponent(new FacingComponent(Direction.None));
