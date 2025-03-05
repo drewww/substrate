@@ -205,6 +205,27 @@ export class CityBlockGenerator {
         //     }
         // }
 
+        // Remove all vehicles and pedestrians
+        const entitiesToRemove = world.getEntities().filter(entity => {
+            // Check for vehicles (entities with follower/followable components)
+            if (entity.hasComponent('follower') || entity.hasComponent('followable')) {
+                return true;
+            }
+
+            // Check for pedestrians
+            const aiComponent = entity.getComponent('enemyAI') as EnemyAIComponent;
+            if (aiComponent && aiComponent.aiType === EnemyAIType.PEDESTRIAN) {
+                return true;
+            }
+
+            return false;
+        });
+
+        entitiesToRemove.forEach(entity => {
+            world.removeEntity(entity.getId());
+        });
+
+
         this.placePlayer(12, 12, world);
 
         this.placeHelicopter(11, 11, world);
