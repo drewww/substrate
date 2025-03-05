@@ -48,7 +48,9 @@ export class EnemyAISystem {
 
             case EnemyAIType.HELICOPTER:
 
-                if(canSeePlayer) {
+                const playerLocked = this.world.getPlayer().getComponent('locked') as LockedComponent;
+
+                if(canSeePlayer || playerLocked) {
                     this.moveTowardsPlayer(enemy);
                 }
 

@@ -319,7 +319,8 @@ export class WorldSystem {
             if(locked) {
                 // logger.warn(`Locked entity ${entity.getId()} lastTurnLocked: ${locked.lastTurnLocked} totalUpdates: ${totalUpdates}`);
 
-                if(locked.lastTurnLocked !== totalUpdates) {
+                // add a turn of leeway.
+                if(locked.lastTurnLocked + 1 < (totalUpdates ?? 0)) {
                     entity.removeComponent('locked');
                 }
             }
