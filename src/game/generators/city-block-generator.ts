@@ -13,6 +13,8 @@ import { SymbolComponent } from '../../entity/components/symbol-component';
 import { InertiaComponent } from '../components/inertia.component';
 import { CooldownComponent } from '../components/cooldown.component';
 import { TestLayoutGenerator } from './test-layout-generator';
+import { EnemyAIComponent } from '../components/enemy-ai.component';
+import { EnemyAIType } from '../components/enemy-ai.component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -207,6 +209,27 @@ export class CityBlockGenerator {
         return world;
     }
 
+    private placeHelicopter(x: number, y: number, world: World) {
+        const helicopter = new Entity({x, y});
+
+
+        const symbol = new SymbolComponent();
+        symbol.char = '🜛';
+        symbol.foreground = '#FF194DFF';
+        symbol.background = '#7EECF4FF';
+        symbol.zIndex = 500;
+        symbol.alwaysRenderIfExplored = false;
+        
+
+        helicopter.setComponent(symbol);
+        helicopter.setComponent(new FacingComponent(Direction.None));
+        helicopter.setComponent(new VisionComponent(10, true));
+        helicopter.setComponent(new EnemyAIComponent(EnemyAIType.HELICOPTER));
+
+
+        world.addEntity(helicopter);
+    }
+
     private placePlayer(x: number, y:number, world: World) {
 
         const player = new Entity({x, y});
@@ -228,7 +251,9 @@ export class CityBlockGenerator {
         player.setComponent(new OpacityComponent());
         player.setComponent(new ImpassableComponent());
         player.setComponent(new PlayerComponent());
-        player.setComponent(new VisionComponent(20));
+
+        // TRUE here sets "ignore walls" vision
+        player.setComponent(new VisionComponent(20, true));
 
         world.addEntity(player);
     }

@@ -54,9 +54,6 @@ export class World {
     }> = new Map();
 
     private readonly STATS_INTERVAL = 1000; // Reset stats every second
-    
-    // Add this property near the top of the World class
-    private godMode: boolean = false;
 
     constructor(private readonly width: number, private readonly height: number) {
         // Initialize FOV map
@@ -768,26 +765,26 @@ export class World {
         const position = entity.getPosition();
         
         // If no radius specified, try to get it from the entity's vision component
+        const vision = entity.getComponent('vision') as VisionComponent;
         if (radius === undefined) {
-            const vision = entity.getComponent('vision') as VisionComponent;
             if (!vision) {
                 throw new Error('Entity has no vision radius specified');
             }
             radius = vision.radius;
         }
 
-        return this.getVisibleTilesFromPosition(position, radius);
+        return this.getVisibleTilesFromPosition(position, radius, vision?.ignoreOpacity ?? false);
     }
 
     /**
      * Get all tiles visible from a position at a given radius
      */
-    public getVisibleTilesFromPosition(position: Point, radius: number): Set<string> {
+    public getVisibleTilesFromPosition(position: Point, radius: number, ignoreOpacity: boolean = false): Set<string> {
         const visibleTiles = new Set<string>();
         const radiusInteger = Math.ceil(radius);
 
-        if (this.godMode) {
-            // In god mode, just return all tiles within radius without checking FOV
+        if (ignoreOpacity) {
+            // When ignoring opacity, just return all tiles within radius
             for (let y = Math.floor(position.y - radiusInteger); y <= Math.ceil(position.y + radiusInteger); y++) {
                 for (let x = Math.floor(position.x - radiusInteger); x <= Math.ceil(position.x + radiusInteger); x++) {
                     if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
@@ -1241,7 +1238,7 @@ export class World {
 
         // Check for impassable entities at destination
         const entitiesAtDest = this.getEntitiesAt({ x: toX, y: toY });
-        if (entitiesAtDest.some(e => e.hasComponent('impassable'))) {
+        if (entitiesAtDest.some(e => e.hasComponent('impathable'))) {
             return false;
         }
 
@@ -1262,7 +1259,12 @@ export class World {
      * Update vision from a position with a given radius
      */
     public updateVision(position: Point, radius: number): void {
-        const visibleTiles = this.getVisibleTilesFromPosition(position, radius);
+        // Get the player's vision settings
+        const player = this.getPlayer();
+        const vision = player.getComponent('vision') as VisionComponent;
+        const ignoreOpacity = vision?.ignoreOpacity ?? false;
+
+        const visibleTiles = this.getVisibleTilesFromPosition(position, radius, ignoreOpacity);
         
         // Clear previous visible locations
         this.playerVisibleLocations.clear();
@@ -1459,16 +1461,5 @@ export class World {
         }
 
         return result;
-    }
-
-    // Add these methods
-    public enableGodMode(): void {
-        this.godMode = true;
-        this.updatePlayerVision(); // Refresh vision
-    }
-
-    public disableGodMode(): void {
-        this.godMode = false;
-        this.updatePlayerVision(); // Refresh vision
     }
 }
