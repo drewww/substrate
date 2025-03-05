@@ -52,7 +52,7 @@ export class EnemyMovementSystem {
 
         // Check if two spaces ahead is impassable
         const entitiesTwoAhead = this.world.getEntitiesAt(twoAhead);
-        if (entitiesTwoAhead.some(e => e.hasComponent('impassable'))) {
+        if (entitiesTwoAhead.some(e => e.hasComponent('impassable') || e.hasComponent('impathable'))) {
             return false;
         }
 

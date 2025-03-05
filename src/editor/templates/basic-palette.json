@@ -164,7 +164,7 @@
           },
           {
             "type": "traffic-light",
-            "phase": 1,
+            "phase": 2,
             "phaseOffset": 1
           },
           { "type":"impassable" }

@@ -1315,6 +1315,11 @@ export class World {
                     && neighborKey !== this.pointToKey(end)) {
                     continue;
                 }
+                
+                const entitiesAtNeighbor = this.getEntitiesAt(neighbor);
+                if (entitiesAtNeighbor.some(e => e.hasComponent('impathable'))) {
+                    continue;
+                }
 
                 const tentativeGScore = gScore.get(current)! + 1;
 

@@ -5484,87 +5484,7 @@
       ]
     },
     {
-      "id": "e4953",
-      "position": {
-        "x": 2,
-        "y": 8
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "⍠",
-          "foreground": "#FF194D",
-          "background": "#590426",
-          "zIndex": 10,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
-        },
-        {
-          "type": "facing",
-          "direction": 0
-        },
-        {
-          "type": "traffic-light",
-          "blockId": 0,
-          "phase": 1,
-          "phaseOffset": 1
-        },
-        {
-          "type": "impassable"
-        }
-      ]
-    },
-    {
-      "id": "e5041",
-      "position": {
-        "x": 2,
-        "y": 6
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "⍠",
-          "foreground": "#FF194D",
-          "background": "#590426",
-          "zIndex": 10,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
-        },
-        {
-          "type": "facing",
-          "direction": 0
-        },
-        {
-          "type": "traffic-light",
-          "blockId": 0,
-          "phase": 1,
-          "phaseOffset": 1
-        },
-        {
-          "type": "impassable"
-        }
-      ]
-    },
-    {
-      "id": "e5342",
+      "id": "e5831",
       "position": {
         "x": 9,
         "y": 3
@@ -5595,7 +5515,7 @@
         {
           "type": "traffic-light",
           "blockId": 0,
-          "phase": 1,
+          "phase": 2,
           "phaseOffset": 1
         },
         {
@@ -5604,7 +5524,7 @@
       ]
     },
     {
-      "id": "e5436",
+      "id": "e5884",
       "position": {
         "x": 9,
         "y": 5
@@ -5635,7 +5555,87 @@
         {
           "type": "traffic-light",
           "blockId": 0,
-          "phase": 1,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
+          "type": "impassable"
+        }
+      ]
+    },
+    {
+      "id": "e5969",
+      "position": {
+        "x": 2,
+        "y": 8
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⍠",
+          "foreground": "#FF194D",
+          "background": "#590426",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
+          "phaseOffset": 1
+        },
+        {
+          "type": "impassable"
+        }
+      ]
+    },
+    {
+      "id": "e6008",
+      "position": {
+        "x": 2,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⍠",
+          "foreground": "#FF194D",
+          "background": "#590426",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
+        },
+        {
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "traffic-light",
+          "blockId": 0,
+          "phase": 2,
           "phaseOffset": 1
         },
         {

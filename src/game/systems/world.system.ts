@@ -15,6 +15,7 @@ import { FollowableComponent } from '../../entity/components/followable-componen
 import { EntityConsumerComponent } from '../components/entity-consumer.component';
 import { TrafficLightComponent } from '../components/traffic-light.component';
 import { TrafficControllerComponent } from '../components/traffic-controller.component';
+import { ImpathableComponent } from '../../entity/components/impathable-component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -35,42 +36,63 @@ export class WorldSystem {
                 const controller = entity.getComponent('traffic-controller') as TrafficControllerComponent;
                 const cycleState = cooldowns.getCooldown('toggle');
                 
-                if (cycleState?.ready) {
-                    // Find all traffic lights with matching blockId
-                    const trafficLights = this.world.getEntitiesWithComponent('traffic-light')
-                        .filter(light => {
-                            const lightComponent = light.getComponent('traffic-light') as TrafficLightComponent;
-                            return lightComponent.blockId === controller.blockId;
-                        });
+                // Find all traffic lights with matching blockId
+                const trafficLights = this.world.getEntitiesWithComponent('traffic-light')
+                    .filter(light => {
+                        const lightComponent = light.getComponent('traffic-light') as TrafficLightComponent;
+                        return lightComponent.blockId === controller.blockId;
+                    });
 
-                    // Update each light
-                    for (const light of trafficLights) {
-                        const trafficLight = light.getComponent('traffic-light') as TrafficLightComponent;
-                        const symbol = light.getComponent('symbol') as SymbolComponent;
-                        
-                        // Toggle phase
-                        trafficLight.phase = trafficLight.phase === 0 ? 1 : 0;
-
-                        logger.warn(`Traffic light ${light.getId()} phase: ${trafficLight.phase}`);
-                        
-                        if (trafficLight.phase === 0) {
-                            // Grey and passable
-                            symbol.foreground = '#666666';
-                            symbol.background = '#000D12';
-                            light.removeComponent('impassable');
-                            light.removeComponent('opacity');
-                        } else {
-                            // Red and impassable
-                            symbol.foreground = '#FF194D';
-                            symbol.background = '#590426';
-                            light.setComponent(new ImpassableComponent());
-                            light.setComponent(new OpacityComponent());
-                        }
-                        
-                        light.setComponent(trafficLight);
-                        light.setComponent(symbol);
+                // Update each light
+                for (const light of trafficLights) {
+                    const trafficLight = light.getComponent('traffic-light') as TrafficLightComponent;
+                    const symbol = light.getComponent('symbol') as SymbolComponent;
+                    
+                    let newPhase = false;
+                    // Check for yellow phase transition first
+                    if (trafficLight.phase === 0 && cycleState && cycleState.current <= 18) {
+                        // Set to yellow when grey is about to end
+                        trafficLight.phase = 1;
+                        newPhase = true;
                     }
                     
+                    if (cycleState?.ready) {
+                        // On cooldown ready, toggle between red and grey
+                        trafficLight.phase = trafficLight.phase === 2 ? 0 : 2;
+                        newPhase = true;
+                    }
+
+                    if(!newPhase) {
+                        continue;
+                    }
+
+                    // logger.warn(`Traffic light ${light.getId()} phase: ${trafficLight.phase} (cooldown: ${cycleState.current})`);
+                    
+                    if (trafficLight.phase === 0) {
+                        // Grey and passable
+                        symbol.foreground = '#666666';
+                        symbol.background = '#000D12';
+                        light.removeComponent('impassable');
+                        light.removeComponent('impathable');
+                    } else if (trafficLight.phase === 1) {
+                        // Yellow and pathable but not passable
+                        symbol.foreground = '#FFD700';
+                        symbol.background = '#4B3D00';
+                        light.setComponent(new ImpathableComponent());
+                        light.removeComponent('impassable');
+                    } else {
+                        // Red and impassable
+                        symbol.foreground = '#FF194D';
+                        symbol.background = '#590426';
+                        light.setComponent(new ImpassableComponent());
+                        light.removeComponent('impathable');
+                    }
+                    
+                    light.setComponent(trafficLight);
+                    light.setComponent(symbol);
+                }
+                
+                if (cycleState?.ready) {
                     // Reset the controller's cooldown
                     cycleState.current = cycleState.base;
                     cycleState.ready = false;
