@@ -25,33 +25,33 @@ export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
 
     tick(): void {
-        const cooldownEntities = this.world.getEntitiesWithComponent('cooldown').filter(e => e.hasComponent('symbol'));
+        const cooldownEntities = this.world.getEntitiesWithComponent('cooldown');
 
         for (const entity of cooldownEntities) {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             
             // Check if this is a traffic controller
-            if (entity.hasComponent('trafficController')) {
-                const controller = entity.getComponent('trafficController') as TrafficControllerComponent;
-                const cycleState = cooldowns.getCooldown('cycle');
+            if (entity.hasComponent('traffic-controller')) {
+                const controller = entity.getComponent('traffic-controller') as TrafficControllerComponent;
+                const cycleState = cooldowns.getCooldown('toggle');
                 
                 if (cycleState?.ready) {
                     // Find all traffic lights with matching blockId
-                    const trafficLights = this.world.getEntitiesWithComponent('trafficLight')
+                    const trafficLights = this.world.getEntitiesWithComponent('traffic-light')
                         .filter(light => {
-                            const lightComponent = light.getComponent('trafficLight') as TrafficLightComponent;
+                            const lightComponent = light.getComponent('traffic-light') as TrafficLightComponent;
                             return lightComponent.blockId === controller.blockId;
                         });
 
                     // Update each light
                     for (const light of trafficLights) {
-                        const trafficLight = light.getComponent('trafficLight') as TrafficLightComponent;
+                        const trafficLight = light.getComponent('traffic-light') as TrafficLightComponent;
                         const symbol = light.getComponent('symbol') as SymbolComponent;
                         
                         // Toggle phase
                         trafficLight.phase = trafficLight.phase === 0 ? 1 : 0;
 
-                        logger.info(`Traffic light ${light.getId()} phase: ${trafficLight.phase}`);
+                        logger.warn(`Traffic light ${light.getId()} phase: ${trafficLight.phase}`);
                         
                         if (trafficLight.phase === 0) {
                             // Grey and passable
@@ -78,45 +78,45 @@ export class WorldSystem {
                 }
             }
 
-            const toggleState = cooldowns.getCooldown('toggle');
+            // const toggleState = cooldowns.getCooldown('toggle');
 
-            if (toggleState) {
-                if (toggleState.ready) {
+            // if (toggleState) {
+            //     if (toggleState.ready) {
 
-                    const pos = entity.getPosition();
-                    const entitiesAtPos = this.world.getEntitiesAt(pos);
-                    const hasImpassableEntity = entitiesAtPos.some(e => e !== entity && e.hasComponent('impassable'));
+            //         const pos = entity.getPosition();
+            //         const entitiesAtPos = this.world.getEntitiesAt(pos);
+            //         const hasImpassableEntity = entitiesAtPos.some(e => e !== entity && e.hasComponent('impassable'));
 
-                    if (hasImpassableEntity) {
-                        return;
-                    }
+            //         if (hasImpassableEntity) {
+            //             return;
+            //         }
 
-                    cooldowns.setCooldown('toggle', toggleState.base, toggleState.base, false);
+            //         cooldowns.setCooldown('toggle', toggleState.base, toggleState.base, false);
 
-                    const symbol = entity.getComponent('symbol') as SymbolComponent;
-                    const isRaised = entity.hasComponent('impassable')
+            //         const symbol = entity.getComponent('symbol') as SymbolComponent;
+            //         const isRaised = entity.hasComponent('impassable')
 
-                    if (isRaised) {
-                        // Lower the tile
-                        // logger.info(`Lowering tile ${entity.getId()}`);
-                        symbol.background = '#222222ff';
-                        symbol.foreground = '#FFFFFF11';
-                        entity.removeComponent('opacity');
-                        entity.removeComponent('impassable');
-                    } else {
-                        // Raise the tile
-                        // logger.info(`Raising tile ${entity.getId()}`);
-                        symbol.background = '#222222ff';
-                        symbol.foreground = '#FFFFFFff';
-                        entity.setComponent(new OpacityComponent());
-                        entity.setComponent(new ImpassableComponent());
-                    }
+            //         if (isRaised) {
+            //             // Lower the tile
+            //             // logger.info(`Lowering tile ${entity.getId()}`);
+            //             symbol.background = '#222222ff';
+            //             symbol.foreground = '#FFFFFF11';
+            //             entity.removeComponent('opacity');
+            //             entity.removeComponent('impassable');
+            //         } else {
+            //             // Raise the tile
+            //             // logger.info(`Raising tile ${entity.getId()}`);
+            //             symbol.background = '#222222ff';
+            //             symbol.foreground = '#FFFFFFff';
+            //             entity.setComponent(new OpacityComponent());
+            //             entity.setComponent(new ImpassableComponent());
+            //         }
 
-                    // Set the cooldown component after all other changes
-                    entity.setComponent(cooldowns);
-                    entity.setComponent(symbol);
-                }
-            }
+            //         // Set the cooldown component after all other changes
+            //         entity.setComponent(cooldowns);
+            //         entity.setComponent(symbol);
+            //     }
+            // }
 
             const disperseState = cooldowns.getCooldown('disperse');
             if (disperseState) {

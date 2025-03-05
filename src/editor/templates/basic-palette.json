@@ -166,7 +166,8 @@
             "type": "traffic-light",
             "phase": 1,
             "phaseOffset": 1
-          }
+          },
+          { "type":"impassable" }
         ]
       },
 
@@ -408,7 +409,6 @@
             "blockId": 0
           },
           {
-
             "type": "cooldown",
             "cooldowns": {
               "toggle": {
