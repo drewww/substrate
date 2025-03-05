@@ -283,35 +283,50 @@ export class WorldSystem {
         const entityConsumerEntities = this.world.getEntitiesWithComponent('entity-consumer');
         for (const entity of entityConsumerEntities) {
             const entityConsumer = entity.getComponent('entity-consumer') as EntityConsumerComponent;
-            const visited = new Set<string>();
-            const toProcess = [{entity: entity, distance: 0}];
+            const consumerPos = entity.getPosition();
 
-            while (toProcess.length > 0) {
-                const current = toProcess.shift()!;
-                
-                if (current.distance > 5) continue;
-                
-                const adjacentPositions = [
-                    { x: current.entity.getPosition().x + 1, y: current.entity.getPosition().y },
-                    { x: current.entity.getPosition().x - 1, y: current.entity.getPosition().y }, 
-                    { x: current.entity.getPosition().x, y: current.entity.getPosition().y + 1 },
-                    { x: current.entity.getPosition().x, y: current.entity.getPosition().y - 1 }
-                ];
+            // Check immediate adjacent positions first
+            const adjacentPositions = [
+                { x: consumerPos.x + 1, y: consumerPos.y },
+                { x: consumerPos.x - 1, y: consumerPos.y },
+                { x: consumerPos.x, y: consumerPos.y + 1 }, 
+                { x: consumerPos.x, y: consumerPos.y - 1 }
+            ];
 
-                let adjacentEntities: Entity[] = [];
-                for (const pos of adjacentPositions) {
-                    adjacentEntities = adjacentEntities.concat(this.world.getEntitiesAt(pos));
+            // Find first followable entity
+            let targetEntity: Entity | null = null;
+            let targetVector = { x: 0, y: 0 };
+
+            for (const pos of adjacentPositions) {
+                const entities = this.world.getEntitiesAt(pos);
+                const followable = entities.find(e => e.hasComponent('followable'));
+                if (followable) {
+                    targetEntity = followable;
+                    targetVector = {
+                        x: pos.x - consumerPos.x,
+                        y: pos.y - consumerPos.y
+                    };
+                    break;
                 }
+            }
 
-                const followableEntities = adjacentEntities.filter(e => 
-                    e.hasComponent('followable') && !visited.has(e.getId())
-                );
+            if (targetEntity) {
+                // Remove the first entity
+                this.world.removeEntity(targetEntity.getId());
 
-                for (const followable of followableEntities) {
-                    visited.add(followable.getId());
-                    // todo package in an action
-                    this.world.removeEntity(followable.getId());
-                    toProcess.push({entity: followable, distance: current.distance + 1});
+                // Now check positions along that vector at distances 2,3,4,5
+                for (let distance = 2; distance <= 5; distance++) {
+                    const checkPos = {
+                        x: consumerPos.x + (targetVector.x * distance),
+                        y: consumerPos.y + (targetVector.y * distance)
+                    };
+
+                    const entitiesAtPos = this.world.getEntitiesAt(checkPos);
+                    const followableEntities = entitiesAtPos.filter(e => e.hasComponent('followable'));
+                    
+                    for (const followable of followableEntities) {
+                        this.world.removeEntity(followable.getId());
+                    }
                 }
             }
         }

@@ -188,19 +188,19 @@ export class CityBlockGenerator {
 
 
         // look for a space that is not impassable to place the player
-        let playerX = 0;
-        let playerY = 0;
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                if (playerX === 0 && playerY === 0 && !world.getEntitiesAt({x, y}).some(entity => entity.hasComponent("impassable"))) {
-                    playerX = x;
-                    playerY = y;
-                    break;
-                }
-            }
-        }
+        // let playerX = 0;
+        // let playerY = 0;
+        // for (let y = 0; y < this.height; y++) {
+        //     for (let x = 0; x < this.width; x++) {
+        //         if (playerX === 0 && playerY === 0 && !world.getEntitiesAt({x, y}).some(entity => entity.hasComponent("impassable"))) {
+        //             playerX = x;
+        //             playerY = y;
+        //             break;
+        //         }
+        //     }
+        // }
 
-        this.placePlayer(playerX, playerY, world);
+        this.placePlayer(12, 12, world);
 
         return world;
     }
