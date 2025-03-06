@@ -73,7 +73,7 @@ export class RuntimeGame extends Game {
     private minimapDisplay!: Display;
     private minimapRenderer!: MinimapRenderer;
     private generator!: CityBlockGenerator;
-    objectiveCount: any;
+    private objectiveCount: number = 0;
 
     constructor(private readonly canvasId: string) {
         super();
@@ -178,10 +178,12 @@ export class RuntimeGame extends Game {
             // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
             this.objectiveCount++;
 
-            if(this.objectiveCount >= 3) {
+            if(this.objectiveCount >= 2) {
                 this.engine?.stop();
                 (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
             }
+            
+            this.selectObjective(this.world!);
         });
 
     }
@@ -536,12 +538,17 @@ export class RuntimeGame extends Game {
 
         randomObjective.setComponent(new ObjectiveComponent(true, true));
 
-        randomObjective.setComponent(new LightEmitterComponent({
+        const light = new LightEmitterComponent({
             "radius": 3,
             "color": "#55CE4A",
             "intensity": 0.9,
-            "distanceFalloff": "linear",
-        }));
+            "distanceFalloff": "linear"
+        });
+
+        
+        randomObjective.setComponent(light);
+        randomObjective.setComponent(light);
+
 
         // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
         // symbol.foreground = '#55CE4A';

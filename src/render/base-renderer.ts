@@ -258,7 +258,7 @@ export abstract class BaseRenderer implements Renderer {
             const state = this.lightStates.get(entity.getId());
             const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
 
-            logger.warn("lightEmitter component modified: ", entity.getId() + " " + JSON.stringify(lightEmitter));
+            // logger.warn("lightEmitter component modified: ", entity.getId() + " " + JSON.stringify(lightEmitter));
 
             if (!state) {
                 // If no state exists, treat this like a new light emitter
@@ -575,6 +575,8 @@ export abstract class BaseRenderer implements Renderer {
     private renderLightTiles(entity: Entity, state: LightState): void {
         // Early return if lights are disabled
         if (!this.lightsEnabled) return;
+        
+        // logger.warn("renderLightTiles: ", entity.getId() + " " + JSON.stringify(state));
 
         const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
         if (!lightEmitter) {
@@ -590,6 +592,8 @@ export abstract class BaseRenderer implements Renderer {
             existingTiles.forEach(tileId => this.display.removeTile(tileId));
             existingTiles.clear();
         }
+
+        // logger.warn("cleaned up existding tiles");
 
         // Initialize with entity position as fallback
         let offsetPosition: Point = {
@@ -616,6 +620,8 @@ export abstract class BaseRenderer implements Renderer {
             visibilityRadius
         );
 
+        // logger.warn("visibleTiles: ", visibleTiles.size);
+
         // If no visible tiles, exit early
         if (visibleTiles.size === 0) {
             logger.info(`No visible tiles for ${entity.getId()}`);
@@ -640,6 +646,8 @@ export abstract class BaseRenderer implements Renderer {
             Math.round(offsetPosition.y),
             Math.ceil(radius)
         );
+
+        // logger.warn("fov: ", fov.getVisible(sourcePos.x, sourcePos.y));
 
         const tileIntensities = new Map<string, number>();
         
@@ -747,6 +755,7 @@ export abstract class BaseRenderer implements Renderer {
                 continue;
             }
             this.createLightTile(x, y, intensity, state.currentProperties.color, newTiles, blendMode);
+            // logger.warn("created light tile: ", tileKey + " " + intensity);
         }
 
         // logger.info(`Setting light source tiles for ${entity.getId()} to ${newTiles.size} tiles`);
@@ -858,9 +867,26 @@ export abstract class BaseRenderer implements Renderer {
 
     // Update animation cycle
     public update(timestamp: number): void {
-        // logger.info(`Renderer updating at ${timestamp}`);
         this.lightValueAnimations.update(timestamp);
         this.lightColorAnimations.update(timestamp);
+
+        // Check all light emitters to see if they need re-rendering
+        for (const [entityId, state] of this.lightStates) {
+            const entity = this.world.getEntity(entityId);
+            if (entity && entity.hasComponent('lightEmitter')) {
+                // Get the player to check visibility
+                const player = this.world.getPlayer();
+                
+                // Check if it's in visible range of the player
+                const isVisible = this.world.canEntitySeePosition(player, entity.getPosition());
+                
+                // If it's visible but has no light tiles, re-render it
+                const existingTiles = this.lightSourceTiles.get(entityId);
+                if (isVisible && (!existingTiles || existingTiles.size === 0)) {
+                    this.renderLightTiles(entity, state);
+                }
+            }
+        }
     }
 
     // Update abstract methods

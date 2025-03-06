@@ -63,6 +63,11 @@ export class PlayerMovementSystem {
         if (prediction.willCollide) {
             logger.warn('Player movement collision detected');
             const to = prediction.collision;
+
+            if(!to) {
+                return;
+            }
+
             const entitiesAtNewPos = this.world.getEntitiesAt(to);
 
             const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);

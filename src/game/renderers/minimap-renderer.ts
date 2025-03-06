@@ -56,6 +56,7 @@ export class MinimapRenderer extends LayoutRenderer {
                 
                 this.markBlockExplored(this.playerBlock);
                 this.updatePlayerBlock();
+
             } else if (data.entity.hasComponent('aoe-damage')) {
                 this.helicopterBlock = {
                     x: Math.floor(data.to.x / 12),
@@ -73,21 +74,23 @@ export class MinimapRenderer extends LayoutRenderer {
                 this.updateObjectiveBlock();
             }
         });
+
+        // world.on('objectiveUpdated', (data: { entity: Entity, objective: ObjectiveComponent }) => {
     }
 
-    updatePlayerBlock() {
+    private updatePlayerBlock() {
         if (this.playerBlock && this.playerTile) {
             this.display.moveTile(this.playerTile, this.playerBlock.x, this.playerBlock.y);
         }
     }
 
-    updateHelicopterBlock() {
+    private updateHelicopterBlock() {
         if (this.helicopterBlock && this.helicopterTile) {
             this.display.moveTile(this.helicopterTile, this.helicopterBlock.x, this.helicopterBlock.y);
         }
     }
 
-    updateObjectiveBlock() {
+    private updateObjectiveBlock() {
         if (this.objectiveBlock && this.objectiveTile) {
             this.display.moveTile(this.objectiveTile, this.objectiveBlock.x, this.objectiveBlock.y);
         }

@@ -323,8 +323,6 @@ export class WorldSystem {
         for (const entity of lockedEntities) {
             const locked = entity.getComponent('locked') as LockedComponent;
             if(locked) {
-                logger.warn(`Locked entity ${entity.getId()} lastTurnLocked: ${locked.lastTurnLocked} totalUpdates: ${totalUpdates} deleteNextTurn: ${locked.deleteNextTurn}`);
-
                 if(locked.deleteNextTurn) {
                     entity.removeComponent('locked');
                 } else if(locked.lastTurnLocked + 10 < (totalUpdates ?? 0)) {

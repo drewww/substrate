@@ -66,9 +66,6 @@ export class EnemyAISystem {
 
                     symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + rotationOffset;
 
-
-
-                    logger.warn(`Setting rotation to ${symbol.rotation} for enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y}`);
                     enemy.setComponent(symbol);
                 }
             }

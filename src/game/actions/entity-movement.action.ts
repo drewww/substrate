@@ -73,6 +73,17 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
         // Check if movement is possible
         if (!shouldIgnoreImpassable && !world.isPassable(from.x, from.y, to.x, to.y, shouldIgnoreImpassable, allowDiagonal, shouldIgnoreImpathable)) {           
+            
+            // if the destination tile has an active objective in it, toggle that objective status and emit "objective-complete" event
+            const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
+            const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+            if (objective) {
+                const objectiveComponent = objective.getComponent('objective') as ObjectiveComponent;
+                objectiveComponent.active = !objectiveComponent.active;
+                objective.setComponent(objectiveComponent);
+                objective.removeComponent('lightEmitter');
+                world.emit('objective-complete', { objective });
+            }
 
             entity.setComponent(new BumpingComponent({
                 x: to.x - from.x,
@@ -117,7 +128,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                     // Update light emitter facing
                     const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
                     if (lightEmitter) {
-                        lightEmitter.config.facing = turnDirection;
+                        // lightEmitter.config.facing = turnDirection;
                         entity.setComponent(lightEmitter);
                     }
                 }
