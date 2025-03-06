@@ -263,8 +263,14 @@ export class World {
 
         const position = entity.getPosition();
         
-        // Update FOV map before removing
-        this.updateFOVForEntity(entity, position);
+        // Update FOV map if entity affects visibility
+        if (entity.hasComponent('opacity')) {
+            this.fovMap.removeBody(position.x, position.y);
+        }
+        if (entity.hasComponent('wall')) {
+            this.fovMap.removeWall(position.x, position.y, CardinalDirection.NORTH);
+            this.fovMap.removeWall(position.x, position.y, CardinalDirection.WEST);
+        }
 
         const key = this.pointToKey(position);
         const entitiesAtPosition = this.spatialMap.get(key);
@@ -277,6 +283,9 @@ export class World {
         
         this.emit('entityRemoved', { entity, position });
         logger.debug(`Entity ${entityId} removed from world`);
+
+        // Update player vision after entity removal
+        this.updatePlayerVision();
     }
 
     public getEntitiesAt(position: Point): Entity[] {
