@@ -503,7 +503,7 @@ export class RuntimeGame extends Game {
         });
 
         // Create minimap renderer
-        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay);
+        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay, this.world!);
         this.minimapRenderer.renderLayout(this.generator.getLayout()!);
 
         if (layout) {
