@@ -36,6 +36,8 @@ import testWorldUrl from '../assets/world/test-world.json?url';
 import { CityBlockGenerator } from './generators/city-block-generator.ts';
 import { EntitySpawnAction } from './actions/entity-spawn.action.ts';
 import { tileFlagsHasCardinalDirection } from 'wally-fov/lib/tile-flags';
+import { MinimapRenderer } from './renderers/minimap-renderer.ts';
+
 
 
 
@@ -66,7 +68,10 @@ export class RuntimeGame extends Game {
     private cooldownCleanupSystem!: CooldownCleanupSystem;
     private uiSpeedRenderer!: UISpeedRenderer;
     private enemyAISystem!: EnemyAISystem;
-    
+    private minimapDisplay!: Display;
+    private minimapRenderer!: MinimapRenderer;
+    private generator!: CityBlockGenerator;
+
     constructor(private readonly canvasId: string) {
         super();
     }
@@ -186,8 +191,8 @@ export class RuntimeGame extends Game {
     protected async setup(): Promise<void> {
         try {
             // Load the world from JSON using the URL
-            const generator = new CityBlockGenerator();
-            const world = await generator.generate();
+            this.generator = new CityBlockGenerator();
+            const world = await this.generator.generate();
             this.world = world;
 
             // Find the player entity that was created by the generator
@@ -299,6 +304,9 @@ export class RuntimeGame extends Game {
                 tiles: this.display!.getTilesAt(pos.x, pos.y)
             });
         });
+
+        // Add minimap setup
+        this.setupMinimap(this.world);
     }
 
     // Update the Game's prepare method to call setupAfterDisplay
@@ -473,5 +481,57 @@ export class RuntimeGame extends Game {
         this.display.addFrameCallback((display, timestamp) => {
             this.uiSpeedRenderer.update(timestamp);
         });
+    }
+
+    private setupMinimap(gameWorld: World): void {
+
+        // Get layout from city generator
+        const layout = this.generator.getLayout();
+
+        const blockWidth = Math.floor(gameWorld.getWorldWidth() / 12);
+        const blockHeight = Math.floor(gameWorld.getWorldHeight() / 12);
+
+        // Create minimap display
+        this.minimapDisplay = new Display({
+            elementId: 'minimap',  // Reference the canvas ID
+            worldWidth: blockWidth,
+            worldHeight: blockHeight,
+            cellWidth: 10,
+            cellHeight: 10,
+            viewportWidth: blockWidth,
+            viewportHeight: blockHeight
+        });
+
+        // Create minimap renderer
+        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay);
+        this.minimapRenderer.renderLayout(this.generator.getLayout()!);
+
+        if (layout) {
+            this.minimapRenderer.renderLayout(layout);
+
+            // Set up event listener for entity movements to update minimap
+            // this.world?.on('entityMoved', ({ entity, from, to }) => {
+            //     const blockWidth = 12; // Match your CityBlockGenerator blockWidth
+            //     const blockHeight = 12; // Match your CityBlockGenerator blockHeight
+
+            //     // Update player marker
+            //     if (entity.hasComponent('player')) {
+            //         const blockX = Math.floor(to.x / blockWidth);
+            //         const blockY = Math.floor(to.y / blockHeight);
+            //         this.minimapRenderer.setPlayerBlock(blockX, blockY);
+            //     }
+
+            //     // Update helicopter marker
+            //     if (entity.hasComponent('enemyAI') && 
+            //         (entity.getComponent('enemyAI') as any).aiType === 'HELICOPTER') {
+            //         const blockX = Math.floor(to.x / blockWidth);
+            //         const blockY = Math.floor(to.y / blockHeight);
+            //         this.minimapRenderer.setHelicopterBlock(blockX, blockY);
+            //     }
+
+            //     // Re-render the minimap
+            //     this.minimapRenderer.renderLayout(layout);
+            // });
+        }
     }
 }

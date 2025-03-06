@@ -19,6 +19,7 @@ import { MoveComponent } from '../components/move.component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
 import { HealthComponent } from '../../entity/components/health.component';
 import { AOEDamageComponent } from '../components/aoe-damage.component';
+import { ChunkMetadata } from '../generators/layout-generator';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -29,6 +30,8 @@ export class CityBlockGenerator {
 
     private readonly blockWidth: number = 12;
     private readonly blockHeight: number = 12;
+
+    private layout: ChunkMetadata[][] | null = null;
 
     private rotateEntityPosition(entity: Entity, orientation: number, blockWidth: number, blockHeight: number): void {
         const pos = entity.getPosition();
@@ -83,13 +86,13 @@ export class CityBlockGenerator {
 
         // Create and use the staged layout generator
         const layoutGenerator = new StagedLayoutGenerator(this.width, this.height);
-        const layout = layoutGenerator.generate();
+        this.layout = layoutGenerator.generate();  // Store the layout
 
         // Process each cell in the layout
         let blockId = 0;  // Add block ID counter
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
-                const cell = layout[y][x];
+                const cell = this.layout[y][x];
                 if (!cell) continue;
 
                 try {
@@ -403,5 +406,9 @@ export class CityBlockGenerator {
             '#000000'
         ));
         world.addEntity(road);
+    }
+
+    public getLayout(): ChunkMetadata[][] | null {
+        return this.layout;
     }
 } 

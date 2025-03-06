@@ -2,7 +2,7 @@ import { Display } from '../../display/display';
 import { ChunkMetadata, Direction, RoadWeight, RoadType } from './layout-generator';
 
 export class LayoutRenderer {
-    constructor(private display: Display) {}
+    constructor(protected display: Display) {}
 
     private getRoadSymbol(connections: Direction[], weight: RoadWeight = 'minor'): string {
         // Handle empty connections array

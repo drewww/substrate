@@ -25,6 +25,8 @@
             max-height: 100vh;
             overflow-y: auto;
             width: 25%;
+
+            display: none;
         }
         .debug-overlays > div {
             background: rgba(0, 0, 0, 0.8);
@@ -115,12 +117,30 @@
             white-space: pre;
             overflow-x: auto;
         }
+
+        #minimap-container {
+            position: absolute;
+            bottom: 120px;
+            right: 100px;
+            /* border: 1px solid #333; */
+            background-color: #111;
+            /* padding: 2px; */
+            z-index: 100;  /* Ensure it's above other elements */
+        }
+
+        #minimap {
+            display: block;
+            image-rendering: pixelated;  /* Makes scaled pixels crisp */
+        }
     </style>
 </head>
 <body>
     <div id="display-container">
         <canvas id="display"></canvas>
         <canvas id="ui-overlay"></canvas>
+        <div id="minimap-container">
+            <canvas id="minimap"></canvas>
+        </div>
     </div>
     
     <div class="controls">
