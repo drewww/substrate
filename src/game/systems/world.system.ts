@@ -294,7 +294,7 @@ export class WorldSystem {
 
         if(playerHealth.health >= 0) {
             if(!player.hasComponent('locked')) {
-                playerHealth.health = Math.max(playerHealth.health + 1, playerHealth.maxHealth);
+                playerHealth.health = Math.min(playerHealth.health + 1, playerHealth.maxHealth);
                 player.setComponent(playerHealth);
             }
         }
