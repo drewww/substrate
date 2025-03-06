@@ -329,21 +329,25 @@ export class RuntimeRenderer extends GameRenderer {
             const tileId = this.entityTiles.get(entity.getId());
             const symbol = entity.getComponent('symbol') as SymbolComponent;
             if (tileId && symbol) {
-                // Update tile properties including rotation
-                this.display.updateTile(tileId, {
-                    char: symbol.char,
-                    fg: symbol.foreground,
-                    bg: symbol.background,
-                    rotation: symbol.rotation,
+                // Only update properties that are explicitly set on the symbol
+                const updates: any = {};
+                
+                if (symbol.char !== undefined) updates.char = symbol.char;
+                if (symbol.foreground !== undefined) updates.fg = symbol.foreground;
+                if (symbol.background !== undefined) updates.bg = symbol.background;
+                if (symbol.rotation !== undefined) updates.rotation = symbol.rotation;
+                if (symbol.scaleSymbolX !== undefined) updates.scaleSymbolX = symbol.scaleSymbolX;
+                if (symbol.scaleSymbolY !== undefined) updates.scaleSymbolY = symbol.scaleSymbolY;
+                if (symbol.offsetSymbolX !== undefined) updates.offsetSymbolX = symbol.offsetSymbolX;
+                if (symbol.offsetSymbolY !== undefined) updates.offsetSymbolY = symbol.offsetSymbolY;
+                if (symbol.zIndex !== undefined) updates.zIndex = symbol.zIndex;
+                if (symbol.alwaysRenderIfExplored !== undefined) updates.alwaysRenderIfExplored = symbol.alwaysRenderIfExplored;
+                if (symbol.lockRotationToFacing !== undefined) updates.lockRotationToFacing = symbol.lockRotationToFacing;
 
-                    scaleSymbolX: symbol.scaleSymbolX,
-                    scaleSymbolY: symbol.scaleSymbolY,
-                    offsetSymbolX: symbol.offsetSymbolX,
-                    offsetSymbolY: symbol.offsetSymbolY,
-                    zIndex: symbol.zIndex,
-                    alwaysRenderIfExplored: symbol.alwaysRenderIfExplored,
-                    lockRotationToFacing: symbol.lockRotationToFacing,
-                });
+                // Only call updateTile if we have properties to update
+                if (Object.keys(updates).length > 0) {
+                    this.display.updateTile(tileId, updates);
+                }
             }
         }
     }

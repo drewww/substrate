@@ -216,16 +216,20 @@ export abstract class BaseRenderer implements Renderer {
             const tileId = this.entityTiles.get(entity.getId());
             const symbol = entity.getComponent('symbol') as SymbolComponent;
             if (tileId && symbol) {
-                // Clear existing animations
-                this.display.clearAnimations(tileId);
-                
-                // Update tile properties
-                this.createOrUpdateSymbolTile(entity, symbol, tileId);
-
-                // Re-add animations if configured
-                if (symbol.animations) {
-                    this.handleSymbolAnimations(tileId, symbol.animations);
-                }
+                // Just update the tile properties without touching animations
+                this.display.updateTile(tileId, {
+                    char: symbol.char,
+                    fg: symbol.foreground,
+                    bg: symbol.background,
+                    // Only include other properties if they're explicitly set
+                    ...(symbol.zIndex !== undefined && { zIndex: symbol.zIndex }),
+                    ...(symbol.offsetSymbolX !== undefined && { offsetSymbolX: symbol.offsetSymbolX }),
+                    ...(symbol.offsetSymbolY !== undefined && { offsetSymbolY: symbol.offsetSymbolY }),
+                    ...(symbol.scaleSymbolX !== undefined && { scaleSymbolX: symbol.scaleSymbolX }),
+                    ...(symbol.scaleSymbolY !== undefined && { scaleSymbolY: symbol.scaleSymbolY }),
+                    ...(symbol.rotation !== undefined && { rotation: symbol.rotation }),
+                    ...(symbol.blendMode !== undefined && { blendMode: symbol.blendMode as BlendMode }),
+                });
             }
         } 
 

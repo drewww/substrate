@@ -44,12 +44,12 @@ export class EnemyAISystem {
                 }
 
                 // set rotation to point to the player
-                // const symbol = enemy.getComponent('symbol') as SymbolComponent;
-                // if(symbol) {
-                //     symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + Math.PI / 2 + Math.PI;
-                //     logger.warn(`Setting rotation to ${symbol.rotation} for enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y}`);
-                //     enemy.setComponent(symbol);
-                // }
+                const symbol = enemy.getComponent('symbol') as SymbolComponent;
+                if(symbol) {
+                    symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + Math.PI / 2 + Math.PI;
+                    logger.warn(`Setting rotation to ${symbol.rotation} for enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y}`);
+                    enemy.setComponent(symbol);
+                }
             }
         }
 
@@ -62,7 +62,7 @@ export class EnemyAISystem {
             symbol.foreground = '#FF194DFF';
         }
 
-        // enemy.setComponent(symbol);
+        enemy.setComponent(symbol);
 
         switch (ai.aiType) {
             case EnemyAIType.CAMERA:
