@@ -298,7 +298,7 @@ export class World {
             .filter((entity): entity is Entity => entity !== undefined);
     }
 
-    public getAdjacentPassableLocations(position: Point): Point[] {
+    public getAdjacentPassableLocations(position: Point,ignoreImpassable: boolean = false, allowDiagonal: boolean = false): Point[] {
         const adjacentLocations: Point[] = [];
         for(let dx = -1; dx <= 1; dx++) {
             for(let dy = -1; dy <= 1; dy++) {
@@ -1217,13 +1217,20 @@ export class World {
      * Check if movement between two adjacent tiles is possible
      * @returns false if tiles aren't adjacent, if there's an impassable wall between them, or if destination is impassable
      */
-    public isPassable(fromX: number, fromY: number, toX: number, toY: number, ignoreImpassable: boolean = false): boolean {
-        // Check if tiles are adjacent in cardinal directions
-        const dx = toX - fromX;
-        const dy = toY - fromY;
+    public isPassable(fromX: number, fromY: number, toX: number, toY: number, ignoreImpassable: boolean = false, allowDiagonal: boolean = false): boolean {
+        // Check if tiles are adjacent
+        const dx = Math.abs(toX - fromX);
+        const dy = Math.abs(toY - fromY);
+
+        // logger.info(`isPassable: ${fromX},${fromY} to ${toX},${toY} ignoreImpassable: ${ignoreImpassable} allowDiagonal: ${allowDiagonal}`);
         
-        // Must be adjacent in exactly one direction
-        if (Math.abs(dx) + Math.abs(dy) !== 1) {
+        // If diagonal movement is not allowed, require exactly one direction of movement
+        if (!allowDiagonal && dx + dy !== 1) {
+            return false;
+        }
+        
+        // If diagonal movement is allowed, check for valid adjacent moves (including diagonal)
+        if (allowDiagonal && (dx > 1 || dy > 1 || (dx === 0 && dy === 0))) {
             return false;
         }
 
@@ -1301,12 +1308,12 @@ export class World {
     /**
      * Find a path between two points, respecting walls and impassable entities
      */
-    public findPath(start: Point, end: Point, ignoreImpassable: boolean = false): Point[] | null {
+    public findPath(start: Point, end: Point, ignoreImpassable: boolean = false, allowDiagonal: boolean = false): Point[] | null {
         if (!this.isValidPosition(start) || !this.isValidPosition(end)) {
             return null;
         }
 
-        logger.info(`findPath: ${start.x},${start.y} to ${end.x},${end.y} ignoreImpassable: ${ignoreImpassable}`);
+        logger.info(`findPath: ${start.x},${start.y} to ${end.x},${end.y} ignoreImpassable: ${ignoreImpassable} allowDiagonal: ${allowDiagonal}`);
 
         const openSet = new Set<string>();
         const closedSet = new Set<string>();
@@ -1332,7 +1339,7 @@ export class World {
             closedSet.add(current);
 
             // Check all neighbors
-            const neighbors = this.getValidNeighbors(currentPoint, end, ignoreImpassable);
+            const neighbors = this.getValidNeighbors(currentPoint, end, ignoreImpassable, allowDiagonal);
             for (const neighbor of neighbors) {
                 const neighborKey = this.pointToKey(neighbor);
                 
@@ -1348,7 +1355,7 @@ export class World {
 
                 // Check passability only for tiles that aren't start/end
                 if (!isStartOrEnd && 
-                    !this.isPassable(currentPoint.x, currentPoint.y, neighbor.x, neighbor.y, ignoreImpassable)) {
+                    !this.isPassable(currentPoint.x, currentPoint.y, neighbor.x, neighbor.y, ignoreImpassable, allowDiagonal)) {
                     continue;
                 }
                 
@@ -1362,7 +1369,13 @@ export class World {
                     continue;
                 }
 
-                const tentativeGScore = gScore.get(current)! + 1;
+                // Calculate actual movement cost - diagonal moves should cost LESS than two cardinal moves
+                const dx = Math.abs(neighbor.x - currentPoint.x);
+                const dy = Math.abs(neighbor.y - currentPoint.y);
+                // A diagonal move (cost ~1.4) should be cheaper than two cardinal moves (cost 2.0)
+                // const moveCost = (dx + dy > 1) ? 1.4 : 1;
+                const moveCost = 1;
+                const tentativeGScore = gScore.get(current)! + moveCost;
 
                 if (!openSet.has(neighborKey)) {
                     openSet.add(neighborKey);
@@ -1390,14 +1403,26 @@ export class World {
     /**
      * Get valid neighboring positions that can be moved to
      */
-    private getValidNeighbors(pos: Point, end: Point, ignoreImpassable: boolean = false): Point[] {
+    private getValidNeighbors(pos: Point, end: Point, ignoreImpassable: boolean = false, allowDiagonal: boolean = false): Point[] {
         const neighbors: Point[] = [];
+        
+        // Base directions (cardinal)
         const directions = [
             { x: 0, y: -1 },  // North
             { x: 1, y: 0 },   // East
             { x: 0, y: 1 },   // South
             { x: -1, y: 0 }   // West
         ];
+
+        // Add diagonal directions if allowed
+        if (allowDiagonal) {
+            directions.push(
+                { x: 1, y: -1 },  // Northeast
+                { x: 1, y: 1 },   // Southeast
+                { x: -1, y: 1 },  // Southwest
+                { x: -1, y: -1 }  // Northwest
+            );
+        }
 
         for (const dir of directions) {
             const newPos = { x: pos.x + dir.x, y: pos.y + dir.y };
@@ -1407,9 +1432,20 @@ export class World {
                 continue;
             }
 
+            // For diagonal moves, check both cardinal directions are passable
+            if (Math.abs(dir.x) === 1 && Math.abs(dir.y) === 1) {
+                const horizontalPos = { x: pos.x + dir.x, y: pos.y };
+                const verticalPos = { x: pos.x, y: pos.y + dir.y };
+                
+                if (!this.isPassable(pos.x, pos.y, horizontalPos.x, horizontalPos.y, ignoreImpassable, allowDiagonal) ||
+                    !this.isPassable(pos.x, pos.y, verticalPos.x, verticalPos.y, ignoreImpassable, allowDiagonal)) {
+                    continue;
+                }
+            }
+
             // Check if the move is passable (considering ignoreImpassable)
             // or if it's the end position
-            if (this.isPassable(pos.x, pos.y, newPos.x, newPos.y, ignoreImpassable) || 
+            if (this.isPassable(pos.x, pos.y, newPos.x, newPos.y, ignoreImpassable, allowDiagonal) || 
                 (newPos.x === end.x && newPos.y === end.y)) {
                 neighbors.push(newPos);
             }
@@ -1421,8 +1457,8 @@ export class World {
     /**
      * Get the next move towards a destination, or null if no path exists
      */
-    public getNextMove(start: Point, end: Point, ignoreImpassable: boolean = false): Point | null {
-        const path = this.findPath(start, end, ignoreImpassable);
+    public getNextMove(start: Point, end: Point, ignoreImpassable: boolean = false, allowDiagonal: boolean = false): Point | null {
+        const path = this.findPath(start, end, ignoreImpassable, allowDiagonal);
         if (!path || path.length < 2) {
             return null;
         }
@@ -1432,13 +1468,18 @@ export class World {
     /**
      * Check if a path exists between two points
      */
-    public hasPath(start: Point, end: Point, ignoreImpassable: boolean = false): boolean {
-        return this.findPath(start, end, ignoreImpassable) !== null;
+    public hasPath(start: Point, end: Point, ignoreImpassable: boolean = false, allowDiagonal: boolean = false): boolean {
+        return this.findPath(start, end, ignoreImpassable, allowDiagonal) !== null;
     }
 
     private heuristic(a: Point, b: Point): number {
-        // Manhattan distance
-        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+        // Use octile distance with a preference for diagonal moves
+        const dx = Math.abs(a.x - b.x);
+        const dy = Math.abs(a.y - b.y);
+        // Diagonal moves cost less than two cardinal moves (0.9 vs 1.0)
+        // This makes the pathfinder prefer diagonal routes
+        // return Math.max(dx, dy) + 0.9 * Math.min(dx, dy);
+        return 1;
     }
 
     private getLowestFScore(openSet: Set<string>, fScore: Map<string, number>): string {

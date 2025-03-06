@@ -27,11 +27,40 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
         let shouldIgnoreImpassable = action.data.force? true : false;
 
-        // Get the move component to check ignoreImpassable
+        // Get the move component to check ignoreImpassable and allowDiagonal
         const moveComponent = entity.getComponent('move') as MoveComponent;
 
         if(moveComponent?.ignoreImpassable) {
             shouldIgnoreImpassable = true;
+        }
+
+        // Check if this is a diagonal move
+        const dx = Math.abs(to.x - from.x);
+        const dy = Math.abs(to.y - from.y);
+        const isDiagonal = dx === 1 && dy === 1;
+
+        // Block diagonal moves if not allowed by MoveComponent
+        if (isDiagonal && !moveComponent?.allowDiagonal) {
+            entity.setComponent(new BumpingComponent({
+                x: to.x - from.x,
+                y: to.y - from.y
+            }));
+            return false;
+        }
+
+        // For diagonal moves, check both cardinal directions are passable
+        if (isDiagonal && !shouldIgnoreImpassable) {
+            const horizontalPos = { x: to.x, y: from.y };
+            const verticalPos = { x: from.x, y: to.y };
+            
+            if (!world.isPassable(from.x, from.y, horizontalPos.x, horizontalPos.y) ||
+                !world.isPassable(from.x, from.y, verticalPos.x, verticalPos.y)) {
+                entity.setComponent(new BumpingComponent({
+                    x: to.x - from.x,
+                    y: to.y - from.y
+                }));
+                return false;
+            }
         }
 
         // Check if movement is possible

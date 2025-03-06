@@ -5,7 +5,7 @@ import { RegisterComponent } from "../../entity/component-registry";
 export class MoveComponent extends Component {
     type: 'move' = 'move';
 
-    constructor(public ignoreImpassable: boolean = false) {
+    constructor(public ignoreImpassable: boolean = false, public allowDiagonal: boolean = false) {
         super();
     }
 }

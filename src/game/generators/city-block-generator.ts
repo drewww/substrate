@@ -318,7 +318,7 @@ export class CityBlockGenerator {
         helicopter.setComponent(symbol);
         helicopter.setComponent(new VisionComponent(10, true));
         helicopter.setComponent(new EnemyAIComponent(EnemyAIType.HELICOPTER));
-        helicopter.setComponent(new MoveComponent(true)); // true lets it move through walls
+        helicopter.setComponent(new MoveComponent(true, true)); // true lets it move through walls, true lets it move diagonally
         helicopter.setComponent(new AOEDamageComponent(3, 0.5));
 
         helicopter.setComponent(new CooldownComponent({
@@ -382,7 +382,7 @@ export class CityBlockGenerator {
         homingBot.setComponent(symbol);
         homingBot.setComponent(new VisionComponent(10, false));
         homingBot.setComponent(new EnemyAIComponent(EnemyAIType.FOLLOWER));
-        
+        homingBot.setComponent(new MoveComponent(false, true)); // true lets it move through walls, true lets it move diagonally
         homingBot.setComponent(new CooldownComponent({
             "move": {
                 "base": 2,

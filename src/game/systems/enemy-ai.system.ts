@@ -210,7 +210,11 @@ export class EnemyAISystem {
 
 
                     if(ai.destination) {
-                        const path = this.world.findPath(enemy.getPosition(), ai.destination);
+                        const moveComponent = enemy.getComponent('move') as MoveComponent;
+                        const allowDiagonal = moveComponent?.allowDiagonal || false;
+                        const ignoreImpassable = moveComponent?.ignoreImpassable || false;
+                        
+                        const path = this.world.findPath(enemy.getPosition(), ai.destination, ignoreImpassable, allowDiagonal);
 
                         if(path && path.length > 1) {
                             const nextPos = path[1];
@@ -278,8 +282,9 @@ export class EnemyAISystem {
 
         const moveComponent = enemy.getComponent('move') as MoveComponent;
         const ignoreImpassable = moveComponent?.ignoreImpassable || false;
+        const allowDiagonal = moveComponent?.allowDiagonal || false;
 
-        const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition(), ignoreImpassable);
+        const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition(), ignoreImpassable, allowDiagonal);
         
         logger.warn("Next move: ", path);
 
