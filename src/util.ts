@@ -47,3 +47,13 @@ export function getTargetPosition(pos: Point, direction: Direction): Point {
         case Direction.None: return pos;
     }
 }
+
+export function getOppositeDirection(direction: Direction): Direction {
+    switch (direction) {
+        case Direction.North: return Direction.South;
+        case Direction.South: return Direction.North;
+        case Direction.West: return Direction.East;
+        case Direction.East: return Direction.West;
+        case Direction.None: return Direction.None;
+    }
+}

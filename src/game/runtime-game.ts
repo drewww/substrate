@@ -39,6 +39,10 @@ import { tileFlagsHasCardinalDirection } from 'wally-fov/lib/tile-flags';
 import { MinimapRenderer } from './renderers/minimap-renderer.ts';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component.ts';
 import { ObjectiveComponent } from './components/objective.component.ts';
+import { VehicleLeaderComponent } from './components/vehicle-leader.component.ts';
+import { FollowerComponent } from '../entity/components/follower-component.ts';
+import { FacingComponent } from '../entity/components/facing-component.ts';
+import { getOppositeDirection, getTargetPosition } from '../util.ts';
 
 
 
@@ -248,6 +252,8 @@ export class RuntimeGame extends Game {
 
             // Note: These setup calls will happen after display is created in prepare()
             // They are moved out of setup() and will be called after prepare() creates the display
+
+            this.postProcessVehicles(this.world);
         } catch (error) {
             logger.error('Failed to load world:', error);
             // Fallback to EnemyWorldGenerator if JSON loading fails
@@ -532,9 +538,53 @@ export class RuntimeGame extends Game {
         }
     }
 
+    private postProcessVehicles(world: World) {
+        const vehicleLeaders = world.getEntitiesWithComponent('vehicle-leader');
+        let vehicleId:number = 0;
+        vehicleLeaders.forEach(vehicleLeader => {
+            vehicleId++;
+            const leader = vehicleLeader.getComponent('vehicle-leader') as VehicleLeaderComponent;
+            leader.vehicleId = vehicleId;
+            
+
+            // now we need to find all followers and set their vehicleId
+            const facing = vehicleLeader.getComponent('facing') as FacingComponent;
+            const direction = facing.direction;
+
+            // loop "backwards" from direction until we hit a space with no FOLLOWER
+            // set the follower's vehicleId to the current vehicleId
+            for (let i = 1; i <= 3; i++) {
+                let targetPosition = vehicleLeader.getPosition();
+                for (let step = 0; step < i; step++) {
+                    targetPosition = getTargetPosition(targetPosition, getOppositeDirection(direction));
+                }
+
+                const entities = world.getEntitiesAt(targetPosition);
+                const follower = entities.find(entity => entity.hasComponent('follower'));
+                if(follower) {
+                    const followerComponent = follower.getComponent('follower') as FollowerComponent;
+                    followerComponent.vehicleId = vehicleId;
+                    follower.setComponent(followerComponent);
+
+                    logger.warn(`set follower ${follower.getId()} to vehicle ${vehicleId}`);
+                } else {
+                    break;
+                }
+            }
+            
+        });
+
+    }
+
     private selectObjective(world: World) {
         const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === false);
         const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
+
+        // now we need to propagate this to all touching objectives
+        // AH we can't just do this because in the world it may be cars are touching for various reasons when this happens
+        // so we need some vehicle ID. so a new "leader" component and follower ids that match. 
+
+
 
         randomObjective.setComponent(new ObjectiveComponent(true, true));
 

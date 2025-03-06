@@ -7,20 +7,22 @@ export class FollowerComponent extends Component {
     
     constructor(
         public followedEntityId: string | null = null,
-        public lastKnownPosition: Point | null = null
+        public lastKnownPosition: Point | null = null,
+        public vehicleId: number | null = null
     ) {
         super();
     }
 
     clone(): Component {
-        return new FollowerComponent(this.followedEntityId, this.lastKnownPosition);
+        return new FollowerComponent(this.followedEntityId, this.lastKnownPosition, this.vehicleId);
     }
     
     serialize(): SerializedComponent {
         return {
             type: this.type,
             followedEntityId: this.followedEntityId,
-            lastKnownPosition: this.lastKnownPosition
+            lastKnownPosition: this.lastKnownPosition,
+            vehicleId: this.vehicleId
         };
     }
     

@@ -5706,6 +5706,9 @@
           "eligible": false
         },
         {
+          "type": "vehicle-leader"
+        },
+        {
           "type": "followable",
           "followPriority": 100,
           "lastPosition": null
@@ -5772,6 +5775,9 @@
           "eligible": true
         },
         {
+          "type": "vehicle-leader"
+        },
+        {
           "type": "cooldown",
           "cooldowns": {
             "move": {
@@ -5831,6 +5837,9 @@
           "type": "objective",
           "active": false,
           "eligible": true
+        },
+        {
+          "type": "vehicle-leader"
         },
         {
           "type": "cooldown",
