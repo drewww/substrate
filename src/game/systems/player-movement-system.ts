@@ -12,6 +12,7 @@ import { TurboComponent } from '../components/turbo.component';
 import { directionToRadians } from '../../util';
 import { FacingComponent } from '../../entity/components/facing-component';
 import { ObjectiveComponent } from '../components/objective.component';
+import { StunComponent } from '../components/stun.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -77,6 +78,18 @@ export class PlayerMovementSystem {
                 objective.setComponent(objectiveComponent);
                 objective.removeComponent('lightEmitter');
                 this.world.emit('objective-complete', { objective });
+            }
+
+            // stun the objective we're stealing from too
+            if(objective) {
+                this.actionHandler.execute({
+                    type: 'stun',
+                    entityId: objective.getId(),
+                    data: {
+                        duration: 24,
+                        resetInertia: true
+                    }
+                });
             }
 
 
