@@ -49,15 +49,15 @@ export class UISpeedRenderer implements Renderer {
     constructor(
         private readonly player: Entity
     ) {
-        // Create UI display with same cell dimensions but only 1 row
+        // Create UI display with same cell dimensions but 2 rows now
         this.uiDisplay = new Display({
             elementId: 'ui-overlay',
-            cellWidth: 20,
+            cellWidth: 10,
             cellHeight: 20,
-            viewportWidth: 40,
-            viewportHeight: 1,
-            worldWidth: 40,
-            worldHeight: 1
+            viewportWidth: 80,
+            viewportHeight: 2,
+            worldWidth: 80,
+            worldHeight: 2
         });
 
         // Position UI canvas absolutely
@@ -71,21 +71,23 @@ export class UISpeedRenderer implements Renderer {
     }
 
     private initializeUI(): void {
-        // Create black background for bottom row with top walls
-        for (let x = 0; x < this.uiDisplay.getViewportWidth(); x++) {
-            const tileId = this.uiDisplay.createTile(
-                x,
-                0,  // Always y=0 since we only have one row
-                ' ',
-                '#FFFFFFFF',
-                '#000000FF',
-                1000,
-                {
-                    walls: [true, false],  // [north, west] - only north wall
-                    wallColors: ['#FFFFFFFF', null]  // Semi-transparent white for north wall
-                }
-            );
-            this.uiTiles.set(`bg_${x}`, [tileId]);
+        // Create black background for both rows with top walls
+        for (let y = 0; y < 2; y++) {
+            for (let x = 0; x < this.uiDisplay.getViewportWidth(); x++) {
+                const tileId = this.uiDisplay.createTile(
+                    x,
+                    y,
+                    ' ',
+                    '#FFFFFFFF',
+                    '#000000FF',
+                    1000,
+                    {
+                        walls: y === 0 ? [true, false] : [false, false],  // Only top row gets north wall
+                        wallColors: y === 0 ? ['#FFFFFFFF', null] : [null, null]  // Semi-transparent white for north wall
+                    }
+                );
+                this.uiTiles.set(`bg_${x}_${y}`, [tileId]);
+            }
         }
 
         // Create gear indicator tile
@@ -145,6 +147,29 @@ export class UISpeedRenderer implements Renderer {
         //     1001
         // );
         // this.uiTiles.set('time', timeTileIds);
+
+        // Add labels below the indicators (y=1 since indicators are at y=0)
+        const speedLabelTileIds = this.uiDisplay.createString(
+            this.SPEED_START_X,  // Same X as speed indicator
+            1,
+            'velocity',
+            1001,
+            {
+                fontFamily: 'monospace',
+            }
+        );
+        this.uiTiles.set('speed_label', speedLabelTileIds);
+
+        const healthLabelTileIds = this.uiDisplay.createString(
+            this.HEALTH_START_X,  // Same X as health indicator
+            1,
+            'integrity',
+            1001,
+            {
+                fontFamily: 'monospace',
+            }
+        );
+        this.uiTiles.set('health_label', healthLabelTileIds);
 
         this.updateSpeedIndicator();
         this.updateHealthIndicator();

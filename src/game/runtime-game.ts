@@ -326,7 +326,7 @@ export class RuntimeGame extends Game {
             });
         });
 
-        this.selectObjective(this.world);
+        // this.selectObjective(this.world);
 
         // Add minimap setup
         this.setupMinimap(this.world);
@@ -586,7 +586,7 @@ export class RuntimeGame extends Game {
             logger.warn('no leader found for objective');
             return;
         }
-        
+
         const vehicleId = leader.vehicleId;
 
         logger.warn(`setting objective on vehicle ${vehicleId}`);
