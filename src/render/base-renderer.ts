@@ -263,6 +263,16 @@ export abstract class BaseRenderer implements Renderer {
             if (!state) {
                 // If no state exists, treat this like a new light emitter
                 this.addEntityLight(entity);
+                // Add move callback here too
+                const tileId = this.entityTiles.get(entity.getId());
+                if (tileId) {
+                    this.display.setTileMoveCallback(tileId, (tileId, x, y) => {
+                        const state = this.lightStates.get(entity.getId());
+                        if (state) {
+                            this.renderLightTiles(entity, state);
+                        }
+                    });
+                }
             } else if (lightEmitter) {
                 // Update existing state
                 state.currentProperties.radius = lightEmitter.config.radius ?? state.baseProperties.radius;
