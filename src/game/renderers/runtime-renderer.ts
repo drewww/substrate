@@ -158,13 +158,13 @@ export class RuntimeRenderer extends GameRenderer {
             });
 
             if (isPlayer) {
-                // check our inertia. if it's > 2, leave behind a fading "trail" tile
                 const inertia = entity.getComponent('inertia') as InertiaComponent;
                 const turbo = entity.getComponent('turbo') as TurboComponent;
 
                 if (inertia && inertia.magnitude >= 2) {
-
-                    const baseColor = turbo ? '#e8e7a9' : '#005577';
+                    // Only use yellow color if turbo is active and working (not out of energy)
+                    logger.warn(`turbo: ${turbo?.turnsSinceEngaged} ${turbo?.turnsSinceEngaged > 0}`);
+                    const baseColor = turbo && turbo.turnsSinceEngaged > 0 ? '#e8e7a9' : '#005577';
 
                     const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', baseColor + '44', 300, {
                         bgPercent: 1,

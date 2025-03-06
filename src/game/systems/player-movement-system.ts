@@ -133,11 +133,6 @@ export class PlayerMovementSystem {
             prediction.finalInertia.magnitude -= 1;
         }
 
-        // Execute all predicted moves
-        for (const action of prediction.actions) {
-            this.actionHandler.execute(action);
-        }
-
         // Drain energy if turbo is active and force turbo disengage if energy runs out
         if (turbo && energy) {
             energy.energy = Math.max(0, energy.energy - 5);
@@ -145,18 +140,34 @@ export class PlayerMovementSystem {
 
             // Force turbo disengage if we're out of energy
             if (energy.energy <= 0) {
-                player.removeComponent('turbo');
-                // Force speed decay when energy runs out
-                if (prediction.finalInertia.magnitude > 6) {
-                    prediction.finalInertia.magnitude -= 1;
-                }
-                // Reset to normal speed cooldown
+                logger.warn('turbo disengaged due to energy depletion');
+                // First, update cooldowns
                 const cooldowns = player.getComponent('cooldown') as CooldownComponent;
                 if (cooldowns) {
                     cooldowns.setCooldown('move', 2, 2);
                     player.setComponent(cooldowns);
                 }
+
+                // Force speed decay when energy runs out
+                if (prediction.finalInertia.magnitude > 6) {
+                    prediction.finalInertia.magnitude -= 1;
+                }
+
+                // Remove turbo AFTER updating other components
+                player.removeComponent('turbo');
+
+                // Execute movement AFTER removing turbo
+                // Execute all predicted moves
+                for (const action of prediction.actions) {
+                    this.actionHandler.execute(action);
+                }
+                return; // Exit early after handling energy depletion
             }
+        }
+
+        // Only execute moves if we didn't handle energy depletion
+        for (const action of prediction.actions) {
+            this.actionHandler.execute(action);
         }
 
         // Update inertia with predicted final state

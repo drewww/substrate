@@ -410,7 +410,14 @@ export class RuntimeGame extends Game {
             
             // Only allow turbo if we have enough speed AND enough energy
             if(inertia && inertia.magnitude >= 6 && !turbo && energy && energy.energy >= 10) {
+                logger.warn('turbo engaged');
                 this.player.setComponent(new TurboComponent());
+            } else {
+                const inertia = this.player.getComponent('inertia') as InertiaComponent;
+                if (inertia && inertia.magnitude > 6) {
+                    inertia.magnitude -= 1;
+                    this.player.setComponent(inertia);
+                }
             }
         } else if(action === 'turbo' && (type === 'up')) {
             this.player.removeComponent('turbo');
