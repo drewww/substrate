@@ -53,7 +53,21 @@ export class EnemyAISystem {
                 // set rotation to point to the player
                 const symbol = enemy.getComponent('symbol') as SymbolComponent;
                 if(symbol) {
-                    symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + Math.PI / 2 + Math.PI;
+
+                    let rotationOffset = 0;
+                    switch(ai.aiType) {
+                        case EnemyAIType.CAMERA:
+                            rotationOffset = Math.PI / 2 + Math.PI;
+                            break;
+                        case EnemyAIType.EMP_TURRET:
+                            rotationOffset = Math.PI/2;
+                            break;
+                    }
+
+                    symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + rotationOffset;
+
+
+
                     logger.warn(`Setting rotation to ${symbol.rotation} for enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y}`);
                     enemy.setComponent(symbol);
                 }
@@ -213,7 +227,7 @@ export class EnemyAISystem {
                         const moveComponent = enemy.getComponent('move') as MoveComponent;
                         const allowDiagonal = moveComponent?.allowDiagonal || false;
                         const ignoreImpassable = moveComponent?.ignoreImpassable || false;
-                        
+
                         const path = this.world.findPath(enemy.getPosition(), ai.destination, ignoreImpassable, allowDiagonal);
 
                         if(path && path.length > 1) {

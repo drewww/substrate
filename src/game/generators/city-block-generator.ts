@@ -238,7 +238,7 @@ export class CityBlockGenerator {
         // later make sure it's not too close to the player
         // this.placeHelicopter(Math.floor(world.getWorldWidth()*Math.random()),
         //                      Math.floor(world.getWorldHeight()*Math.random()), world);
-        this.placeHelicopter(20, 20, world);
+        // this.placeHelicopter(20, 20, world);
         
 
         // this.placeCamera(11, 11, world);
@@ -285,7 +285,7 @@ export class CityBlockGenerator {
             }
         }
 
-        // this.placeTurret(11, 11, world);
+        this.placeTurret(11, 11, world);
         
         // this.placeHomingBot(16, 16, world);
 
