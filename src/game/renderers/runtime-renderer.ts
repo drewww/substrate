@@ -607,7 +607,7 @@ export class RuntimeRenderer extends GameRenderer {
     public displayGameOver(): void {
         const worldSize = this.world.getSize();
         const wipeDelay = 10; // ms between each row
-        const wipeAlpha = 'AA';
+        const wipeAlpha = '88';
 
         // Create wipe effect from top to bottom
         for (let y = 0; y < worldSize.y; y++) {
@@ -627,8 +627,8 @@ export class RuntimeRenderer extends GameRenderer {
 
         // After wipe completes, show game over text
         setTimeout(() => {
-            const centerX = Math.floor(this.display.getViewportWidth() / 2) - 4; // "GAME OVER" is 9 chars
-            const centerY = Math.floor(this.display.getViewportHeight() / 2);
+            const centerX = this.display.getViewport().x + Math.floor(this.display.getViewportWidth() / 2) - 4; // "GAME OVER" is 9 chars
+            const centerY = this.display.getViewport().y + Math.floor(this.display.getViewportHeight() / 2);
 
             // Create black background behind text
             for (let y = centerY - 1; y <= centerY + 1; y++) {
@@ -658,8 +658,8 @@ export class RuntimeRenderer extends GameRenderer {
                     fontWeight: 'bold',
                 }
             );
-
-        }); // Start after wipe + small delay
+        }, 1000); // Start after wipe + small delay
+        // ); // Start after wipe + small delay
     }
 
 }
