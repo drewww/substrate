@@ -5,7 +5,7 @@ import { RegisterComponent } from "../../entity/component-registry";
 export class LockedComponent extends Component {
     type: 'locked' = 'locked';
 
-    constructor(public lastTurnLocked: number = 0) {
+    constructor(public lastTurnLocked: number = 0, public deleteNextTurn: boolean = false) {
         super();
     }
 }

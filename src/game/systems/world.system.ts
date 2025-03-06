@@ -323,11 +323,13 @@ export class WorldSystem {
         for (const entity of lockedEntities) {
             const locked = entity.getComponent('locked') as LockedComponent;
             if(locked) {
-                // logger.warn(`Locked entity ${entity.getId()} lastTurnLocked: ${locked.lastTurnLocked} totalUpdates: ${totalUpdates}`);
+                logger.warn(`Locked entity ${entity.getId()} lastTurnLocked: ${locked.lastTurnLocked} totalUpdates: ${totalUpdates} deleteNextTurn: ${locked.deleteNextTurn}`);
 
-                // add a turn of leeway.
-                if(locked.lastTurnLocked + 1 < (totalUpdates ?? 0)) {
+                if(locked.deleteNextTurn) {
                     entity.removeComponent('locked');
+                } else if(locked.lastTurnLocked + 10 < (totalUpdates ?? 0)) {
+                    locked.deleteNextTurn = true;
+                    entity.setComponent(locked);
                 }
             } 
         }

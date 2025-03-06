@@ -39,9 +39,15 @@ export class EnemyAISystem {
             if(canSeePlayer) {
                 // Lock the player when enemy sees them
                 const player = this.world.getPlayer();
-                if (!player.hasComponent('locked')) {
-                    logger.warn(`Locking player at ${player.getPosition().x}, ${player.getPosition().y} and totalUpdates: ${totalUpdates}`);
-                    player.setComponent(new LockedComponent(totalUpdates));
+                let locked = player.getComponent('locked') as LockedComponent;
+
+                if (!locked) {
+                    locked = new LockedComponent(totalUpdates ?? 0, false);
+                    player.setComponent(locked);
+                } else {
+                    // logger.warn(`Locking player at ${player.getPosition().x}, ${player.getPosition().y} and totalUpdates: ${totalUpdates}`);
+                    locked.lastTurnLocked = totalUpdates ?? 0;
+                    player.setComponent(locked);
                 }
 
                 // set rotation to point to the player
@@ -59,8 +65,14 @@ export class EnemyAISystem {
             symbol.foreground = '#FFFFFFFF';
             symbol.background = '#FF194DFF';
         } else if (symbol && !canSeePlayer) {
-            symbol.background = '#00000000';
-            symbol.foreground = '#FF194DFF';
+
+            if(ai.aiType === EnemyAIType.CAMERA) {
+                symbol.background = '#FFFFFFFF';
+                symbol.foreground = '#FF194DFF';
+            } else {
+                symbol.background = '#00000000';
+                symbol.foreground = '#FF194DFF';
+            }
         }
 
         enemy.setComponent(symbol);

@@ -241,6 +241,48 @@ export class CityBlockGenerator {
 
         // this.placeCamera(11, 11, world);
 
+
+        // let's randomly add cameras to the world.
+        // the rule for deciding where to put them is -- on top of a wall tile ('#') AND with at least 5 adjacent
+        // non opaque tiles.
+
+        // Get all wall tiles (entities with both impassable and symbol components where symbol is '#')
+        const wallTiles = world.getEntities()
+            .filter(entity => {
+                if (!entity.hasComponent("impassable") || !entity.hasComponent("symbol")) return false;
+                const symbol = entity.getComponent("symbol") as SymbolComponent;
+                return symbol.char === '#';
+            });
+
+        // Shuffle array
+        const shuffledWalls = [...wallTiles].sort(() => Math.random() - 0.5);
+
+        // Place up to 25 cameras
+        let camerasPlaced = 0;
+        for (const wall of shuffledWalls) {
+            if (camerasPlaced >= 40) break;
+
+            const pos = wall.getPosition();
+            
+            // Count non-opaque adjacent tiles
+            let visibleTiles = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    
+                    const entities = world.getEntitiesAt({x: pos.x + dx, y: pos.y + dy});
+                    if (!entities.some(e => e.hasComponent("opacity"))) {
+                        visibleTiles++;
+                    }
+                }
+            }
+
+            if (visibleTiles >= 5) {
+                this.placeCamera(pos.x, pos.y, world);
+                camerasPlaced++;
+            }
+        }
+
         // this.placeTurret(11, 11, world);
         
         // this.placeHomingBot(16, 16, world);
@@ -274,7 +316,6 @@ export class CityBlockGenerator {
         // };  
 
         helicopter.setComponent(symbol);
-        helicopter.setComponent(new FacingComponent(Direction.None));
         helicopter.setComponent(new VisionComponent(10, true));
         helicopter.setComponent(new EnemyAIComponent(EnemyAIType.HELICOPTER));
         helicopter.setComponent(new MoveComponent(true)); // true lets it move through walls
@@ -359,7 +400,7 @@ export class CityBlockGenerator {
         const symbol = new SymbolComponent();
         symbol.char = '⏚';
         symbol.foreground = '#FF194DFF';
-        symbol.background = '#00000000';
+        symbol.background = '#FFFFFFFF';
         symbol.zIndex = 500;
         symbol.alwaysRenderIfExplored = false;
         // symbol.lockRotationToFacing = true;
