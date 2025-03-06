@@ -5704,7 +5704,14 @@
           "type": "impassable"
         },
         {
-          "type": "move"
+          "type": "move",
+          "ignoreImpassable": false,
+          "allowDiagonal": false
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": false
         },
         {
           "type": "followable",
@@ -5759,12 +5766,19 @@
           "type": "impassable"
         },
         {
-          "type": "move"
+          "type": "move",
+          "ignoreImpassable": false,
+          "allowDiagonal": false
         },
         {
           "type": "followable",
           "followPriority": 100,
           "lastPosition": null
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": true
         },
         {
           "type": "cooldown",
@@ -5814,12 +5828,19 @@
           "type": "impassable"
         },
         {
-          "type": "move"
+          "type": "move",
+          "ignoreImpassable": false,
+          "allowDiagonal": false
         },
         {
           "type": "followable",
           "followPriority": 100,
           "lastPosition": null
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": true
         },
         {
           "type": "cooldown",

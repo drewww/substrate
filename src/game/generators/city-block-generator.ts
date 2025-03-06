@@ -20,6 +20,7 @@ import { LightEmitterComponent } from '../../entity/components/light-emitter-com
 import { HealthComponent } from '../../entity/components/health.component';
 import { AOEDamageComponent } from '../components/aoe-damage.component';
 import { ChunkMetadata } from '../generators/layout-generator';
+import { ObjectiveComponent } from '../components/objective.component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -214,7 +215,8 @@ export class CityBlockGenerator {
         // Remove all vehicles and pedestrians
         const entitiesToRemove = world.getEntities().filter(entity => {
             // Check for vehicles (entities with follower/followable components)
-            if (entity.hasComponent('follower') || entity.hasComponent('followable')) {
+            if (entity.hasComponent('follower') || entity.hasComponent('followable') &&
+                !entity.hasComponent('objective')) {
                 return true;
             }
 
@@ -236,13 +238,19 @@ export class CityBlockGenerator {
 
 
         // later make sure it's not too close to the player
-        // this.placeHelicopter(Math.floor(world.getWorldWidth()*Math.random()),
-        //                      Math.floor(world.getWorldHeight()*Math.random()), world);
+        this.placeHelicopter(Math.floor(world.getWorldWidth()*Math.random()),
+                             Math.floor(world.getWorldHeight()*Math.random()), world);
         // this.placeHelicopter(20, 20, world);
         
 
         // this.placeCamera(11, 11, world);
 
+
+        // select an objective from among the available objetive tagged entities
+        const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === false);
+        const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
+
+        randomObjective.setComponent(new ObjectiveComponent(true, true));
 
         // let's randomly add cameras to the world.
         // the rule for deciding where to put them is -- on top of a wall tile ('#') AND with at least 5 adjacent
@@ -285,7 +293,7 @@ export class CityBlockGenerator {
             }
         }
 
-        this.placeTurret(11, 11, world);
+        // this.placeTurret(11, 11, world);
         
         // this.placeHomingBot(16, 16, world);
 

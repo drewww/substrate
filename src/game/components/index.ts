@@ -18,3 +18,4 @@ import './traffic-light.component';
 import './traffic-controller.component';
 import './locked.component';
 import './aoe-damage.component';
+import './objective.component';

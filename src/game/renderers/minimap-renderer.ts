@@ -5,6 +5,7 @@ import { Point } from '../../types';
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
 import { removeOpacity } from '../../display/util/color';
+import { ObjectiveComponent } from '../components/objective.component';
 
 export class MinimapRenderer extends LayoutRenderer {
     private playerBlock: Point | null = null;
@@ -14,6 +15,8 @@ export class MinimapRenderer extends LayoutRenderer {
     private playerTile: string | null = null;
     private helicopterTile: string | null = null;
     private exploredBlocks: Set<string> = new Set();
+    private objectiveBlock: any;
+    private objectiveTile: string | null = null;
 
     constructor(display: Display, world: World) {
         super(display);
@@ -36,6 +39,14 @@ export class MinimapRenderer extends LayoutRenderer {
             };
         }
 
+        const objective = this.world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.active === true)[0];
+        if (objective) {
+            this.objectiveBlock = {
+                x: Math.floor(objective.getPosition().x / 12),
+                y: Math.floor(objective.getPosition().y / 12)
+            };
+        }
+
         world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
                 this.playerBlock = {
@@ -52,6 +63,14 @@ export class MinimapRenderer extends LayoutRenderer {
                 };
 
                 this.updateHelicopterBlock();
+            } else if (data.entity.hasComponent('objective') && (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
+               
+                this.objectiveBlock = {
+                    x: Math.floor(data.to.x / 12),
+                    y: Math.floor(data.to.y / 12)
+                };
+               
+                this.updateObjectiveBlock();
             }
         });
     }
@@ -65,6 +84,12 @@ export class MinimapRenderer extends LayoutRenderer {
     updateHelicopterBlock() {
         if (this.helicopterBlock && this.helicopterTile) {
             this.display.moveTile(this.helicopterTile, this.helicopterBlock.x, this.helicopterBlock.y);
+        }
+    }
+
+    updateObjectiveBlock() {
+        if (this.objectiveBlock && this.objectiveTile) {
+            this.display.moveTile(this.objectiveTile, this.objectiveBlock.x, this.objectiveBlock.y);
         }
     }
 
@@ -168,26 +193,20 @@ export class MinimapRenderer extends LayoutRenderer {
                 }
             );
         }
+
+        // this assumes a single objective block
+        if (this.objectiveBlock) {
+            this.objectiveTile = this.display.createTile(
+                this.objectiveBlock.x,
+                this.objectiveBlock.y,
+                '◎',
+                '#FFCC0DFF',
+                '#00000000',
+                1000,
+                {
+                    fontWeight: 'bold'
+                }
+            );
+        }
     }
-
-    // Methods to update markers
-    // setPlayerBlock(x: number, y: number): void {
-    //     this.playerBlock = { x, y };
-    // }
-
-    // setHelicopterBlock(x: number, y: number): void {
-    //     this.helicopterBlock = { x, y };
-    // }
-
-    // addObjectiveBlock(x: number, y: number): void {
-    //     this.objectiveBlocks.add(`${x},${y}`);
-    // }
-
-    // removeObjectiveBlock(x: number, y: number): void {
-    //     this.objectiveBlocks.delete(`${x},${y}`);
-    // }
-
-    // clearObjectiveBlocks(): void {
-    //     this.objectiveBlocks.clear();
-    // }
 } 
