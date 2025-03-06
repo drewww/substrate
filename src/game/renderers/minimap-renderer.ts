@@ -4,6 +4,7 @@ import { LayoutRenderer } from '../generators/layout-renderer';
 import { Point } from '../../types';
 import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
+import { removeOpacity } from '../../display/util/color';
 
 export class MinimapRenderer extends LayoutRenderer {
     private playerBlock: Point | null = null;
@@ -12,6 +13,7 @@ export class MinimapRenderer extends LayoutRenderer {
     private world: World;
     private playerTile: string | null = null;
     private helicopterTile: string | null = null;
+    private exploredBlocks: Set<string> = new Set();
 
     constructor(display: Display, world: World) {
         super(display);
@@ -23,6 +25,7 @@ export class MinimapRenderer extends LayoutRenderer {
                 x: Math.floor(player.getPosition().x / 12),
                 y: Math.floor(player.getPosition().y / 12)
             };
+            this.markBlockExplored(this.playerBlock);
         }
 
         const helicopter = this.world.getEntitiesWithComponent('aoe-damage')[0];
@@ -39,7 +42,8 @@ export class MinimapRenderer extends LayoutRenderer {
                     x: Math.floor(data.to.x / 12),
                     y: Math.floor(data.to.y / 12)
                 };
-
+                
+                this.markBlockExplored(this.playerBlock);
                 this.updatePlayerBlock();
             } else if (data.entity.hasComponent('aoe-damage')) {
                 this.helicopterBlock = {
@@ -64,11 +68,78 @@ export class MinimapRenderer extends LayoutRenderer {
         }
     }
 
-    // Override the renderLayout method to add player/helicopter/objective markers
-    renderLayout(layout: ChunkMetadata[][]): void {
-        super.renderLayout(layout);
+    private markBlockExplored(block: Point): void {
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const x = block.x + dx;
+                const y = block.y + dy;
+                const key = `${x},${y}`;
+                if (!this.exploredBlocks.has(key)) {
+                    this.exploredBlocks.add(key);
+                    const tileId = this.getTileIdAt(x, y);
+                    if (tileId) {
+                        const tile = this.display.getTile(tileId);
+                        if (tile) {
+                            // Restore original colors but with 50% opacity
+                            this.display.updateTile(tileId, {
+                                fg: removeOpacity(tile.color) + '70',
+                                bg: removeOpacity(tile.backgroundColor) + '70'
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-        // Add markers on top of the base layout
+    private getTileIdAt(x: number, y: number): string | null {
+        const tiles = this.display.getTilesAt(x, y);
+        return tiles.length > 0 ? tiles[0].id : null;
+    }
+
+    renderLayout(layout: ChunkMetadata[][]): void {
+        this.processRoadConnections(layout);
+        this.display.clear();
+
+        // Render all chunks with fog of war
+        for (let y = 0; y < layout.length; y++) {
+            for (let x = 0; x < layout[y].length; x++) {
+                const isExplored = this.exploredBlocks.has(`${x},${y}`);
+                const chunk = layout[y][x];
+                
+                if (isExplored) {
+                    // Render with 50% opacity
+                    this.renderChunk(chunk, x, y);
+
+                    const tileId = this.getTileIdAt(x, y);
+                    if (tileId) {
+                        const tile = this.display.getTile(tileId);
+                        if (tile) {
+                            this.display.updateTile(tileId, {
+                                fg: removeOpacity(tile.color) + '70',
+                                bg: removeOpacity(tile.backgroundColor) + '70'
+                            });
+                        }
+                    }
+                } else {
+                    // Render completely hidden (just black)
+                    this.renderChunk(chunk, x, y);
+
+                    const tileId = this.getTileIdAt(x, y);
+                    if (tileId) {
+                        const tile = this.display.getTile(tileId);
+                        if (tile) {
+                            this.display.updateTile(tileId, {
+                                fg: removeOpacity(tile.color) + '00',
+                                bg: removeOpacity(tile.backgroundColor) + '00'
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add markers
         if (this.playerBlock) {
             this.playerTile = this.display.createTile(
                 this.playerBlock.x,
@@ -76,8 +147,7 @@ export class MinimapRenderer extends LayoutRenderer {
                 '⧋',
                 '#FFFFFFFF',
                 '#00000000',
-                1000  // High z-index to be on top
-                ,
+                1000,
                 {
                     rotation: Math.PI/2,
                     fontWeight: 'bold'
@@ -98,19 +168,6 @@ export class MinimapRenderer extends LayoutRenderer {
                 }
             );
         }
-
-        // Render objectives
-        // for (const blockKey of this.objectiveBlocks) {
-        //     const [x, y] = blockKey.split(',').map(Number);
-        //     this.display.createTile(
-        //         x,
-        //         y,
-        //         '⚑',
-        //         '#FFFF00',
-        //         '#00000000',
-        //         1000
-        //     );
-        // }
     }
 
     // Methods to update markers

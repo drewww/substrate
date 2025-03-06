@@ -48,7 +48,7 @@ export class LayoutRenderer {
         return symbolSet[weight];
     }
 
-    private processRoadConnections(layout: ChunkMetadata[][]): void {
+    protected processRoadConnections(layout: ChunkMetadata[][]): void {
         for (let y = 0; y < layout.length; y++) {
             for (let x = 0; x < layout[y].length; x++) {
                 if (layout[y][x].type === 'road') {
@@ -89,60 +89,49 @@ export class LayoutRenderer {
         }
     }
 
-    renderLayout(layout: ChunkMetadata[][]): void {
-        // Process road connections before rendering
-        this.processRoadConnections(layout);
+    protected renderChunk(chunk: ChunkMetadata, x: number, y: number, options?: {
+        color?: string,
+        background?: string,
+        zIndex?: number
+    }): string | null {
+        if (chunk.type === 'road') {
+            const roadInfo = chunk.roadInfo || { 
+                type: 'deadend', 
+                weight: 'minor', 
+                connections: [] 
+            };
+            
+            const symbol = this.getRoadSymbol(roadInfo.connections, roadInfo.weight);
+            
+            // Base colors
+            const colors = {
+                trunk: '#00AAFF',
+                medium: '#FFFF00',
+                minor: '#FF0000',
+            };
 
-        // Clear the display
+            const color = options?.color ?? colors[roadInfo.weight];
+            const background = options?.background ?? '#333333';
+            const zIndex = options?.zIndex ?? 0;
+
+            return this.display.createTile(x, y, symbol, color, background, zIndex);
+        } else {
+            return this.display.createTile(
+                x, y, '#', 
+                options?.color ?? '#666666',
+                options?.background ?? '#444444',
+                options?.zIndex ?? 0
+            );
+        }
+    }
+
+    renderLayout(layout: ChunkMetadata[][]): void {
+        this.processRoadConnections(layout);
         this.display.clear();
 
-        // Render each cell based on its metadata
         for (let y = 0; y < layout.length; y++) {
             for (let x = 0; x < layout[y].length; x++) {
-                const metadata = layout[y][x];
-                
-                if (metadata.type === 'road') {
-                    // Ensure roadInfo exists
-                    const roadInfo = metadata.roadInfo || { 
-                        type: 'deadend', 
-                        weight: 'minor', 
-                        connections: [] 
-                    };
-                    
-                    const symbol = this.getRoadSymbol(roadInfo.connections, roadInfo.weight);
-                    
-                    // Base colors
-                    const colors = {
-                        trunk: '#00AAFF',  // Bright blue
-                        medium: '#FFFF00',  // Yellow
-                        minor: '#FF0000',   // Red
-                    };
-
-                    let color = colors[roadInfo.weight];
-
-                    // Special coloring for intersections
-                    if (roadInfo.type === 'intersection') {
-                        if (roadInfo.weight === 'trunk') {
-                            // Keep trunk-trunk intersections blue
-                            color = '#00AAFF';  // Blue
-                        } else if (roadInfo.weight === 'medium') {
-                            // Keep medium-medium intersections yellow
-                            color = '#FFFF00';  // Yellow
-                        } else if (roadInfo.weight === 'minor') {
-                            color = '#FFA500';  // Orange for minor intersections
-                        }
-
-                        // If it's a trunk-medium intersection, make it green
-                        if ((roadInfo.weight === 'trunk' || roadInfo.weight === 'medium') &&
-                            this.hasDifferentWeightConnections(layout, x, y)) {
-                            color = '#00FF00';  // Green
-                        }
-                    }
-
-                    this.display.createTile(x, y, symbol, color, '#333333');
-                } else {
-                    this.display.createTile(x, y, '#', '#666666', '#444444');
-                }
+                this.renderChunk(layout[y][x], x, y);
             }
         }
     }
