@@ -15,6 +15,7 @@ import { ObjectiveComponent } from '../components/objective.component';
 import { StunComponent } from '../components/stun.component';
 import { FollowerComponent } from '../../entity/components/follower-component';
 import { VehicleLeaderComponent } from '../components/vehicle-leader.component';
+import { EnergyComponent } from '../components/energy.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -61,6 +62,7 @@ export class PlayerMovementSystem {
         const prediction = this.movementPredictor.predictMove(player);
         const inertia = player.getComponent('inertia') as InertiaComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
+        const energy = player.getComponent('energy') as EnergyComponent;
         const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
 
         if (prediction.willCollide) {
@@ -134,6 +136,12 @@ export class PlayerMovementSystem {
         // Execute all predicted moves
         for (const action of prediction.actions) {
             this.actionHandler.execute(action);
+        }
+
+        // Drain energy if turbo is active
+        if (turbo && energy) {
+            energy.energy = Math.max(0, energy.energy - 5);
+            player.setComponent(energy);
         }
 
         // Update inertia with predicted final state
