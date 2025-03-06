@@ -64,7 +64,7 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                     const bufferedMove = entity.getComponent('bufferedMove') as BufferedMoveComponent;
 
                     if((inertia && inertia.magnitude > 0) || (bufferedMove && bufferedMove.direction != Direction.None)) {
-                        this.playSound('tick', { volume: 0.1 });
+                        // this.playSound('tick', { volume: 0.1 });
                     }
                 }
             }
