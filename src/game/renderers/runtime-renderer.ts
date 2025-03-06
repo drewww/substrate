@@ -658,7 +658,7 @@ export class RuntimeRenderer extends GameRenderer {
                     fontWeight: 'bold',
                 }
             );
-        }, 1000); // Start after wipe + small delay
+        }, 500); // Start after wipe + small delay
         // ); // Start after wipe + small delay
     }
 

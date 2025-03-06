@@ -296,7 +296,7 @@ export class CityBlockGenerator {
 
         const symbol = new SymbolComponent();
         symbol.char = '🜛';
-        symbol.foreground = '#FFFFFF00';
+        symbol.foreground = '#FFFFFFFF';
         symbol.background = '#FF194D00';
         symbol.zIndex = 500;
         symbol.scaleSymbolX = 1.4;

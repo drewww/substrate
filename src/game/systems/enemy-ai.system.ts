@@ -63,16 +63,23 @@ export class EnemyAISystem {
         const symbol = enemy.getComponent('symbol') as SymbolComponent;
         if (symbol && canSeePlayer) {
             symbol.foreground = '#FFFFFFFF';
-            symbol.background = '#FF194DFF';
+
+            if(ai.aiType === EnemyAIType.HELICOPTER) {
+                symbol.background = '#FF194DFF';
+            } else {
+                symbol.background = '#FF194DFF';
+            }
         } else if (symbol && !canSeePlayer) {
 
             if(ai.aiType === EnemyAIType.CAMERA) {
                 symbol.background = '#FFFFFFFF';
                 symbol.foreground = '#FF194DFF';
-            } else {
-                symbol.background = '#00000000';
-                symbol.foreground = '#FF194DFF';
+            } else if (ai.aiType === EnemyAIType.HELICOPTER) {
+                symbol.background = '#FFFFFF00';
+                symbol.foreground = '#FFFFFFFF';
             }
+            
+
         }
 
         enemy.setComponent(symbol);
