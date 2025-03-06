@@ -37,6 +37,8 @@ import { CityBlockGenerator } from './generators/city-block-generator.ts';
 import { EntitySpawnAction } from './actions/entity-spawn.action.ts';
 import { tileFlagsHasCardinalDirection } from 'wally-fov/lib/tile-flags';
 import { MinimapRenderer } from './renderers/minimap-renderer.ts';
+import { LightEmitterComponent } from '../entity/components/light-emitter-component.ts';
+import { ObjectiveComponent } from './components/objective.component.ts';
 
 
 
@@ -71,6 +73,7 @@ export class RuntimeGame extends Game {
     private minimapDisplay!: Display;
     private minimapRenderer!: MinimapRenderer;
     private generator!: CityBlockGenerator;
+    objectiveCount: any;
 
     constructor(private readonly canvasId: string) {
         super();
@@ -172,9 +175,13 @@ export class RuntimeGame extends Game {
         }); 
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
-            logger.warn('Objective complete:', data);
-            this.engine?.stop();
-            (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+            // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+            this.objectiveCount++;
+
+            if(this.objectiveCount >= 3) {
+                this.engine?.stop();
+                (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+            }
         });
 
     }
@@ -311,6 +318,8 @@ export class RuntimeGame extends Game {
             });
         });
 
+        this.selectObjective(this.world);
+
         // Add minimap setup
         this.setupMinimap(this.world);
     }
@@ -352,26 +361,6 @@ export class RuntimeGame extends Game {
         });
         // this.display.setViewport(viewportX, viewportY);
     }
-
-    // private tryMove(direction: string): void {
-    //     const pos = this.player.getPosition();
-    //     let newPos: Point = { ...pos };
-
-    //     switch(direction) {
-    //         case 'up':    newPos.y--; break;
-    //         case 'down':  newPos.y++; break;
-    //         case 'left':  newPos.x--; break;
-    //         case 'right': newPos.x++; break;
-    //     }
-
-    //     this.actionHandler.execute({
-    //         type: 'playerMove',
-    //         entityId: this.player.getId(),
-    //         data: { to: newPos }
-    //     });
-
-
-    // }
 
     protected handleInput(type: string, action: string, params: string[]): void {
         if(!this.player) {
@@ -540,4 +529,23 @@ export class RuntimeGame extends Game {
             // });
         }
     }
+
+    private selectObjective(world: World) {
+        const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === false);
+        const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
+
+        randomObjective.setComponent(new ObjectiveComponent(true, true));
+
+        randomObjective.setComponent(new LightEmitterComponent({
+            "radius": 3,
+            "color": "#55CE4A",
+            "intensity": 0.9,
+            "distanceFalloff": "linear",
+        }));
+
+        // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
+        // symbol.foreground = '#55CE4A';
+        // randomObjective.setComponent(symbol);
+    }
+
 }

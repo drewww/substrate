@@ -252,24 +252,26 @@ export abstract class BaseRenderer implements Renderer {
                 this.updateEntityWalls(entity);
             }
         }
+
+
         if (componentType === 'lightEmitter') {
             const state = this.lightStates.get(entity.getId());
             const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
 
-            if (state && lightEmitter) {
-                // logger.info(`Renderer received componentModified event for ${entity.getId()} with lightEmitter component: ${JSON.stringify(entity.getComponent('lightEmitter'))}`);
+            logger.warn("lightEmitter component modified: ", entity.getId() + " " + JSON.stringify(lightEmitter));
 
-                // Merge in light emitter properties to state
+            if (!state) {
+                // If no state exists, treat this like a new light emitter
+                this.addEntityLight(entity);
+            } else if (lightEmitter) {
+                // Update existing state
                 state.currentProperties.radius = lightEmitter.config.radius ?? state.baseProperties.radius;
                 state.currentProperties.intensity = lightEmitter.config.intensity ?? state.baseProperties.intensity;
                 state.currentProperties.color = lightEmitter.config.color ?? state.baseProperties.color;
-                // state.currentProperties.distanceFalloff = lightEmitter.config.distanceFalloff;
                 state.currentProperties.facing = lightEmitter.config.facing ?? state.baseProperties.facing;
                 state.currentProperties.width = lightEmitter.config.width ?? state.baseProperties.width;
-                // state.currentProperties.mode = lightEmitter.config.mode ?? 'fg';
                 state.currentProperties.xOffset = lightEmitter.config.xOffset ?? 0;
                 state.currentProperties.yOffset = lightEmitter.config.yOffset ?? 0;
-                // state.currentProperties.lightSourceTile = lightEmitter.config.lightSourceTile ?? true;
 
                 this.renderLightTiles(entity, state);
             }

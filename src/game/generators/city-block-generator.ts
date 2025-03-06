@@ -245,7 +245,6 @@ export class CityBlockGenerator {
 
         // this.placeCamera(11, 11, world);
 
-        this.selectObjective(world);
         // let's randomly add cameras to the world.
         // the rule for deciding where to put them is -- on top of a wall tile ('#') AND with at least 5 adjacent
         // non opaque tiles.
@@ -294,24 +293,6 @@ export class CityBlockGenerator {
         return world;
     }
     
-    private selectObjective(world: World) {
-        const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === false);
-        const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
-
-        randomObjective.setComponent(new ObjectiveComponent(true, true));
-
-        randomObjective.setComponent(new LightEmitterComponent({
-            "radius": 3,
-            "color": "#55CE4A",
-            "intensity": 0.9,
-            "distanceFalloff": "linear",
-        }));
-
-        // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
-        // symbol.foreground = '#55CE4A';
-        // randomObjective.setComponent(symbol);
-    }
-
     private placeHelicopter(x: number, y: number, world: World) {
         const helicopter = new Entity({x, y});
 
