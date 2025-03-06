@@ -303,10 +303,13 @@ export class CityBlockGenerator {
         randomObjective.setComponent(new LightEmitterComponent({
             "radius": 3,
             "color": "#55CE4A",
-            "intensity": 0.7,
+            "intensity": 0.9,
             "distanceFalloff": "linear",
         }));
 
+        // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
+        // symbol.foreground = '#55CE4A';
+        // randomObjective.setComponent(symbol);
     }
 
     private placeHelicopter(x: number, y: number, world: World) {

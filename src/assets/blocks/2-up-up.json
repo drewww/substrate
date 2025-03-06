@@ -2698,8 +2698,7 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
+          "lockRotationToFacing": true
         },
         {
           "type": "facing",
@@ -2729,8 +2728,7 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
+          "lockRotationToFacing": true
         },
         {
           "type": "facing",
@@ -4191,8 +4189,7 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
+          "lockRotationToFacing": true
         },
         {
           "type": "facing",
@@ -4870,8 +4867,7 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "source-over"
+          "lockRotationToFacing": true
         },
         {
           "type": "facing",
