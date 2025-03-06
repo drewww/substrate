@@ -67,7 +67,8 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
                 const turnEntity = entitiesAtNewPos.find(e => e.hasComponent('turn'));
                 
-                if (turnEntity) {
+                if (turnEntity && !turnEntity.hasComponent('enemyAI')) {
+
                     const turnFacing = turnEntity.getComponent('facing') as FacingComponent;
                     const turnDirection = turnFacing.direction;
                     const entityFacing = entity.getComponent('facing') as FacingComponent;
