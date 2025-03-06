@@ -26,12 +26,20 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         const to = action.data.to;
 
         let shouldIgnoreImpassable = action.data.force? true : false;
-
+        let shouldIgnoreImpathable = false;
         // Get the move component to check ignoreImpassable and allowDiagonal
         const moveComponent = entity.getComponent('move') as MoveComponent;
 
+
         if(moveComponent?.ignoreImpassable) {
             shouldIgnoreImpassable = true;
+        }
+
+        const allowDiagonal = moveComponent?.allowDiagonal;
+
+        if(entity.hasComponent('player')) {
+            shouldIgnoreImpathable = true;
+            logger.info(`ignoring impathable for player`);
         }
 
         // Check if this is a diagonal move
@@ -49,12 +57,12 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         }
 
         // For diagonal moves, check both cardinal directions are passable
-        if (isDiagonal && !shouldIgnoreImpassable) {
+        if (isDiagonal && allowDiagonal) {
             const horizontalPos = { x: to.x, y: from.y };
             const verticalPos = { x: from.x, y: to.y };
             
-            if (!world.isPassable(from.x, from.y, horizontalPos.x, horizontalPos.y) ||
-                !world.isPassable(from.x, from.y, verticalPos.x, verticalPos.y)) {
+            if (!world.isPassable(from.x, from.y, horizontalPos.x, horizontalPos.y,shouldIgnoreImpassable, allowDiagonal, shouldIgnoreImpathable) ||
+                !world.isPassable(from.x, from.y, verticalPos.x, verticalPos.y, shouldIgnoreImpassable, allowDiagonal, shouldIgnoreImpathable)) {
                 entity.setComponent(new BumpingComponent({
                     x: to.x - from.x,
                     y: to.y - from.y
@@ -64,7 +72,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         }
 
         // Check if movement is possible
-        if (!shouldIgnoreImpassable && !world.isPassable(from.x, from.y, to.x, to.y)) {
+        if (!shouldIgnoreImpassable && !world.isPassable(from.x, from.y, to.x, to.y, shouldIgnoreImpassable, allowDiagonal, shouldIgnoreImpathable)) {
             entity.setComponent(new BumpingComponent({
                 x: to.x - from.x,
                 y: to.y - from.y

@@ -87,7 +87,8 @@ export class MovementPredictor {
                 y: pos.y + inertiaDir.y
             };
 
-            if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y)) {
+            // hard coding here because this is player-specific logic
+            if (!this.world.isPassable(pos.x, pos.y, newPos.x, newPos.y, false, false, true)) {
                 // logger.info(`Inertial movement will collide`);
                 return {
                     actions: [],
@@ -181,7 +182,7 @@ export class MovementPredictor {
                             y: newPos.y + inertiaDir.y
                         };
 
-                        if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y)) {
+                        if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y, false, false, true)) {
                             finalInertia = {
                                 direction: inertia.direction,
                                 magnitude: 0,
@@ -207,7 +208,7 @@ export class MovementPredictor {
             // Check for collisions in all planned moves
             for (const action of actions) {
                 const from = action === actions[0] ? pos : actions[actions.indexOf(action) - 1].data.to;
-                if (!this.world.isPassable(from.x, from.y, action.data.to.x, action.data.to.y)) {
+                if (!this.world.isPassable(from.x, from.y, action.data.to.x, action.data.to.y, false, false, true)) {
                     return {
                         actions: [],
                         finalInertia: { direction: inertia?.direction ?? bufferedMove.direction, magnitude: 0},

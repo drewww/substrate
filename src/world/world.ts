@@ -1217,12 +1217,12 @@ export class World {
      * Check if movement between two adjacent tiles is possible
      * @returns false if tiles aren't adjacent, if there's an impassable wall between them, or if destination is impassable
      */
-    public isPassable(fromX: number, fromY: number, toX: number, toY: number, ignoreImpassable: boolean = false, allowDiagonal: boolean = false): boolean {
+    public isPassable(fromX: number, fromY: number, toX: number, toY: number, ignoreImpassable: boolean = false, allowDiagonal: boolean = false, ignoreImpathable: boolean = false): boolean {
         // Check if tiles are adjacent
         const dx = Math.abs(toX - fromX);
         const dy = Math.abs(toY - fromY);
 
-        // logger.info(`isPassable: ${fromX},${fromY} to ${toX},${toY} ignoreImpassable: ${ignoreImpassable} allowDiagonal: ${allowDiagonal}`);
+        logger.info(`isPassable: ${fromX},${fromY} to ${toX},${toY} ignoreImpassable: ${ignoreImpassable} allowDiagonal: ${allowDiagonal} ignoreImpathable: ${ignoreImpathable}`);
         
         // If diagonal movement is not allowed, require exactly one direction of movement
         if (!allowDiagonal && dx + dy !== 1) {
@@ -1256,7 +1256,19 @@ export class World {
 
         // Check for impassable entities at destination
         const entitiesAtDest = this.getEntitiesAt({ x: toX, y: toY });
-        return !entitiesAtDest.some(e => e.hasComponent('impathable') || e.hasComponent('impassable'));
+
+        const hasImpassable = entitiesAtDest.some(e => (e.hasComponent('impassable')))
+        const hasImpathable = entitiesAtDest.some(e => (e.hasComponent('impathable')))
+        
+        if(hasImpathable && !ignoreImpathable) {
+            return false;
+        }
+
+        if(hasImpassable && !ignoreImpassable) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
