@@ -9,6 +9,7 @@ import { CooldownComponent } from '../components/cooldown.component';
 import { MoveComponent } from '../components/move.component';
 import { LockedComponent } from '../components/locked.component';
 import { SymbolComponent } from '../../entity/components/symbol-component';
+import { ImpassableComponent } from '../../entity/components/impassable-component';
 
 
 export class EnemyAISystem {
@@ -93,6 +94,59 @@ export class EnemyAISystem {
                 }
 
                 enemy.setComponent(ai);
+
+                // if we're within 1 block of the player, EXPLODE
+                // that means creating temporary impassable entities in every adjacent tile
+                // that does not have one already.
+                const playerPos = this.world.getPlayer().getPosition();
+                // const enemyPos = ai.lastPosition;   // || enemy.getPosition();
+
+                // if(!enemyPos) {
+                    // return;
+                // }
+
+                const enemyPos = enemy.getPosition();
+
+                const distance = Math.sqrt(Math.pow(playerPos.x - enemyPos.x, 2) + Math.pow(playerPos.y - enemyPos.y, 2));
+                if(distance <= 1.5) {
+                    logger.warn("EXPLODING FOLLOW BOT");
+                    // create impassable entities in every adjacent tile
+                    // that does not have one already.
+                    const adjacentTiles = [
+                        {x: enemyPos.x - 1, y: enemyPos.y},
+                        {x: enemyPos.x + 1, y: enemyPos.y},
+                        {x: enemyPos.x, y: enemyPos.y - 1},
+                        {x: enemyPos.x, y: enemyPos.y + 1},
+                        {x: enemyPos.x, y: enemyPos.y},
+                        {x: enemyPos.x - 1, y: enemyPos.y - 1},
+                        {x: enemyPos.x + 1, y: enemyPos.y - 1},
+                        {x: enemyPos.x - 1, y: enemyPos.y + 1},
+                        {x: enemyPos.x + 1, y: enemyPos.y + 1},
+                    ];
+
+                    this.world.removeEntity(enemy.getId());
+
+
+                    for (const tile of adjacentTiles) {
+                        if(tile.x === playerPos.x && tile.y === playerPos.y) {
+                            continue;
+                        }
+
+                        const entity = new Entity(tile);
+                        entity.setComponent(new SymbolComponent('☷', '#FFFFFFFF', '#C8BDBD88', 1000));
+                        entity.setComponent(new ImpassableComponent());
+                        entity.setComponent(new CooldownComponent({
+                            'disperse': {
+                                base: 30,
+                                current: 30,
+                                ready: false
+                            }
+                        }));
+                        this.world.addEntity(entity);
+                    }
+
+                }
+
                 break;
            
             case EnemyAIType.PEDESTRIAN:      
