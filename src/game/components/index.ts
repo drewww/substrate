@@ -20,3 +20,4 @@ import './locked.component';
 import './aoe-damage.component';
 import './objective.component';
 import './vehicle-leader.component';
+import './energy.component';

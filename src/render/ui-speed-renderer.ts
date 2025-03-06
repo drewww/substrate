@@ -7,15 +7,18 @@ import { InertiaComponent } from '../game/components/inertia.component';
 import { TimestampComponent } from '../game/components/timestamp.component';
 import { logger } from '../util/logger';
 import { HealthComponent } from '../entity/components/health.component';
+import { EnergyComponent } from '../game/components/energy.component';
 
 export class UISpeedRenderer implements Renderer {
     private uiTiles: Map<string, string[]> = new Map(); // region -> tileIds[]
     private readonly uiDisplay: Display;
     private readonly MAX_SPEED = 12;  // Updated to 12 from 8
     private readonly MAX_HEALTH = 12;
+    private readonly MAX_ENERGY = 12;
     private readonly GEAR_X = 0;  // Gear indicator position
     private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
-    private readonly HEALTH_START_X = 15;  // Start health display after speed
+    private readonly ENERGY_START_X = 15;  // Where speed ends
+    private readonly HEALTH_START_X = 29;  // Move health further right
     private readonly TIME_X = 35;  // Position for time display
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
@@ -44,6 +47,20 @@ export class UISpeedRenderer implements Renderer {
         '#550000FF',
         '#440000FF',
         '#330000FF'   // Full health - deep red
+    ];
+    private readonly ENERGY_COLORS = [
+        '#00ffff88',  // Bright cyan
+        '#00eeff88',
+        '#00ddff88',
+        '#00ccff88',
+        '#00bbff88',
+        '#00aaff88',
+        '#0099ff88',
+        '#0088ff88',
+        '#0077ffaa',
+        '#0066ffaa',
+        '#0055ffcc',
+        '#0044ffcc'   // Deep blue with higher opacity
     ];
 
     constructor(
@@ -122,6 +139,23 @@ export class UISpeedRenderer implements Renderer {
             this.uiTiles.set(`health_${i}`, [healthTileId]);
         }
 
+        // Create energy indicator tiles
+        for (let i = 0; i < this.MAX_ENERGY; i++) {
+            const energyTileId = this.uiDisplay.createTile(
+                this.ENERGY_START_X + i,
+                0,
+                ' ',
+                '#FFFFFFFF',
+                '#00000000',
+                1001,
+                {
+                    walls: [true, false],
+                    wallColors: ['#FFFFFF88', null]
+                }
+            );
+            this.uiTiles.set(`energy_${i}`, [energyTileId]);
+        }
+
         // Create speed indicator tiles (shifted right)
         for (let i = 0; i < this.MAX_SPEED; i++) {
             const speedTileId = this.uiDisplay.createTile(
@@ -148,30 +182,36 @@ export class UISpeedRenderer implements Renderer {
         // );
         // this.uiTiles.set('time', timeTileIds);
 
-        // Add labels below the indicators (y=1 since indicators are at y=0)
+        // Update label positions
         const speedLabelTileIds = this.uiDisplay.createString(
-            this.SPEED_START_X,  // Same X as speed indicator
+            this.SPEED_START_X,
             1,
             'velocity',
             1001,
-            {
-                fontFamily: 'monospace',
-            }
+            { fontFamily: 'monospace' }
         );
         this.uiTiles.set('speed_label', speedLabelTileIds);
 
+        const energyLabelTileIds = this.uiDisplay.createString(
+            this.ENERGY_START_X,
+            1,
+            'energy',
+            1001,
+            { fontFamily: 'monospace' }
+        );
+        this.uiTiles.set('energy_label', energyLabelTileIds);
+
         const healthLabelTileIds = this.uiDisplay.createString(
-            this.HEALTH_START_X,  // Same X as health indicator
+            this.HEALTH_START_X,
             1,
             'integrity',
             1001,
-            {
-                fontFamily: 'monospace',
-            }
+            { fontFamily: 'monospace' }
         );
         this.uiTiles.set('health_label', healthLabelTileIds);
 
         this.updateSpeedIndicator();
+        this.updateEnergyIndicator();
         this.updateHealthIndicator();
     }
 
@@ -188,6 +228,23 @@ export class UISpeedRenderer implements Renderer {
                 for (const speedTileId of speedTileIds) {
                     this.uiDisplay.updateTile(speedTileId, {
                         bg: i < magnitude ? this.SPEED_COLORS[i] : '#00000000'
+                    });
+                }
+            }
+        }
+    }
+
+    private updateEnergyIndicator(): void {
+        const energy = this.player.getComponent('energy') as EnergyComponent;
+        const currentEnergy = energy?.energy ?? 0;
+        const normalizedEnergy = Math.floor((currentEnergy / 100) * this.MAX_ENERGY);
+
+        for (let i = 0; i < this.MAX_ENERGY; i++) {
+            const energyTileIds = this.uiTiles.get(`energy_${i}`);
+            if (energyTileIds) {
+                for (const energyTileId of energyTileIds) {
+                    this.uiDisplay.updateTile(energyTileId, {
+                        bg: i < normalizedEnergy ? this.ENERGY_COLORS[i] : '#00000000'
                     });
                 }
             }
@@ -278,6 +335,8 @@ export class UISpeedRenderer implements Renderer {
                 // this.updateTimeDisplay();
             } else if (componentType === 'health') {
                 this.updateHealthIndicator();
+            } else if (componentType === 'energy') {
+                this.updateEnergyIndicator();
             }
         }
     }
@@ -289,6 +348,8 @@ export class UISpeedRenderer implements Renderer {
                 // this.updateTimeDisplay();
             } else if (componentType === 'health') {
                 this.updateHealthIndicator();
+            } else if (componentType === 'energy') {
+                this.updateEnergyIndicator();
             }
         }
     }

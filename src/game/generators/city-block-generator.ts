@@ -21,6 +21,7 @@ import { HealthComponent } from '../../entity/components/health.component';
 import { AOEDamageComponent } from '../components/aoe-damage.component';
 import { ChunkMetadata } from '../generators/layout-generator';
 import { ObjectiveComponent } from '../components/objective.component';
+import { EnergyComponent } from '../components/energy.component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -441,6 +442,8 @@ export class CityBlockGenerator {
 
         // TRUE here sets "ignore walls" vision
         player.setComponent(new VisionComponent(20, true));
+
+        player.setComponent(new EnergyComponent(100));
 
         world.addEntity(player);
     }
