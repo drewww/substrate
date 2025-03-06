@@ -11,6 +11,7 @@ import { MovementPredictor } from './movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
 import { directionToRadians } from '../../util';
 import { FacingComponent } from '../../entity/components/facing-component';
+import { ObjectiveComponent } from '../components/objective.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -60,6 +61,20 @@ export class PlayerMovementSystem {
         const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
 
         if (prediction.willCollide) {
+            logger.warn('Player movement collision detected');
+            const to = prediction.collision;
+            const entitiesAtNewPos = this.world.getEntitiesAt(to);
+
+            const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+            if (objective) {
+                const objectiveComponent = objective.getComponent('objective') as ObjectiveComponent;
+                objectiveComponent.active = !objectiveComponent.active;
+                objective.setComponent(objectiveComponent);
+                objective.removeComponent('lightEmitter');
+                this.world.emit('objective-complete', { objective });
+            }
+
+
             if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
             }

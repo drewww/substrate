@@ -166,10 +166,17 @@ export class RuntimeGame extends Game {
 
 
         this.world.on('player-death', (data: { entityId: string }) => {
-            logger.info('Player death:', data);
+            logger.warn('Player death:', data);
             this.engine?.stop();
-            (this.renderer as RuntimeRenderer).displayGameOver();
+            (this.renderer as RuntimeRenderer).displayMessage("GAME OVER");
         }); 
+
+        this.world.on('objective-complete', (data: { objective: Entity }) => {
+            logger.warn('Objective complete:', data);
+            this.engine?.stop();
+            (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+        });
+
     }
     
     protected createRenderer(): BaseRenderer {
@@ -260,7 +267,6 @@ export class RuntimeGame extends Game {
                 this.updateViewport();
             }
         });
-
         // Set up cell inspection
         this.display.onCellClick((pos) => {
             if (!this.world || !pos) return;

@@ -11,6 +11,7 @@ import { ApplyTimestampType } from '../components/apply.timestamp.component';
 import { TimestampComponent } from '../components/timestamp.component';
 import { FollowableComponent } from '../../entity/components/followable-component';
 import { MoveComponent } from '../components/move.component';
+import { ObjectiveComponent } from '../components/objective.component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -29,7 +30,6 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         let shouldIgnoreImpathable = false;
         // Get the move component to check ignoreImpassable and allowDiagonal
         const moveComponent = entity.getComponent('move') as MoveComponent;
-
 
         if(moveComponent?.ignoreImpassable) {
             shouldIgnoreImpassable = true;
@@ -72,11 +72,13 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         }
 
         // Check if movement is possible
-        if (!shouldIgnoreImpassable && !world.isPassable(from.x, from.y, to.x, to.y, shouldIgnoreImpassable, allowDiagonal, shouldIgnoreImpathable)) {
+        if (!shouldIgnoreImpassable && !world.isPassable(from.x, from.y, to.x, to.y, shouldIgnoreImpassable, allowDiagonal, shouldIgnoreImpathable)) {           
+
             entity.setComponent(new BumpingComponent({
                 x: to.x - from.x,
                 y: to.y - from.y
             }));
+
             return false;
         }
 

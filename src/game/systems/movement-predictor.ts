@@ -22,6 +22,7 @@ export interface MovementPrediction {
         magnitude: number;
     };
     willCollide: boolean;
+    collision?: Point;
 }
 
 export class MovementPredictor {
@@ -93,7 +94,11 @@ export class MovementPredictor {
                 return {
                     actions: [],
                     finalInertia: { direction: inertia.direction, magnitude: 0},
-                    willCollide: true
+                    willCollide: true,
+                    collision: {
+                        x: newPos.x,
+                        y: newPos.y
+                    }
                 };
             }
 
@@ -212,7 +217,11 @@ export class MovementPredictor {
                     return {
                         actions: [],
                         finalInertia: { direction: inertia?.direction ?? bufferedMove.direction, magnitude: 0},
-                        willCollide: true
+                        willCollide: true,
+                        collision: {
+                            x: action.data.to.x,
+                            y: action.data.to.y
+                        }
                     };
                 }
             }

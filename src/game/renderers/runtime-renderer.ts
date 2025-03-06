@@ -604,40 +604,45 @@ export class RuntimeRenderer extends GameRenderer {
         throw new Error('Method not implemented.');
     }
 
-    public displayGameOver(): void {
+    public displayMessage(message: string): void {
         const worldSize = this.world.getSize();
         const wipeDelay = 10; // ms between each row
         const wipeAlpha = '88';
 
-        // Create wipe effect from top to bottom
-        for (let y = 0; y < worldSize.y; y++) {
+        const viewport = this.display.getViewport();
+        const viewportWidth = this.display.getViewportWidth();
+        const viewportHeight = this.display.getViewportHeight();
+
+        // Only create tiles within viewport bounds
+        for (let y = viewport.y; y < viewport.y + viewportHeight; y++) {
             setTimeout(() => {
-                for (let x = 0; x < worldSize.x; x++) {
+                for (let x = viewport.x; x < viewport.x + viewportWidth; x++) {
                     this.display.createTile(
                         x,
                         y,
                         ' ',
                         '#000000FF',
                         `#000000${wipeAlpha}`,
-                        2000, // Very high z-index to cover everything
+                        2000,
                     );
                 }
-            }, y * wipeDelay);
+            }, (y - viewport.y) * wipeDelay);
         }
 
         // After wipe completes, show game over text
         setTimeout(() => {
-            const centerX = this.display.getViewport().x + Math.floor(this.display.getViewportWidth() / 2) - 4; // "GAME OVER" is 9 chars
+            const centerX = this.display.getViewport().x + Math.floor(this.display.getViewportWidth() / 2) - Math.floor(message.length / 2); // "GAME OVER" is 9 chars
             const centerY = this.display.getViewport().y + Math.floor(this.display.getViewportHeight() / 2);
 
             // Create black background behind text
+            const messageWidth = message.length;
             for (let y = centerY - 1; y <= centerY + 1; y++) {
-                for (let x = centerX - 2; x <= centerX + 10; x++) {
+                for (let x = centerX; x <= centerX + Math.floor(messageWidth/2) + 2; x++) {
                     this.display.createTile(
                         x,
                         y,
                         ' ',
-                        '#FFFFFFFF',
+                        '#FFFFFFFF', 
                         '#000000CC',
                         2001
                     );
@@ -645,15 +650,14 @@ export class RuntimeRenderer extends GameRenderer {
             }
 
             // Create the text
-            const gameOverTileIds = this.display.createString(
-                centerX,
+            const messageTileIds = this.display.createString(
+                centerX+1,
                 centerY,
-                "{w}GAME OVER{/}",
-                2002, // Above the background
+                message,
+                2002,
                 {
                     animate: {
-                        delayBetweenChars: 0.02,  // 100ms between characters
-                        // initialDelay: 0.5        // Wait 500ms before starting
+                        delayBetweenChars: 0.02,
                     },
                     fontWeight: 'bold',
                 }
