@@ -7,6 +7,7 @@ export class EnergyComponent extends Component {
     
     constructor(
         public energy: number = 100,
+        public maxEnergy: number = 100
     ) {
         super();
     }

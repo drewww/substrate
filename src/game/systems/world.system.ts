@@ -19,6 +19,8 @@ import { ImpathableComponent } from '../../entity/components/impathable-componen
 import { AOEDamageComponent } from '../components/aoe-damage.component';
 import { HealthComponent } from '../../entity/components/health.component';
 import { LockedComponent } from '../components/locked.component';
+import { TurboComponent } from '../components/turbo.component';
+import { EnergyComponent } from '../components/energy.component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -292,12 +294,22 @@ export class WorldSystem {
         const playerHealth = player.getComponent('health') as HealthComponent;
         if (!playerHealth) return;
 
+        // Health regeneration
         if(playerHealth.health >= 0) {
             if(!player.hasComponent('locked')) {
                 playerHealth.health = Math.min(playerHealth.health + 1, playerHealth.maxHealth);
                 player.setComponent(playerHealth);
             }
         }
+
+        // Add energy regeneration
+        const energy = player.getComponent('energy') as EnergyComponent;
+        const turbo = player.getComponent('turbo') as TurboComponent;
+        if (energy && (!turbo || turbo.turnsSinceEngaged === 0)) {
+            energy.energy = Math.min(energy.energy + 1, energy.maxEnergy);
+            player.setComponent(energy);
+        }
+
         for (const entity of aoeDamageEntities) {
             const aoeDamage = entity.getComponent('aoe-damage') as AOEDamageComponent;
             const entityPos = entity.getPosition();
