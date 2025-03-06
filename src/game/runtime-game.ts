@@ -365,8 +365,8 @@ export class RuntimeGame extends Game {
 
         this.display.setViewport(Math.floor(viewportX), Math.floor(viewportY), {
             smooth: animate,
-            duration: 0.1,  // 100ms transition
-            easing: Easing.quadOut
+            duration: 0.5,  // 100ms transition
+            easing: Easing.linear
         });
         // this.display.setViewport(viewportX, viewportY);
     }

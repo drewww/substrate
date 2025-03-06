@@ -1199,15 +1199,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         const paddingX = Math.ceil(this.viewport.width * PADDING_FACTOR);
         const paddingY = Math.ceil(this.viewport.height * PADDING_FACTOR);
         
-        // Skip reposition check during viewport animations
-        const needsReposition = !this.viewportAnimation && (
+        const needsReposition = (
             // Left edge: viewport is less than padding distance from render bounds left
             this.viewport.x - this.renderBounds.x < paddingX ||
             
             // Right edge: viewport right edge is less than padding from render bounds right
             (this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX ||
             
-            // Top edge: viewport is l  ess than padding distance from render bounds top
+            // Top edge: viewport is less than padding distance from render bounds top
             this.viewport.y - this.renderBounds.y < paddingY ||
             
             // Bottom edge: viewport bottom edge is less than padding from render bounds bottom
@@ -1215,16 +1214,6 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         );
 
         if (needsReposition) {
-            // logger.info(`Reposition check:
-            //     viewport: (${this.viewport.x}, ${this.viewport.y}, ${this.viewport.width}, ${this.viewport.height})
-            //     renderBounds: (${this.renderBounds.x}, ${this.renderBounds.y}, ${this.renderBounds.width}, ${this.renderBounds.height})
-            //     padding: ${paddingX},${paddingY}
-            //     left: ${this.viewport.x - this.renderBounds.x < paddingX}
-            //     right: ${(this.renderBounds.x + this.renderBounds.width) - (this.viewport.x + this.viewport.width) < paddingX}
-            //     top: ${this.viewport.y - this.renderBounds.y < paddingY}
-            //     bottom: ${(this.renderBounds.y + this.renderBounds.height) - (this.viewport.y + this.viewport.height) < paddingY}
-            // `);
-
             // Calculate render bounds size in cells (with double padding on each side)
             const renderWidthInCells = Math.min(
                 this.worldWidth,
