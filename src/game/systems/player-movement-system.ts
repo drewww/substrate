@@ -138,10 +138,25 @@ export class PlayerMovementSystem {
             this.actionHandler.execute(action);
         }
 
-        // Drain energy if turbo is active
+        // Drain energy if turbo is active and force turbo disengage if energy runs out
         if (turbo && energy) {
             energy.energy = Math.max(0, energy.energy - 5);
             player.setComponent(energy);
+
+            // Force turbo disengage if we're out of energy
+            if (energy.energy <= 0) {
+                player.removeComponent('turbo');
+                // Force speed decay when energy runs out
+                if (prediction.finalInertia.magnitude > 6) {
+                    prediction.finalInertia.magnitude -= 1;
+                }
+                // Reset to normal speed cooldown
+                const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+                if (cooldowns) {
+                    cooldowns.setCooldown('move', 2, 2);
+                    player.setComponent(cooldowns);
+                }
+            }
         }
 
         // Update inertia with predicted final state

@@ -43,6 +43,7 @@ import { VehicleLeaderComponent } from './components/vehicle-leader.component.ts
 import { FollowerComponent } from '../entity/components/follower-component.ts';
 import { FacingComponent } from '../entity/components/facing-component.ts';
 import { getOppositeDirection, getTargetPosition } from '../util.ts';
+import { EnergyComponent } from './components/energy.component.ts';
 
 
 
@@ -405,11 +406,20 @@ export class RuntimeGame extends Game {
         if(action === 'turbo' && (type === 'down' || type === 'repeat')) {
             const inertia = this.player.getComponent('inertia') as InertiaComponent;
             const turbo = this.player.getComponent('turbo') as TurboComponent;
-            if(inertia && inertia.magnitude >= 6 && !turbo) {
+            const energy = this.player.getComponent('energy') as EnergyComponent;
+            
+            // Only allow turbo if we have enough speed AND enough energy
+            if(inertia && inertia.magnitude >= 6 && !turbo && energy && energy.energy >= 10) {
                 this.player.setComponent(new TurboComponent());
             }
         } else if(action === 'turbo' && (type === 'up')) {
             this.player.removeComponent('turbo');
+            // Force speed decay when manually disengaging turbo
+            const inertia = this.player.getComponent('inertia') as InertiaComponent;
+            if (inertia && inertia.magnitude > 6) {
+                inertia.magnitude -= 1;
+                this.player.setComponent(inertia);
+            }
         }
 
         logger.info(`action: ${action} type: ${type}`);
