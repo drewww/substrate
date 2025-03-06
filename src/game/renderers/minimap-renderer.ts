@@ -200,7 +200,7 @@ export class MinimapRenderer extends LayoutRenderer {
                 this.objectiveBlock.x,
                 this.objectiveBlock.y,
                 '◎',
-                '#FFCC0DFF',
+                '#55CE4AFF',
                 '#00000000',
                 1000,
                 {
