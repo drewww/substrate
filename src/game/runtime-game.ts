@@ -577,21 +577,47 @@ export class RuntimeGame extends Game {
     }
 
     private selectObjective(world: World) {
-        const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === false);
+        const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === true);
         const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
 
-        // now we need to propagate this to all touching objectives
-        // AH we can't just do this because in the world it may be cars are touching for various reasons when this happens
-        // so we need some vehicle ID. so a new "leader" component and follower ids that match. 
+        // now, get the vehicle id out of the leader component
+        const leader = randomObjective.getComponent('vehicle-leader') as VehicleLeaderComponent;
+        if(!leader) {
+            logger.warn('no leader found for objective');
+            return;
+        }
+        
+        const vehicleId = leader.vehicleId;
+
+        logger.warn(`setting objective on vehicle ${vehicleId}`);
+
+        // now we need to get all the followers and set their vehicleId to the same as the leader
+        const followers = world.getEntitiesWithComponent('follower');
+        followers.forEach(follower => {
+            const followerComponent = follower.getComponent('follower') as FollowerComponent;
+
+            if (followerComponent.vehicleId === vehicleId) {
+                follower.setComponent(new ObjectiveComponent(true, false));
 
 
+                const light = new LightEmitterComponent({
+                    "radius": 3,
+                    "color": "#55CE4A",
+                    "intensity": 0.6,
+                    "distanceFalloff": "linear"
+                });
+
+                follower.setComponent(light);
+                follower.setComponent(light);
+            }
+        });
 
         randomObjective.setComponent(new ObjectiveComponent(true, true));
 
         const light = new LightEmitterComponent({
             "radius": 3,
             "color": "#55CE4A",
-            "intensity": 0.9,
+            "intensity": 0.6,
             "distanceFalloff": "linear"
         });
 

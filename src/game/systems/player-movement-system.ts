@@ -13,6 +13,8 @@ import { directionToRadians } from '../../util';
 import { FacingComponent } from '../../entity/components/facing-component';
 import { ObjectiveComponent } from '../components/objective.component';
 import { StunComponent } from '../components/stun.component';
+import { FollowerComponent } from '../../entity/components/follower-component';
+import { VehicleLeaderComponent } from '../components/vehicle-leader.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -72,26 +74,51 @@ export class PlayerMovementSystem {
             const entitiesAtNewPos = this.world.getEntitiesAt(to);
 
             const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+            let entitiesToReset: Entity[] = [];
             if (objective) {
-                const objectiveComponent = objective.getComponent('objective') as ObjectiveComponent;
-                objectiveComponent.active = !objectiveComponent.active;
-                objective.setComponent(objectiveComponent);
-                objective.removeComponent('lightEmitter');
-                this.world.emit('objective-complete', { objective });
-            }
 
-            // stun the objective we're stealing from too
-            if(objective) {
+                const follower = entitiesAtNewPos.find(e => e.hasComponent('follower'));
+
+                let objectiveVehicleId: number = 0;
+                if(follower) {
+                    const followerComponent = follower.getComponent('follower') as FollowerComponent;
+                    objectiveVehicleId = followerComponent.vehicleId ?? 0;
+                } else {
+                    const leader = objective.getComponent('vehicle-leader') as VehicleLeaderComponent;
+                    objectiveVehicleId = leader.vehicleId ?? 0;
+                }
+
+                // now add to entitiesToReset all followers with the same 
+                // that means looking up vehicle-leader with that id,
+                // then all followers with that vehicle id.
+
+                const leaders = this.world.getEntitiesWithComponent('vehicle-leader')
+                    .filter(e => (e.getComponent('vehicle-leader') as VehicleLeaderComponent)?.vehicleId === objectiveVehicleId);
+
+                const followers = this.world.getEntitiesWithComponent('follower')
+                    .filter(e => (e.getComponent('follower') as FollowerComponent)?.vehicleId === objectiveVehicleId);
+
+                entitiesToReset.push(...leaders, ...followers);
+
+                for(const entity of entitiesToReset) {
+                //     const objectiveComponent = entity.getComponent('objective') as ObjectiveComponent;
+                //     objectiveComponent.active = !objectiveComponent.active;
+                //     entity.setComponent(objectiveComponent);
+                    entity.removeComponent('objective');
+                    entity.removeComponent('lightEmitter');
+                }
+         
+                this.world.emit('objective-complete', { objective });
+
                 this.actionHandler.execute({
                     type: 'stun',
-                    entityId: objective.getId(),
+                    entityId: leaders[0].getId(),
                     data: {
                         duration: 24,
                         resetInertia: true
                     }
                 });
             }
-
 
             if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
