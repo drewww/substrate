@@ -1221,8 +1221,6 @@ export class World {
         // Check if tiles are adjacent
         const dx = Math.abs(toX - fromX);
         const dy = Math.abs(toY - fromY);
-
-        logger.info(`isPassable: ${fromX},${fromY} to ${toX},${toY} ignoreImpassable: ${ignoreImpassable} allowDiagonal: ${allowDiagonal} ignoreImpathable: ${ignoreImpathable}`);
         
         // If diagonal movement is not allowed, require exactly one direction of movement
         if (!allowDiagonal && dx + dy !== 1) {
