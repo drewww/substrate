@@ -5,7 +5,7 @@ import { RegisterComponent } from "../../entity/component-registry";
 export class ObjectiveComponent extends Component {
     type: 'objective' = 'objective';
 
-    constructor(public active: boolean = false, public eligible: boolean = false) {
+    constructor(public active: boolean = false, public eligible: boolean = false, public objectiveType: 'end' | 'vehicle' = 'vehicle') {
         super();
     }
 }
