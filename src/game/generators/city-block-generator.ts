@@ -216,10 +216,10 @@ export class CityBlockGenerator implements WorldGenerator {
         // Remove all vehicles and pedestrians
         const entitiesToRemove = world.getEntities().filter(entity => {
             // Check for vehicles (entities with follower/followable components)
-            if (entity.hasComponent('follower') || entity.hasComponent('followable') &&
-                !entity.hasComponent('objective')) {
-                return true;
-            }
+            // if (entity.hasComponent('follower') || entity.hasComponent('followable') &&
+            //     !entity.hasComponent('objective')) {
+            //     return true;
+            // }
 
             // Check for pedestrians
             const aiComponent = entity.getComponent('enemyAI') as EnemyAIComponent;

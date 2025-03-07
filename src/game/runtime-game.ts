@@ -242,12 +242,19 @@ export class RuntimeGame extends Game {
             // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
             this.objectiveCount++;
 
-            if (this.objectiveCount >= 2) {
-                this.engine?.stop();
-                (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+            switch (this.objectiveCount) {
+                case 1:
+                case 2:
+                    this.selectObjective(this.world!, false);
+                    break;
+                case 3:
+                    this.selectObjective(this.world!, true);
+                    break;
+                case 4:
+                    this.engine?.stop();
+                    (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+                    break;
             }
-
-            this.selectObjective(this.world!);
         });
 
     }
@@ -407,7 +414,7 @@ export class RuntimeGame extends Game {
             });
         });
 
-        // this.selectObjective(this.world);
+        this.selectObjective(this.world);
 
         // Add minimap setup
         if (this.generator instanceof CityBlockGenerator) {
@@ -736,8 +743,22 @@ export class RuntimeGame extends Game {
 
     }
 
-    private selectObjective(world: World) {
-        const eligibleObjectiveEntities = world.getEntitiesWithComponent('objective').filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.eligible === true);
+    private selectObjective(world: World, isExit: boolean = false) {
+
+
+        let eligibleObjectiveEntities: Entity[] = world.getEntitiesWithComponent('objective');
+
+        if (isExit) {
+            eligibleObjectiveEntities = eligibleObjectiveEntities
+                .filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.objectiveType === 'end');
+        } else {
+            eligibleObjectiveEntities = eligibleObjectiveEntities
+                .filter(entity => {
+                    const objective = entity.getComponent('objective') as ObjectiveComponent;
+                    return objective.eligible && !objective.active && objective.objectiveType !== 'end';
+                });
+        }
+
         const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
 
         // now, get the vehicle id out of the leader component
@@ -759,16 +780,15 @@ export class RuntimeGame extends Game {
             if (followerComponent.vehicleId === vehicleId) {
                 follower.setComponent(new ObjectiveComponent(true, false));
 
+                // const light = new LightEmitterComponent({
+                //     "radius": 3,
+                //     "color": "#55CE4A",
+                //     "intensity": 0.6,
+                //     "distanceFalloff": "linear"
+                // });
 
-                const light = new LightEmitterComponent({
-                    "radius": 3,
-                    "color": "#55CE4A",
-                    "intensity": 0.6,
-                    "distanceFalloff": "linear"
-                });
-
-                follower.setComponent(light);
-                follower.setComponent(light);
+                // follower.setComponent(light);
+                // follower.setComponent(light);
             }
         });
 
