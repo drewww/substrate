@@ -10,6 +10,7 @@ import { HealthComponent } from '../entity/components/health.component';
 import { EnergyComponent } from '../game/components/energy.component';
 
 export class UISpeedRenderer implements Renderer {
+
     private uiTiles: Map<string, string[]> = new Map(); // region -> tileIds[]
     private readonly uiDisplay: Display;
     private readonly MAX_SPEED = 12;  // Updated to 12 from 8
@@ -62,11 +63,11 @@ export class UISpeedRenderer implements Renderer {
         '#0055ffcc',
         '#0044ffcc'   // Deep blue with higher opacity
     ];
+    private readonly displayCanvas: HTMLCanvasElement;
 
     constructor(
         private readonly player: Entity
     ) {
-        // Create UI display with same cell dimensions but 2 rows now
         this.uiDisplay = new Display({
             elementId: 'ui-overlay',
             cellWidth: 10,
@@ -77,14 +78,30 @@ export class UISpeedRenderer implements Renderer {
             worldHeight: 2
         });
 
+        // Store reference to the actual display canvas
+        this.displayCanvas = document.getElementById('ui-overlay') as HTMLCanvasElement;
+        if (!this.displayCanvas) {
+            throw new Error('UI overlay canvas not found');
+        }
+
         // Position UI canvas absolutely
-        const canvas = this.uiDisplay.getRenderCanvas();
-        canvas.style.position = 'absolute';
-        canvas.style.bottom = '0';
-        canvas.style.left = '0';
-        canvas.style.pointerEvents = 'none';  // Let clicks pass through
+        this.displayCanvas.style.position = 'absolute';
+        this.displayCanvas.style.bottom = '0';
+        this.displayCanvas.style.left = '0';
+        this.displayCanvas.style.pointerEvents = 'none';
+        this.displayCanvas.style.zIndex = '100';
 
         this.initializeUI();
+    }
+
+    public hide(): void {
+        logger.warn("Hiding UI speed renderer");
+        this.displayCanvas.style.display = 'none';
+    }
+
+    public show(): void {
+        logger.warn("Showing UI speed renderer");
+        this.displayCanvas.style.display = 'block';
     }
 
     private initializeUI(): void {

@@ -58,6 +58,7 @@ import { HealthComponent } from '../entity/components/health.component.ts';
 import { SymbolComponent } from '../entity/components/symbol-component.ts';
 import { PlayerComponent } from '../entity/components/player-component.ts';
 import { BASE_MAX_SPEED } from './systems/movement-predictor.ts';
+import { TitleRenderer } from '../render/title-renderer';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -90,6 +91,8 @@ export class RuntimeGame extends Game {
     private minimapRenderer!: MinimapRenderer;
     private generator!: WorldGenerator;
     private objectiveCount: number = 0;
+    private titleDisplay: Display | null = null;
+    private titleRenderer: TitleRenderer | null = null;
 
     constructor(private readonly canvasId: string) {
         super();
@@ -100,7 +103,8 @@ export class RuntimeGame extends Game {
             throw new Error('World must be initialized before creating display');
         }
 
-        return new Display({
+        // Create main game display
+        const gameDisplay = new Display({
             elementId: this.canvasId,
             cellWidth: 20,
             cellHeight: 20,
@@ -109,6 +113,37 @@ export class RuntimeGame extends Game {
             worldWidth: this.world.getWorldWidth(),
             worldHeight: this.world.getWorldHeight()
         });
+
+        // Initially hide the game display
+        const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
+        if (gameCanvas) {
+            gameCanvas.style.visibility = 'hidden';
+        }
+
+        // Create title display with full height to cover UI
+        this.titleDisplay = new Display({
+            elementId: 'title-screen',
+            cellWidth: 10,
+            cellHeight: 20,
+            viewportWidth: 80,
+            viewportHeight: 30, // 28 + 2 for UI height
+            worldWidth: 80,
+            worldHeight: 30
+        });
+
+        // Position title canvas absolutely to cover everything
+        const titleCanvas = this.titleDisplay.getRenderCanvas();
+        titleCanvas.style.position = 'fixed';
+        titleCanvas.style.top = '0';
+        titleCanvas.style.left = '0';
+        titleCanvas.style.width = '100%';
+        titleCanvas.style.height = '100%';
+        titleCanvas.style.zIndex = '1000';  // Make sure this is higher than UI overlay's z-index
+
+        // Create title renderer
+        this.titleRenderer = new TitleRenderer(this.titleDisplay);
+
+        return gameDisplay;
     }
 
     protected setupRenderer(): void {
@@ -561,6 +596,7 @@ export class RuntimeGame extends Game {
         }
 
         this.uiSpeedRenderer = new UISpeedRenderer(this.player);
+        this.uiSpeedRenderer.hide();
 
         // Listen for component modifications to update speed display
         this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
@@ -717,6 +753,23 @@ export class RuntimeGame extends Game {
         // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
         // symbol.foreground = '#55CE4A';
         // randomObjective.setComponent(symbol);
+    }
+
+    public startGame(): void {
+        // Hide title screen
+        const titleCanvas = document.getElementById('title-screen') as HTMLCanvasElement;
+        if (titleCanvas) {
+            titleCanvas.style.visibility = 'hidden';
+        }
+
+        // Show game display
+        const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
+        if (gameCanvas) {
+            gameCanvas.style.visibility = 'visible';
+        }
+
+        // Start the game engine
+        this.engine?.start();
     }
 
 }
