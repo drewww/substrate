@@ -54,6 +54,7 @@ import { ImpassableComponent } from '../entity/components/impassable-component.t
 import { HealthComponent } from '../entity/components/health.component.ts';
 import { SymbolComponent } from '../entity/components/symbol-component.ts';
 import { PlayerComponent } from '../entity/components/player-component.ts';
+import { BASE_MAX_SPEED } from './systems/movement-predictor.ts';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -419,7 +420,9 @@ export class RuntimeGame extends Game {
 
             const inertia = this.player.getComponent('inertia') as InertiaComponent;
             if (action === 'move' && type === 'up' && inertia && inertia.magnitude > 1) {
-                this.player.removeComponent('bufferedMove');
+                // this was in before so that you could sort of "undo" a buffered move
+                // but that's not really feeling good.
+                // this.player.removeComponent('bufferedMove');
             } else if (action === 'move' && type === 'up' && inertia && inertia.magnitude <= 1) {
                 this.player.setComponent(new BufferedMoveComponent(direction, true));
             }
@@ -438,7 +441,7 @@ export class RuntimeGame extends Game {
             logger.warn(`turbo: ${turbo} energy: ${energy?.energy}`);
 
             // Only allow turbo if we have enough speed AND enough energy
-            if (inertia && inertia.magnitude >= 6 && !turbo && energy && energy.energy >= 10) {
+            if (inertia && inertia.magnitude >= BASE_MAX_SPEED && !turbo && energy && energy.energy >= 10) {
                 logger.warn('turbo engaged');
                 this.player.setComponent(new TurboComponent());
             } else {
@@ -522,7 +525,7 @@ export class RuntimeGame extends Game {
 
         const symbol = new SymbolComponent();
         symbol.char = '⧋';
-        symbol.foreground = '#FF194DFF';
+        symbol.foreground = '#FFFFFFFF';
         symbol.background = '#7EECF400';
         symbol.zIndex = 500;
         symbol.alwaysRenderIfExplored = false;
@@ -540,9 +543,9 @@ export class RuntimeGame extends Game {
         player.setComponent(new HealthComponent(12, 12));
 
         // TRUE here sets "ignore walls" vision
-        player.setComponent(new VisionComponent(30, true));
+        player.setComponent(new VisionComponent(40, true));
 
-        player.setComponent(new EnergyComponent(100));
+        player.setComponent(new EnergyComponent(150));
 
         world.addEntity(player);
     }

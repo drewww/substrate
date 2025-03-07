@@ -25,9 +25,9 @@ export interface MovementPrediction {
     collision?: Point;
 }
 
-export const MEDIUM_SPEED_THRESHOLD = 3;
-export const BASE_MAX_SPEED = 6;
-export const TURBO_MAX_SPEED = 10;
+export const MEDIUM_SPEED_THRESHOLD = 2;
+export const BASE_MAX_SPEED = 5;
+export const TURBO_MAX_SPEED = 7;
 
 
 export class MovementPredictor {

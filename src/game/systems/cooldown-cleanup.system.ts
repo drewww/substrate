@@ -22,6 +22,16 @@ export class CooldownCleanupSystem {
                     if(name === 'stun' && state.current <= 0) {
                         logger.info(`Removing stun component from entity ${entity.getId()}`);
                         entity.removeComponent('stun');
+
+                        // let it move
+                        const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+                        
+                        if(cooldowns) {
+                            const moveCooldown = cooldowns.getCooldown('move');
+                            if(moveCooldown) {
+                                cooldowns.setCooldown('move', moveCooldown.base, moveCooldown.base, true);
+                            }
+                        }
                     }
                 }
             }
