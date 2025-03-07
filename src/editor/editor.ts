@@ -1288,7 +1288,7 @@ export class Editor {
         };
     }
 
-    private handleReload(): void {
+    private async handleReload(): Promise<void> {
         try {
             const { exportData, failedEntities, failedComponents } = this.serializeWorld();
 
@@ -1298,21 +1298,21 @@ export class Editor {
             // Create new generator with the exported data
             const generator = new JsonWorldGenerator(exportData);
             
-            // Generate new world
-            const newWorld = generator.generate();
+            // Generate new world - now with await
+            this.world = await generator.generate();
             
             // Store the new world
-            this.world = newWorld;
+            this.world = await generator.generate();
 
             // Recreate display with new world dimensions
             this.display = new Display({
                 elementId: CANVAS_ID,
                 cellWidth: 20,
                 cellHeight: 20,
-                worldWidth: newWorld.getWorldWidth(),
-                worldHeight: newWorld.getWorldHeight(),
-                viewportWidth: newWorld.getWorldWidth(),
-                viewportHeight: newWorld.getWorldHeight()
+                worldWidth: this.world.getWorldWidth(),
+                worldHeight: this.world.getWorldHeight(),
+                viewportWidth: this.world.getWorldWidth(),
+                viewportHeight: this.world.getWorldHeight()
             });
 
             // Create new renderer with new world and display
@@ -1322,9 +1322,9 @@ export class Editor {
             this.selectedCells = [];
             
             logger.info('Successfully reloaded world:', {
-                width: newWorld.getWorldWidth(),
-                height: newWorld.getWorldHeight(),
-                entities: newWorld.getEntities().length
+                width: this.world.getWorldWidth(),
+                height: this.world.getWorldHeight(),
+                entities: this.world.getEntities().length
             });
         } catch (error) {
             logger.error('Failed to reload world:', error);
@@ -1445,8 +1445,8 @@ export class Editor {
                 // Create new generator with the loaded data
                 const generator = new JsonWorldGenerator(jsonData);
                 
-                // Generate new world
-                this.world = generator.generate();
+                // Generate new world - now with await
+                this.world = await generator.generate();
 
                 // Calculate viewport size to match world size
                 const viewportWidth = Math.floor(jsonData.width);
