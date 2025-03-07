@@ -100,6 +100,7 @@ export class RuntimeGame extends Game {
     private objectiveCount: number = 0;
     private titleDisplay: Display | null = null;
     private titleRenderer: TitleRenderer | null = null;
+    // private world!: World;
 
     constructor(private readonly canvasId: string) {
         super();
@@ -264,16 +265,22 @@ export class RuntimeGame extends Game {
 
     protected async setup(): Promise<void> {
         try {
-            // Load the world from JSON using the URL
-            // this.generator = await JsonWorldGenerator.fromUrl(practiceWorldUrl);
-            this.generator = await JsonWorldGenerator.fromUrl(circleTrackUrl);
-            const world = await this.generator.generate();
-            this.world = world;
+            const options = {
+                type: 'json' as const,
+                url: circleTrackUrl
+            };
 
-            this.placePlayer(1, 2, world);
+            const generator: WorldGenerator = options.type === 'json' 
+                ? await JsonWorldGenerator.fromUrl(options.url)
+                : new CityBlockGenerator();
+            
+            // Assign world directly from generate
+            this.world = await generator.generate();
+
+            this.placePlayer(1, 2, this.world);
 
             // Find the player entity that was created by the generator
-            this.player = world.getEntitiesWithComponent('player')[0];
+            this.player = this.world.getEntitiesWithComponent('player')[0];
 
             // Add components to player
             const cooldowns = new CooldownComponent();
@@ -290,15 +297,15 @@ export class RuntimeGame extends Game {
             // Initialize engine with the generated world, but start paused
             this.engine = new Engine({
                 mode: 'realtime',
-                worldWidth: world.getWorldWidth(),
-                worldHeight: world.getWorldHeight(),
+                worldWidth: this.world.getWorldWidth(),
+                worldHeight: this.world.getWorldHeight(),
                 player: this.player,
-                world: world,
-                startPaused: true  // Add this option to Engine config
+                world: this.world,
+                startPaused: true
             });
 
             const visionComponent = this.player.getComponent('vision') as VisionComponent;
-            const radius = visionComponent?.radius ?? 30; // fallback to 30 if no component
+            const radius = visionComponent?.radius ?? 30;
             this.world.updateVision(this.player.getPosition(), radius);
 
             // Set up action handler with new PlayerMoveAction
@@ -314,10 +321,7 @@ export class RuntimeGame extends Game {
             this.postProcessVehicles(this.world);
         } catch (error) {
             logger.error('Failed to load world:', error);
-            // Fallback to EnemyWorldGenerator if JSON loading fails
-            const fallbackGenerator = new EnemyWorldGenerator();
-            this.world = fallbackGenerator.generate();
-            this.player = this.world.getEntitiesWithComponent('player')[0];
+            throw error; // Re-throw to prevent continuing with invalid state
         }
     }
 

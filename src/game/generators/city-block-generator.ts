@@ -22,11 +22,12 @@ import { AOEDamageComponent } from '../components/aoe-damage.component';
 import { ChunkMetadata } from '../generators/layout-generator';
 import { ObjectiveComponent } from '../components/objective.component';
 import { EnergyComponent } from '../components/energy.component';
+import { WorldGenerator } from '../../world/world-generator';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
 
-export class CityBlockGenerator {
+export class CityBlockGenerator implements WorldGenerator {
     private readonly width: number = 10;
     private readonly height: number = 10;
 
@@ -80,7 +81,6 @@ export class CityBlockGenerator {
     }
 
     async generate(): Promise<World> {
-        // Create a new world with dimensions based on layout and block size
         const world = new World(
             this.width * this.blockWidth,
             this.height * this.blockHeight
@@ -88,17 +88,15 @@ export class CityBlockGenerator {
 
         // Create and use the staged layout generator
         const layoutGenerator = new StagedLayoutGenerator(this.width, this.height);
-        this.layout = layoutGenerator.generate();  // Store the layout
+        this.layout = layoutGenerator.generate();
 
-        // Process each cell in the layout
-        let blockId = 0;  // Add block ID counter
+        let blockId = 0;
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 const cell = this.layout[y][x];
                 if (!cell) continue;
 
                 try {
-                    // Get the block file URL based on road shape metadata
                     let blockUrl: string | undefined;
 
                     if(cell.type === 'building') {
@@ -160,58 +158,39 @@ export class CityBlockGenerator {
                     }
 
                     const blockGenerator = await JsonWorldGenerator.fromUrl(blockUrl);
-                    const blockWorld = blockGenerator.generate();
+                    const blockWorld = await blockGenerator.generate();
 
-                    // Copy and rotate entities from block to city world
-                    const offsetX = x * this.blockWidth;
-                    const offsetY = y * this.blockHeight;
-
-                    blockWorld.getEntities().forEach(entity => {
+                    // Process block entities
+                    blockWorld.getEntities().forEach((entity: Entity) => {
                         const newEntity = entity.clone();
-                        
-                        // Apply rotation if this is a road
                         if (cell.type === 'road' && cell.roadInfo?.orientation) {
                             this.rotateEntityPosition(newEntity, cell.roadInfo.orientation, this.blockWidth, this.blockHeight);
                         }
                         
-                        // Apply block offset
                         const pos = newEntity.getPosition();
-                        newEntity.setPosition(pos.x + offsetX, pos.y + offsetY);
+                        newEntity.setPosition(
+                            pos.x + (x * this.blockWidth), 
+                            pos.y + (y * this.blockHeight)
+                        );
                         
-                        // Check all components for blockId field and set it
+                        // Set blockId if component supports it
                         for (const componentType of newEntity.getComponentTypes()) {
                             const component = newEntity.getComponent(componentType);
                             if (component && 'blockId' in component) {
                                 (component as any).blockId = blockId;
                                 newEntity.setComponent(component);
-
-                                logger.info(`Setting blockId ${blockId} for entity ${newEntity.getId()}`);
                             }
                         }
                         
                         world.addEntity(newEntity);
                     });
 
-                    blockId++; // Increment block ID after processing each block
+                    blockId++;
                 } catch (error) {
                     logger.error(`Failed to load block at ${x},${y}:`, error);
                 }
             }
         }
-
-
-        // look for a space that is not impassable to place the player
-        // let playerX = 0;
-        // let playerY = 0;
-        // for (let y = 0; y < this.height; y++) {
-        //     for (let x = 0; x < this.width; x++) {
-        //         if (playerX === 0 && playerY === 0 && !world.getEntitiesAt({x, y}).some(entity => entity.hasComponent("impassable"))) {
-        //             playerX = x;
-        //             playerY = y;
-        //             break;
-        //         }
-        //     }
-        // }
 
         // Remove all vehicles and pedestrians
         const entitiesToRemove = world.getEntities().filter(entity => {
@@ -234,22 +213,8 @@ export class CityBlockGenerator {
             world.removeEntity(entity.getId());
         });
 
-
-        // this.placePlayer(12, 12, world);
-
-
-        // later make sure it's not too close to the player
-        // this.placeHelicopter(Math.floor(world.getWorldWidth()*Math.random()),
-        //                      Math.floor(world.getWorldHeight()*Math.random()), world);
         this.placeHelicopter(20, 20, world);
         
-
-        // this.placeCamera(11, 11, world);
-
-        // let's randomly add cameras to the world.
-        // the rule for deciding where to put them is -- on top of a wall tile ('#') AND with at least 5 adjacent
-        // non opaque tiles.
-
         // Get all wall tiles (entities with both impassable and symbol components where symbol is '#')
         const wallTiles = world.getEntities()
             .filter(entity => {
@@ -287,16 +252,11 @@ export class CityBlockGenerator {
             }
         }
 
-        // this.placeTurret(11, 11, world);
-        
-        // this.placeHomingBot(16, 16, world);
-
         return world;
     }
     
     private placeHelicopter(x: number, y: number, world: World) {
         const helicopter = new Entity({x, y});
-
 
         const symbol = new SymbolComponent();
         symbol.char = '🜛';
@@ -308,16 +268,6 @@ export class CityBlockGenerator {
         symbol.offsetSymbolY = -0.1;
         symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
-
-
-        // symbol.animations = {
-        //     rotation: {
-        //         duration: 1,
-        //         loop: true,
-        //         start: 0,
-        //         end: 360
-        //     }
-        // };  
 
         helicopter.setComponent(symbol);
         helicopter.setComponent(new VisionComponent(10, true));
@@ -370,16 +320,9 @@ export class CityBlockGenerator {
         world.addEntity(turret);
     }
 
-
-    //
     private placeHomingBot(x: number, y: number, world: World) {
         const homingBot = new Entity({x, y});
 
-        // CONCEPT
-        // bot activates when it sees you, moves FAST at you (turbo speed?? or "normal" speed?)
-        // when it gets to you...
-        //    ... pops some decaying obstacles?
-        //    ... if it's within N tiles, shoots you? 
         const symbol = new SymbolComponent();
         symbol.char = '🜻';
         symbol.foreground = '#FF194DFF';
@@ -414,9 +357,7 @@ export class CityBlockGenerator {
         symbol.background = '#FFFFFFFF';
         symbol.zIndex = 500;
         symbol.alwaysRenderIfExplored = false;
-        // symbol.lockRotationToFacing = true;
         
-
         camera.setComponent(symbol);
         camera.setComponent(new VisionComponent(10, false));
         camera.setComponent(new EnemyAIComponent(EnemyAIType.CAMERA));

@@ -17,7 +17,7 @@ interface LevelData {
 export class JsonWorldGenerator implements WorldGenerator {
     constructor(private readonly jsonData: LevelData) {}
 
-    generate(): World {
+    async generate(): Promise<World> {
         const startTime = performance.now();
         const data = this.jsonData;
 
@@ -65,19 +65,13 @@ export class JsonWorldGenerator implements WorldGenerator {
         return world;
     }
 
-    // Replace the fromFile method with fromUrl
     static async fromUrl(url: string): Promise<JsonWorldGenerator> {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`Failed to load level file: ${response.statusText}`);
-            }
-            const jsonData = await response.json();
-            return new JsonWorldGenerator(jsonData);
-        } catch (error) {
-            logger.error(`Failed to load world from URL ${url}:`, error);
-            throw error;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to load level file: ${response.statusText}`);
         }
+        const jsonData = await response.json();
+        return new JsonWorldGenerator(jsonData);
     }
 
     // You can keep fromFile for backward compatibility if needed
