@@ -268,13 +268,15 @@ export class RuntimeGame extends Game {
         return new RuntimeSoundRenderer(this.world, this.audioContext);
     }
 
-
     protected async setup(): Promise<void> {
+        return this.initializeWorld({type: 'json', url: circleTrackUrl});
+    }
+
+    protected async initializeWorld(options: GeneratorConfig): Promise<void> {
         try {
-            const options: GeneratorConfig = {
-                type: 'city',
-                // url: circleTrackUrl  // This is required when type is 'json'
-            };
+            // const generator: WorldGenerator = options.type === 'json' 
+            //     // url: circleTrackUrl  // This is required when type is 'json'
+            // };
 
             const generator: WorldGenerator = options.type === 'json' 
                 ? await JsonWorldGenerator.fromUrl(options.url!)  // Add non-null assertion since we know url exists
