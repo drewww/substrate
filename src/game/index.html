@@ -68,12 +68,21 @@
         }
 
         #display-container {
-            position: relative;  /* For absolute positioning of children */
-            width: 800px;
+            position: relative;
+            width: 1060px;
             height: 600px;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 0;  /* Remove the gap */
+        }
+
+        #title-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1060px;
+            height: 600px;
+            z-index: 1000;
         }
 
         #display-container canvas {

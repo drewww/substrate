@@ -15,35 +15,31 @@ export class TitleRenderer implements Renderer {
         // on the right side of the screen, put a rectangle that has padding 2 from the edges and is ... 15 tiles wide.
         // top to bottom.
         for (let y = 2; y < this.display.getViewportHeight() - 2; y++) {
-            for (let x = this.display.getViewportWidth() - 30; x < this.display.getViewportWidth()-4; x++) {
+            for (let x = this.display.getViewportWidth() - 25; x < this.display.getViewportWidth() - 4; x++) {
                 this.display.createTile(x, y, ' ', '#FFFFFF00', '#00000044', 1000);
             }
         }
 
-        this.display.createString(this.display.getViewportWidth() - 28, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(this.display.getViewportWidth() - 23, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
         });
 
-        this.display.createString(this.display.getViewportWidth() - 26, 5, '{w}[r]un{/}', 1000, {
-            // backgroundColor: '#00000000',
+        this.display.createString(this.display.getViewportWidth() - 21, 5, '{w}[r]un{/}', 1000, {
             animate: {
                 delayBetweenChars: 0.15,
                 initialDelay: 0.0
             }
         });
 
-
-        this.display.createString(this.display.getViewportWidth() - 26, 6, '{w}[t]rain{/}', 1000, {
-            // backgroundColor: '#00000000',
+        this.display.createString(this.display.getViewportWidth() - 21, 6, '{w}[t]rain{/}', 1000, {
             animate: {
                 delayBetweenChars: 0.15,
                 initialDelay: 0.0
             }
         });
 
-        this.display.createString(this.display.getViewportWidth() - 26, 7, '{w}[c]redits{/}', 1000, {
-            // backgroundColor: '#00000000',
+        this.display.createString(this.display.getViewportWidth() - 21, 7, '{w}[c]redits{/}', 1000, {
             animate: {
                 delayBetweenChars: 0.15,
                 initialDelay: 0.0

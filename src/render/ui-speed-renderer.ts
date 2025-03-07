@@ -72,9 +72,9 @@ export class UISpeedRenderer implements Renderer {
             elementId: 'ui-overlay',
             cellWidth: 10,
             cellHeight: 20,
-            viewportWidth: 80,
-            viewportHeight: 2,
-            worldWidth: 80,
+            viewportWidth: 106, // 1060/10 = 106 cells for UI width
+            viewportHeight: 2,  // 2 rows for UI height
+            worldWidth: 106,
             worldHeight: 2
         });
 

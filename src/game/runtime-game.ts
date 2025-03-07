@@ -115,8 +115,8 @@ export class RuntimeGame extends Game {
             elementId: this.canvasId,
             cellWidth: 20,
             cellHeight: 20,
-            viewportWidth: 40,
-            viewportHeight: 28,
+            viewportWidth: 53,  // 1060/20 = 53 cells wide
+            viewportHeight: 28, // (600-40)/20 = 28 cells high (leaving 40px for UI)
             worldWidth: this.world.getWorldWidth(),
             worldHeight: this.world.getWorldHeight()
         });
@@ -132,9 +132,9 @@ export class RuntimeGame extends Game {
             elementId: 'title-screen',
             cellWidth: 10,
             cellHeight: 20,
-            viewportWidth: 80,
-            viewportHeight: 30, // 28 + 2 for UI height
-            worldWidth: 80,
+            viewportWidth: 106,  // Match main display width (1060/20 = 53)
+            viewportHeight: 30, // Match total height (600/20 = 30)
+            worldWidth: 106,
             worldHeight: 30
         });
 
