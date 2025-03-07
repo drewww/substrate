@@ -64,7 +64,7 @@ Shift turbo
 `;
 
 export class RuntimeGame extends Game {
-   
+
     // I don't love all these `!` but I'm not sure how else to do it with the async loading
     private enemyMovementSystem!: EnemyMovementSystem;
     private actionHandler!: ActionHandler;
@@ -115,22 +115,22 @@ export class RuntimeGame extends Game {
         }
     }
 
-    protected setupInput(): void {    
+    protected setupInput(): void {
         // Set up input configuration
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
         this.input.setMode('game');
     }
 
     protected setupSystems(): void {
-        if(!this.world) {
+        if (!this.world) {
             throw new Error('World not initialized');
         }
 
-        if(!this.player) {
+        if (!this.player) {
             throw new Error('Player not initialized');
         }
 
-        if(!this.engine) {
+        if (!this.engine) {
             throw new Error('Engine not initialized');
         }
 
@@ -177,22 +177,22 @@ export class RuntimeGame extends Game {
             logger.warn('Player death:', data);
             this.engine?.stop();
             (this.renderer as RuntimeRenderer).displayMessage("GAME OVER");
-        }); 
+        });
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
             // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
             this.objectiveCount++;
 
-            if(this.objectiveCount >= 2) {
+            if (this.objectiveCount >= 2) {
                 this.engine?.stop();
                 (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
             }
-            
+
             this.selectObjective(this.world!);
         });
 
     }
-    
+
     protected createRenderer(): BaseRenderer {
         if (!this.world || !this.display) {
             throw new Error('World and display must be initialized');
@@ -286,7 +286,7 @@ export class RuntimeGame extends Game {
         // Set up cell inspection
         this.display.onCellClick((pos) => {
             if (!this.world || !pos) return;
-            
+
             // First show tile information
             const tiles = this.display!.getTilesAt(pos.x, pos.y);
             if (tiles.length > 0) {
@@ -343,7 +343,7 @@ export class RuntimeGame extends Game {
         return `${point.x},${point.y}`;
     }
 
-    
+
     private updateViewport(animate: boolean = true): void {
         if (!this.player || !this.world || !this.display) {
             throw new Error('Required game objects not initialized');
@@ -352,7 +352,7 @@ export class RuntimeGame extends Game {
         const pos = this.player.getPosition();
         const viewportWidth = this.display.getViewportWidth();
         const viewportHeight = this.display.getViewportHeight();
-        
+
         // Center the viewport on the player
         const viewportX = Math.max(0, Math.min(
             pos.x - Math.floor(viewportWidth / 2),
@@ -372,59 +372,67 @@ export class RuntimeGame extends Game {
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
-        if(!this.player) {
+        if (!this.player) {
             throw new Error('Player not initialized');
         }
 
-        let direction: Direction;
-        const directionStr = params[0];
-        switch(directionStr) {
-            case 'up':    direction = Direction.North; break;
-            case 'down':  direction = Direction.South; break;
-            case 'left':  direction = Direction.West;  break;
-            case 'right': direction = Direction.East;  break;
-            default: return;
-        }
+
 
         // reject "up" events, might help with some accidental post-tick activations
 
         // the problem is that you can "repeat" INTO the next tick and it's not
         // intentional. it's not even about tick, it's about where in the cooldown you are. 
-        
+
         // maybe the play is that an "up" should cancel buffered move.
 
+        logger.warn(`action: ${action} type: ${type}`);
 
 
-        
-        const inertia = this.player.getComponent('inertia') as InertiaComponent;
-        if(action === 'move' && type === 'up' && inertia && inertia.magnitude > 1) {
-            this.player.removeComponent('bufferedMove');
-        } else if(action === 'move' && type === 'up' && inertia && inertia.magnitude <= 1) {
-            this.player.setComponent(new BufferedMoveComponent(direction, true));
+        if (params.length > 0) {
+            let direction: Direction;
+            const directionStr = params[0];
+            switch (directionStr) {
+                case 'up': direction = Direction.North; break;
+                case 'down': direction = Direction.South; break;
+                case 'left': direction = Direction.West; break;
+                case 'right': direction = Direction.East; break;
+                default: return;
+            }
+
+
+            const inertia = this.player.getComponent('inertia') as InertiaComponent;
+            if (action === 'move' && type === 'up' && inertia && inertia.magnitude > 1) {
+                this.player.removeComponent('bufferedMove');
+            } else if (action === 'move' && type === 'up' && inertia && inertia.magnitude <= 1) {
+                this.player.setComponent(new BufferedMoveComponent(direction, true));
+            }
+
+            if (action === 'move' && type !== 'up') {
+                this.player.removeComponent('bufferedMove');
+                this.player.setComponent(new BufferedMoveComponent(direction));
+            }
         }
 
-        if (action === 'move' && type !== 'up') {
-            this.player.removeComponent('bufferedMove');
-            this.player.setComponent(new BufferedMoveComponent(direction));
-        }
-
-        if(action === 'turbo' && (type === 'down' || type === 'repeat')) {
+        if (action === 'turbo' && (type === 'down' || type === 'repeat')) {
             const inertia = this.player.getComponent('inertia') as InertiaComponent;
             const turbo = this.player.getComponent('turbo') as TurboComponent;
             const energy = this.player.getComponent('energy') as EnergyComponent;
-            
+
+            logger.warn(`turbo: ${turbo} energy: ${energy?.energy}`);
+
             // Only allow turbo if we have enough speed AND enough energy
-            if(inertia && inertia.magnitude >= 6 && !turbo && energy && energy.energy >= 10) {
+            if (inertia && inertia.magnitude >= 6 && !turbo && energy && energy.energy >= 10) {
                 logger.warn('turbo engaged');
                 this.player.setComponent(new TurboComponent());
             } else {
+                // force decay if the turbo key is pressed but we can't actually use it here.
                 const inertia = this.player.getComponent('inertia') as InertiaComponent;
                 if (inertia && inertia.magnitude > 6) {
                     inertia.magnitude -= 1;
                     this.player.setComponent(inertia);
                 }
             }
-        } else if(action === 'turbo' && (type === 'up')) {
+        } else if (action === 'turbo' && (type === 'up')) {
             this.player.removeComponent('turbo');
             // Force speed decay when manually disengaging turbo
             const inertia = this.player.getComponent('inertia') as InertiaComponent;
@@ -435,14 +443,14 @@ export class RuntimeGame extends Game {
         }
 
         logger.info(`action: ${action} type: ${type}`);
-        if(action === 'brake' && (type === 'down' || type === 'repeat')) {
+        if (action === 'brake' && (type === 'down' || type === 'repeat')) {
             // how do we handle conflict between brake and a move? I think brake takes precedence. add it to buffered move as a boolean.           
             this.player.setComponent(new BrakeComponent());
-        } else if(action === 'brake' && (type === "up")) {
+        } else if (action === 'brake' && (type === "up")) {
             this.player.removeComponent('brake');
         }
     }
-    
+
     public getDisplay(): Display {
         if (!this.display) {
             throw new Error('Display not initialized');
@@ -451,7 +459,7 @@ export class RuntimeGame extends Game {
     }
 
     public saveGame(): void {
-        if(!this.world) {
+        if (!this.world) {
             throw new Error('World not initialized');
         }
 
@@ -473,16 +481,16 @@ export class RuntimeGame extends Game {
         try {
             const saveData = JSON.parse(savedState);
             const newWorld = World.deserialize(saveData.world);
-            
+
             // Replace current world
             this.world = newWorld;
-            
+
             // Re-establish player reference
             this.player = this.world.getEntitiesWithComponent('player')[0];
-            
+
             // Update viewport to center on player
             this.updateViewport(false);
-            
+
             console.log('Game loaded');
         } catch (error) {
             console.error('Error loading game:', error);
@@ -496,7 +504,7 @@ export class RuntimeGame extends Game {
         }
 
         this.uiSpeedRenderer = new UISpeedRenderer(this.player);
-        
+
         // Listen for component modifications to update speed display
         this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
             this.uiSpeedRenderer.handleComponentModified(data.entity, data.componentType);
@@ -562,12 +570,12 @@ export class RuntimeGame extends Game {
 
     private postProcessVehicles(world: World) {
         const vehicleLeaders = world.getEntitiesWithComponent('vehicle-leader');
-        let vehicleId:number = 0;
+        let vehicleId: number = 0;
         vehicleLeaders.forEach(vehicleLeader => {
             vehicleId++;
             const leader = vehicleLeader.getComponent('vehicle-leader') as VehicleLeaderComponent;
             leader.vehicleId = vehicleId;
-            
+
 
             // now we need to find all followers and set their vehicleId
             const facing = vehicleLeader.getComponent('facing') as FacingComponent;
@@ -583,7 +591,7 @@ export class RuntimeGame extends Game {
 
                 const entities = world.getEntitiesAt(targetPosition);
                 const follower = entities.find(entity => entity.hasComponent('follower'));
-                if(follower) {
+                if (follower) {
                     const followerComponent = follower.getComponent('follower') as FollowerComponent;
                     followerComponent.vehicleId = vehicleId;
                     follower.setComponent(followerComponent);
@@ -593,7 +601,7 @@ export class RuntimeGame extends Game {
                     break;
                 }
             }
-            
+
         });
 
     }
@@ -604,7 +612,7 @@ export class RuntimeGame extends Game {
 
         // now, get the vehicle id out of the leader component
         const leader = randomObjective.getComponent('vehicle-leader') as VehicleLeaderComponent;
-        if(!leader) {
+        if (!leader) {
             logger.warn('no leader found for objective');
             return;
         }
@@ -643,7 +651,7 @@ export class RuntimeGame extends Game {
             "distanceFalloff": "linear"
         });
 
-        
+
         randomObjective.setComponent(light);
         randomObjective.setComponent(light);
 
