@@ -234,8 +234,6 @@ export class CityBlockGenerator implements WorldGenerator {
             world.removeEntity(entity.getId());
         });
 
-        this.placeHelicopter(20, 20, world);
-        
         // Get all wall tiles (entities with both impassable and symbol components where symbol is '#')
         const wallTiles = world.getEntities()
             .filter(entity => {
@@ -272,6 +270,24 @@ export class CityBlockGenerator implements WorldGenerator {
                 camerasPlaced++;
             }
         }
+
+        // Find a location at least 36 tiles away from the start location
+        const player = world.getEntities().find(entity => entity.hasComponent('player'));
+        if (!player) {
+            logger.error('No player found');
+            return world;
+        }
+
+        const playerPos = player.getPosition();
+
+        let heliX, heliY;
+        do {
+            heliX = Math.floor(Math.random() * this.width * this.blockWidth);
+            heliY = Math.floor(Math.random() * this.height * this.blockHeight);
+        } while (Math.sqrt(Math.pow(heliX - playerPos.x, 2) + Math.pow(heliY - playerPos.y, 2)) < 36);
+
+        this.placeHelicopter(heliX, heliY, world);
+
 
         return world;
     }
