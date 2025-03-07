@@ -12,7 +12,8 @@ export class EngineLoop {
 
     constructor(
         private readonly timestep: number,  // in ms
-        private readonly updateFn: (deltaTime: number) => void
+        private readonly updateFn: (deltaTime: number) => void,
+        private readonly paused: boolean = false
     ) {
         // Listen for visibility changes
         document.addEventListener('visibilitychange', () => {

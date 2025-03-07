@@ -14,6 +14,7 @@ export interface EngineOptions {
     worldHeight: number;
     player: Entity;
     world: World;
+    startPaused?: boolean;
 }
 
 export class Engine {
@@ -46,6 +47,11 @@ export class Engine {
             TICK_MS,
             () => this.tick()
         );
+
+        // Don't automatically start the engine loop
+        if (!options.startPaused) {
+            this.start();
+        }
     }
 
     public start(): void {

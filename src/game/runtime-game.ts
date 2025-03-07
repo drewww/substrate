@@ -58,7 +58,7 @@ import { HealthComponent } from '../entity/components/health.component.ts';
 import { SymbolComponent } from '../entity/components/symbol-component.ts';
 import { PlayerComponent } from '../entity/components/player-component.ts';
 import { BASE_MAX_SPEED } from './systems/movement-predictor.ts';
-import { TitleRenderer } from '../render/title-renderer';
+import { TitleRenderer } from '../render/title-renderer.ts';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -73,6 +73,13 @@ e shift up
 q shift down
 Space brake
 Shift turbo
+
+mode: title
+==========
+map: default
+---
+Space start
+t train
 `;
 
 export class RuntimeGame extends Game {
@@ -164,7 +171,7 @@ export class RuntimeGame extends Game {
     protected setupInput(): void {
         // Set up input configuration
         this.input.loadConfig(DEFAULT_INPUT_CONFIG);
-        this.input.setMode('game');
+        this.input.setMode('title');
     }
 
     protected setupSystems(): void {
@@ -280,13 +287,14 @@ export class RuntimeGame extends Game {
                 throw new Error('No player entity found in generated world');
             }
 
-            // Initialize engine with the generated world
+            // Initialize engine with the generated world, but start paused
             this.engine = new Engine({
                 mode: 'realtime',
                 worldWidth: world.getWorldWidth(),
                 worldHeight: world.getWorldHeight(),
                 player: this.player,
-                world: world
+                world: world,
+                startPaused: true  // Add this option to Engine config
             });
 
             const visionComponent = this.player.getComponent('vision') as VisionComponent;
@@ -433,8 +441,6 @@ export class RuntimeGame extends Game {
             throw new Error('Player not initialized');
         }
 
-
-
         // reject "up" events, might help with some accidental post-tick activations
 
         // the problem is that you can "repeat" INTO the next tick and it's not
@@ -509,6 +515,13 @@ export class RuntimeGame extends Game {
             this.player.setComponent(new BrakeComponent());
         } else if (action === 'brake' && (type === "up")) {
             this.player.removeComponent('brake');
+        }
+
+
+        if (action === 'start' || action === 'train' && type === 'up') {
+            this.startGame();
+
+            this.titleRenderer?.hide();
         }
     }
 
@@ -768,8 +781,14 @@ export class RuntimeGame extends Game {
             gameCanvas.style.visibility = 'visible';
         }
 
-        // Start the game engine
-        this.engine?.start();
+        // Show UI
+        this.uiSpeedRenderer.show();
+
+        // Use setTimeout to break the call stack cycle
+        setTimeout(() => {
+            this.input.setMode('game');
+            this.engine?.start();
+        }, 0);
     }
 
 }

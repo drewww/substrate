@@ -40,7 +40,7 @@ async function init() {
     setupControls();
     
     // Start game
-    game.start();
+    // game.start();
 
     // Add mask canvas to debug overlay
     const maskCanvasContainer = document.getElementById('mask-canvas-container');
