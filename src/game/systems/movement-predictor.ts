@@ -160,10 +160,21 @@ export class MovementPredictor {
                         });
                     }
                     
-                    finalInertia = {
-                        direction: inertia.direction,
-                        magnitude: Math.max(0, inertia.magnitude-1),
-                    };
+                    if(brake) {
+                        finalInertia = {
+                            direction: inertia.direction,
+                            magnitude: Math.max(0, inertia.magnitude-1),
+                        };
+                    } else {
+
+                        // don't allow retro thrusting to drop you below 2 speed. 
+                        // this will make tight turns easier.
+                        finalInertia = {
+                            direction: inertia.direction,
+                            magnitude: Math.max(SLIDE_SPEED+1, inertia.magnitude-1),
+                        };
+                    }
+                    
                 } else if(inertia.magnitude <= SLIDE_SPEED) {
                     // if inertia is less than 2, still update the direction
                     // TODO What is happening here?
