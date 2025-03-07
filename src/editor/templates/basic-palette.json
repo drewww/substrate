@@ -483,6 +483,51 @@
             }
           }
         ]
+      },
+      {
+        "id": "start-timestamp",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "components": [
+          {
+            "type": "symbol",
+            "char": " ",
+            "foreground": "#000000ff",
+            "background": "#8DFFA0FF",
+            "zIndex": 5,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type": "applyTimestamp",
+            "apply": "start"
+          }
+        ]
+      },
+
+      {
+        "id": "stop-timestamp",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "▒",
+            "foreground": "#FFFFFFFF",
+            "background": "#6A6F71FF",
+            "zIndex": 5,
+            "alwaysRenderIfExplored": true,
+            "scaleSymbolX": 2.0,
+            "scaleSymbolY": 1.5
+          },
+          {
+            "type": "applyTimestamp",
+            "apply": "stop"
+          }
+        ]
       }
 
     ]
