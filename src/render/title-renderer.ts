@@ -5,7 +5,13 @@ import { Component } from '../entity/component';
 import { Point } from '../types';
 
 export class TitleRenderer implements Renderer {
+    private titleBackground: HTMLImageElement;
+
     constructor(private readonly display: Display) {
+        this.titleBackground = document.getElementById('title-background') as HTMLImageElement;
+        if (!this.titleBackground) {
+            throw new Error('Title background image not found');
+        }
         this.initializeTitle();
     }
 
@@ -16,7 +22,7 @@ export class TitleRenderer implements Renderer {
         // top to bottom.
         for (let y = 2; y < this.display.getViewportHeight() - 2; y++) {
             for (let x = this.display.getViewportWidth() - 25; x < this.display.getViewportWidth() - 4; x++) {
-                this.display.createTile(x, y, ' ', '#FFFFFF00', '#00000044', 1000);
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
             }
         }
 
@@ -57,9 +63,11 @@ export class TitleRenderer implements Renderer {
 
     public hide(): void {
         this.display.getRenderCanvas().style.display = 'none';
+        this.titleBackground.style.display = 'none';
     }
 
     public show(): void {
         this.display.getRenderCanvas().style.display = 'block';
+        this.titleBackground.style.display = 'block';
     }
 } 

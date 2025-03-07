@@ -76,6 +76,16 @@
             gap: 0;  /* Remove the gap */
         }
 
+        #title-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1060px;
+            height: 600px;
+            z-index: 999;  /* Just behind the title canvas which is 1000 */
+            object-fit: cover;  /* This will cover the area while maintaining aspect ratio */
+        }
+
         #title-screen {
             position: absolute;
             top: 0;
@@ -83,6 +93,7 @@
             width: 1060px;
             height: 600px;
             z-index: 1000;
+            background: transparent;  /* Make sure canvas background is transparent */
         }
 
         #display-container canvas {
@@ -146,6 +157,7 @@
 </head>
 <body>
     <div id="display-container">
+        <img id="title-background" src="../assets/img/title_max_2120.png" alt="title background">
         <canvas id="title-screen"></canvas>
         <canvas id="display"></canvas>
         <canvas id="ui-overlay"></canvas>
