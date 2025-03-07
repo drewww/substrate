@@ -78,7 +78,7 @@ mode: title
 ==========
 map: default
 ---
-Space start
+r start
 t train
 `;
 
@@ -274,35 +274,30 @@ export class RuntimeGame extends Game {
 
     protected async initializeWorld(options: GeneratorConfig): Promise<void> {
         try {
-            // const generator: WorldGenerator = options.type === 'json' 
-            //     // url: circleTrackUrl  // This is required when type is 'json'
-            // };
-
             const generator: WorldGenerator = options.type === 'json' 
-                ? await JsonWorldGenerator.fromUrl(options.url!)  // Add non-null assertion since we know url exists
+                ? await JsonWorldGenerator.fromUrl(options.url!)
                 : new CityBlockGenerator();
             
-            // Assign world directly from generate
+            this.generator = generator;
             this.world = await generator.generate();
 
+            // Recreate display with new world dimensions
+            this.display = this.createDisplay();
+
             this.placePlayer(1, 2, this.world);
-
-            // Find the player entity that was created by the generator
             this.player = this.world.getEntitiesWithComponent('player')[0];
-
-            // Add components to player
-            const cooldowns = new CooldownComponent();
-            cooldowns.setCooldown('move', 4, 4, false);
-            this.player.setComponent(cooldowns);
-
-            const inertia = new InertiaComponent(Direction.East, 0);
-            this.player.setComponent(inertia);
 
             if (!this.player) {
                 throw new Error('No player entity found in generated world');
             }
 
-            // Initialize engine with the generated world, but start paused
+            // Add player components
+            const cooldowns = new CooldownComponent();
+            cooldowns.setCooldown('move', 4, 4, false);
+            this.player.setComponent(cooldowns);
+            this.player.setComponent(new InertiaComponent(Direction.East, 0));
+
+            // Initialize engine
             this.engine = new Engine({
                 mode: 'realtime',
                 worldWidth: this.world.getWorldWidth(),
@@ -316,20 +311,25 @@ export class RuntimeGame extends Game {
             const radius = visionComponent?.radius ?? 30;
             this.world.updateVision(this.player.getPosition(), radius);
 
-            // Set up action handler with new PlayerMoveAction
+            // Set up action handler
             this.actionHandler = new ActionHandler(this.world);
             this.actionHandler.registerAction('entityMove', EntityMoveAction);
             this.actionHandler.registerAction('stun', StunAction);
             this.actionHandler.registerAction('createProjectile', CreateEntityAction);
             this.actionHandler.registerAction('spawn', EntitySpawnAction);
 
-            // Note: These setup calls will happen after display is created in prepare()
-            // They are moved out of setup() and will be called after prepare() creates the display
-
             this.postProcessVehicles(this.world);
+
+            // Create new renderers
+            this.renderer = this.createRenderer();
+            this.soundRenderer = this.createSoundRenderer();
+
+            // Set up all systems and other display-dependent components
+            this.setupAfterDisplay();
+
         } catch (error) {
-            logger.error('Failed to load world:', error);
-            throw error; // Re-throw to prevent continuing with invalid state
+            logger.error('Failed to initialize game:', error);
+            throw error;
         }
     }
 
@@ -449,6 +449,24 @@ export class RuntimeGame extends Game {
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
+        // Handle title screen actions
+        if (action === 'start' && type === 'up') {
+            this.initializeWorld({ type: 'city' })
+                .then(() => this.startGame())
+                .catch(error => logger.error('Failed to start game:', error));
+            return;
+        }
+
+        if (action === 'train' && type === 'up') {
+            this.initializeWorld({ 
+                type: 'json',
+                url: circleTrackUrl
+            })
+                .then(() => this.startGame())
+                .catch(error => logger.error('Failed to start training:', error));
+            return;
+        }
+
         if (!this.player) {
             throw new Error('Player not initialized');
         }
@@ -527,13 +545,6 @@ export class RuntimeGame extends Game {
             this.player.setComponent(new BrakeComponent());
         } else if (action === 'brake' && (type === "up")) {
             this.player.removeComponent('brake');
-        }
-
-
-        if (action === 'start' || action === 'train' && type === 'up') {
-            this.startGame();
-
-            this.titleRenderer?.hide();
         }
     }
 
@@ -781,10 +792,16 @@ export class RuntimeGame extends Game {
     }
 
     public startGame(): void {
-        // Hide title screen
+        logger.warn('starting game');
+        // Hide title elements
         const titleCanvas = document.getElementById('title-screen') as HTMLCanvasElement;
         if (titleCanvas) {
             titleCanvas.style.visibility = 'hidden';
+        }
+
+        const titleImage = document.getElementById('title-background') as HTMLImageElement;
+        if (titleImage) {
+            titleImage.style.visibility = 'hidden';
         }
 
         // Show game display
@@ -793,14 +810,9 @@ export class RuntimeGame extends Game {
             gameCanvas.style.visibility = 'visible';
         }
 
-        // Show UI
-        this.uiSpeedRenderer.show();
-
-        // Use setTimeout to break the call stack cycle
-        setTimeout(() => {
-            this.input.setMode('game');
-            this.engine?.start();
-        }, 0);
+        // Start the engine
+        this.input.setMode('game');
+        this.engine?.start();
     }
 
 }
