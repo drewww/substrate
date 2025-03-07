@@ -175,6 +175,7 @@ export class MovementPredictor {
                 }
                 else {
                     // Perpendicular movement
+
                     if (inertia.magnitude > SLIDE_SPEED) {
                         const inertiaDir = directionToPoint(inertia.direction);
                         const slidePos = {
@@ -182,18 +183,23 @@ export class MovementPredictor {
                             y: newPos.y + inertiaDir.y
                         };
 
-                        if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y, false, false, true)) {
-                            finalInertia = {
-                                direction: inertia.direction,
-                                magnitude: 0,
-                            };
-                        } else {
-                            actions.push({
-                                type: 'entityMove',
-                                entityId: player.getId(),
-                                data: { to: slidePos }
-                            });
-                        }
+                        // if (!this.world.isPassable(newPos.x, newPos.y, slidePos.x, slidePos.y, false, false, true)) {
+                        //     finalInertia = {
+                        //         direction: inertia.direction,
+                        //         magnitude: 0,
+                        //     };
+                        //     slideCollision = true;
+                        // } else {
+
+                        // put the slide into the actions queue and if it's a collision catch it later.
+
+                        // this is fucking brutal but let's keep it in for now.
+                        actions.push({
+                            type: 'entityMove',
+                            entityId: player.getId(),
+                            data: { to: slidePos }
+                        });
+                        // }
                     }
 
                     const newMagnitude = Math.max(0, inertia.magnitude - 1);
