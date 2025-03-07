@@ -101,7 +101,7 @@ export class RuntimeGame extends Game {
             cellWidth: 20,
             cellHeight: 20,
             viewportWidth: 40,
-            viewportHeight: 29,
+            viewportHeight: 28,
             worldWidth: this.world.getWorldWidth(),
             worldHeight: this.world.getWorldHeight()
         });
@@ -540,7 +540,7 @@ export class RuntimeGame extends Game {
         player.setComponent(new HealthComponent(12, 12));
 
         // TRUE here sets "ignore walls" vision
-        player.setComponent(new VisionComponent(20, true));
+        player.setComponent(new VisionComponent(30, true));
 
         player.setComponent(new EnergyComponent(100));
 

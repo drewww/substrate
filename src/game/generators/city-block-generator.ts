@@ -235,7 +235,7 @@ export class CityBlockGenerator {
         });
 
 
-        this.placePlayer(12, 12, world);
+        // this.placePlayer(12, 12, world);
 
 
         // later make sure it's not too close to the player
@@ -359,6 +359,13 @@ export class CityBlockGenerator {
         turret.setComponent(symbol);
         turret.setComponent(new VisionComponent(10, false));
         turret.setComponent(new EnemyAIComponent(EnemyAIType.EMP_TURRET));
+        turret.setComponent(new CooldownComponent({
+            "fire": {
+                "base": 20,
+                "current": 20,
+                "ready": false
+            }
+        }));
 
         world.addEntity(turret);
     }

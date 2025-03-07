@@ -324,10 +324,11 @@
         "components": [
           {
             "type": "symbol",
-            "char": "T",
-            "foreground": "#FFFFFFFF",
-            "background": "#441111FF",
-            "zIndex": 100
+            "char": "⛣",
+            "foreground": "#FF194DFF",
+            "background": "#00000000",
+            "zIndex":  500,
+            "fontWeight": "bold"
           },
           {
             "type": "vision",
@@ -342,6 +343,16 @@
           {
             "type": "enemyAI",
             "aiType": "emp_turret"
+          },
+          {
+            "type": "cooldown",
+            "cooldowns": {
+              "fire": {
+                "base": 20,
+                "current": 20,
+                "ready": false
+              }
+            }
           }
         ]
       },

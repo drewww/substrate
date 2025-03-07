@@ -250,8 +250,10 @@ export class EnemyAISystem {
                 if (canSeePlayer) {
                     ai.turnsLocked += 1
                     // logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} can see player at ${this.world.getPlayer().getPosition().x}, ${this.world.getPlayer().getPosition().y}`);
+                    const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
+                    const fireCooldown = cooldowns?.getCooldown('fire');
 
-                    if (ai.turnsLocked > 16) {
+                    if (ai.turnsLocked > 4 && cooldowns && fireCooldown && fireCooldown.ready) {
                         // compute the position of the projectile based on the player's inertia
                         const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
                         let playerFuturePos = this.world.getPlayer().getPosition();
@@ -277,6 +279,10 @@ export class EnemyAISystem {
                                 }
                             }
                         });
+
+                        if(cooldowns) {
+                            cooldowns.setCooldown('fire', fireCooldown.base);
+                        }
 
                         ai.turnsLocked = 0;
                     }
