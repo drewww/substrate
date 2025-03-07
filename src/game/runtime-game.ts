@@ -243,14 +243,13 @@ export class RuntimeGame extends Game {
             this.objectiveCount++;
 
             switch (this.objectiveCount) {
+                // case 1:
+                //     this.selectObjective(this.world!, false);
+                //     break;
                 case 1:
-                case 2:
-                    this.selectObjective(this.world!, false);
-                    break;
-                case 3:
                     this.selectObjective(this.world!, true);
                     break;
-                case 4:
+                case 2:
                     this.engine?.stop();
                     (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
                     break;
@@ -759,52 +758,73 @@ export class RuntimeGame extends Game {
                 });
         }
 
-        const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
 
-        // now, get the vehicle id out of the leader component
-        const leader = randomObjective.getComponent('vehicle-leader') as VehicleLeaderComponent;
-        if (!leader) {
-            logger.warn('no leader found for objective');
-            return;
-        }
+        if (!isExit) {
+            const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
 
-        const vehicleId = leader.vehicleId;
-
-        logger.warn(`setting objective on vehicle ${vehicleId}`);
-
-        // now we need to get all the followers and set their vehicleId to the same as the leader
-        const followers = world.getEntitiesWithComponent('follower');
-        followers.forEach(follower => {
-            const followerComponent = follower.getComponent('follower') as FollowerComponent;
-
-            if (followerComponent.vehicleId === vehicleId) {
-                follower.setComponent(new ObjectiveComponent(true, false));
-
-                // const light = new LightEmitterComponent({
-                //     "radius": 3,
-                //     "color": "#55CE4A",
-                //     "intensity": 0.6,
-                //     "distanceFalloff": "linear"
-                // });
-
-                // follower.setComponent(light);
-                // follower.setComponent(light);
+            // now, get the vehicle id out of the leader component
+            const leader = randomObjective.getComponent('vehicle-leader') as VehicleLeaderComponent;
+            if (!leader) {
+                logger.warn('no leader found for objective');
+                return;
             }
-        });
 
-        randomObjective.setComponent(new ObjectiveComponent(true, true));
+            const vehicleId = leader.vehicleId;
 
-        const light = new LightEmitterComponent({
-            "radius": 3,
-            "color": "#55CE4A",
-            "intensity": 0.6,
-            "distanceFalloff": "linear"
-        });
+            logger.warn(`setting objective on vehicle ${vehicleId}`);
+
+            // now we need to get all the followers and set their vehicleId to the same as the leader
+            const followers = world.getEntitiesWithComponent('follower');
+            followers.forEach(follower => {
+                const followerComponent = follower.getComponent('follower') as FollowerComponent;
+
+                if (followerComponent.vehicleId === vehicleId) {
+                    follower.setComponent(new ObjectiveComponent(true, false));
+
+                    // const light = new LightEmitterComponent({
+                    //     "radius": 3,
+                    //     "color": "#55CE4A",
+                    //     "intensity": 0.6,
+                    //     "distanceFalloff": "linear"
+                    // });
+
+                    // follower.setComponent(light);
+                    // follower.setComponent(light);
+                }
+            });
+
+            randomObjective.setComponent(new ObjectiveComponent(true, true));
+
+            const light = new LightEmitterComponent({
+                "radius": 3,
+                "color": "#55CE4A",
+                "intensity": 0.6,
+                "distanceFalloff": "linear"
+            });
 
 
-        randomObjective.setComponent(light);
-        randomObjective.setComponent(light);
+            randomObjective.setComponent(light);
+            randomObjective.setComponent(light);
+        } else {
+            // set ALL of the exists to be lit up and be eligible.
+            eligibleObjectiveEntities.forEach(entity => {
+                const objective = entity.getComponent('objective') as ObjectiveComponent;
+                objective.eligible = true;
+                objective.active = true;
+                entity.setComponent(objective);
 
+                const light = new LightEmitterComponent({
+                    "radius": 2,
+                    "color": "#55CE4A",
+                    "intensity": 0.4,
+                    "distanceFalloff": "linear",
+                    "lightSourceTile": false
+                });
+
+                entity.setComponent(light);
+                entity.setComponent(light);
+            });
+        }
 
         // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
         // symbol.foreground = '#55CE4A';

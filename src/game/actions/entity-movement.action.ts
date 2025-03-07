@@ -148,6 +148,10 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         // ApplyTimestamp
 
         const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
+
+        logger.info(`entities at new pos: ${entitiesAtNewPos.length}`);
+
+        // check to see if the tile we're entering has components that need to be check
         for (const destinationEntity of entitiesAtNewPos) {
             if (destinationEntity.hasComponent('applyTimestamp')) {
                 const applyTimestampComponent = destinationEntity.getComponent('applyTimestamp') as ApplyTimestampComponent;
@@ -159,6 +163,8 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                         timestamp.checkAndUpdateBestTime(performance.now());
                     }
                 }
+            } else if (entity.hasComponent('player') && destinationEntity.hasComponent('objective')) {
+                world.emit('objective-complete', { objective: destinationEntity });
             }
         }
         

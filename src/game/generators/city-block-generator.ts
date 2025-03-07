@@ -24,6 +24,7 @@ import { ObjectiveComponent } from '../components/objective.component';
 import { EnergyComponent } from '../components/energy.component';
 import { WorldGenerator } from '../../world/world-generator';
 import startBuildingUrl from '../../assets/blocks/start.json?url';
+import endBuildingUrl from '../../assets/blocks/end.json?url';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -102,8 +103,13 @@ export class CityBlockGenerator implements WorldGenerator {
             }
         }
 
-        // Pick one random building to be the start location
-        const startLocation = buildingLocations[Math.floor(Math.random() * buildingLocations.length)];
+        // Pick random buildings for start and end locations
+        const startIndex = Math.floor(Math.random() * buildingLocations.length);
+        const startLocation = buildingLocations[startIndex];
+        
+        // Remove the start location from available buildings and pick end location
+        buildingLocations.splice(startIndex, 1);
+        const endLocation = buildingLocations[Math.floor(Math.random() * buildingLocations.length)];
 
         // Now process all cells
         let blockId = 0;
@@ -116,9 +122,10 @@ export class CityBlockGenerator implements WorldGenerator {
                     let blockUrl: string | undefined;
 
                     if (cell.type === 'building') {
-                        // Use start.json for the chosen start location
                         if (x === startLocation.x && y === startLocation.y) {
                             blockUrl = startBuildingUrl;
+                        } else if (x === endLocation.x && y === endLocation.y) {
+                            blockUrl = endBuildingUrl;
                         } else {
                             blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
                         }
