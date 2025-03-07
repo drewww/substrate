@@ -78,13 +78,18 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
             const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
             const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);
             if (objective) {
-                
+                // First emit the completion event
                 world.emit('objective-complete', { objective });
 
-                // get all currently active objectives and remove them
-                const activeObjectives = world.getEntitiesWithComponent('objective').filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+                // Get all currently active objectives and deactivate them
+                const activeObjectives = world.getEntitiesWithComponent('objective')
+                    .filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+                
                 activeObjectives.forEach(e => {
-                    e.removeComponent('objective');
+                    logger.info(`deactivating objective: ${e.getId()}`);
+                    const objComponent = e.getComponent('objective') as ObjectiveComponent;
+                    objComponent.active = false;
+                    e.setComponent(objComponent);  // This will trigger componentModified
                 });
             }
 
@@ -167,7 +172,11 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                     }
                 }
             } else if (entity.hasComponent('player') && destinationEntity.hasComponent('objective')) {
-                world.emit('objective-complete', { objective: destinationEntity });
+                const objective = destinationEntity.getComponent('objective') as ObjectiveComponent;
+
+                if(objective.active) {
+                    world.emit('objective-complete', { objective: destinationEntity });
+                }
             }
         }
         

@@ -6,6 +6,7 @@ import { World } from '../../world/world';
 import { Entity } from '../../entity/entity';
 import { removeOpacity } from '../../display/util/color';
 import { ObjectiveComponent } from '../components/objective.component';
+import { logger } from '../../util/logger';
 
 export class MinimapRenderer extends LayoutRenderer {
     private playerBlock: Point | null = null;
@@ -37,6 +38,23 @@ export class MinimapRenderer extends LayoutRenderer {
             };
         }
 
+        world.on('entityAdded', (data: { entity: Entity }) => {
+            if (data.entity.hasComponent('objective') && 
+                (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
+                this.objectiveTiles.set(data.entity.getId(), this.display.createTile(
+                    data.entity.getPosition().x,
+                    data.entity.getPosition().y,
+                    '◎',
+                    '#55CE4AFF',
+                    '#00000000',
+                    1000,
+                    {
+                        fontWeight: 'bold'
+                    }
+                ));
+            }
+        });
+        
         world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
                 this.playerBlock = {
@@ -61,20 +79,11 @@ export class MinimapRenderer extends LayoutRenderer {
                     y: Math.floor(data.to.y / 12)
                 };
                 
-                this.markBlockExplored(blockPos);
-                
-                // Update the objective tile position
+                // Just update the objective tile position
                 const tileId = this.objectiveTiles.get(data.entity.getId());
                 if (tileId) {
                     this.display.moveTile(tileId, blockPos.x, blockPos.y);
                 }
-            }
-        });
-
-        world.on('componentRemoved', (data: { entity: Entity, componentType: string }) => {
-            if (data.componentType === 'objective') {
-                const entityId = data.entity.getId();
-                this.objectiveTiles.delete(entityId);
             }
         });
 
@@ -104,14 +113,29 @@ export class MinimapRenderer extends LayoutRenderer {
                             }
                         );
                         this.objectiveTiles.set(entityId, tileId);
+                        logger.info(`Created new objective tile ${tileId} for entity ${entityId}`);
                     }
                 } else {
-                    // Remove objective tile
+                    // Remove objective tile when objective becomes inactive
                     const tileId = this.objectiveTiles.get(entityId);
                     if (tileId) {
+                        logger.info(`Removing objective tile ${tileId} for entity ${entityId}`);
                         this.display.removeTile(tileId);
                         this.objectiveTiles.delete(entityId);
                     }
+                }
+            }
+        });
+
+        // We can keep this as a backup cleanup mechanism
+        world.on('componentRemoved', (data: { entity: Entity, componentType: string }) => {
+            if (data.componentType === 'objective') {
+                const entityId = data.entity.getId();
+                const tileId = this.objectiveTiles.get(entityId);
+                if (tileId) {
+                    logger.info(`Cleaning up objective tile ${tileId} for removed entity ${entityId}`);
+                    this.display.removeTile(tileId);
+                    this.objectiveTiles.delete(entityId);
                 }
             }
         });
@@ -127,10 +151,6 @@ export class MinimapRenderer extends LayoutRenderer {
         if (this.helicopterBlock && this.helicopterTile) {
             this.display.moveTile(this.helicopterTile, this.helicopterBlock.x, this.helicopterBlock.y);
         }
-    }
-
-    private updateObjectiveBlock() {
-        // Implementation needed
     }
 
     private markBlockExplored(block: Point): void {
