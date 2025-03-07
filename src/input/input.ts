@@ -746,11 +746,13 @@ export class InputManager {
     }
 
     private normalizeKey(key: string): string {
+        // Special case for Space key
+        if (key === ' ' || key === 'Space') {
+            return 'Space';  // Always normalize to 'Space' instead of ' '
+        }
+        
         // Don't lowercase special keys that start with uppercase
         if (key.length > 1 && key.match(/^[A-Z]/)) {
-            if (key == 'Space') {
-                return ' ';
-            }
             return key;
         }
 
