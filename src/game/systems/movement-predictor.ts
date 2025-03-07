@@ -25,6 +25,8 @@ export interface MovementPrediction {
     collision?: Point;
 }
 
+export const MEDIUM_SPEED_THRESHOLD = 3;
+
 export class MovementPredictor {
     constructor(private world: World) {}
 
@@ -144,7 +146,7 @@ export class MovementPredictor {
                     
                     actions.pop(); // Remove the buffered move
                     
-                    if (inertia.magnitude >= 2) {
+                    if (inertia.magnitude >= MEDIUM_SPEED_THRESHOLD) {
                         // continue moving, but drop inertia by one
                         const inertiaDir = directionToPoint(inertia.direction);
                         actions.push({

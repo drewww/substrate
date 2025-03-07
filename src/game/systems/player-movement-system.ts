@@ -7,7 +7,7 @@ import { Entity } from '../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
-import { MovementPredictor } from './movement-predictor';
+import { MEDIUM_SPEED_THRESHOLD, MovementPredictor } from './movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
 import { directionToRadians } from '../../util';
 import { FacingComponent } from '../../entity/components/facing-component';
@@ -186,7 +186,7 @@ export class PlayerMovementSystem {
 
         const cooldowns = player.getComponent('cooldown') as CooldownComponent;
         if(cooldowns) {
-            if(prediction.finalInertia.magnitude >= 2) {
+            if(prediction.finalInertia.magnitude >= MEDIUM_SPEED_THRESHOLD) {
                 const turbo = player.getComponent('turbo') as TurboComponent;
 
                 const newCooldown = turbo ? 1 : 2; // then 2 and 1
