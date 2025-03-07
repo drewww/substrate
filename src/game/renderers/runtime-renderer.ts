@@ -194,13 +194,36 @@ export class RuntimeRenderer extends GameRenderer {
                         (inertia.direction === Direction.West && Math.abs(dy) > 0);
 
                     if (inertia.magnitude >= 3 && inertia.magnitude < 8 && isInertiaPerpendicularToMovement) {
-                        // Calculate direction angle based on movement
-                        const angle = Math.atan2(dy, dx) + Math.PI / 4;
+                        // Get base angle from inertia direction
+                        let inertiaAngle = 0;
+                        switch (inertia.direction) {
+                            case Direction.North: inertiaAngle = -Math.PI/2; break;
+                            case Direction.South: inertiaAngle = Math.PI/2; break;
+                            case Direction.East: inertiaAngle = 0; break;
+                            case Direction.West: inertiaAngle = Math.PI; break;
+                        }
 
-                        this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 800, {
+                        // Determine movement angle based on dx/dy
+                        const moveAngle = Math.atan2(dy, dx);
+                        
+                        // Average the angles to get the diagonal
+                        const angle = (inertiaAngle + moveAngle) / 2;
+
+                        const tileId = this.display.createTile(from.x, from.y, '=', '#fcb103ff', '#00000000', 300, {
                             rotation: angle,
                             scaleSymbolX: 2.0,
                         });
+
+                        this.display.addColorAnimation(tileId, {
+                            fg: {
+                                start: '#fcb103ff',
+                                end: '#C8BDBD77',
+                                duration: 1.0,
+                                easing: Easing.quadOut,
+                                loop: false
+                            }
+                            }
+                        );
 
                         // Calculate smoke positions based on movement direction
                         // let smokePos1: Point, smokePos2: Point;
