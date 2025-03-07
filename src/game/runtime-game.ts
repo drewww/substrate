@@ -284,18 +284,29 @@ export class RuntimeGame extends Game {
             // Recreate display with new world dimensions
             this.display = this.createDisplay();
 
-            this.placePlayer(1,1, this.world);
+            // Check if a player entity already exists in the world
             this.player = this.world.getEntitiesWithComponent('player')[0];
+            
+            // Only place a player if one doesn't already exist
+            if (!this.player) {
+                this.placePlayer(1, 1, this.world);
+                this.player = this.world.getEntitiesWithComponent('player')[0];
+            }
 
             if (!this.player) {
                 throw new Error('No player entity found in generated world');
             }
 
-            // Add player components
-            const cooldowns = new CooldownComponent();
-            cooldowns.setCooldown('move', 4, 4, false);
-            this.player.setComponent(cooldowns);
-            this.player.setComponent(new InertiaComponent(Direction.East, 0));
+            // Add player components if they don't exist
+            if (!this.player.hasComponent('cooldown')) {
+                const cooldowns = new CooldownComponent();
+                cooldowns.setCooldown('move', 4, 4, false);
+                this.player.setComponent(cooldowns);
+            }
+            
+            if (!this.player.hasComponent('inertia')) {
+                this.player.setComponent(new InertiaComponent(Direction.East, 0));
+            }
 
             // Initialize engine
             this.engine = new Engine({

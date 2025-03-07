@@ -23,6 +23,7 @@ import { ChunkMetadata } from '../generators/layout-generator';
 import { ObjectiveComponent } from '../components/objective.component';
 import { EnergyComponent } from '../components/energy.component';
 import { WorldGenerator } from '../../world/world-generator';
+import startBuildingUrl from '../../assets/blocks/start.json?url';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -90,6 +91,21 @@ export class CityBlockGenerator implements WorldGenerator {
         const layoutGenerator = new StagedLayoutGenerator(this.width, this.height);
         this.layout = layoutGenerator.generate();
 
+        // First pass: collect all building locations
+        const buildingLocations: { x: number, y: number }[] = [];
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.layout[y][x];
+                if (cell?.type === 'building') {
+                    buildingLocations.push({ x, y });
+                }
+            }
+        }
+
+        // Pick one random building to be the start location
+        const startLocation = buildingLocations[Math.floor(Math.random() * buildingLocations.length)];
+
+        // Now process all cells
         let blockId = 0;
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
@@ -99,8 +115,13 @@ export class CityBlockGenerator implements WorldGenerator {
                 try {
                     let blockUrl: string | undefined;
 
-                    if(cell.type === 'building') {
-                        blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
+                    if (cell.type === 'building') {
+                        // Use start.json for the chosen start location
+                        if (x === startLocation.x && y === startLocation.y) {
+                            blockUrl = startBuildingUrl;
+                        } else {
+                            blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
+                        }
                     } else if (cell.roadInfo?.type === 'intersection') {
                         // Use different blocks for 3-way vs 4-way intersections
                         const isThreeWay = cell.roadInfo.connections.length === 3;

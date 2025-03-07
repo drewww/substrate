@@ -49,6 +49,43 @@
       },
 
       {
+        "id": "mid_floor_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": ".",
+            "foreground": "#eeeeeeff",
+            "background": "#484A4BFF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+
+      {
+        "id": "lit_server",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "𝍕",
+            "foreground": "#bbbbbbff",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "scaleSymbolX": 1.4,
+            "scaleSymbolY": 1.4,
+            "fontWeight": "bold",
+            "alwaysRenderIfExplored": true,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+      {
         "id": "floor_arrow_template",
         "position": { "x": 0, "y": 0 },
         "components": [
@@ -309,8 +346,15 @@
           },
           {
             "type": "vision",
-            "radius": 20
+            "radius": 40,
+            "ignoreOpacity": true
           },
+          {
+            "type": "energy",
+            "energy": 200,
+            "maxEnergy": 200
+          },
+
           {
             "type": "player"
           },
