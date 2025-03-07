@@ -82,6 +82,11 @@ Space start
 t train
 `;
 
+type GeneratorConfig = {
+    type: 'city' | 'json';
+    url?: string;
+};
+
 export class RuntimeGame extends Game {
 
     // I don't love all these `!` but I'm not sure how else to do it with the async loading
@@ -263,15 +268,16 @@ export class RuntimeGame extends Game {
         return new RuntimeSoundRenderer(this.world, this.audioContext);
     }
 
+
     protected async setup(): Promise<void> {
         try {
-            const options = {
-                type: 'json' as const,
-                url: circleTrackUrl
+            const options: GeneratorConfig = {
+                type: 'city',
+                // url: circleTrackUrl  // This is required when type is 'json'
             };
 
             const generator: WorldGenerator = options.type === 'json' 
-                ? await JsonWorldGenerator.fromUrl(options.url)
+                ? await JsonWorldGenerator.fromUrl(options.url!)  // Add non-null assertion since we know url exists
                 : new CityBlockGenerator();
             
             // Assign world directly from generate
