@@ -241,7 +241,7 @@ export class CityBlockGenerator {
         // later make sure it's not too close to the player
         // this.placeHelicopter(Math.floor(world.getWorldWidth()*Math.random()),
         //                      Math.floor(world.getWorldHeight()*Math.random()), world);
-        // this.placeHelicopter(20, 20, world);
+        this.placeHelicopter(20, 20, world);
         
 
         // this.placeCamera(11, 11, world);
@@ -327,8 +327,8 @@ export class CityBlockGenerator {
 
         helicopter.setComponent(new CooldownComponent({
             "move": {
-                "base": 2,
-                "current": 2,
+                "base": 3,
+                "current": 3,
                 "ready": false
             }
         }));

@@ -290,32 +290,39 @@ export class EnemyAISystem {
     }
 
     private moveTowardsPlayer(enemy: Entity): void {
+        // Get player and enemy positions
+        const playerPos = this.world.getPlayer().getPosition();
+        const enemyPos = enemy.getPosition();
 
-        const moveComponent = enemy.getComponent('move') as MoveComponent;
-        const ignoreImpassable = moveComponent?.ignoreImpassable || false;
-        const allowDiagonal = moveComponent?.allowDiagonal || false;
+        // Calculate direction to player
+        const dx = Math.sign(playerPos.x - enemyPos.x);  // Will be -1, 0, or 1
+        const dy = Math.sign(playerPos.y - enemyPos.y);  // Will be -1, 0, or 1
 
-        const path = this.world.findPath(enemy.getPosition(), this.world.getPlayer().getPosition(), ignoreImpassable, allowDiagonal);
-        
-        logger.warn("Next move: ", path);
+        // Target position is adjacent tile in direction of player
+        const targetPos = {
+            x: enemyPos.x + dx,
+            y: enemyPos.y + dy
+        };
 
-        if (path && path.length > 1) {
-            const nextPos = path[1];
+        // Check cooldown and attempt move if ready
+        const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
+        const moveCooldown = cooldowns?.getCooldown('move');
 
-            const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
-            const moveCooldown = cooldowns?.getCooldown('move');
+        const move = enemy.getComponent('move') as MoveComponent;
+        const allowDiagonal = move?.allowDiagonal || false;
+        const ignoreImpassable = move?.ignoreImpassable || false;
 
-            if (nextPos.x === enemy.getPosition().x && nextPos.y === enemy.getPosition().y) {
-                return;
-            }
-
-            if (moveCooldown && moveCooldown.ready) {
-                this.actionHandler.execute({
-                    type: 'entityMove',
-                    entityId: enemy.getId(),
-                    data: { to: nextPos, force: ignoreImpassable }
-                });
-            }
+        if (moveCooldown?.ready && 
+            // Don't try to move if we're already at target
+            (targetPos.x !== enemyPos.x || targetPos.y !== enemyPos.y)) {
+            
+            this.actionHandler.execute({
+                type: 'entityMove',
+                entityId: enemy.getId(),
+                data: { 
+                    to: targetPos,
+                }
+            });
         }
     }
 } 

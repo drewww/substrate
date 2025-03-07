@@ -637,7 +637,7 @@ export class RuntimeRenderer extends GameRenderer {
             // Create black background behind text
             const messageWidth = message.length;
             for (let y = centerY - 1; y <= centerY + 1; y++) {
-                for (let x = centerX; x <= centerX + Math.floor(messageWidth/2) + 2; x++) {
+                for (let x = centerX; x <= centerX + messageWidth + 2; x++) {
                     this.display.createTile(
                         x,
                         y,
