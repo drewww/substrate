@@ -26,6 +26,9 @@ export interface MovementPrediction {
 }
 
 export const MEDIUM_SPEED_THRESHOLD = 3;
+export const BASE_MAX_SPEED = 6;
+export const TURBO_MAX_SPEED = 10;
+
 
 export class MovementPredictor {
     constructor(private world: World) {}
@@ -44,7 +47,8 @@ export class MovementPredictor {
 
         const turbo = player.getComponent('turbo') as TurboComponent;
 
-        const maxSpeed = turbo ? 10 : Math.max(6, inertia?.magnitude ?? 6);
+        const maxSpeed = turbo ? TURBO_MAX_SPEED : Math.max(BASE_MAX_SPEED, inertia?.magnitude ?? BASE_MAX_SPEED);
+        logger.warn(`maxSpeed: ${maxSpeed} turbo: ${turbo} inertia: ${inertia?.magnitude}`);
 
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude} brake: ${brake}`);
 

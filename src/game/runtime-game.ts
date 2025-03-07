@@ -426,11 +426,13 @@ export class RuntimeGame extends Game {
                 this.player.setComponent(new TurboComponent());
             } else {
                 // force decay if the turbo key is pressed but we can't actually use it here.
-                const inertia = this.player.getComponent('inertia') as InertiaComponent;
-                if (inertia && inertia.magnitude > 6) {
-                    inertia.magnitude -= 1;
-                    this.player.setComponent(inertia);
-                }
+
+                // not sure if this is important. 
+                // const inertia = this.player.getComponent('inertia') as InertiaComponent;
+                // if (inertia && inertia.magnitude > 6) {
+                //     inertia.magnitude -= 1;
+                //     this.player.setComponent(inertia);
+                // }
             }
         } else if (action === 'turbo' && (type === 'up')) {
             this.player.removeComponent('turbo');

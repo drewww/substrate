@@ -7,7 +7,7 @@ import { Entity } from '../../entity/entity';
 import { BufferedMoveComponent } from '../components/buffered-move.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { LightEmitterComponent } from '../../entity/components/light-emitter-component';
-import { MEDIUM_SPEED_THRESHOLD, MovementPredictor } from './movement-predictor';
+import { MEDIUM_SPEED_THRESHOLD, MovementPredictor, BASE_MAX_SPEED } from './movement-predictor';
 import { TurboComponent } from '../components/turbo.component';
 import { directionToRadians } from '../../util';
 import { FacingComponent } from '../../entity/components/facing-component';
@@ -128,8 +128,8 @@ export class PlayerMovementSystem {
             return;
         }
 
-        // decay speed beyond 6 after turbo disengages
-        if(prediction.finalInertia.magnitude > 6 && !turbo) {
+        // Only decay speed if we're above BASE_MAX_SPEED and turbo is not active
+        if(prediction.finalInertia.magnitude > BASE_MAX_SPEED && !turbo) {
             prediction.finalInertia.magnitude -= 1;
         }
 
@@ -141,19 +141,16 @@ export class PlayerMovementSystem {
             // Force turbo disengage if we're out of energy
             if (energy.energy <= 0) {
                 logger.warn('turbo disengaged due to energy depletion');
-                // First, update cooldowns
                 const cooldowns = player.getComponent('cooldown') as CooldownComponent;
                 if (cooldowns) {
                     cooldowns.setCooldown('move', 2, 2);
                     player.setComponent(cooldowns);
                 }
 
-                // Force speed decay when energy runs out
-                if (prediction.finalInertia.magnitude > 6) {
+                if (prediction.finalInertia.magnitude > BASE_MAX_SPEED) {
                     prediction.finalInertia.magnitude -= 1;
                 }
 
-                // Remove turbo AFTER updating other components
                 player.removeComponent('turbo');
 
                 // Execute movement AFTER removing turbo
@@ -197,17 +194,17 @@ export class PlayerMovementSystem {
         }
 
         // Update light emitter if present
-        if (player.hasComponent('lightEmitter')) {
-            const lightEmitter = player.getComponent('lightEmitter') as LightEmitterComponent;
-            const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
+        // if (player.hasComponent('lightEmitter')) {
+        //     const lightEmitter = player.getComponent('lightEmitter') as LightEmitterComponent;
+        //     const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
 
-            if(bufferedMove) {
-                lightEmitter.config.facing = directionToRadians(bufferedMove.direction);
-            } else {
-                lightEmitter.config.facing = directionToRadians(prediction.finalInertia.direction);
-            }
-            player.setComponent(lightEmitter);
-        }
+        //     if(bufferedMove) {
+        //         lightEmitter.config.facing = directionToRadians(bufferedMove.direction);
+        //     } else {
+        //         lightEmitter.config.facing = directionToRadians(prediction.finalInertia.direction);
+        //     }
+        //     player.setComponent(lightEmitter);
+        // }
 
         // Reset move cooldown with base value
         // const cooldowns = player.getComponent('cooldown') as CooldownComponent;
