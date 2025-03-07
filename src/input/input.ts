@@ -44,7 +44,7 @@ export class InputManager {
     private currentMap: string = '';
     private activeKeys: Set<string> = new Set();
     private configErrors: ConfigError[] = [];
-    private repeatInterval: number = 125; // 8 times per second
+    private repeatInterval: number = 200; // 5 times per second
     private repeatTimers: { [key: string]: number } = {};
     private modifierState: ModifierState = {
         ctrl: false,
