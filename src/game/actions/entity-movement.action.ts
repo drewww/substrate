@@ -154,7 +154,10 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 if (applyTimestampComponent.apply === ApplyTimestampType.Start) {
                     entity.setComponent(new TimestampComponent(performance.now()));
                 } else if (applyTimestampComponent.apply === ApplyTimestampType.Stop) {
-                    entity.removeComponent('timestamp');
+                    const timestamp = entity.getComponent('timestamp') as TimestampComponent;
+                    if (timestamp) {
+                        timestamp.checkAndUpdateBestTime(performance.now());
+                    }
                 }
             }
         }

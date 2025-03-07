@@ -20,7 +20,8 @@ export class UISpeedRenderer implements Renderer {
     private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
     private readonly ENERGY_START_X = 15;  // Where speed ends
     private readonly HEALTH_START_X = 29;  // Move health further right
-    private readonly TIME_X = 55;  // Position for time display
+    private readonly TIME_X = 55;  // Position for current time display
+    private readonly BEST_TIME_X = 65;  // Position for best time display
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
@@ -190,15 +191,6 @@ export class UISpeedRenderer implements Renderer {
             this.uiTiles.set(`speed_${i}`, [speedTileId]);
         }
 
-        // Initialize time display tiles (reserve space for "00.00s")
-        // const timeTileIds = this.uiDisplay.createString(
-        //     this.TIME_X,
-        //     0,
-        //     '     ',  // 5 spaces for "00.00"
-        //     1001
-        // );
-        // this.uiTiles.set('time', timeTileIds);
-
         // Update label positions
         const speedLabelTileIds = this.uiDisplay.createString(
             this.SPEED_START_X,
@@ -286,54 +278,90 @@ export class UISpeedRenderer implements Renderer {
 
     private updateTimeDisplay(): void {
         const timestamp = this.player.getComponent('timestamp') as TimestampComponent;
-        if (!timestamp) return;
 
-        //remove old time tiles
+        // Remove old time tiles
         const timeTileIds = this.uiTiles.get('time');
         if (timeTileIds) {
             this.uiDisplay.removeTiles(timeTileIds);
         }
 
-        const elapsed = (performance.now() - timestamp.start) / 1000;
-        // logger.warn("Time since applied: " + (performance.now() - timestamp.start));
-        // const timeTileIds = this.uiTiles.get('time');
-        // if (!timeTileIds) return;
-
-        const newTimeTileIds = this.uiDisplay.createString(this.TIME_X, 0, `${elapsed.toFixed(2)}s`, 1001,);
-        this.uiTiles.set('time', newTimeTileIds);
-
-        for(const tileId of newTimeTileIds) {
-            this.uiDisplay.updateTile(tileId, {
-                fg: '#11FF11FF',
-                bg: '#00000000'
-            });
+        const bestTimeTileIds = this.uiTiles.get('best_time');
+        if (bestTimeTileIds) {
+            this.uiDisplay.removeTiles(bestTimeTileIds);
         }
 
+        // Create or update time displays if we have a timestamp component
+        if (timestamp) {
+            // Create labels if they don't exist yet
+            if (!this.uiTiles.has('current_label')) {
+                const currentLabelTileIds = this.uiDisplay.createString(
+                    this.TIME_X,
+                    1,
+                    'current',
+                    1001,
+                    { fontFamily: 'monospace' }
+                );
+                this.uiTiles.set('current_label', currentLabelTileIds);
 
-        // const timestamp = this.player.getComponent('timestamp') as TimestampComponent;
-        // if (timestamp) {
-        //     const secondsElapsed = ((Date.now() - timestamp.start) / 1000).toFixed(2);
-        //     // Remove old tiles
-        //     this.uiDisplay.removeTiles(timeTileIds);
-        //     // Create new tiles with updated time
-        //     const newTileIds = this.uiDisplay.createString(
-        //         this.TIME_X,
-        //         0,
-        //         `${secondsElapsed}s`,
-        //         1001
-        //     );
-        //     this.uiTiles.set('time', newTileIds);
-        // } else {
-        //     // Clear the display if no timestamp
-        //     this.uiDisplay.removeTiles(timeTileIds);
-        //     const emptyTileIds = this.uiDisplay.createString(
-        //         this.TIME_X,
-        //         0,
-        //         '     ',
-        //         1001
-        //     );
-        //     this.uiTiles.set('time', emptyTileIds);
-        // }
+                const bestLabelTileIds = this.uiDisplay.createString(
+                    this.BEST_TIME_X,
+                    1,
+                    'best',
+                    1001,
+                    { fontFamily: 'monospace' }
+                );
+                this.uiTiles.set('best_label', bestLabelTileIds);
+            }
+
+            // Update current time - use finalTime if available, otherwise show running time
+            const elapsed = timestamp.finalTime 
+                ? (timestamp.finalTime) / 1000
+                : (performance.now() - timestamp.start) / 1000;
+            
+            const newTimeTileIds = this.uiDisplay.createString(
+                this.TIME_X, 
+                0, 
+                `${elapsed.toFixed(2)}s`, 
+                1001
+            );
+            this.uiTiles.set('time', newTimeTileIds);
+
+            for(const tileId of newTimeTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: timestamp.finalTime ? '#FFD700FF' : '#11FF11FF', // Gold if finished, green if running
+                    bg: '#00000000'
+                });
+            }
+
+            // Show best time if it exists
+            const bestTime = TimestampComponent.getBestTime();
+            if (bestTime !== null) {
+                const bestTimeStr = (bestTime / 1000).toFixed(2);
+                const newBestTimeTileIds = this.uiDisplay.createString(
+                    this.BEST_TIME_X,
+                    0,
+                    `${bestTimeStr}s`,
+                    1001
+                );
+                this.uiTiles.set('best_time', newBestTimeTileIds);
+
+                for(const tileId of newBestTimeTileIds) {
+                    this.uiDisplay.updateTile(tileId, {
+                        fg: '#FFD700FF', // Gold color for best time
+                        bg: '#00000000'
+                    });
+                }
+            }
+        } else {
+            // Remove labels and times if no timestamp component
+            ['current_label', 'best_label', 'time', 'best_time'].forEach(key => {
+                const tileIds = this.uiTiles.get(key);
+                if (tileIds) {
+                    this.uiDisplay.removeTiles(tileIds);
+                    this.uiTiles.delete(key);
+                }
+            });
+        }
     }
 
     update(timestamp: number): void {

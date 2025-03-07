@@ -477,7 +477,10 @@ export class RuntimeGame extends Game {
                 type: 'json',
                 url: circleTrackUrl
             })
-                .then(() => this.startGame())
+                .then(() => {
+                    this.startGame();
+                    this.uiSpeedRenderer?.show();
+                })
                 .catch(error => logger.error('Failed to start training:', error));
             return;
         }
