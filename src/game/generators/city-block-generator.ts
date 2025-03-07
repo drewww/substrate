@@ -417,37 +417,6 @@ export class CityBlockGenerator {
         world.addEntity(camera);
     }
 
-    private placePlayer(x: number, y:number, world: World) {
-
-        const player = new Entity({x, y});
-
-        const symbol = new SymbolComponent();
-        symbol.char = '⧋';
-        symbol.foreground = '#FF194DFF';
-        symbol.background = '#7EECF400';
-        symbol.zIndex = 500;
-        symbol.alwaysRenderIfExplored = false;
-        symbol.lockRotationToFacing = true;
-        symbol.scaleSymbolX = 1.5;
-        symbol.scaleSymbolY = 1.5;
-        symbol.offsetSymbolY = -0.05;
-        symbol.fontWeight = 'bold';
-        player.setComponent(symbol);
-
-        player.setComponent(new FacingComponent(Direction.None));
-        player.setComponent(new ImpassableComponent());
-        player.setComponent(new PlayerComponent());
-
-        player.setComponent(new HealthComponent(12, 12));
-
-        // TRUE here sets "ignore walls" vision
-        player.setComponent(new VisionComponent(20, true));
-
-        player.setComponent(new EnergyComponent(100));
-
-        world.addEntity(player);
-    }
-
     private placeRoad(x: number, y: number, world: World) {
         const road = new Entity({x, y});
         road.setComponent(new SymbolComponent(

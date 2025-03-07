@@ -32,7 +32,7 @@ import { PlayerMovementSystem } from './systems/player-movement-system.ts';
 import { WorldSystem } from './systems/world.system.ts';
 import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts';
 
-import testWorldUrl from '../assets/world/test-world.json?url';
+
 import { CityBlockGenerator } from './generators/city-block-generator.ts';
 import { EntitySpawnAction } from './actions/entity-spawn.action.ts';
 import { tileFlagsHasCardinalDirection } from 'wally-fov/lib/tile-flags';
@@ -47,6 +47,13 @@ import { EnergyComponent } from './components/energy.component.ts';
 
 
 
+import practiceWorldUrl from '../assets/practice.json?url';
+import testWorldUrl from '../assets/world/test-world.json?url';
+import { WorldGenerator } from '../world/world-generator.ts';
+import { ImpassableComponent } from '../entity/components/impassable-component.ts';
+import { HealthComponent } from '../entity/components/health.component.ts';
+import { SymbolComponent } from '../entity/components/symbol-component.ts';
+import { PlayerComponent } from '../entity/components/player-component.ts';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -77,7 +84,7 @@ export class RuntimeGame extends Game {
     private enemyAISystem!: EnemyAISystem;
     private minimapDisplay!: Display;
     private minimapRenderer!: MinimapRenderer;
-    private generator!: CityBlockGenerator;
+    private generator!: WorldGenerator;
     private objectiveCount: number = 0;
 
     constructor(private readonly canvasId: string) {
@@ -212,9 +219,11 @@ export class RuntimeGame extends Game {
     protected async setup(): Promise<void> {
         try {
             // Load the world from JSON using the URL
-            this.generator = new CityBlockGenerator();
+            this.generator = await JsonWorldGenerator.fromUrl(practiceWorldUrl);
             const world = await this.generator.generate();
             this.world = world;
+
+            this.placePlayer(1, 2, world);
 
             // Find the player entity that was created by the generator
             this.player = world.getEntitiesWithComponent('player')[0];
@@ -330,7 +339,15 @@ export class RuntimeGame extends Game {
         // this.selectObjective(this.world);
 
         // Add minimap setup
-        this.setupMinimap(this.world);
+        if (this.generator instanceof CityBlockGenerator) {
+            this.setupMinimap(this.world);
+        } else {
+            // hide the minimap css elements
+            const minimap = document.getElementById('minimap');
+            if (minimap) {
+                minimap.style.display = 'none';
+            }
+        }
     }
 
     // Update the Game's prepare method to call setupAfterDisplay
@@ -499,6 +516,37 @@ export class RuntimeGame extends Game {
         }
     }
 
+    private placePlayer(x: number, y:number, world: World) {
+
+        const player = new Entity({x, y});
+
+        const symbol = new SymbolComponent();
+        symbol.char = '⧋';
+        symbol.foreground = '#FF194DFF';
+        symbol.background = '#7EECF400';
+        symbol.zIndex = 500;
+        symbol.alwaysRenderIfExplored = false;
+        symbol.lockRotationToFacing = true;
+        symbol.scaleSymbolX = 1.5;
+        symbol.scaleSymbolY = 1.5;
+        symbol.offsetSymbolY = -0.05;
+        symbol.fontWeight = 'bold';
+        player.setComponent(symbol);
+
+        player.setComponent(new FacingComponent(Direction.None));
+        player.setComponent(new ImpassableComponent());
+        player.setComponent(new PlayerComponent());
+
+        player.setComponent(new HealthComponent(12, 12));
+
+        // TRUE here sets "ignore walls" vision
+        player.setComponent(new VisionComponent(20, true));
+
+        player.setComponent(new EnergyComponent(100));
+
+        world.addEntity(player);
+    }
+
     // Add the speed renderer setup method
     private setupSpeedRenderer(): void {
         if (!this.display || !this.world || !this.player) {
@@ -520,8 +568,9 @@ export class RuntimeGame extends Game {
 
     private setupMinimap(gameWorld: World): void {
 
+        const cityGenerator = this.generator as unknown as CityBlockGenerator;
         // Get layout from city generator
-        const layout = this.generator.getLayout();
+        const layout = cityGenerator.getLayout();
 
         const blockWidth = Math.floor(gameWorld.getWorldWidth() / 12);
         const blockHeight = Math.floor(gameWorld.getWorldHeight() / 12);
@@ -539,7 +588,7 @@ export class RuntimeGame extends Game {
 
         // Create minimap renderer
         this.minimapRenderer = new MinimapRenderer(this.minimapDisplay, this.world!);
-        this.minimapRenderer.renderLayout(this.generator.getLayout()!);
+        this.minimapRenderer.renderLayout(cityGenerator.getLayout()!);
 
         if (layout) {
             this.minimapRenderer.renderLayout(layout);

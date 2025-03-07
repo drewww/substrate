@@ -19,7 +19,7 @@ export class UISpeedRenderer implements Renderer {
     private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
     private readonly ENERGY_START_X = 15;  // Where speed ends
     private readonly HEALTH_START_X = 29;  // Move health further right
-    private readonly TIME_X = 35;  // Position for time display
+    private readonly TIME_X = 55;  // Position for time display
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
