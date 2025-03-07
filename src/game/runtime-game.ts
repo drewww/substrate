@@ -452,7 +452,11 @@ export class RuntimeGame extends Game {
         // Handle title screen actions
         if (action === 'start' && type === 'up') {
             this.initializeWorld({ type: 'city' })
-                .then(() => this.startGame())
+                .then(() => {
+                    this.startGame();
+                    this.uiSpeedRenderer?.show();
+                    this.setupMinimap(this.world!);
+                })
                 .catch(error => logger.error('Failed to start game:', error));
             return;
         }
@@ -646,7 +650,6 @@ export class RuntimeGame extends Game {
     }
 
     private setupMinimap(gameWorld: World): void {
-
         const cityGenerator = this.generator as unknown as CityBlockGenerator;
         // Get layout from city generator
         const layout = cityGenerator.getLayout();
@@ -671,30 +674,13 @@ export class RuntimeGame extends Game {
 
         if (layout) {
             this.minimapRenderer.renderLayout(layout);
+        }
 
-            // Set up event listener for entity movements to update minimap
-            // this.world?.on('entityMoved', ({ entity, from, to }) => {
-            //     const blockWidth = 12; // Match your CityBlockGenerator blockWidth
-            //     const blockHeight = 12; // Match your CityBlockGenerator blockHeight
-
-            //     // Update player marker
-            //     if (entity.hasComponent('player')) {
-            //         const blockX = Math.floor(to.x / blockWidth);
-            //         const blockY = Math.floor(to.y / blockHeight);
-            //         this.minimapRenderer.setPlayerBlock(blockX, blockY);
-            //     }
-
-            //     // Update helicopter marker
-            //     if (entity.hasComponent('enemyAI') && 
-            //         (entity.getComponent('enemyAI') as any).aiType === 'HELICOPTER') {
-            //         const blockX = Math.floor(to.x / blockWidth);
-            //         const blockY = Math.floor(to.y / blockHeight);
-            //         this.minimapRenderer.setHelicopterBlock(blockX, blockY);
-            //     }
-
-            //     // Re-render the minimap
-            //     this.minimapRenderer.renderLayout(layout);
-            // });
+        // Show the minimap canvas
+        const minimapCanvas = document.getElementById('minimap') as HTMLCanvasElement;
+        if (minimapCanvas) {
+            minimapCanvas.style.display = 'block';
+            minimapCanvas.style.visibility = 'visible';
         }
     }
 
