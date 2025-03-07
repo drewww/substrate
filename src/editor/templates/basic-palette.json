@@ -22,7 +22,7 @@
         ]
       },
       {
-        "id": "floor_template",
+        "id": "sidewalk_template",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
@@ -34,6 +34,115 @@
             "alwaysRenderIfExplored": true          }
         ]
       },
+      {
+        "id": "lit_floor_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": ".",
+            "foreground": "#eeeeeeff",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+
+      {
+        "id": "floor_arrow_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⇇",
+            "foreground": "#55CE4AFF",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "lockRotationToFacing": true,
+
+            "scaleSymbolX": 1.2,
+            "scaleSymbolY": 1.2
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+      
+
+      {
+        "id": "empty_space_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⬚",
+            "foreground": "#eeeeeeff",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "fontWeight": "bold",
+            "scaleSymbolX": 1.6,
+            "scaleSymbolY": 1.6
+          }
+        ]
+      },
+
+      {
+        "id": "empty_space_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⚲",
+            "foreground": "#eeeeeeff",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "scaleSymbolX": 1.1,
+            "scaleSymbolY": 1.1
+          }
+        ]
+      },
+
+      {
+        "id": "empty_space_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "🝊",
+            "foreground": "#111111FF",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "scaleSymbolX": 1.1,
+            "scaleSymbolY": 1.1
+          }
+        ]
+      },
+
+      {
+        "id": "table_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⚻",
+            "foreground": "#eeeeeeff",
+            "background": "#6A6F71FF",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "fontWeight": "bold"
+          }
+        ]
+      },
+
+      
+
       {
         "id": "road_template",
         "position": { "x": 0, "y": 0 },
@@ -219,6 +328,36 @@
                 "ready": false
               }
             }
+          }
+        ]
+      },
+
+      {
+        "id": "disabled_player_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⧋",
+            "foreground": "#AAAAAAFF",
+            "background": "#00D3EF00",
+            "zIndex": 300,
+            "alwaysRenderIfExplored": false,
+            "lockRotationToFacing": true,
+            "scaleSymbolX": 1.5,
+            "scaleSymbolY": 1.5,
+            "offsetSymbolY": -0.05,
+            "fontWeight": "bold"  
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          },
+          {
+            "type": "opacity"
+          },
+          {
+            "type": "impassable"
           }
         ]
       },
