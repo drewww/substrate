@@ -90,6 +90,10 @@ export class Display {
 
     private defaultFontFamily: string = 'monospace';
 
+    // Add these new properties to the Display class
+    private linkedTiles: Map<TileId, Set<TileId>> = new Map();  // source -> followers
+    private linkedToSource: Map<TileId, TileId> = new Map();    // follower -> source
+
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -926,8 +930,14 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public addSymbolAnimation(id: string, config: Omit<SymbolAnimationConfig, 'running'>): void {
-        // Always merge with existing animations
         this.symbolAnimations.add(id, config);
+        
+        const linkedTiles = this.linkedTiles.get(id);
+        if (linkedTiles) {
+            linkedTiles.forEach(linkedId => {
+                this.symbolAnimations.add(linkedId, config);
+            });
+        }
     }
 
     private updateSymbolAnimations(timestamp: number): void {
@@ -939,13 +949,25 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
     }
 
     public addColorAnimation(id: string, config: Omit<ColorAnimationConfig, 'running'>): void {
-        // Always merge with existing animations
         this.colorAnimations.add(id, config);
+        
+        const linkedTiles = this.linkedTiles.get(id);
+        if (linkedTiles) {
+            linkedTiles.forEach(linkedId => {
+                this.colorAnimations.add(linkedId, config);
+            });
+        }
     }
 
     public addValueAnimation(id: string, config: Omit<ValueAnimationConfig, 'running'>): void {
-        // Always merge with existing animations
         this.valueAnimations.add(id, config);
+        
+        const linkedTiles = this.linkedTiles.get(id);
+        if (linkedTiles) {
+            linkedTiles.forEach(linkedId => {
+                this.valueAnimations.add(linkedId, config);
+            });
+        }
     }
 
     private updateValueAnimations(timestamp: number): void {
@@ -1524,5 +1546,27 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
     public getCellHeight(): number {
         return this.cellHeightCSS;
+    }
+
+    // Add these new methods
+    public linkTiles(sourceTileId: TileId, followerTileId: TileId): void {
+        // Create set if it doesn't exist
+        if (!this.linkedTiles.has(sourceTileId)) {
+            this.linkedTiles.set(sourceTileId, new Set());
+        }
+        
+        // Add follower to source's set
+        this.linkedTiles.get(sourceTileId)!.add(followerTileId);
+        
+        // Track which source this follower is linked to
+        this.linkedToSource.set(followerTileId, sourceTileId);
+    }
+
+    public unlinkTile(followerTileId: TileId): void {
+        const sourceTileId = this.linkedToSource.get(followerTileId);
+        if (sourceTileId) {
+            this.linkedTiles.get(sourceTileId)?.delete(followerTileId);
+            this.linkedToSource.delete(followerTileId);
+        }
     }
 } 

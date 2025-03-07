@@ -489,11 +489,15 @@ export class RuntimeRenderer extends GameRenderer {
             
             // Store the indicator tile ID
             this.targetingIndicators.set(entity.getId(), tileId);
+
+            const playerTileId = this.entityTiles.get(entity.getId())!;
+
+            this.display.linkTiles(playerTileId, tileId);
             
             // Set up a move callback to update the indicator position
-            this.display.setTileMoveCallback(this.entityTiles.get(entity.getId())!, (_, x, y) => {
-                this.display.moveTile(tileId, x, y);
-            });
+            // this.display.setTileMoveCallback(this.entityTiles.get(entity.getId())!, (_, x, y) => {
+            //     this.display.moveTile(tileId, x, y);
+            // });
         }
     }
 

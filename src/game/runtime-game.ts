@@ -284,7 +284,7 @@ export class RuntimeGame extends Game {
             // Recreate display with new world dimensions
             this.display = this.createDisplay();
 
-            this.placePlayer(1, 2, this.world);
+            this.placePlayer(1,1, this.world);
             this.player = this.world.getEntitiesWithComponent('player')[0];
 
             if (!this.player) {
