@@ -5125,9 +5125,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
           "offsetSymbolX": 0,
@@ -5159,9 +5159,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
           "offsetSymbolX": 0,

@@ -32211,9 +32211,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32232,9 +32232,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32253,9 +32253,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32274,9 +32274,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32295,9 +32295,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32316,9 +32316,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32337,9 +32337,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32358,9 +32358,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32379,9 +32379,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32400,9 +32400,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32421,9 +32421,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32442,9 +32442,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32463,9 +32463,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32484,9 +32484,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32505,9 +32505,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32526,9 +32526,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32547,9 +32547,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32568,9 +32568,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32589,9 +32589,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32610,9 +32610,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32631,9 +32631,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32652,9 +32652,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32673,9 +32673,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32694,9 +32694,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32715,9 +32715,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32736,9 +32736,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32757,9 +32757,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32778,9 +32778,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32799,9 +32799,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32820,9 +32820,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32841,9 +32841,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32862,9 +32862,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32883,9 +32883,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32904,9 +32904,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32925,9 +32925,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32946,9 +32946,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32967,9 +32967,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -32988,9 +32988,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {
@@ -33009,9 +33009,9 @@
         {
           "type": "symbol",
           "char": "^",
-          "foreground": "#FFFFFFFF",
+          "foreground": "#FFFFFF66",
           "background": "#000000FF",
-          "zIndex": 100,
+          "zIndex": 10,
           "alwaysRenderIfExplored": true
         },
         {

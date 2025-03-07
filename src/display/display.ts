@@ -1249,7 +1249,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         // Clear the entire render canvas once
         this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
-        // Process all tiles within render bounds, not just dirty ones
+        // Get all visible tiles and their current animated positions
         const visibleTiles = Array.from(this.tileMap.values())
             .filter(tile => 
                 tile.x >= this.renderBounds.x && 
@@ -1257,28 +1257,25 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                 tile.y >= this.renderBounds.y && 
                 tile.y < this.renderBounds.y + this.renderBounds.height
             )
-            .sort((a, b) => a.zIndex - b.zIndex);
+            .map(tile => {
+                // Get current animated position if it exists
+                const valueAnims = this.valueAnimations.get(tile.id);
+                const currentX = valueAnims?.x?.current ?? tile.x;
+                const currentY = valueAnims?.y?.current ?? tile.y;
+                return {
+                    tile,
+                    renderX: (currentX - this.renderBounds.x) * this.cellWidthScaled,
+                    renderY: (currentY - this.renderBounds.y) * this.cellHeightScaled
+                };
+            })
+            .sort((a, b) => a.tile.zIndex - b.tile.zIndex);
 
-        // Group tiles by position for efficient rendering
-        const tilesByCell = new Map<string, Tile[]>();
-        visibleTiles.forEach(tile => {
-            const key = `${tile.x},${tile.y}`;
-            if (!tilesByCell.has(key)) {
-                tilesByCell.set(key, []);
-            }
-            tilesByCell.get(key)!.push(tile);
+        // Render tiles in z-index order with their current animated positions
+        visibleTiles.forEach(({tile, renderX, renderY}) => {
+            this.renderTile(tile, renderX, renderY);
         });
 
-        // Render all visible cells
-        for (const [key, tiles] of tilesByCell) {
-            const [x, y] = key.split(',').map(Number);
-            const renderX = (x - this.renderBounds.x) * this.cellWidthScaled;
-            const renderY = (y - this.renderBounds.y) * this.cellHeightScaled;
-            
-            tiles.forEach(tile => this.renderTile(tile, renderX, renderY));
-        }
-
-        // After rendering all tiles, apply the visibility mask
+        // Apply the visibility mask
         this.applyVisibilityMask();
     }
 

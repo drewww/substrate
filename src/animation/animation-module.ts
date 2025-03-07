@@ -24,6 +24,7 @@ export interface AnimationProperty<T = any> {
     symbols?: T[];
     next?: AnimationProperty<T>;
     startTime?: number;  // Add per-property start time
+    current?: T;  // Add current value tracking
 }
 
 interface AnimationMetrics {
