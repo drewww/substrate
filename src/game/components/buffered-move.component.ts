@@ -8,6 +8,7 @@ export class BufferedMoveComponent extends Component {
     
     constructor(
         public direction: Direction = Direction.None,
+        public keyUp: boolean = false
     ) {
         super();
     }

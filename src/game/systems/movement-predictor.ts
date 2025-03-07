@@ -44,26 +44,6 @@ export class MovementPredictor {
 
         const maxSpeed = turbo ? 10 : Math.max(6, inertia?.magnitude ?? 6);
 
-        // if(gear.queuedShift==-1) {
-
-        //     const oppositeDirection = {
-        //         [Direction.North]: Direction.South,
-        //         [Direction.South]: Direction.North,
-        //         [Direction.West]: Direction.East,
-        //         [Direction.East]: Direction.West
-        //     }[inertia.direction];
-
-        //     // let newBufferedMove: BufferedMoveComponent | null = null;
-        //     // if(!bufferedMove) {
-        //     //     if(inertia.magnitude > 1) {
-        //     //         bufferedMove = new BufferedMoveComponent(oppositeDirection);
-        //     //     }
-        //     // } else {
-        //     //     bufferedMove.direction = oppositeDirection;
-        //     // }
-
-        // }
-
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude} brake: ${brake}`);
 
         // If no buffered move and no significant inertia, no movement
@@ -150,7 +130,15 @@ export class MovementPredictor {
 
                 if (inertia.direction === bufferedMove.direction) {
                     // Same direction: increase inertia, but cap at maxSpeed
-                    finalInertia.magnitude = Math.min(maxSpeed, inertia.magnitude + 1);
+                    // OKAY this is where we wnat a variation. two moves in the same direction
+                    // with key up after each, should not get to speed 2. so we need to pass in 
+                    // a "keyup" flag on buffered move.
+                    if(bufferedMove.keyUp) {
+                        finalInertia.magnitude = inertia.magnitude;
+                    } else {
+                        finalInertia.magnitude = Math.min(maxSpeed, inertia.magnitude + 1);
+                    }
+                    
                 } else if (isOppositeDirection(bufferedMove.direction, inertia.direction) || brake) {
                     // Opposite direction: decrease inertia and potentially slide
                     
@@ -172,7 +160,8 @@ export class MovementPredictor {
                     };
                 } else if(inertia.magnitude <= SLIDE_SPEED) {
                     // if inertia is less than 2, still update the direction
-                    // TODO What is happening here? This case is... there is an input, it's not WITH momentum, or AGAINST momentum. 
+                    // TODO What is happening here?
+                    // This case is... there is an input, it's not WITH momentum, or AGAINST momentum. 
                     finalInertia = {
                         direction: bufferedMove.direction,
                         magnitude: inertia.magnitude,

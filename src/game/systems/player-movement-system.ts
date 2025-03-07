@@ -184,17 +184,17 @@ export class PlayerMovementSystem {
         //      this will happen when speed changes from 2 to 3
         //      and then again when turbo mode is engaged.
 
-            const cooldowns = player.getComponent('cooldown') as CooldownComponent;
-            if(cooldowns) {
-                if(prediction.finalInertia.magnitude >= 2) {
-                    const turbo = player.getComponent('turbo') as TurboComponent;
+        const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+        if(cooldowns) {
+            if(prediction.finalInertia.magnitude >= 2) {
+                const turbo = player.getComponent('turbo') as TurboComponent;
 
-                    const newCooldown = turbo ? 1 : 2; // then 2 and 1
-                    // logger.info(`Setting move cooldown to ${newCooldown} ticks`);
-                    cooldowns.setCooldown('move', newCooldown, newCooldown);
-                    player.setComponent(cooldowns);
-                }
+                const newCooldown = turbo ? 1 : 2; // then 2 and 1
+                // logger.info(`Setting move cooldown to ${newCooldown} ticks`);
+                cooldowns.setCooldown('move', newCooldown, newCooldown);
+                player.setComponent(cooldowns);
             }
+        }
 
         // Update light emitter if present
         if (player.hasComponent('lightEmitter')) {

@@ -376,32 +376,37 @@ export class RuntimeGame extends Game {
             throw new Error('Player not initialized');
         }
 
-        // reject "up" events, might help with some accidental post-tick activations
-        if (action === 'move' && type !== 'up') {
-            const directionStr = params[0];
-            let direction: Direction;
-            
-            switch(directionStr) {
-                case 'up':    direction = Direction.North; break;
-                case 'down':  direction = Direction.South; break;
-                case 'left':  direction = Direction.West;  break;
-                case 'right': direction = Direction.East;  break;
-                default: return;
-            }
+        let direction: Direction;
+        const directionStr = params[0];
+        switch(directionStr) {
+            case 'up':    direction = Direction.North; break;
+            case 'down':  direction = Direction.South; break;
+            case 'left':  direction = Direction.West;  break;
+            case 'right': direction = Direction.East;  break;
+            default: return;
+        }
 
+        // reject "up" events, might help with some accidental post-tick activations
+
+        // the problem is that you can "repeat" INTO the next tick and it's not
+        // intentional. it's not even about tick, it's about where in the cooldown you are. 
+        
+        // maybe the play is that an "up" should cancel buffered move.
+
+
+
+        
+        const inertia = this.player.getComponent('inertia') as InertiaComponent;
+        if(action === 'move' && type === 'up' && inertia && inertia.magnitude > 1) {
+            this.player.removeComponent('bufferedMove');
+        } else if(action === 'move' && type === 'up' && inertia && inertia.magnitude <= 1) {
+            this.player.setComponent(new BufferedMoveComponent(direction, true));
+        }
+
+        if (action === 'move' && type !== 'up') {
             this.player.removeComponent('bufferedMove');
             this.player.setComponent(new BufferedMoveComponent(direction));
         }
-
-        // logger.info(`key: ${action} ${params[0]} ${type}`);
-        // if we're shifting up, require key-up
-        // if (action === 'shift' && type === 'up' && params[0] === 'up') {
-            
-
-        // } else if(action === 'shift' && (params[0] === 'down')) {
-
-
-        // }
 
         if(action === 'turbo' && (type === 'down' || type === 'repeat')) {
             const inertia = this.player.getComponent('inertia') as InertiaComponent;
