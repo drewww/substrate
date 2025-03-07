@@ -11,18 +11,44 @@ export class TitleRenderer implements Renderer {
 
     private initializeTitle(): void {
         // Fill the entire display with pink background for now
-        for (let y = 0; y < this.display.getViewportHeight(); y++) {
-            for (let x = 0; x < this.display.getViewportWidth(); x++) {
-                this.display.createTile(
-                    x,
-                    y,
-                    ' ',
-                    '#FFFFFF00',  // transparent foreground
-                    '#FF69B4FF',  // hot pink background
-                    1000
-                );
+
+        // on the right side of the screen, put a rectangle that has padding 2 from the edges and is ... 15 tiles wide.
+        // top to bottom.
+        for (let y = 2; y < this.display.getViewportHeight() - 2; y++) {
+            for (let x = this.display.getViewportWidth() - 30; x < this.display.getViewportWidth()-4; x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#00000044', 1000);
             }
         }
+
+        this.display.createString(this.display.getViewportWidth() - 28, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+            fontWeight: 'bold',
+            backgroundColor: '#00000000',
+        });
+
+        this.display.createString(this.display.getViewportWidth() - 26, 5, '{w}[r]un{/}', 1000, {
+            // backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.15,
+                initialDelay: 0.0
+            }
+        });
+
+
+        this.display.createString(this.display.getViewportWidth() - 26, 6, '{w}[t]rain{/}', 1000, {
+            // backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.15,
+                initialDelay: 0.0
+            }
+        });
+
+        this.display.createString(this.display.getViewportWidth() - 26, 7, '{w}[c]redits{/}', 1000, {
+            // backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.15,
+                initialDelay: 0.0
+            }
+        });
     }
 
     update(timestamp: number): void {}
@@ -32,4 +58,12 @@ export class TitleRenderer implements Renderer {
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {}
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
+
+    public hide(): void {
+        this.display.getRenderCanvas().style.display = 'none';
+    }
+
+    public show(): void {
+        this.display.getRenderCanvas().style.display = 'block';
+    }
 } 

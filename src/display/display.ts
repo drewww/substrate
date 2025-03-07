@@ -729,6 +729,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             fontWeight?: string;
             fontStyle?: string;
             fontFamily?: string;
+            backgroundColor?: string;
         }
     ): TileId[] {
         const segments = this.textParser.parse(text);
@@ -743,7 +744,7 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     y,
                     char,
                     segment.color,
-                    "#000000FF",  // Default background
+                    options?.backgroundColor || "#000000FF",  // Default background
                     zIndex,
                     { 
                         bgPercent: options?.animate ? 0 : 1,  // Start invisible if animating
