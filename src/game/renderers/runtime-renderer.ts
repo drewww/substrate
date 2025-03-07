@@ -138,7 +138,7 @@ export class RuntimeRenderer extends GameRenderer {
         const tileId = this.entityTiles.get(entity.getId());
         if (tileId) {
             const isPlayer = entity.hasComponent('player');
-            const duration = isPlayer ? 0.1 : 0.5;
+            const duration = isPlayer ? 0.20 : 0.5;
 
             this.display.addValueAnimation(tileId, {
                 x: {
@@ -477,13 +477,14 @@ export class RuntimeRenderer extends GameRenderer {
                 pos.x,
                 pos.y,
                 '⛶',
-                '#FFFFFFFF',
+                '#FF194DDD',
                 '#00000000',
                 1000,
                 {
                     // offsetSymbolY: -0.5, // Position above the player
                     scaleSymbolX: 1.4,
-                    scaleSymbolY: 1.4
+                    scaleSymbolY: 1.4,
+                    fontWeight: 'bold',
                 }
             );
             
