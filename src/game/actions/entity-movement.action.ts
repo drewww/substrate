@@ -78,11 +78,14 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
             const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
             const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);
             if (objective) {
-                const objectiveComponent = objective.getComponent('objective') as ObjectiveComponent;
-                objectiveComponent.active = !objectiveComponent.active;
-                objective.setComponent(objectiveComponent);
-                objective.removeComponent('lightEmitter');
+                
                 world.emit('objective-complete', { objective });
+
+                // get all currently active objectives and remove them
+                const activeObjectives = world.getEntitiesWithComponent('objective').filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+                activeObjectives.forEach(e => {
+                    e.removeComponent('objective');
+                });
             }
 
             entity.setComponent(new BumpingComponent({
