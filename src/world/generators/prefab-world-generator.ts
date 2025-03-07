@@ -27,7 +27,7 @@ export class PrefabWorldGenerator implements WorldGenerator {
         private readonly levelData: string          // Raw content of level data
     ) {}
 
-    generate(): World {
+    async generate(): Promise<World> {
         const startTime = performance.now();
         
         const symbols = this.parseSymbolDefinitions(this.symbolDefinitions);

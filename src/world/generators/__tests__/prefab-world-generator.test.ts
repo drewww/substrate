@@ -14,6 +14,7 @@ import { TurnComponent } from '../../../entity/components/turn-component';
 import { LightEmitterComponent } from '../../../entity/components/light-emitter-component';
 import { EnemyAIComponent } from '../../../game/components/enemy-ai.component';
 import { ApplyTimestampComponent } from '../../../game/components/apply.timestamp.component';
+import { Entity } from '../../../entity/entity';
 
 // Register all components used in the tests
 beforeEach(() => {
@@ -59,14 +60,14 @@ describe('PrefabWorldGenerator', () => {
     });
 
     describe('World Generation', () => {
-        it('should create a world with correct dimensions', () => {
-            const world = generator.generate();
+        it('should create a world with correct dimensions', async () => {
+            const world = await generator.generate();
             expect(world.getSize()).toEqual({ x: 5, y: 5 });
         });
 
-        it('should correctly place wall entities', () => {
-            const world = generator.generate();
-            const walls = world.getEntities().filter(e => 
+        it('should correctly place wall entities', async () => {
+            const world = await generator.generate();
+            const walls = world.getEntities().filter((e: Entity) => 
                 e.getComponent('symbol')?.type === 'symbol' && 
                 (e.getComponent('symbol') as SymbolComponent).char === '#'
             );
@@ -85,8 +86,8 @@ describe('PrefabWorldGenerator', () => {
             expect(symbolComp.zIndex).toBe(1);
         });
 
-        it('should correctly place and configure the player', () => {
-            const world = generator.generate();
+        it('should correctly place and configure the player', async () => {
+            const world = await generator.generate();
             const players = world.getEntitiesWithComponent('player');
 
             expect(players).toHaveLength(1);
@@ -107,9 +108,9 @@ describe('PrefabWorldGenerator', () => {
             expect(symbol.zIndex).toBe(5);
         });
 
-        it('should correctly place floor tiles', () => {
-            const world = generator.generate();
-            const floors = world.getEntities().filter(e => 
+        it('should correctly place floor tiles', async () => {
+            const world = await generator.generate();
+            const floors = world.getEntities().filter((e: Entity) => 
                 e.getComponent('symbol')?.type === 'symbol' && 
                 (e.getComponent('symbol') as SymbolComponent).char === '.'
             );
@@ -126,21 +127,21 @@ describe('PrefabWorldGenerator', () => {
     });
 
     describe('Error Handling', () => {
-        it('should handle malformed symbol definitions', () => {
+        it('should handle malformed symbol definitions', async () => {
             const badSymbolDefs = `
 # this is not valid JSON
 @ also not valid JSON
 `.trim();
             
             const generator = new PrefabWorldGenerator(badSymbolDefs, levelData);
-            const world = generator.generate();
+            const world = await generator.generate();
             
             // Should create an empty world with correct dimensions
             expect(world.getSize()).toEqual({ x: 5, y: 5 });
             expect(world.isEmpty()).toBe(true);
         });
 
-        it('should handle unknown symbols in level data', () => {
+        it('should handle unknown symbols in level data', async () => {
             const levelWithUnknownSymbols = `
 #,#,#
 #,X,#
@@ -148,7 +149,7 @@ describe('PrefabWorldGenerator', () => {
 `.trim();
 
             const generator = new PrefabWorldGenerator(symbolDefinitions, levelWithUnknownSymbols);
-            const world = generator.generate();
+            const world = await generator.generate();
 
             // Should only create the wall entities, ignoring the unknown 'X' symbol
             const entities = world.getEntities();
