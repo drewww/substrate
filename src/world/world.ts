@@ -106,7 +106,8 @@ export class World {
         const position = entity.getPosition();
         if (position.x < 0 || position.x >= this.width || 
             position.y < 0 || position.y >= this.height) {
-            throw new Error(`Position ${position.x},${position.y} is out of bounds`);
+            // throw new Error(`Position ${position.x},${position.y} is out of bounds`);
+            return;
         }
 
         const entityId = entity.getId();

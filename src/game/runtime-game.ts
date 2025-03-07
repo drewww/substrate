@@ -48,7 +48,10 @@ import { EnergyComponent } from './components/energy.component.ts';
 
 
 import practiceWorldUrl from '../assets/practice.json?url';
+import circleTrackUrl from '../assets/world/circular-track.json?url';
 import testWorldUrl from '../assets/world/test-world.json?url';
+
+
 import { WorldGenerator } from '../world/world-generator.ts';
 import { ImpassableComponent } from '../entity/components/impassable-component.ts';
 import { HealthComponent } from '../entity/components/health.component.ts';
@@ -220,7 +223,8 @@ export class RuntimeGame extends Game {
     protected async setup(): Promise<void> {
         try {
             // Load the world from JSON using the URL
-            this.generator = await JsonWorldGenerator.fromUrl(practiceWorldUrl);
+            // this.generator = await JsonWorldGenerator.fromUrl(practiceWorldUrl);
+            this.generator = await JsonWorldGenerator.fromUrl(circleTrackUrl);
             const world = await this.generator.generate();
             this.world = world;
 

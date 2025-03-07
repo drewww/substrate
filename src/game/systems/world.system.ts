@@ -162,7 +162,7 @@ export class WorldSystem {
                             type: 'stun',
                             entityId: entity.getId(),
                             data: {
-                                duration: 10,
+                                duration: 6,
                                 resetInertia: true
                             }
                         });
