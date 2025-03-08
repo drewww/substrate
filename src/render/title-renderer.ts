@@ -32,21 +32,21 @@ export class TitleRenderer implements Renderer {
 
         this.display.createString(this.display.getViewportWidth() - 21, 5, '{w}[r]un{/}', 1000, {
             animate: {
-                delayBetweenChars: 0.15,
+                delayBetweenChars: 0.10,
                 initialDelay: 0.0
             }
         });
 
         this.display.createString(this.display.getViewportWidth() - 21, 6, '{w}[t]rain{/}', 1000, {
             animate: {
-                delayBetweenChars: 0.15,
+                delayBetweenChars: 0.10,
                 initialDelay: 0.0
             }
         });
 
         this.display.createString(this.display.getViewportWidth() - 21, 7, '{w}[c]redits{/}', 1000, {
             animate: {
-                delayBetweenChars: 0.15,
+                delayBetweenChars: 0.10,
                 initialDelay: 0.0
             }
         });

@@ -25,6 +25,7 @@ import { EnergyComponent } from '../components/energy.component';
 import { WorldGenerator } from '../../world/world-generator';
 import startBuildingUrl from '../../assets/blocks/start.json?url';
 import endBuildingUrl from '../../assets/blocks/end.json?url';
+import { SpawnHintComponent } from '../components/spawn-hint.component';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -252,32 +253,6 @@ export class CityBlockGenerator implements WorldGenerator {
         // Shuffle array
         const shuffledWalls = [...wallTiles].sort(() => Math.random() - 0.5);
 
-        // Place up to 25 cameras
-        let camerasPlaced = 0;
-        for (const wall of shuffledWalls) {
-            if (camerasPlaced >= 40) break;
-
-            const pos = wall.getPosition();
-            
-            // Count non-opaque adjacent tiles
-            let visibleTiles = 0;
-            for (let dy = -1; dy <= 1; dy++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                    if (dx === 0 && dy === 0) continue;
-                    
-                    const entities = world.getEntitiesAt({x: pos.x + dx, y: pos.y + dy});
-                    if (!entities.some(e => e.hasComponent("opacity"))) {
-                        visibleTiles++;
-                    }
-                }
-            }
-
-            if (visibleTiles >= 5) {
-                this.placeCamera(pos.x, pos.y, world);
-                camerasPlaced++;
-            }
-        }
-
         // Find a location at least 36 tiles away from the start location
         const player = world.getEntities().find(entity => entity.hasComponent('player'));
         if (!player) {
@@ -300,6 +275,7 @@ export class CityBlockGenerator implements WorldGenerator {
         
         // this.placeHelicopter(heliX, heliY, world);
 
+        this.postProcessEnemies(world);
 
         return world;
     }
@@ -376,14 +352,14 @@ export class CityBlockGenerator implements WorldGenerator {
         symbol.char = '🜻';
         symbol.foreground = '#FF194DFF';
         symbol.background = '#00000000';
-        symbol.scaleSymbolX = 1.5;  
-        symbol.scaleSymbolY = 1.5;
+        symbol.scaleSymbolX = 1.2;  
+        symbol.scaleSymbolY = 1.2;
         symbol.fontWeight = 'bold';
         symbol.zIndex = 500;
         symbol.alwaysRenderIfExplored = false;
 
         homingBot.setComponent(symbol);
-        homingBot.setComponent(new VisionComponent(10, false));
+        homingBot.setComponent(new VisionComponent(5, false));
         homingBot.setComponent(new EnemyAIComponent(EnemyAIType.FOLLOWER));
         homingBot.setComponent(new MoveComponent(false, true)); // true lets it move through walls, true lets it move diagonally
         homingBot.setComponent(new CooldownComponent({
@@ -426,5 +402,34 @@ export class CityBlockGenerator implements WorldGenerator {
 
     public getLayout(): ChunkMetadata[][] | null {
         return this.layout;
+    }
+
+    private postProcessEnemies(world: World) {
+        // Get all entities with spawn hints
+        const spawnHints = world.getEntitiesWithComponent(SpawnHintComponent.type);
+
+        for (const hintEntity of spawnHints) {
+            const pos = hintEntity.getPosition();
+            const hint = (hintEntity.getComponent(SpawnHintComponent.type) as SpawnHintComponent).hint;
+            const roll = Math.random();
+
+            // Remove the hint entity
+            world.removeEntity(hintEntity.getId());
+
+            // 30% chance to spawn the designated enemy
+            if (roll > 0.7) {
+                switch (hint) {
+                    case 'camera':
+                        this.placeCamera(pos.x, pos.y, world);
+                        break;
+                    case 'turret':
+                        this.placeTurret(pos.x, pos.y, world);
+                        break;
+                    case 'boomer':
+                        this.placeHomingBot(pos.x, pos.y, world);
+                        break;
+                }
+            }
+        }
     }
 } 

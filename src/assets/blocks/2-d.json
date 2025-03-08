@@ -5373,6 +5373,62 @@
           }
         }
       ]
+    },
+    {
+      "id": "e16703",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
+        }
+      ]
+    },
+    {
+      "id": "e16770",
+      "position": {
+        "x": 11,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
+        }
+      ]
+    },
+    {
+      "id": "e16838",
+      "position": {
+        "x": 11,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
+        }
+      ]
+    },
+    {
+      "id": "e16891",
+      "position": {
+        "x": 0,
+        "y": 11
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
+        }
+      ]
     }
   ]
 }

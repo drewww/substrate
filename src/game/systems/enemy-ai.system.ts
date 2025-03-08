@@ -62,6 +62,9 @@ export class EnemyAISystem {
                         case EnemyAIType.EMP_TURRET:
                             rotationOffset = Math.PI/2;
                             break;
+                        case EnemyAIType.FOLLOWER:
+                            rotationOffset = Math.PI/2;
+                            break;
                     }
 
                     symbol.rotation = Math.atan2(player.getPosition().y - enemy.getPosition().y, player.getPosition().x - enemy.getPosition().x) + rotationOffset;

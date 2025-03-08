@@ -4731,7 +4731,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -4765,7 +4766,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -4799,7 +4801,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -4833,7 +4836,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -4842,6 +4846,34 @@
         {
           "type": "turn",
           "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e11518",
+      "position": {
+        "x": 11,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
+        }
+      ]
+    },
+    {
+      "id": "e11583",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
         }
       ]
     }

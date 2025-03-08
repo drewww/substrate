@@ -3913,9 +3913,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 3
@@ -3948,9 +3948,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 2
@@ -3983,9 +3983,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 2
@@ -4018,9 +4018,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 3
@@ -4053,9 +4053,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 3
@@ -4088,9 +4088,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 2
@@ -4098,6 +4098,34 @@
         {
           "type": "turn",
           "direction": 4
+        }
+      ]
+    },
+    {
+      "id": "e1165",
+      "position": {
+        "x": 11,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
+        }
+      ]
+    },
+    {
+      "id": "e1239",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "boomer"
         }
       ]
     }
