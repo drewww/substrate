@@ -174,9 +174,11 @@ export class PlayerMovementSystem {
         }
 
         // Update inertia with predicted final state
+        const currentInertia = player.getComponent('inertia') as InertiaComponent;
         player.setComponent(new InertiaComponent(
             prediction.finalInertia.direction,
-            prediction.finalInertia.magnitude
+            prediction.finalInertia.magnitude,
+            currentInertia?.resetInertia ?? false
         ));
 
         // Update facing based on buffered move or inertia

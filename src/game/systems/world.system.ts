@@ -21,6 +21,7 @@ import { HealthComponent } from '../../entity/components/health.component';
 import { LockedComponent } from '../components/locked.component';
 import { TurboComponent } from '../components/turbo.component';
 import { EnergyComponent } from '../components/energy.component';
+import { InertiaComponent } from '../components/inertia.component';
 
 const MIN_VEHICLE_COOLDOWN = 15;
 const MAX_VEHICLE_COOLDOWN = 50;
@@ -172,35 +173,6 @@ export class WorldSystem {
                 }
             }
 
-            const statusEffectState = entity.getComponent('status-effect') as StatusEffectComponent;
-            if (statusEffectState) {
-                if (statusEffectState.effect === StatusEffect.EMP) {
-                    // apply EMP effect
-                    const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
-                    for (const entity of entitiesAtPos) {
-                    if (entity.hasComponent('player')) {
-                        this.actionHandler.execute({
-                            type: 'stun',
-                            entityId: entity.getId(),
-                            data: {
-                                duration: 6,
-                                resetInertia: true
-                            }
-                        });
-                    }
-                }
-                } else if (statusEffectState.effect === StatusEffect.CALTROPS) {
-                    // apply CALTROPS effect
-                    const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
-                    for (const entity of entitiesAtPos) {
-                        if (entity.hasComponent('player')) {
-                            
-                        }
-                    }
-                }
-            } 
-
-
 
             const explodeEmpState = cooldowns.getCooldown('explode-emp');
             if (explodeEmpState) {
@@ -339,7 +311,7 @@ export class WorldSystem {
         // Add energy regeneration
         const energy = player.getComponent('energy') as EnergyComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
-        if (energy && (!turbo || turbo.turnsSinceEngaged === 0)) {
+        if (energy) {
             energy.energy = Math.min(energy.energy + 5, energy.maxEnergy);
             player.setComponent(energy);
         }

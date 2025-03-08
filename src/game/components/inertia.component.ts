@@ -8,7 +8,8 @@ export class InertiaComponent extends Component {
     
     constructor(
         public direction: Direction = Direction.None,
-        public magnitude: number = 0  // 0-8? value representing strength of inertia
+        public magnitude: number = 0,  // 0-8? value representing strength of inertia
+        public resetInertia: boolean = false
     ) {
         super();
     }

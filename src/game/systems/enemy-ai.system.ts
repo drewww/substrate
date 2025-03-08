@@ -266,16 +266,20 @@ export class EnemyAISystem {
                             const dx = directionVector.x;
                             const dy = directionVector.y;
 
-                            // Scale to max distance while maintaining direction
-                            const magnitude = Math.sqrt(dx * dx + dy * dy);
-                            if (magnitude > 0) {
-                                playerFuturePos = {
-                                    x: Math.round(currentPos.x + (dx / magnitude) * MAX_DISTANCE),
-                                    y: Math.round(currentPos.y + (dy / magnitude) * MAX_DISTANCE)
-                                };
-                            } else {
-                                playerFuturePos = { ...currentPos };
-                            }
+                            playerFuturePos = {
+                                x: Math.round(currentPos.x + (dx * 3)),
+                                y: Math.round(currentPos.y + (dy * 3))
+                            };
+                            // // Scale to max distance while maintaining direction
+                            // const magnitude = Math.sqrt(dx * dx + dy * dy);
+                            // if (magnitude > 0) {
+                            //     playerFuturePos = {
+                            //         x: Math.round(currentPos.x + (dx / magnitude) * MAX_DISTANCE),
+                            //         y: Math.round(currentPos.y + (dy / magnitude) * MAX_DISTANCE)
+                            //     };
+                            // } else {
+                            //     playerFuturePos = { ...currentPos };
+                            // }
                         }
 
                         // check distdance from the launcher, don't shoot too far

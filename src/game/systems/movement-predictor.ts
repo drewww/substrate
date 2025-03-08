@@ -53,6 +53,14 @@ export class MovementPredictor {
 
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude} brake: ${brake}`);
 
+        if (inertia?.resetInertia) {
+            return {
+                actions: [],
+                finalInertia: { direction: inertia.direction, magnitude: 0 },
+                willCollide: false
+            };
+        }
+
         // If no buffered move and no significant inertia, no movement
         if (!bufferedMove && !brake&& (!inertia || inertia.magnitude <= 1)) {
             // logger.info(`No buffered move and no significant inertia, no movement`);

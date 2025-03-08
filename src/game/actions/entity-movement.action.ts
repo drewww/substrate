@@ -13,6 +13,10 @@ import { FollowableComponent } from '../../entity/components/followable-componen
 import { MoveComponent } from '../components/move.component';
 import { ObjectiveComponent } from '../components/objective.component';
 import { MetricsComponent } from '../components/metrics.component';
+import { StatusEffectComponent } from '../components/status-effect.component';
+import { StatusEffect } from '../components/status-effect.component';
+import { InertiaComponent } from '../components/inertia.component';
+import { CooldownComponent } from '../components/cooldown.component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -186,6 +190,31 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                     world.emit('objective-complete', { objective: destinationEntity });
                 }
             }
+
+
+            if (entity.hasComponent('player') && destinationEntity.hasComponent('status-effect')) {
+                const statusEffectState = destinationEntity.getComponent('status-effect') as StatusEffectComponent;
+
+                if (statusEffectState.effect === StatusEffect.EMP) {
+                    // ignore
+                } else if (statusEffectState && statusEffectState.effect === StatusEffect.CALTROPS) {
+                    // apply CALTROPS effect
+                    if (entity.hasComponent('player')) {
+                        const inertia = entity.getComponent('inertia') as InertiaComponent;
+                        if (inertia) {
+                            inertia.magnitude = 0;
+                            inertia.resetInertia = true;
+                            entity.setComponent(inertia);
+
+                            const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+                            if (cooldowns) {
+                                cooldowns.setCooldown('move', 4, 4, false);
+                                entity.setComponent(cooldowns);
+                            }
+                        }
+                    }
+                }
+            } 
         }
         
         return result;
