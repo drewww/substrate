@@ -16,6 +16,7 @@ import { TurboComponent } from "../components/turbo.component";
 import { TICK_MS } from "../constants";
 import { MovementPredictor } from "../systems/movement-predictor";
 import { SymbolComponent } from "../../entity/components/symbol-component";
+import { EnemyAIType } from "../components/enemy-ai.component";
 
 export class RuntimeRenderer extends GameRenderer {
     private discoveredTiles: Set<string> = new Set();  // Store as "x,y" strings
@@ -301,50 +302,75 @@ export class RuntimeRenderer extends GameRenderer {
         if (componentType === 'cooldown') {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             const tileId = this.entityTiles.get(entity.getId());
-            const player = entity.hasComponent('player');
+            const ai = entity.getComponent('enemyAI') as EnemyAIComponent;
 
-            if (!tileId) {
+            if (!tileId || !cooldowns) {
                 return;
             }
 
-            if (cooldowns) {
-                // Handle move cooldown
-
-                // Handle stun cooldown (takes precedence over move cooldown)
-                const stunState = cooldowns.getCooldown('stun');
-                if (stunState && stunState.current > 0 && stunState.ready) {
-                    logger.info(`stunState.current: ${stunState.current} base: ${stunState.base} ==? ${stunState.current === stunState.base}`);
-                    if (stunState.current === stunState.base) {
-                        this.display.updateTile(tileId, {
-                            bg: '#770505',
-                            fillDirection: FillDirection.TOP
-                        });
-                    }
-
-                    this.display.addValueAnimation(tileId, {
-                        bgPercent: {
-                            start: 1.0,
-                            end: 0.0,
-                            duration: stunState.base * TICK_MS / 1000, // Convert ms to seconds
-                            easing: Easing.linear,
-                            loop: false,
-                        }
-                    });
-
-                    // set ready to false
-                    cooldowns.setCooldown('stun', stunState.base, stunState.current, false);
-                    entity.setComponent(cooldowns);
-                }
-
-                const toggleState = cooldowns.getCooldown('toggle');
-                if (toggleState) {
-                    const percent = 1 - (toggleState.current / toggleState.base);
-
+            // Handle turret-specific rendering
+            if (ai && ai.aiType === EnemyAIType.EMP_TURRET) {
+                const fireCooldown = cooldowns.getCooldown('fire');
+                
+                if (ai.turnsLocked > 0 && ai.turnsLocked <= 3) {
+                    // Charging up - fill with bright red from bottom, starting from black
+                    const chargePercent = ai.turnsLocked / 3;  // 3 turns to fully charge
                     this.display.updateTile(tileId, {
-                        bgPercent: percent,
+                        bg: '#FF194DFF',  // The bright red
+                        bgPercent: chargePercent,
                         fillDirection: FillDirection.BOTTOM
                     });
+                } else if (fireCooldown && !fireCooldown.ready) {
+                    // After firing - fill from black to dark red
+                    const cooldownPercent = 1 - (fireCooldown.current / fireCooldown.base);
+                    this.display.updateTile(tileId, {
+                        bg: '#770505FF',  // Dark red
+                        bgPercent: cooldownPercent,
+                        fillDirection: FillDirection.BOTTOM
+                    });
+                } else {
+                    // Reset to black when neither charging nor on cooldown
+                    this.display.updateTile(tileId, {
+                        bg: '#000000FF',
+                        bgPercent: 0
+                    });
                 }
+            }
+
+            // Handle stun cooldown (takes precedence over move cooldown)
+            const stunState = cooldowns.getCooldown('stun');
+            if (stunState && stunState.current > 0 && stunState.ready) {
+                logger.info(`stunState.current: ${stunState.current} base: ${stunState.base} ==? ${stunState.current === stunState.base}`);
+                if (stunState.current === stunState.base) {
+                    this.display.updateTile(tileId, {
+                        bg: '#770505',
+                        fillDirection: FillDirection.TOP
+                    });
+                }
+
+                this.display.addValueAnimation(tileId, {
+                    bgPercent: {
+                        start: 1.0,
+                        end: 0.0,
+                        duration: stunState.base * TICK_MS / 1000, // Convert ms to seconds
+                        easing: Easing.linear,
+                        loop: false,
+                    }
+                });
+
+                // set ready to false
+                cooldowns.setCooldown('stun', stunState.base, stunState.current, false);
+                entity.setComponent(cooldowns);
+            }
+
+            const toggleState = cooldowns.getCooldown('toggle');
+            if (toggleState) {
+                const percent = 1 - (toggleState.current / toggleState.base);
+
+                this.display.updateTile(tileId, {
+                    bgPercent: percent,
+                    fillDirection: FillDirection.BOTTOM
+                });
             }
         }
 

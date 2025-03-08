@@ -245,8 +245,11 @@ export class EnemyAISystem {
                 break;
             case EnemyAIType.EMP_TURRET:
                 if (canSeePlayer) {
-                    ai.turnsLocked += 1
-                    // logger.warn(`Enemy at ${enemy.getPosition().x}, ${enemy.getPosition().y} can see player at ${this.world.getPlayer().getPosition().x}, ${this.world.getPlayer().getPosition().y}`);
+                    // Only increment turnsLocked if we're not already at max lock
+                    if (ai.turnsLocked <= 3) {
+                        ai.turnsLocked += 1;
+                    }
+                    
                     const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
                     const fireCooldown = cooldowns?.getCooldown('fire');
 
@@ -280,11 +283,21 @@ export class EnemyAISystem {
                         if(cooldowns) {
                             cooldowns.setCooldown('fire', fireCooldown.base);
                         }
-
-                        ai.turnsLocked = 0;
+                        // Don't reset turnsLocked here anymore - maintain lock state
                     }
                 } else {
-                    ai.turnsLocked = 0;
+                    // Only reset everything when we lose sight of the player
+                    if (ai.turnsLocked > 0) {
+                        const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
+                        if (cooldowns) {
+                            const fireCooldown = cooldowns.getCooldown('fire');
+                            if (fireCooldown) {
+                                // Reset fire cooldown to ready state
+                                cooldowns.setCooldown('fire', fireCooldown.base, 0, true);
+                            }
+                        }
+                        ai.turnsLocked = 0;  // Only reset lock when breaking line of sight
+                    }
                 }
 
                 enemy.setComponent(ai);
