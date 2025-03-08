@@ -82,6 +82,7 @@ map: default
 ---
 r start
 t train
+c credits
 `;
 
 type GeneratorConfig = {
@@ -578,6 +579,12 @@ export class RuntimeGame extends Game {
                     this.uiSpeedRenderer?.show();
                 })
                 .catch(error => logger.error('Failed to start training:', error));
+            return;
+        }
+
+        if (action === 'credits' && type === 'up') {
+            this.titleRenderer?.prepare(TitleMode.CREDITS);
+            this.titleRenderer?.show(TitleMode.CREDITS);
             return;
         }
 

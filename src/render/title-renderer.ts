@@ -10,11 +10,38 @@ import { logger } from '../util/logger';
 export enum TitleMode {
     TITLE,
     DEATH,
-    VICTORY
+    VICTORY,
+    CREDITS
 }
 
 export class TitleRenderer implements Renderer {
     private titleBackground: HTMLImageElement;
+    private readonly CREDITS = [
+        {
+            name: 'Drew Harry',
+            roles: ['Game Design', 'Programming', 'Level Design']
+        },
+        {
+            name: 'Jay Harry',
+            roles: ['Game Design', 'Testing', 'Sound Design']
+        },
+        {
+            name: 'Claude',
+            roles: ['AI Assistant', 'Code Review', 'Refactoring']
+        },
+        {
+            name: 'Cursor',
+            roles: ['Development Environment']
+        },
+        {
+            name: 'rot.js',
+            roles: ['Roguelike Toolkit', 'FOV Calculations']
+        },
+        {
+            name: 'TypeScript',
+            roles: ['Programming Language']
+        }
+    ];
 
     constructor(
         private readonly display: Display,
@@ -33,6 +60,7 @@ export class TitleRenderer implements Renderer {
                 this.titleBackground.src = '../assets/img/death_max.png';
                 break;
             case TitleMode.VICTORY:
+            case TitleMode.CREDITS:
                 this.titleBackground.src = '../assets/img/victory_max.png';
                 break;
         }
@@ -52,6 +80,9 @@ export class TitleRenderer implements Renderer {
                 break;
             case TitleMode.VICTORY:
                 this.renderVictoryScreen();
+                break;
+            case TitleMode.CREDITS:
+                this.renderCreditsScreen();
                 break;
         }
 
@@ -126,6 +157,61 @@ export class TitleRenderer implements Renderer {
         });
 
         this.renderMetrics(rightX, 6, '#FFFFFF', '#55CE4A');
+    }
+
+    private renderCreditsScreen(): void {
+        this.createDarkBackground(
+            this.display.getViewportWidth() - 44,
+            this.display.getViewportWidth() - 4,
+            2,
+            this.display.getViewportHeight() - 2
+        );
+
+        const rightX = this.display.getViewportWidth() - 42;
+        
+        this.display.createString(rightX, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+            fontWeight: 'bold',
+            backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.1,
+                initialDelay: 0.1
+            }
+        });
+
+        let currentY = 6;
+        this.CREDITS.forEach((credit, index) => {
+            this.display.createString(
+                rightX,
+                currentY,
+                `{#FFFFFF}${credit.name}{/}`,
+                1000,
+                {
+                    backgroundColor: '#00000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.5 + (index * 0.2)
+                    }
+                }
+            );
+
+            credit.roles.forEach((role, roleIndex) => {
+                this.display.createString(
+                    rightX + 30,
+                    currentY + roleIndex,
+                    `{#00FFFF}${role}{/}`,
+                    1000,
+                    {
+                        backgroundColor: '#00000000',
+                        animate: {
+                            delayBetweenChars: 0.05,
+                            initialDelay: 0.5 + (index * 0.2) + (roleIndex * 0.1)
+                        }
+                    }
+                );
+            });
+
+            currentY += credit.roles.length + 1;
+        });
     }
 
     private createDarkBackground(startX: number, endX: number, startY: number, endY: number): void {
