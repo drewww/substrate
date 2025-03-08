@@ -325,11 +325,12 @@ export class CityBlockGenerator implements WorldGenerator {
         symbol.char = '⛣';
         symbol.foreground = '#FF194DFF';
         symbol.background = '#00000000';
-        symbol.zIndex = 500;
+        symbol.zIndex = 1000;
         symbol.alwaysRenderIfExplored = false;
         symbol.scaleSymbolX = 1.5;
         symbol.scaleSymbolY = 1.5;
         symbol.fontWeight = 'bold';
+        symbol.blendMode = 'normal';
 
         turret.setComponent(symbol);
         turret.setComponent(new VisionComponent(10, false));

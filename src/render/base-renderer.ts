@@ -995,12 +995,18 @@ export abstract class BaseRenderer implements Renderer {
             return symbol.rotation;
         }
 
+        const isPlayer = entity.hasComponent('player');
+        let offset = 0;
+        if (isPlayer) {
+            offset = 180;
+        }
+
         // Convert direction to rotation (in degrees)
         switch (facing.direction) {
-            case Direction.North: return 0;
-            case Direction.East: return 90;
-            case Direction.South: return 180;
-            case Direction.West: return 270;
+            case Direction.North: return 0 + offset;
+            case Direction.East: return 90 + offset;
+            case Direction.South: return 180 + offset;
+            case Direction.West: return 270 + offset;
             default: return symbol.rotation;
         }
     }
