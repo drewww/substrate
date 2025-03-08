@@ -29,7 +29,8 @@ export class EnemyAIComponent extends Component {
         public mode: EnemyAIMode = EnemyAIMode.IDLE,
         public destination: Point | null = null,
         public previousDestination: Point | null = null,
-        public lastPosition?: Point | null
+        public lastPosition?: Point | null,
+        public distanceTraveled: number = 0
     ) {
         super();
     }
@@ -39,7 +40,11 @@ export class EnemyAIComponent extends Component {
             this.aiType,
             this.turnsLocked,
             this.visionRadius,
-            this.mode
+            this.mode,
+            this.destination,
+            this.previousDestination,
+            this.lastPosition,
+            this.distanceTraveled
         );
     }
 
@@ -47,7 +52,8 @@ export class EnemyAIComponent extends Component {
         return {
             turnsLocked: this.turnsLocked,
             visionRadius: this.visionRadius,
-            mode: this.mode
+            mode: this.mode,
+            distanceTraveled: this.distanceTraveled
         };
     }
 
@@ -55,7 +61,11 @@ export class EnemyAIComponent extends Component {
         return new EnemyAIComponent(
             json.turnsLocked,
             json.visionRadius,
-            json.mode
+            json.mode,
+            null,
+            null,
+            null,
+            json.distanceTraveled || 0
         );
     }
 } 

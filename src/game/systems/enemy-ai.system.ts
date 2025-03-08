@@ -116,9 +116,29 @@ export class EnemyAISystem {
 
             case EnemyAIType.FOLLOWER:
                 if (canSeePlayer) {
-                    ai.turnsLocked += 1
+                    ai.turnsLocked += 1;
+                    // Reset distance when we see the player
+                    ai.distanceTraveled = 0;
                 } else {
                     ai.turnsLocked = 0;
+                }
+
+                // Track distance traveled
+                if (ai.lastPosition) {
+                    const currentPos = enemy.getPosition();
+                    const dx = currentPos.x - ai.lastPosition.x;
+                    const dy = currentPos.y - ai.lastPosition.y;
+                    const moveDist = Math.sqrt(dx * dx + dy * dy);
+                    ai.distanceTraveled += moveDist;
+                }
+                ai.lastPosition = enemy.getPosition();
+
+                // Check if we should explode due to distance
+                if (ai.distanceTraveled > 7) {
+                    logger.warn("FOLLOWER SELF-DESTRUCTING DUE TO DISTANCE");
+                    this.createExplosion(enemy);
+                    this.world.removeEntity(enemy.getId());
+                    return;
                 }
 
                 if(ai.turnsLocked > 3) {
@@ -129,57 +149,15 @@ export class EnemyAISystem {
                 enemy.setComponent(ai);
 
                 // if we're within 1 block of the player, EXPLODE
-                // that means creating temporary impassable entities in every adjacent tile
-                // that does not have one already.
                 const playerPos = this.world.getPlayer().getPosition();
-                // const enemyPos = ai.lastPosition;   // || enemy.getPosition();
-
-                // if(!enemyPos) {
-                    // return;
-                // }
-
                 const enemyPos = enemy.getPosition();
-
                 const distance = Math.sqrt(Math.pow(playerPos.x - enemyPos.x, 2) + Math.pow(playerPos.y - enemyPos.y, 2));
-                if(distance <= 1.5) {
+                
+                if(distance <= 2) {
                     logger.warn("EXPLODING FOLLOW BOT");
-                    // create impassable entities in every adjacent tile
-                    // that does not have one already.
-                    const adjacentTiles = [
-                        {x: enemyPos.x - 1, y: enemyPos.y},
-                        {x: enemyPos.x + 1, y: enemyPos.y},
-                        {x: enemyPos.x, y: enemyPos.y - 1},
-                        {x: enemyPos.x, y: enemyPos.y + 1},
-                        {x: enemyPos.x, y: enemyPos.y},
-                        {x: enemyPos.x - 1, y: enemyPos.y - 1},
-                        {x: enemyPos.x + 1, y: enemyPos.y - 1},
-                        {x: enemyPos.x - 1, y: enemyPos.y + 1},
-                        {x: enemyPos.x + 1, y: enemyPos.y + 1},
-                    ];
-
+                    this.createExplosion(enemy);
                     this.world.removeEntity(enemy.getId());
-
-
-                    for (const tile of adjacentTiles) {
-                        if(tile.x === playerPos.x && tile.y === playerPos.y) {
-                            continue;
-                        }
-
-                        const entity = new Entity(tile);
-                        entity.setComponent(new SymbolComponent('☷', '#FFFFFFFF', '#C8BDBD88', 1000));
-                        entity.setComponent(new ImpassableComponent());
-                        entity.setComponent(new CooldownComponent({
-                            'disperse': {
-                                base: 30,
-                                current: 30,
-                                ready: false
-                            }
-                        }));
-                        this.world.addEntity(entity);
-                    }
-
                 }
-
                 break;
            
             case EnemyAIType.PEDESTRIAN:      
@@ -332,6 +310,41 @@ export class EnemyAISystem {
                     to: targetPos,
                 }
             });
+        }
+    }
+
+    private createExplosion(enemy: Entity): void {
+        const enemyPos = enemy.getPosition();
+        const playerPos = this.world.getPlayer().getPosition();
+        
+        const adjacentTiles = [
+            {x: enemyPos.x - 1, y: enemyPos.y},
+            {x: enemyPos.x + 1, y: enemyPos.y},
+            {x: enemyPos.x, y: enemyPos.y - 1},
+            {x: enemyPos.x, y: enemyPos.y + 1},
+            {x: enemyPos.x, y: enemyPos.y},
+            {x: enemyPos.x - 1, y: enemyPos.y - 1},
+            {x: enemyPos.x + 1, y: enemyPos.y - 1},
+            {x: enemyPos.x - 1, y: enemyPos.y + 1},
+            {x: enemyPos.x + 1, y: enemyPos.y + 1},
+        ];
+
+        for (const tile of adjacentTiles) {
+            if(tile.x === playerPos.x && tile.y === playerPos.y) {
+                continue;
+            }
+
+            const entity = new Entity(tile);
+            entity.setComponent(new SymbolComponent('☷', '#FFFFFFFF', '#C8BDBD88', 1000));
+            entity.setComponent(new ImpassableComponent());
+            entity.setComponent(new CooldownComponent({
+                'disperse': {
+                    base: 30,
+                    current: 30,
+                    ready: false
+                }
+            }));
+            this.world.addEntity(entity);
         }
     }
 } 
