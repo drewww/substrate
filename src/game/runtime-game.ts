@@ -324,11 +324,16 @@ export class RuntimeGame extends Game {
 
     protected wipeDownDisplay(): void {
         const viewport = this.display!.getViewport();
+
+        const yStart = Math.floor(viewport.y-2);
+        const yEnd = Math.floor(viewport.y + viewport.height + 2);
+        const xStart = Math.floor(viewport.x-2);
+        const xEnd = Math.floor(viewport.x + viewport.width + 2);
         
         // Create array of positions to fill
-        for (let y = viewport.y-2; y < viewport.y + viewport.height + 2; y++) {
+        for (let y = yStart; y < yEnd; y++) {
             setTimeout(() => {
-                for (let x = viewport.x-2; x < viewport.x + viewport.width + 2; x++) {
+                for (let x = xStart; x < xEnd; x++) {
                     this.display!.createTile(
                         Math.floor(x),
                         Math.floor(y),
@@ -873,6 +878,10 @@ export class RuntimeGame extends Game {
                 }
             });
 
+            const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
+            symbol.foreground = '#FFFFFFFF';
+            randomObjective.setComponent(symbol);
+
             // Set up the objective itself
             randomObjective.setComponent(new ObjectiveComponent(true, true));
 
@@ -880,7 +889,8 @@ export class RuntimeGame extends Game {
                 "radius": 3,
                 "color": "#55CE4A",
                 "intensity": 0.6,
-                "distanceFalloff": "linear"
+                "distanceFalloff": "linear",
+                "lightSourceTile": false
             });
             randomObjective.setComponent(lightEmitter);
             randomObjective.setComponent(lightEmitter);

@@ -16,6 +16,7 @@ import { StunComponent } from '../components/stun.component';
 import { FollowerComponent } from '../../entity/components/follower-component';
 import { VehicleLeaderComponent } from '../components/vehicle-leader.component';
 import { EnergyComponent } from '../components/energy.component';
+import { SymbolComponent } from '../../entity/components/symbol-component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -108,6 +109,11 @@ export class PlayerMovementSystem {
                 //     entity.setComponent(objectiveComponent);
                     entity.removeComponent('objective');
                     entity.removeComponent('lightEmitter');
+
+                    const symbol = entity.getComponent('symbol') as SymbolComponent;
+                    symbol.foreground = '#F7BADF';
+                    entity.setComponent(symbol);
+        
                 }
          
                 this.world.emit('objective-complete', { objective });
