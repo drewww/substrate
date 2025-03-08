@@ -248,35 +248,35 @@ export class RuntimeRenderer extends GameRenderer {
     }
 
     public handleComponentModified(entity: Entity, componentType: string): void {
-        if (componentType === 'bufferedMove' || componentType === 'inertia') {
-            const prediction = this.movementPredictor.predictMove(entity);
-            const tileId = this.bufferedMoveTiles.get(entity.getId());
-            const speedTileId = this.speedIndicatorTiles.get(entity.getId());
+        // if (componentType === 'bufferedMove' || componentType === 'inertia') {
+        //     const prediction = this.movementPredictor.predictMove(entity);
+        //     const tileId = this.bufferedMoveTiles.get(entity.getId());
+        //     const speedTileId = this.speedIndicatorTiles.get(entity.getId());
 
-            // Update speed indicator if it exists
-            if (speedTileId && prediction.finalInertia) {
-                const finalAction = prediction.actions[prediction.actions.length - 1];
-                const pos = finalAction?.data.to ?? entity.getPosition();
+        //     // Update speed indicator if it exists
+        //     if (speedTileId && prediction.finalInertia) {
+        //         const finalAction = prediction.actions[prediction.actions.length - 1];
+        //         const pos = finalAction?.data.to ?? entity.getPosition();
 
-                this.display.moveTile(speedTileId, pos.x, pos.y);
-                this.display.updateTile(speedTileId, {
-                    char: prediction.finalInertia.magnitude.toString(),
-                });
-            }
+        //         this.display.moveTile(speedTileId, pos.x, pos.y);
+        //         this.display.updateTile(speedTileId, {
+        //             char: prediction.finalInertia.magnitude.toString(),
+        //         });
+        //     }
 
-            if (tileId) {
-                if (prediction.actions.length > 0) {
-                    // Get the final destination from the last action
-                    const finalAction = prediction.actions[prediction.actions.length - 1];
-                    this.display.moveTile(tileId, finalAction.data.to.x, finalAction.data.to.y);
+        //     if (tileId) {
+        //         if (prediction.actions.length > 0) {
+        //             // Get the final destination from the last action
+        //             const finalAction = prediction.actions[prediction.actions.length - 1];
+        //             this.display.moveTile(tileId, finalAction.data.to.x, finalAction.data.to.y);
 
-                } else {
-                    // If no actions, remove the destination tile
-                    this.display.removeTile(tileId);
-                    this.bufferedMoveTiles.delete(entity.getId());
-                }
-            }
-        }
+        //         } else {
+        //             // If no actions, remove the destination tile
+        //             this.display.removeTile(tileId);
+        //             this.bufferedMoveTiles.delete(entity.getId());
+        //         }
+        //     }
+        // }
 
         if (componentType === 'turbo') {
             const turbo = entity.getComponent('turbo') as TurboComponent;
