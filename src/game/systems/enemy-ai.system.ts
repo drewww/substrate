@@ -243,7 +243,7 @@ export class EnemyAISystem {
                     const cooldowns = enemy.getComponent('cooldown') as CooldownComponent;
                     const fireCooldown = cooldowns?.getCooldown('fire');
 
-                    if (ai.turnsLocked > 4 && cooldowns && fireCooldown && fireCooldown.ready) {
+                    if (ai.turnsLocked > 3 && cooldowns && fireCooldown && fireCooldown.ready) {
                         // compute the position of the projectile based on the player's inertia
                         const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
                         let playerFuturePos = this.world.getPlayer().getPosition();
@@ -262,8 +262,8 @@ export class EnemyAISystem {
                                 color: '#00ffd1FF',
                                 cooldowns: {
                                     'explode-emp': {
-                                        base: 8,
-                                        current: 8,
+                                        base: 4,
+                                        current: 4,
                                         ready: false
                                     }
                                 }

@@ -193,12 +193,14 @@ export class WorldSystem {
                             y: entity.getPosition().y + offset.y
                         };
 
+                        // this is where we can add other munition effects
+
                         const emp = new Entity(pos);
                         emp.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd177', 1500));
                         emp.setComponent(new CooldownComponent({
                             'disperse': {
-                                base: 8,
-                                current: 8,
+                                base: 4,
+                                current: 4,
                                 ready: false
                             }
                         }));
