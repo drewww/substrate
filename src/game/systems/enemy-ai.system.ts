@@ -351,7 +351,14 @@ export class EnemyAISystem {
             }
 
             const entity = new Entity(tile);
-            entity.setComponent(new SymbolComponent('☷', '#FFFFFFFF', '#C8BDBD88', 1000));
+
+            const symbol = new SymbolComponent('🝆', '#FFFFFFFF', '#C8BDBD88', 1000, false);
+            symbol.scaleSymbolX = 1.5;
+            symbol.scaleSymbolY = 1.5;
+            symbol.offsetSymbolY = -0.2;
+            
+            entity.setComponent(symbol);
+
             entity.setComponent(new ImpassableComponent());
             entity.setComponent(new CooldownComponent({
                 'disperse': {
