@@ -173,12 +173,14 @@ export class EnemyAISystem {
                         currentPos.x === ai.lastPosition.x && 
                         currentPos.y === ai.lastPosition.y) {
                         
-                        // Find a new nav point, excluding current destination
+                        // Find a new nav point, excluding current destination and requiring straight paths
                         const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation')
                             .map(point => point.getPosition())
                             .filter(point => 
-                                point.x !== ai.destination?.x || 
-                                point.y !== ai.destination?.y
+                                // Different from current destination
+                                (point.x !== ai.destination?.x || point.y !== ai.destination?.y) &&
+                                // Must share either x or y coordinate (straight path)
+                                (point.x === currentPos.x || point.y === currentPos.y)
                             );
                             
                         if(navPoints.length > 0) {
@@ -188,7 +190,6 @@ export class EnemyAISystem {
                         }
                     }
                     
-                    // Store current position for next tick comparison
                     ai.lastPosition = currentPos;
 
                     // If we don't have a destination, pick one
@@ -196,9 +197,15 @@ export class EnemyAISystem {
                         const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation')
                             .map(point => ({
                                 point: point.getPosition(),
-                                distance: Math.abs(point.getPosition().x - currentPos.x) + Math.abs(point.getPosition().y - currentPos.y)
+                                distance: Math.abs(point.getPosition().x - currentPos.x) + 
+                                        Math.abs(point.getPosition().y - currentPos.y)
                             }))
-                            .filter(destination => destination.distance > 0) // don't pick current location
+                            .filter(destination => 
+                                destination.distance > 0 && // don't pick current location
+                                // Must share either x or y coordinate (straight path)
+                                (destination.point.x === currentPos.x || 
+                                 destination.point.y === currentPos.y)
+                            )
                             .sort((a, b) => a.distance - b.distance)
                             .slice(0, 6)
                             .map(item => item.point);
