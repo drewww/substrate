@@ -611,6 +611,43 @@ export class RuntimeGame extends Game {
             return;
         }
 
+        if (action === 'quit' && type === 'down') {
+            // Only handle quit if we're in game mode
+            if (this.input.getCurrentMode() === 'game') {
+                // Stop the game engine
+                if (this.engine?.isRunning()) {
+                    this.engine.stop();
+                }
+
+                // Hide game-specific UI elements
+                if (this.uiSpeedRenderer) {
+                    this.uiSpeedRenderer.hide();
+                }
+
+                // Hide minimap if it exists
+                const minimap = document.getElementById('minimap');
+                if (minimap) {
+                    minimap.style.display = 'none';
+                }
+
+                // Hide game display
+                const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
+                if (gameCanvas) {
+                    gameCanvas.style.visibility = 'hidden';
+                }
+
+                // Show title screen
+                if (this.titleRenderer) {
+                    this.titleRenderer.prepare(TitleMode.TITLE);
+                    this.titleRenderer.show(TitleMode.TITLE);
+                }
+
+                // Switch back to title mode
+                this.input.setMode('title');
+            }
+            return;
+        }
+
         if (!this.player) {
             throw new Error('Player not initialized');
         }

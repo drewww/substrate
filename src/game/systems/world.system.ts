@@ -336,7 +336,7 @@ export class WorldSystem {
                 player.setComponent(playerHealth);
             }
 
-            if(playerHealth.health <= 0) {
+            if(playerHealth && playerHealth.health <= 0) {
                 this.world.emit('player-death', {
                     entityId: player.getId(),
                 });

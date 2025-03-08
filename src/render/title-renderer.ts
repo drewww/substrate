@@ -115,7 +115,7 @@ export class TitleRenderer implements Renderer {
         menuItems.forEach((item, index) => {
             this.display.createString(this.display.getViewportWidth() - 21, 5 + index, item, 1000, {
                 animate: {
-                    delayBetweenChars: 0.10,
+                    delayBetweenChars: 0.05,
                     initialDelay: 0.0
                 }
             });
@@ -129,7 +129,7 @@ export class TitleRenderer implements Renderer {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
-                delayBetweenChars: 0.2,
+                delayBetweenChars: 0.05,
                 initialDelay: 0.1
             }
         });
@@ -151,7 +151,7 @@ export class TitleRenderer implements Renderer {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
-                delayBetweenChars: 0.2,
+                delayBetweenChars: 0.05,
                 initialDelay: 0.1
             }
         });
@@ -174,7 +174,7 @@ export class TitleRenderer implements Renderer {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
-                delayBetweenChars: 0.1,
+                delayBetweenChars: 0.05,
                 initialDelay: 0.1
             }
         });
@@ -184,12 +184,12 @@ export class TitleRenderer implements Renderer {
             this.display.createString(
                 leftX + 2,
                 currentY,
-                `{#FFFFFF}${credit.name}{/}`,
+                `{#w}${credit.name}{/}`,
                 1000,
                 {
                     backgroundColor: '#00000000',
                     animate: {
-                        delayBetweenChars: 0.05,
+                        delayBetweenChars: 0.1,
                         initialDelay: 0.5 + (index * 0.2)
                     }
                 }
