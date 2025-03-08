@@ -22,24 +22,18 @@ export class TitleRenderer implements Renderer {
             roles: ['Game Design', 'Programming', 'Level Design']
         },
         {
+            name: 'Mike Saunders',
+            roles: ['Art']
+        },
+
+        {
             name: 'Jay Harry',
-            roles: ['Game Design', 'Testing', 'Sound Design']
+            roles: ['Playtesting', 'Visual Design', 'Level Design']
         },
+
         {
-            name: 'Claude',
-            roles: ['AI Assistant', 'Code Review', 'Refactoring']
-        },
-        {
-            name: 'Cursor',
-            roles: ['Development Environment']
-        },
-        {
-            name: 'rot.js',
-            roles: ['Roguelike Toolkit', 'FOV Calculations']
-        },
-        {
-            name: 'TypeScript',
-            roles: ['Programming Language']
+            name: 'Bailey Rosser',
+            roles: ['Level Design', 'Visual Design']
         }
     ];
 
@@ -160,16 +154,17 @@ export class TitleRenderer implements Renderer {
     }
 
     private renderCreditsScreen(): void {
+        const leftX = this.display.getViewportWidth() - 60;
+        const rightX = this.display.getViewportWidth() - 4;
+
         this.createDarkBackground(
-            this.display.getViewportWidth() - 44,
-            this.display.getViewportWidth() - 4,
+            leftX,
+            rightX,
             2,
             this.display.getViewportHeight() - 2
         );
-
-        const rightX = this.display.getViewportWidth() - 42;
         
-        this.display.createString(rightX, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(leftX + 1, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -181,7 +176,7 @@ export class TitleRenderer implements Renderer {
         let currentY = 6;
         this.CREDITS.forEach((credit, index) => {
             this.display.createString(
-                rightX,
+                leftX + 2,
                 currentY,
                 `{#FFFFFF}${credit.name}{/}`,
                 1000,
@@ -196,9 +191,9 @@ export class TitleRenderer implements Renderer {
 
             credit.roles.forEach((role, roleIndex) => {
                 this.display.createString(
-                    rightX + 30,
+                    leftX + 18,
                     currentY + roleIndex,
-                    `{#00FFFF}${role}{/}`,
+                    `{#00D3EF}${role}{/}`,
                     1000,
                     {
                         backgroundColor: '#00000000',
