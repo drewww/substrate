@@ -97,6 +97,37 @@ export class TitleRenderer implements Renderer {
         this.titleBackground.style.visibility = 'visible';
     }
 
+    public prepareVictory(): void {
+        this.titleBackground.src = '../assets/img/victory_max.jpg';  // Assuming you'll add this image
+    }
+
+    public showVictory(): void {
+        // Clear any existing content
+        this.display.clear();
+
+        // Create dark rectangle background on the right side
+        for (let y = 2; y < this.display.getViewportHeight() - 2; y++) {
+            for (let x = this.display.getViewportWidth() - 44; x < this.display.getViewportWidth() - 4; x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
+            }
+        }
+
+        // Position text on the right side
+        const rightX = this.display.getViewportWidth() - 42; // Adjust this value to position the text
+        
+        this.display.createString(rightX, 3, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
+            fontWeight: 'bold',
+            backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.2,
+                initialDelay: 0.1
+            }
+        });
+
+        this.titleBackground.style.display = 'block';
+        this.titleBackground.style.visibility = 'visible';
+    }
+
     update(timestamp: number): void {}
     handleEntityAdded(entity: Entity): void {}
     handleEntityModified(entity: Entity, componentType: string): void {}

@@ -242,27 +242,7 @@ export class RuntimeGame extends Game {
 
             
             // Create black tile wipe effect
-            const viewport = this.display!.getViewport();
-            const width = viewport.width;
-            const height = viewport.height;
-            const delay = 2; // milliseconds between each tile
-            
-            // Create array of positions to fill
-            const positions: Point[] = [];
-            for (let y = viewport.y-2; y < viewport.y + viewport.height + 2; y++) {
-                for (let x = viewport.x-2; x < viewport.x + viewport.width + 2; x++) {
-                    this.display!.createTile(
-                        x,
-                        y,
-                        ' ',
-                        '#00000099',
-                        '#00000099',
-                        2000  // High z-index to cover everything
-                    );
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 5));
-            }
+            this.wipeDownDisplay();
             
             // After wipe is complete, wait a moment
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -310,21 +290,58 @@ export class RuntimeGame extends Game {
                 // case 4:
                 // case 3:
                 // case 2:
+                // case 1:
+                //     this.selectObjective(this.world!, false);
+                //     break;
+                // case 2:
+                //     this.selectObjective(this.world!, true);
+                //     break;
                 case 1:
-                    this.selectObjective(this.world!, false);
-                    break;
-                case 2:
-                    this.selectObjective(this.world!, true);
-                    break;
-                case 3:
                     this.engine?.stop();
-                    (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+                    // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+                    this.titleRenderer?.prepareVictory();
+                    this.wipeDownDisplay();
+            
+                    // After wipe is complete, wait a moment
+                    // await new Promise(resolve => setTimeout(resolve, 1000));
+        
+                                // Show death screen instead of title screen
+                    if (this.titleRenderer) {
+                        this.titleRenderer?.show();
+                        this.titleRenderer?.showVictory();
+                    }
+        
+                    // TODO this is where "level victory" should be handled
 
                     // TODO this is where "level victory" should be handled
                     break;
             }
         });
 
+    }
+
+    protected async wipeDownDisplay(): Promise<void> {
+        const viewport = this.display!.getViewport();
+        const width = viewport.width;
+        const height = viewport.height;
+        const delay = 2; // milliseconds between each tile
+        
+        // Create array of positions to fill
+        const positions: Point[] = [];
+        for (let y = viewport.y-2; y < viewport.y + viewport.height + 2; y++) {
+            for (let x = viewport.x-2; x < viewport.x + viewport.width + 2; x++) {
+                this.display!.createTile(
+                    x,
+                    y,
+                    ' ',
+                    '#00000099',
+                    '#00000099',
+                    2000  // High z-index to cover everything
+                );
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 5));
+        }
     }
 
     protected createRenderer(): BaseRenderer {
