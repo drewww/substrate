@@ -75,6 +75,7 @@ e shift up
 q shift down
 Space brake
 Shift turbo
+Escape quit
 
 mode: title
 ==========
@@ -83,6 +84,7 @@ map: default
 r start
 t train
 c credits
+Escape reset
 `;
 
 type GeneratorConfig = {
@@ -557,6 +559,10 @@ export class RuntimeGame extends Game {
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
+
+        logger.warn(`action: ${action} type: ${type}`);
+
+
         // Handle title screen actions
         if (action === 'start' && type === 'up') {
             this.initializeWorld({ type: 'city' })
@@ -588,6 +594,23 @@ export class RuntimeGame extends Game {
             return;
         }
 
+        if (action === 'reset' && type === 'down') {
+            // Stop the game engine if it's running
+            if (this.engine?.isRunning()) {
+                this.engine.stop();
+            }
+            
+            // Only show title screen if we're not already on it
+            if (this.titleRenderer && this.titleRenderer.getCurrentMode() !== TitleMode.TITLE) {
+                this.titleRenderer.prepare(TitleMode.TITLE);
+                this.titleRenderer.show(TitleMode.TITLE);
+                
+                // Set input mode to title without triggering another reset
+                this.input.setMode('title');
+            }
+            return;
+        }
+
         if (!this.player) {
             throw new Error('Player not initialized');
         }
@@ -599,7 +622,6 @@ export class RuntimeGame extends Game {
 
         // maybe the play is that an "up" should cancel buffered move.
 
-        logger.warn(`action: ${action} type: ${type}`);
 
 
         if (params.length > 0) {

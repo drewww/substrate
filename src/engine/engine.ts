@@ -20,7 +20,7 @@ export interface EngineOptions {
 export class Engine {
     private systems: ((totalUpdates?: number) => void)[] = [];
     private actionHandler: ActionHandler;
-    private isRunning: boolean = false;
+    private running: boolean = false;
     private engineLoop: EngineLoop;
     
     // Add performance metrics
@@ -55,13 +55,17 @@ export class Engine {
     }
 
     public start(): void {
-        this.isRunning = true;
+        this.running = true;
         this.engineLoop.start();
     }
 
     public stop(): void {
-        this.isRunning = false;
+        this.running = false;
         this.engineLoop.stop();
+    }
+
+    public isRunning(): boolean {
+        return this.running;
     }
 
     addSystem(system: (totalUpdates?: number) => void): void {
@@ -69,7 +73,7 @@ export class Engine {
     }
 
     public tick(): void {
-        if (!this.isRunning) return;
+        if (!this.running) return;
 
         // Update UPS counter
         this.metrics.updatesSinceLastUps++;
@@ -118,7 +122,7 @@ export class Engine {
     }
 
     handleAction(action: { type: string, position: Point }): void {
-        if (!this.isRunning) return;
+        if (!this.running) return;
 
         if (action.type === 'move') {
             this.actionHandler.execute({

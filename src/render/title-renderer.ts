@@ -36,6 +36,7 @@ export class TitleRenderer implements Renderer {
             roles: ['Level Design', 'Visual Design']
         }
     ];
+    currentMode: TitleMode;
 
     constructor(
         private readonly display: Display,
@@ -50,6 +51,9 @@ export class TitleRenderer implements Renderer {
 
     public prepare(mode: TitleMode): void {
         switch(mode) {
+            case TitleMode.TITLE:
+                this.titleBackground.src = '../assets/img/title_max.png';
+                break;
             case TitleMode.DEATH:
                 this.titleBackground.src = '../assets/img/death_max.png';
                 break;
@@ -85,6 +89,8 @@ export class TitleRenderer implements Renderer {
 
         this.display.getDisplayCanvas().style.display = 'block';
         this.display.getDisplayCanvas().style.visibility = 'visible';
+
+        this.currentMode = mode;
     }
 
     private renderTitleScreen(): void {
@@ -215,6 +221,10 @@ export class TitleRenderer implements Renderer {
                 this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
             }
         }
+    }
+    
+    public getCurrentMode(): TitleMode {
+        return this.currentMode;
     }
 
     private renderMetrics(startX: number, startY: number, labelColor: string, valueColor: string): void {
