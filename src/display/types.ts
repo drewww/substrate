@@ -170,7 +170,8 @@ export enum BlendMode {
     HardLight = 'hard-light',
     SoftLight = 'soft-light',
     Difference = 'difference',
-    Exclusion = 'exclusion'
+    Exclusion = 'exclusion',
+    Normal = 'normal'
 }
 
 export interface TileUpdateConfig {

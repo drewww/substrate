@@ -78,7 +78,7 @@ export class SymbolComponent extends Component {
     public fontStyle: string = 'normal',
     public fontFamily: string = 'monospace',
     public lockRotationToFacing: boolean = false,
-    public blendMode: string = BlendMode.SourceOver,
+    public blendMode: string = BlendMode.Normal,
     public animations?: SymbolConfig['animations']
   ) {
     super();
