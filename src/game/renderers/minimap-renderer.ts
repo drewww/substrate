@@ -16,10 +16,14 @@ export class MinimapRenderer extends LayoutRenderer {
     private playerTile: string | null = null;
     private helicopterTile: string | null = null;
     private exploredBlocks: Set<string> = new Set();
+    private isVisible: boolean = false;
 
     constructor(display: Display, world: World) {
         super(display);
         this.world = world;
+        
+        // Hide by default
+        this.hide();
 
         const player = this.world.getPlayer();
         if (player) {
@@ -279,5 +283,34 @@ export class MinimapRenderer extends LayoutRenderer {
             
             this.objectiveTiles.set(objective.getId(), tileId);
         });
+    }
+
+    public show(): void {
+        if (!this.isVisible) {
+            this.isVisible = true;
+            const canvas = this.display.getDisplayCanvas();
+            canvas.style.position = 'absolute';
+            canvas.style.top = '20px';  // Adjust these values as needed
+            canvas.style.right = '20px';
+            canvas.style.width = '200px';  // Adjust size as needed
+            canvas.style.height = '200px';
+            canvas.style.display = 'block';
+            canvas.style.border = '2px solid #333';
+            canvas.style.borderRadius = '4px';
+            canvas.style.backgroundColor = '#000';
+            canvas.style.zIndex = '1000';
+        }
+    }
+
+    public hide(): void {
+        if (this.isVisible) {
+            this.isVisible = false;
+            const canvas = this.display.getDisplayCanvas();
+            canvas.style.display = 'none';
+        }
+    }
+
+    public isShown(): boolean {
+        return this.isVisible;
     }
 } 

@@ -408,6 +408,10 @@ export class RuntimeGame extends Game {
             // Set up all systems and other display-dependent components
             this.setupAfterDisplay();
 
+            if (options.type === 'city') {
+                this.minimapRenderer.show();
+            }
+
         } catch (error) {
             logger.error('Failed to initialize game:', error);
             throw error;
@@ -735,15 +739,13 @@ export class RuntimeGame extends Game {
 
     private setupMinimap(gameWorld: World): void {
         const cityGenerator = this.generator as unknown as CityBlockGenerator;
-        // Get layout from city generator
         const layout = cityGenerator.getLayout();
-
         const blockWidth = Math.floor(gameWorld.getWorldWidth() / 12);
         const blockHeight = Math.floor(gameWorld.getWorldHeight() / 12);
 
         // Create minimap display
         this.minimapDisplay = new Display({
-            elementId: 'minimap',  // Reference the canvas ID
+            elementId: 'minimap',
             worldWidth: blockWidth,
             worldHeight: blockHeight,
             cellWidth: 10,
@@ -758,13 +760,6 @@ export class RuntimeGame extends Game {
 
         if (layout) {
             this.minimapRenderer.renderLayout(layout);
-        }
-
-        // Show the minimap canvas
-        const minimapCanvas = document.getElementById('minimap') as HTMLCanvasElement;
-        if (minimapCanvas) {
-            minimapCanvas.style.display = 'block';
-            minimapCanvas.style.visibility = 'visible';
         }
     }
 
@@ -807,9 +802,13 @@ export class RuntimeGame extends Game {
     }
 
     private selectObjective(world: World, isExit: boolean = false) {
-
-
         let eligibleObjectiveEntities: Entity[] = world.getEntitiesWithComponent('objective');
+
+        // If no objectives exist at all, just return early
+        if (eligibleObjectiveEntities.length === 0) {
+            logger.info('No objectives found in world');
+            return;
+        }
 
         if (isExit) {
             eligibleObjectiveEntities = eligibleObjectiveEntities
@@ -818,81 +817,74 @@ export class RuntimeGame extends Game {
             eligibleObjectiveEntities = eligibleObjectiveEntities
                 .filter(entity => {
                     const objective = entity.getComponent('objective') as ObjectiveComponent;
-                    return objective.eligible && !objective.active && objective.objectiveType !== 'end';
+                    return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end';
                 });
         }
 
-
         if (!isExit) {
-            const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
+            // Check if we have any eligible objectives
+            if (eligibleObjectiveEntities.length === 0) {
+                logger.info('No eligible objectives found');
+                return;
+            }
 
-            // now, get the vehicle id out of the leader component
+            const randomObjective = eligibleObjectiveEntities[Math.floor(Math.random() * eligibleObjectiveEntities.length)];
+            if (!randomObjective) {
+                logger.warn('Failed to select random objective');
+                return;
+            }
+
+            // Get the vehicle leader component
             const leader = randomObjective.getComponent('vehicle-leader') as VehicleLeaderComponent;
             if (!leader) {
-                logger.warn('no leader found for objective');
+                logger.warn('No leader component found for objective');
                 return;
             }
 
             const vehicleId = leader.vehicleId;
+            logger.info(`Setting objective on vehicle ${vehicleId}`);
 
-            logger.warn(`setting objective on vehicle ${vehicleId}`);
-
-            // now we need to get all the followers and set their vehicleId to the same as the leader
+            // Set up followers
             const followers = world.getEntitiesWithComponent('follower');
             followers.forEach(follower => {
                 const followerComponent = follower.getComponent('follower') as FollowerComponent;
-
-                if (followerComponent.vehicleId === vehicleId) {
+                if (followerComponent?.vehicleId === vehicleId) {
                     follower.setComponent(new ObjectiveComponent(true, false));
-
-                    // const light = new LightEmitterComponent({
-                    //     "radius": 3,
-                    //     "color": "#55CE4A",
-                    //     "intensity": 0.6,
-                    //     "distanceFalloff": "linear"
-                    // });
-
-                    // follower.setComponent(light);
-                    // follower.setComponent(light);
                 }
             });
 
+            // Set up the objective itself
             randomObjective.setComponent(new ObjectiveComponent(true, true));
-
-            const light = new LightEmitterComponent({
+            randomObjective.setComponent(new LightEmitterComponent({
                 "radius": 3,
                 "color": "#55CE4A",
                 "intensity": 0.6,
                 "distanceFalloff": "linear"
-            });
-
-
-            randomObjective.setComponent(light);
-            randomObjective.setComponent(light);
+            }));
         } else {
-            // set ALL of the exists to be lit up and be eligible.
+            // Handle exit objectives
+            if (eligibleObjectiveEntities.length === 0) {
+                logger.info('No exit objectives found');
+                return;
+            }
+
             eligibleObjectiveEntities.forEach(entity => {
                 const objective = entity.getComponent('objective') as ObjectiveComponent;
-                objective.eligible = true;
-                objective.active = true;
-                entity.setComponent(objective);
+                if (objective) {
+                    objective.eligible = true;
+                    objective.active = true;
+                    entity.setComponent(objective);
 
-                const light = new LightEmitterComponent({
-                    "radius": 2,
-                    "color": "#55CE4A",
-                    "intensity": 0.4,
-                    "distanceFalloff": "linear",
-                    "lightSourceTile": false
-                });
-
-                entity.setComponent(light);
-                entity.setComponent(light);
+                    entity.setComponent(new LightEmitterComponent({
+                        "radius": 2,
+                        "color": "#55CE4A",
+                        "intensity": 0.4,
+                        "distanceFalloff": "linear",
+                        "lightSourceTile": false
+                    }));
+                }
             });
         }
-
-        // const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
-        // symbol.foreground = '#55CE4A';
-        // randomObjective.setComponent(symbol);
     }
 
     public startGame(): void {
@@ -912,6 +904,11 @@ export class RuntimeGame extends Game {
         const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
         if (gameCanvas) {
             gameCanvas.style.visibility = 'visible';
+        }
+
+        // Show minimap only if not in training map
+        if (this.generator instanceof CityBlockGenerator && this.minimapRenderer) {
+            this.minimapRenderer.show();
         }
 
         // Start the engine
