@@ -56,16 +56,4 @@ export class EnemyAIComponent extends Component {
             distanceTraveled: this.distanceTraveled
         };
     }
-
-    static fromJSON(json: any): EnemyAIComponent {
-        return new EnemyAIComponent(
-            json.turnsLocked,
-            json.visionRadius,
-            json.mode,
-            null,
-            null,
-            null,
-            json.distanceTraveled || 0
-        );
-    }
 } 
