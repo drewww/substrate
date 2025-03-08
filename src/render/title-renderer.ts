@@ -98,7 +98,7 @@ export class TitleRenderer implements Renderer {
     }
 
     public prepareVictory(): void {
-        this.titleBackground.src = '../assets/img/victory_max.jpg';  // Assuming you'll add this image
+        this.titleBackground.src = '../assets/img/victory_max.png';  // Assuming you'll add this image
     }
 
     public showVictory(): void {
