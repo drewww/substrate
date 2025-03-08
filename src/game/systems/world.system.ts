@@ -210,6 +210,13 @@ export class WorldSystem {
                     const caltropsTemplate = new Entity({ x: 0, y: 0 });
                     caltropsTemplate.setComponent(new SymbolComponent('⛼', '#FEE083FF', '#00000000', 1500));
                     caltropsTemplate.setComponent(new StatusEffectComponent(StatusEffect.CALTROPS));
+                    caltropsTemplate.setComponent(new CooldownComponent({
+                        'disperse': {
+                            base: 30,
+                            current: 30,
+                            ready: false
+                        }
+                    }));
 
                     this.createExplosion(entity, caltropsTemplate);
                 }
@@ -311,7 +318,7 @@ export class WorldSystem {
         const energy = player.getComponent('energy') as EnergyComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
         if (energy && !turbo) {
-            energy.energy = Math.min(energy.energy + 5, energy.maxEnergy);
+            energy.energy = Math.min(energy.energy + 8, energy.maxEnergy);
             player.setComponent(energy);
         }
 
