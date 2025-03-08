@@ -3832,7 +3832,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3862,7 +3863,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3892,7 +3894,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3922,7 +3925,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5353,7 +5357,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5389,7 +5394,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5425,7 +5431,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5461,7 +5468,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5497,7 +5505,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5536,7 +5545,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5575,7 +5585,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5614,7 +5625,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5628,6 +5640,34 @@
         },
         {
           "type": "impassable"
+        }
+      ]
+    },
+    {
+      "id": "e6072",
+      "position": {
+        "x": 4,
+        "y": 7
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "turret"
+        }
+      ]
+    },
+    {
+      "id": "e6111",
+      "position": {
+        "x": 6,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "turret"
         }
       ]
     }

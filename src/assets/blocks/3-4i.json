@@ -3400,7 +3400,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "traffic-light",
@@ -3436,7 +3437,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "traffic-light",
@@ -3472,7 +3474,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "traffic-light",
@@ -3511,7 +3514,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3550,7 +3554,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3589,7 +3594,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3628,7 +3634,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3658,7 +3665,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3688,7 +3696,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -3718,7 +3727,8 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
         {
           "type": "facing",
@@ -5611,9 +5621,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 1
@@ -5646,9 +5656,9 @@
           "fontWeight": "normal",
           "fontStyle": "normal",
           "fontFamily": "monospace",
-          "lockRotationToFacing": true
+          "lockRotationToFacing": true,
+          "blendMode": "source-over"
         },
-
         {
           "type": "facing",
           "direction": 1
@@ -5680,6 +5690,34 @@
               "ready": false
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "e64283",
+      "position": {
+        "x": 7,
+        "y": 7
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "turret"
+        }
+      ]
+    },
+    {
+      "id": "e64347",
+      "position": {
+        "x": 4,
+        "y": 4
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "turret"
         }
       ]
     }
