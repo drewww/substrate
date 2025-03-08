@@ -4,11 +4,10 @@ import { Entity } from '../entity/entity';
 import { Component } from '../entity/component';
 import { Point } from '../types';
 import { MetricsComponent } from '../game/components/metrics.component';
-import { World } from '../game/world';
+import { World } from '../world/world';
 
 export class TitleRenderer implements Renderer {
     private titleBackground: HTMLImageElement;
-    private world: World;
 
     constructor(
         private readonly display: Display,
