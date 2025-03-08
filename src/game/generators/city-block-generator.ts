@@ -379,7 +379,7 @@ export class CityBlockGenerator implements WorldGenerator {
         const symbol = new SymbolComponent();
         symbol.char = '⏚';
         symbol.foreground = '#FF194DFF';
-        symbol.background = '#FFFFFFFF';
+        symbol.background = '#A0A0A0FF';
         symbol.zIndex = 500;
         symbol.alwaysRenderIfExplored = false;
         

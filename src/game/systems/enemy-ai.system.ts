@@ -86,7 +86,7 @@ export class EnemyAISystem {
         } else if (symbol && !canSeePlayer) {
 
             if(ai.aiType === EnemyAIType.CAMERA) {
-                symbol.background = '#FFFFFFFF';
+                symbol.background = '#A0A0A0FF';
                 symbol.foreground = '#FF194DFF';
             } else if (ai.aiType === EnemyAIType.HELICOPTER) {
                 symbol.background = '#FFFFFF00';
