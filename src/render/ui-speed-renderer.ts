@@ -285,14 +285,16 @@ export class UISpeedRenderer implements Renderer {
     private updateEnergyIndicator(): void {
         const energy = this.player.getComponent('energy') as EnergyComponent;
         const currentEnergy = energy?.energy ?? 0;
-        const normalizedEnergy = Math.floor((currentEnergy / 100) * this.MAX_ENERGY);
+        const normalizedEnergy = (currentEnergy / energy.maxEnergy);
 
-        for (let i = 0; i < this.MAX_ENERGY; i++) {
+        logger.info(`currentEnergy: ${currentEnergy} maxEnergy: ${energy.maxEnergy} normalizedEnergy: ${normalizedEnergy}`);
+
+        for (let i = 0; i < 10; i++) {
             const energyTileIds = this.uiTiles.get(`energy_${i}`);
             if (energyTileIds) {
                 for (const energyTileId of energyTileIds) {
                     this.uiDisplay.updateTile(energyTileId, {
-                        bg: i < normalizedEnergy ? this.ENERGY_COLORS[i] : '#00000000'
+                        bg: i/10 < normalizedEnergy ? this.ENERGY_COLORS[i] : '#00000000'
                     });
                 }
             }

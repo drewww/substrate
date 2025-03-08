@@ -82,6 +82,8 @@ export class PlayerMovementSystem {
                 1,
                 false
             ));
+
+            player.removeComponent('turbo');
             
             return;
         }

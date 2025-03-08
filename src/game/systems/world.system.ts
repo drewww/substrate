@@ -298,10 +298,9 @@ export class WorldSystem {
 
         const playerPos = player.getPosition();
         const playerHealth = player.getComponent('health') as HealthComponent;
-        if (!playerHealth) return;
 
         // Health regeneration
-        if(playerHealth.health >= 0) {
+        if(playerHealth && playerHealth.health >= 0) {
             if(!player.hasComponent('locked')) {
                 playerHealth.health = Math.min(playerHealth.health + 1, playerHealth.maxHealth);
                 player.setComponent(playerHealth);
@@ -311,7 +310,7 @@ export class WorldSystem {
         // Add energy regeneration
         const energy = player.getComponent('energy') as EnergyComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
-        if (energy) {
+        if (energy && !turbo) {
             energy.energy = Math.min(energy.energy + 5, energy.maxEnergy);
             player.setComponent(energy);
         }
