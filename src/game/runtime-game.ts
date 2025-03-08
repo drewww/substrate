@@ -305,11 +305,13 @@ export class RuntimeGame extends Game {
                     // After wipe is complete, wait a moment
                     // await new Promise(resolve => setTimeout(resolve, 1000));
         
-                                // Show death screen instead of title screen
-                    if (this.titleRenderer) {
-                        this.titleRenderer?.show();
-                        this.titleRenderer?.showVictory();
-                    }
+                    // Show death screen instead of title screen
+                    setTimeout(() => {
+                        if (this.titleRenderer) {
+                            this.titleRenderer?.show();
+                            this.titleRenderer?.showVictory();
+                        }
+                    }, 2000);
         
                     // TODO this is where "level victory" should be handled
 
@@ -320,27 +322,23 @@ export class RuntimeGame extends Game {
 
     }
 
-    protected async wipeDownDisplay(): Promise<void> {
+    protected wipeDownDisplay(): void {
         const viewport = this.display!.getViewport();
-        const width = viewport.width;
-        const height = viewport.height;
-        const delay = 2; // milliseconds between each tile
         
         // Create array of positions to fill
-        const positions: Point[] = [];
         for (let y = viewport.y-2; y < viewport.y + viewport.height + 2; y++) {
-            for (let x = viewport.x-2; x < viewport.x + viewport.width + 2; x++) {
-                this.display!.createTile(
-                    x,
-                    y,
-                    ' ',
-                    '#00000099',
-                    '#00000099',
-                    2000  // High z-index to cover everything
-                );
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 5));
+            setTimeout(() => {
+                for (let x = viewport.x-2; x < viewport.x + viewport.width + 2; x++) {
+                    this.display!.createTile(
+                        Math.floor(x),
+                        Math.floor(y),
+                        ' ',
+                        '#00000099',
+                        '#00000099',
+                        2000  // High z-index to cover everything
+                    );
+                }
+            }, 10);
         }
     }
 
@@ -877,12 +875,15 @@ export class RuntimeGame extends Game {
 
             // Set up the objective itself
             randomObjective.setComponent(new ObjectiveComponent(true, true));
-            randomObjective.setComponent(new LightEmitterComponent({
+
+            const lightEmitter = new LightEmitterComponent({
                 "radius": 3,
                 "color": "#55CE4A",
                 "intensity": 0.6,
                 "distanceFalloff": "linear"
-            }));
+            });
+            randomObjective.setComponent(lightEmitter);
+            randomObjective.setComponent(lightEmitter);
         } else {
             // Handle exit objectives
             if (eligibleObjectiveEntities.length === 0) {
