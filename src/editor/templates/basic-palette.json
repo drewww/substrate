@@ -8,8 +8,8 @@
           {
             "type": "symbol",
             "char": "#",
-            "foreground": "#666666",
-            "background": "#FFFFFF",
+            "foreground": "#353535FF",
+            "background": "#A0A0A0FF",
             "zIndex": 100,
             "alwaysRenderIfExplored": true
           },
