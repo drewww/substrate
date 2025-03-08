@@ -53,7 +53,7 @@ export class TitleRenderer implements Renderer {
     }
 
     public prepareDeath(): void {
-        this.titleBackground.src = '../assets/img/death_max.jpg';
+        this.titleBackground.src = '../assets/img/death_max.png';
     }
 
     public showDeath(): void {
