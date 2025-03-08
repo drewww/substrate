@@ -11,7 +11,7 @@ import { PlayerComponent } from "../../entity/components/player-component";
 import { VisionComponent } from "../../entity/components/vision-component";
 
 export class EnemyWorldGenerator implements WorldGenerator {
-    async generate(): Promise<World> {
+    generate(): World {
         // Create a 200x200 world
         const world = new World(400, 400);
 

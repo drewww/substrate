@@ -37,7 +37,7 @@ describe('JsonWorldGenerator', () => {
         }))
     });
 
-    it('should preserve all entities and components during import/export cycle', async () => {
+    it('should preserve all entities and components during import/export cycle', () => {
         const testEntities = [
             // Wall entity
             {
@@ -82,7 +82,7 @@ describe('JsonWorldGenerator', () => {
 
         // Import back
         const generator = new JsonWorldGenerator(exportData);
-        const importedWorld = await generator.generate();
+        const importedWorld = generator.generate();
 
         // Verify entity counts
         expect(importedWorld.getEntities().length).toBe(originalEntityCount);
@@ -107,7 +107,7 @@ describe('JsonWorldGenerator', () => {
             .toBe(countEntitiesByComponents(originalWorld, ['symbol']));
     });
 
-    it('should preserve component data during import/export cycle', async () => {
+    it('should preserve component data during import/export cycle', () => {
         const testEntity = {
             id: 'test1',
             position: { x: 5, y: 5 },
@@ -126,7 +126,7 @@ describe('JsonWorldGenerator', () => {
         const world = createTestWorld(10, 10, [testEntity]);
         const exportData = serializeWorld(world);
         const generator = new JsonWorldGenerator(exportData);
-        const importedWorld = await generator.generate();
+        const importedWorld = generator.generate();
 
         const originalEntity = world.getEntities()[0];
         const importedEntity = importedWorld.getEntities()[0];
@@ -144,7 +144,7 @@ describe('JsonWorldGenerator', () => {
         });
     });
 
-    it('should handle a large world with multiple entity types', async () => {
+    it('should handle a large world with multiple entity types', () => {
         const entityTemplates = [
             // Wall
             {
@@ -279,7 +279,7 @@ describe('JsonWorldGenerator', () => {
 
         // Import back
         const generator = new JsonWorldGenerator(exportData);
-        const importedWorld = await generator.generate();
+        const importedWorld = generator.generate();
 
         // Verify total entity count
         expect(importedWorld.getEntities().length).toBe(originalEntityCount);
@@ -330,7 +330,7 @@ describe('JsonWorldGenerator', () => {
         });
     });
 
-    it('should handle a very large world with multiple entity types (>10k entities)', async () => {
+    it('should handle a very large world with multiple entity types (>10k entities)', () => {
         const entityTemplates = [
             // Wall
             {
@@ -489,7 +489,7 @@ describe('JsonWorldGenerator', () => {
 
         // Import back
         const generator = new JsonWorldGenerator(exportData);
-        const importedWorld = await generator.generate();
+        const importedWorld = generator.generate();
 
         // Verify total entity count
         expect(importedWorld.getEntities().length).toBe(originalEntityCount);

@@ -315,7 +315,7 @@ export class UISpeedRenderer implements Renderer {
 
             // Update current time - use finalTime if available, otherwise show running time
             const elapsed = timestamp.finalTime 
-                ? (timestamp.finalTime) / 1000
+                ? (timestamp.finalTime - timestamp.start) / 1000
                 : (performance.now() - timestamp.start) / 1000;
             
             const newTimeTileIds = this.uiDisplay.createString(
@@ -328,7 +328,7 @@ export class UISpeedRenderer implements Renderer {
 
             for(const tileId of newTimeTileIds) {
                 this.uiDisplay.updateTile(tileId, {
-                    fg: timestamp.finalTime ? '#FFD700FF' : '#11FF11FF', // Gold if finished, green if running
+                    fg: '#11FF11FF',
                     bg: '#00000000'
                 });
             }

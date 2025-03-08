@@ -12,14 +12,13 @@ export class TitleRenderer implements Renderer {
         if (!this.titleBackground) {
             throw new Error('Title background image not found');
         }
-        this.initializeTitle();
     }
 
-    private initializeTitle(): void {
-        // Fill the entire display with pink background for now
+    public showTitle(): void {
+        // Clear any existing content
+        this.display.clear();
 
-        // on the right side of the screen, put a rectangle that has padding 2 from the edges and is ... 15 tiles wide.
-        // top to bottom.
+        // Create the dark rectangle background
         for (let y = 2; y < this.display.getViewportHeight() - 2; y++) {
             for (let x = this.display.getViewportWidth() - 25; x < this.display.getViewportWidth() - 4; x++) {
                 this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
@@ -53,13 +52,23 @@ export class TitleRenderer implements Renderer {
         });
     }
 
-    update(timestamp: number): void {}
-    handleEntityAdded(entity: Entity): void {}
-    handleEntityModified(entity: Entity, componentType: string): void {}
-    handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
-    handleEntityRemoved(entity: Entity): void {}
-    handleComponentModified(entity: Entity, componentType: string): void {}
-    handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
+    public showDeath(): void {
+        // Clear any existing content
+        this.display.clear();
+
+        // Calculate center position
+        const centerX = Math.floor(this.display.getViewportWidth() / 2) - 4; // "GAME OVER" is 9 chars, so offset by 4
+        const centerY = Math.floor(this.display.getViewportHeight() / 2);
+
+        this.display.createString(centerX, centerY, '{#FF0000}GAME OVER{/}', 1000, {
+            fontWeight: 'bold',
+            backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.1,
+                initialDelay: 0.5
+            }
+        });
+    }
 
     public hide(): void {
         this.display.getRenderCanvas().style.display = 'none';
@@ -70,4 +79,12 @@ export class TitleRenderer implements Renderer {
         this.display.getRenderCanvas().style.display = 'block';
         this.titleBackground.style.display = 'block';
     }
+
+    update(timestamp: number): void {}
+    handleEntityAdded(entity: Entity): void {}
+    handleEntityModified(entity: Entity, componentType: string): void {}
+    handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
+    handleEntityRemoved(entity: Entity): void {}
+    handleComponentModified(entity: Entity, componentType: string): void {}
+    handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
 } 
