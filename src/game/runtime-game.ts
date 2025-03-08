@@ -234,8 +234,12 @@ export class RuntimeGame extends Game {
 
 
         this.world.on('player-death', async (data: { entityId: string }) => {
+            logger.warn("Player death event triggered");
             logger.warn('Player death:', data);
             this.engine?.stop();
+
+            this.titleRenderer?.prepareDeath();
+
             
             // Create black tile wipe effect
             const viewport = this.display!.getViewport();
@@ -247,44 +251,27 @@ export class RuntimeGame extends Game {
             const positions: Point[] = [];
             for (let y = viewport.y-2; y < viewport.y + viewport.height + 2; y++) {
                 for (let x = viewport.x-2; x < viewport.x + viewport.width + 2; x++) {
-                    positions.push({ x, y });
+                    this.display!.createTile(
+                        x,
+                        y,
+                        ' ',
+                        '#00000099',
+                        '#00000099',
+                        2000  // High z-index to cover everything
+                    );
                 }
-            }
-            
-            // Shuffle array for random fill effect
-            positions.sort(() => Math.random() - 0.5);
-            
-            // Create black tiles with delay
-            for (const pos of positions) {
-                this.display!.createTile(
-                    pos.x,
-                    pos.y,
-                    ' ',
-                    '#00000099',
-                    '#00000099',
-                    2000  // High z-index to cover everything
-                );
+
+                await new Promise(resolve => setTimeout(resolve, 5));
             }
             
             // After wipe is complete, wait a moment
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Hide game display
-            const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
-            if (gameCanvas) {
-                gameCanvas.style.visibility = 'hidden';
-            }
 
                         // Show death screen instead of title screen
             if (this.titleRenderer) {
                 this.titleRenderer?.show();
                 this.titleRenderer.showDeath();
-
-                // update the background image to use the death placeholder
-                const titleBackground = document.getElementById('title-background') as HTMLImageElement;
-                if (titleBackground) {
-                    titleBackground.src = '../assets/img/death_max.png';
-                }
             }
             
             // Reset game state
@@ -300,12 +287,19 @@ export class RuntimeGame extends Game {
             }
             
             // Clear the display to remove the black tiles
-            this.display!.clear();
+            // this.display!.clear();
             
             // Re-render title screen
-            if (this.titleRenderer) {
-                this.titleRenderer.show();
+            // if (this.titleRenderer) {
+            //     this.titleRenderer.show();
+            // }
+
+            // Hide game display
+            const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
+            if (gameCanvas) {
+                gameCanvas.style.visibility = 'hidden';
             }
+            
         });
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {

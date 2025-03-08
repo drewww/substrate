@@ -52,32 +52,49 @@ export class TitleRenderer implements Renderer {
         });
     }
 
+    public prepareDeath(): void {
+        this.titleBackground.src = '../assets/img/death_max.jpg';
+    }
+
     public showDeath(): void {
+
         // Clear any existing content
         this.display.clear();
+
+        for (let y = 2; y < this.display.getViewportHeight() - 2; y++) {
+            for (let x = 4; x < 4 + 40; x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
+            }
+        }
+
 
         // Calculate center position
         const centerX = Math.floor(this.display.getViewportWidth() / 2) - 4; // "GAME OVER" is 9 chars, so offset by 4
         const centerY = Math.floor(this.display.getViewportHeight() / 2);
 
-        this.display.createString(centerX, centerY, '{#FF0000}GAME OVER{/}', 1000, {
+        this.display.createString(6, 3, '{#w}GAME OVER{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
-                delayBetweenChars: 0.1,
-                initialDelay: 0.5
+                delayBetweenChars: 0.2,
+                initialDelay: 0.1
             }
         });
+
+        this.titleBackground.style.display = 'block';
+        this.titleBackground.style.visibility = 'visible';
     }
 
     public hide(): void {
-        this.display.getRenderCanvas().style.display = 'none';
+        this.display.getDisplayCanvas().style.display = 'none';
         this.titleBackground.style.display = 'none';
     }
 
     public show(): void {
-        this.display.getRenderCanvas().style.display = 'block';
+        this.display.getDisplayCanvas().style.display = 'block';
+        this.display.getDisplayCanvas().style.visibility = 'visible';
         this.titleBackground.style.display = 'block';
+        this.titleBackground.style.visibility = 'visible';
     }
 
     update(timestamp: number): void {}

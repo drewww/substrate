@@ -287,12 +287,17 @@ export class CityBlockGenerator implements WorldGenerator {
 
         const playerPos = player.getPosition();
 
-        let heliX, heliY;
-        do {
-            heliX = Math.floor(Math.random() * this.width * this.blockWidth);
-            heliY = Math.floor(Math.random() * this.height * this.blockHeight);
-        } while (Math.sqrt(Math.pow(heliX - playerPos.x, 2) + Math.pow(heliY - playerPos.y, 2)) < 36);
+        // let heliX, heliY;
+        // do {
+        //     heliX = Math.floor(Math.random() * this.width * this.blockWidth);
+        //     heliY = Math.floor(Math.random() * this.height * this.blockHeight);
+        // } while (Math.sqrt(Math.pow(heliX - playerPos.x, 2) + Math.pow(heliY - playerPos.y, 2)) < 36);
 
+        // Place helicopter close to player for testing
+        const heliX = playerPos.x + 5;
+        const heliY = playerPos.y + 5;
+
+        
         this.placeHelicopter(heliX, heliY, world);
 
 

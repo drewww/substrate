@@ -1569,4 +1569,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
             this.linkedToSource.delete(followerTileId);
         }
     }
+
+    public getDisplayCanvas(): HTMLCanvasElement {
+        return this.displayCanvas;
+    }
 } 
