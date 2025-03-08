@@ -7,7 +7,7 @@ import { World } from '../world/world';
 import { BlendMode } from '../display/types';
 import { PedestrianNavigationComponent } from '../game/components/pedestrian-navigation.component';
 import { TrafficControllerComponent } from '../game/components/traffic-controller.component';
-
+import { SpawnHintComponent } from '../game/components/spawn-hint.component';
 
 export class EditorRenderer extends BaseRenderer {
     private highlightTileId: string | null = null;
@@ -79,6 +79,34 @@ export class EditorRenderer extends BaseRenderer {
                 fg: '#00FF00AA',
                 bg: '#00000000'
             });
+        } else if (entity.hasComponent(SpawnHintComponent.type)) {
+            // Create tile if it doesn't exist
+            let char = '';
+            switch ((entity.getComponent(SpawnHintComponent.type) as SpawnHintComponent).hint) {
+                case "camera":
+                    char = '⏚';
+                    break;
+                case "turret":
+                    char = '⛣';
+                    break;
+                case "boomer":
+                    char = '🜻';
+                    break;
+                default:
+                    char = '?';
+                    break;
+            }
+
+            if (!tileId) {
+                tileId = this.display.createTile(       
+                    position.x,
+                    position.y,
+                    char,
+                    '#00FF00AA',
+                    '#00000000',
+                    1000
+                );
+            }
         }
     }
 

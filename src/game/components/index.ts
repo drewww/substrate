@@ -21,3 +21,4 @@ import './aoe-damage.component';
 import './objective.component';
 import './vehicle-leader.component';
 import './energy.component';
+import './spawn-hint.component';

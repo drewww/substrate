@@ -730,6 +730,39 @@
             "apply": "stop"
           }
         ]
+      },
+
+      {
+        "id": "camera_spawn_hint",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "spawn-hint",
+            "hint": "camera"
+          }
+        ]
+      },
+
+      {
+        "id": "turret_spawn_hint",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "spawn-hint",
+            "hint": "turret"
+          }
+        ]
+      },
+
+      {
+        "id": "boomer_spawn_hint",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "spawn-hint",
+            "hint": "boomer"
+          }
+        ]
       }
 
     ]
