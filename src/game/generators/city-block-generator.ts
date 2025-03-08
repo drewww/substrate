@@ -77,104 +77,102 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     // Buildings
     "1x1-building": {
         variants: [
-            { url: "blocks/1-1b.json", weight: 1.0 }
-            // { url: "blocks/1-1b-alt.json", weight: 0.2 },
-            // { url: "blocks/1-1b-rare.json", weight: 0.1 }
+            { url: "1-1b.json", weight: 1.0 }
         ]
     },
     "start-building": {
         variants: [
-            { url: "blocks/start.json", weight: 1.0 }
+            { url: "start.json", weight: 1.0 }
         ]
     },
     "end-building": {
         variants: [
-            { url: "blocks/end.json", weight: 1.0 }
+            { url: "end.json", weight: 1.0 }
         ]
     },
 
     // Intersections - 4 way
     "4-way-minor": {
         variants: [
-            { url: "blocks/4-2i.json", weight: 1.0 },
+            { url: "4-2i.json", weight: 1.0 },
         ]
     },
     "4-way-medium": {
         variants: [
-            { url: "blocks/4-4i.json", weight: 1.0 }
+            { url: "4-4i.json", weight: 1.0 }
         ]
     },
     "4-way-trunk": {
         variants: [
-            { url: "blocks/4-6i.json", weight: 1.0 }
+            { url: "4-6i.json", weight: 1.0 }
         ]
     },
 
     // Intersections - 3 way
     "3-way-minor": {
         variants: [
-            { url: "blocks/3-2i.json", weight: 1.0 }
+            { url: "3-2i.json", weight: 1.0 }
         ]
     },
     "3-way-medium": {
         variants: [
-            { url: "blocks/3-4i.json", weight: 1.0 }
+            { url: "3-4i.json", weight: 1.0 }
         ]
     },
     "3-way-trunk": {
         variants: [
-            { url: "blocks/3-6i.json", weight: 1.0 }
+            { url: "3-6i.json", weight: 1.0 }
         ]
     },
 
     // Straight roads
     "straight-minor": {
         variants: [
-            { url: "blocks/2-s.json", weight: 1.0 }
+            { url: "2-s.json", weight: 1.0 }
         ]
     },
     "straight-medium": {
         variants: [
-            { url: "blocks/4-s.json", weight: 1.0 }
+            { url: "4-s.json", weight: 1.0 }
         ]
     },
     "straight-trunk": {
         variants: [
-            { url: "blocks/6-s.json", weight: 1.0 },
+            { url: "6-s.json", weight: 1.0 },
         ]
     },
 
     // Turns
     "turn-minor": {
         variants: [
-            { url: "blocks/2-t.json", weight: 1.0 }
+            { url: "2-t.json", weight: 1.0 }
         ]
     },
     "turn-medium": {
         variants: [
-            { url: "blocks/4-t.json", weight: 1.0 }
+            { url: "4-t.json", weight: 1.0 }
         ]
     },
     "turn-trunk": {
         variants: [
-            { url: "blocks/6-t.json", weight: 1.0 }
+            { url: "6-t.json", weight: 1.0 }
         ]
     },
 
     // Dead ends
     "deadend-minor": {
         variants: [
-            { url: "blocks/2-d.json", weight: 1.0 }
+            { url: "2-d.json", weight: 1.0 }
         ]
     },
     "deadend-medium": {
         variants: [
-            { url: "blocks/4-d.json", weight: 1.0 }
+            { url: "4-d.json", weight: 1.0 }
         ]
     },
     "deadend-trunk": {
         variants: [
-            { url: "blocks/6-d.json", weight: 1.0 }
+            { url: "6-d.json", weight: 1.0 }
         ]
     }
 } as const;
@@ -287,68 +285,83 @@ export class CityBlockGenerator implements WorldGenerator {
 
                 try {
                     let blockUrl: string | undefined;
+                    let blockType: BlockType;
 
                     if (cell.type === 'building') {
                         if (x === startLocation.x && y === startLocation.y) {
-                            blockUrl = startBuildingUrl;
+                            blockType = 'start-building';
                         } else if (x === endLocation.x && y === endLocation.y) {
-                            blockUrl = endBuildingUrl;
+                            blockType = 'end-building';
                         } else {
-                            blockUrl = await blockFiles['../../assets/blocks/1-1b.json']();
+                            blockType = '1x1-building';
                         }
                     } else if (cell.roadInfo?.type === 'intersection') {
-                        // Use different blocks for 3-way vs 4-way intersections
                         const isThreeWay = cell.roadInfo.connections.length === 3;
-                        if (cell.roadInfo.weight === 'trunk' && !isThreeWay) {
-                            blockUrl = await blockFiles['../../assets/blocks/4-6i.json']();
-                        } else if (cell.roadInfo.weight === 'minor') {
-                            blockUrl = await blockFiles[isThreeWay ? 
-                                '../../assets/blocks/3-2i.json' : 
-                                '../../assets/blocks/4-2i.json']();
-                        } else if (cell.roadInfo.weight === 'medium') {
-                            blockUrl = await blockFiles[isThreeWay ? 
-                                '../../assets/blocks/3-4i.json' : 
-                                '../../assets/blocks/4-4i.json']();
-                        } else {
-                            blockUrl = await blockFiles[isThreeWay ? 
-                                '../../assets/blocks/3-6i.json' : 
-                                '../../assets/blocks/4-6i.json']();
+                        const prefix = isThreeWay ? '3-way-' : '4-way-';
+                        
+                        switch (cell.roadInfo.weight) {
+                            case 'trunk':
+                                blockType = `${prefix}trunk` as BlockType;
+                                break;
+                            case 'minor':
+                                blockType = `${prefix}minor` as BlockType;
+                                break;
+                            default:
+                                blockType = `${prefix}medium` as BlockType;
                         }
                     } else if (cell.roadInfo?.type === 'straight') {
-                        if (cell.roadInfo.weight === 'trunk') {
-                            blockUrl = await blockFiles['../../assets/blocks/6-s.json']();
-                        } else if (cell.roadInfo.weight === 'minor') {
-                            blockUrl = await blockFiles['../../assets/blocks/2-s.json']();
-                        } else {
-                            blockUrl = await blockFiles['../../assets/blocks/4-s.json']();
+                        switch (cell.roadInfo.weight) {
+                            case 'trunk':
+                                blockType = 'straight-trunk';
+                                break;
+                            case 'minor':
+                                blockType = 'straight-minor';
+                                break;
+                            default:
+                                blockType = 'straight-medium';
                         }
                     } else if (cell.roadInfo?.type === 'turn') {
-                        if (cell.roadInfo.weight === 'trunk') {
-                            blockUrl = await blockFiles['../../assets/blocks/6-t.json']();
-                        } else if (cell.roadInfo.weight === 'minor') {
-                            blockUrl = await blockFiles['../../assets/blocks/2-t.json']();
-                        } else {
-                            blockUrl = await blockFiles['../../assets/blocks/4-t.json']();
+                        switch (cell.roadInfo.weight) {
+                            case 'trunk':
+                                blockType = 'turn-trunk';
+                                break;
+                            case 'minor':
+                                blockType = 'turn-minor';
+                                break;
+                            default:
+                                blockType = 'turn-medium';
                         }
                     } else if (cell.roadInfo?.type === 'deadend') {
-                        if (cell.roadInfo.weight === 'minor') {
-                            blockUrl = await blockFiles['../../assets/blocks/2-d.json']();
-                        } else if (cell.roadInfo.weight === 'trunk') {
-                            blockUrl = await blockFiles['../../assets/blocks/6-d.json']();
-                        } else {
-                            blockUrl = await blockFiles['../../assets/blocks/4-d.json']();
+                        switch (cell.roadInfo.weight) {
+                            case 'trunk':
+                                blockType = 'deadend-trunk';
+                                break;
+                            case 'minor':
+                                blockType = 'deadend-minor';
+                                break;
+                            default:
+                                blockType = 'deadend-medium';
                         }
-                    } else if (cell.roadInfo?.type === 'unknown') {
-                        blockUrl = await blockFiles['../../assets/blocks/unknown.json']();
                     } else {
                         logger.error(`Unknown road type at ${x},${y}: ${cell}`);
-                        blockUrl = await blockFiles['../../assets/blocks/unknown.json']();
+                        throw new Error(`Unknown road type at ${x},${y}`);
+                    }
 
+                    // Select a variant based on weights and get its URL path
+                    const variantPath = selectVariant(blockType);
+                    
+                    // Fix: Call the import function and await its result
+                    const importPath = `../../assets/blocks/${variantPath}`;
+                    if (!(importPath in blockFiles)) {
+                        logger.error(`No block file found for path ${importPath}`);
                         continue;
                     }
-                    
+
+                    // Fix: Call the import function and await its result
+                    blockUrl = await blockFiles[importPath]();
+
                     if (!blockUrl) {
-                        logger.error(`No block file found for type ${cell.roadInfo?.type}`);
+                        logger.error(`No block file found for type ${blockType}`);
                         continue;
                     }
 
