@@ -280,11 +280,18 @@ export class Display {
     }
 
     private setupFont(defaultFont?: string, customFont?: string) {
-        this.defaultFontFamily = customFont || defaultFont || 'monospace';  // Store default font
-        const fontSize = Math.floor(this.cellHeightScaled * 0.8);
+        // Ensure font family is properly quoted if it contains spaces
+        this.defaultFontFamily = customFont || defaultFont || 'monospace';
+        if (this.defaultFontFamily.includes(' ') && !this.defaultFontFamily.includes('"')) {
+            this.defaultFontFamily = `"${this.defaultFontFamily}"`;
+        }
         
+        const fontSize = Math.floor(this.cellHeightScaled * 0.8);
+        const fontString = `normal normal ${fontSize}px ${this.defaultFontFamily}`;
+        
+        // Apply font settings to both contexts
         [this.displayCtx, this.renderCtx].forEach(ctx => {
-            ctx.font = `normal normal ${fontSize}px ${this.defaultFontFamily}`;
+            ctx.font = fontString;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fontKerning = 'none';
@@ -395,14 +402,25 @@ export class Display {
         this.renderCtx.translate(x, y);
         this.renderCtx.globalCompositeOperation = tile.blendMode;
 
-        // Set font properties if any are specified
+        // Set default font before any transformations
+        const fontSize = Math.floor(this.cellHeightScaled * 0.8);
+        let fontString = `normal normal ${fontSize}px ${this.defaultFontFamily}`;
+        
+        // Override with tile-specific font properties if any
         if (tile.fontWeight || tile.fontStyle || tile.fontFamily) {
-            const fontSize = Math.floor(this.cellHeightScaled * 0.8);
             const weight = tile.fontWeight || 'normal';
             const style = tile.fontStyle || 'normal';
-            const family = tile.fontFamily || this.renderCtx.font.split('px ')[1];  // Use tile font or default
-            this.renderCtx.font = `${style} ${weight} ${fontSize}px ${family}`;
+            let family = tile.fontFamily || this.defaultFontFamily;
+            
+            // Ensure font family is properly quoted if it contains spaces
+            if (family.includes(' ') && !family.includes('"')) {
+                family = `"${family}"`;
+            }
+            
+            fontString = `${style} ${weight} ${fontSize}px ${family}`;
         }
+        
+        this.renderCtx.font = fontString;
 
         if (!tile.noClip) {
             this.renderCtx.beginPath();
