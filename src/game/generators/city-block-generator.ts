@@ -30,6 +30,172 @@ import { SpawnHintComponent } from '../components/spawn-hint.component';
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
 
+// Types for block configuration
+type BlockVariant = {
+    url: string;  // Path to JSON file
+    weight: number;  // 0-1 probability weight
+};
+
+type BlockConfig = {
+    variants: BlockVariant[];
+    // Could add other block-specific config here in the future
+    // like rotation rules, special placement rules, etc.
+};
+
+// Enum or type for all possible block types
+type BlockType = 
+    // Buildings
+    | "1x1-building"
+    | "start-building"
+    | "end-building"
+    
+    // Intersections
+    | "4-way-minor"      // 2-width roads
+    | "4-way-medium"     // 4-width roads
+    | "4-way-trunk"      // 6-width roads
+    | "3-way-minor"
+    | "3-way-medium"
+    | "3-way-trunk"
+    
+    // Straight roads
+    | "straight-minor"
+    | "straight-medium"
+    | "straight-trunk"
+    
+    // Turns
+    | "turn-minor"
+    | "turn-medium"
+    | "turn-trunk"
+    
+    // Dead ends
+    | "deadend-minor"
+    | "deadend-medium"
+    | "deadend-trunk";
+
+// The actual lookup table
+const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
+    // Buildings
+    "1x1-building": {
+        variants: [
+            { url: "blocks/1-1b.json", weight: 1.0 }
+            // { url: "blocks/1-1b-alt.json", weight: 0.2 },
+            // { url: "blocks/1-1b-rare.json", weight: 0.1 }
+        ]
+    },
+    "start-building": {
+        variants: [
+            { url: "blocks/start.json", weight: 1.0 }
+        ]
+    },
+    "end-building": {
+        variants: [
+            { url: "blocks/end.json", weight: 1.0 }
+        ]
+    },
+
+    // Intersections - 4 way
+    "4-way-minor": {
+        variants: [
+            { url: "blocks/4-2i.json", weight: 1.0 },
+        ]
+    },
+    "4-way-medium": {
+        variants: [
+            { url: "blocks/4-4i.json", weight: 1.0 }
+        ]
+    },
+    "4-way-trunk": {
+        variants: [
+            { url: "blocks/4-6i.json", weight: 1.0 }
+        ]
+    },
+
+    // Intersections - 3 way
+    "3-way-minor": {
+        variants: [
+            { url: "blocks/3-2i.json", weight: 1.0 }
+        ]
+    },
+    "3-way-medium": {
+        variants: [
+            { url: "blocks/3-4i.json", weight: 1.0 }
+        ]
+    },
+    "3-way-trunk": {
+        variants: [
+            { url: "blocks/3-6i.json", weight: 1.0 }
+        ]
+    },
+
+    // Straight roads
+    "straight-minor": {
+        variants: [
+            { url: "blocks/2-s.json", weight: 1.0 }
+        ]
+    },
+    "straight-medium": {
+        variants: [
+            { url: "blocks/4-s.json", weight: 1.0 }
+        ]
+    },
+    "straight-trunk": {
+        variants: [
+            { url: "blocks/6-s.json", weight: 1.0 },
+        ]
+    },
+
+    // Turns
+    "turn-minor": {
+        variants: [
+            { url: "blocks/2-t.json", weight: 1.0 }
+        ]
+    },
+    "turn-medium": {
+        variants: [
+            { url: "blocks/4-t.json", weight: 1.0 }
+        ]
+    },
+    "turn-trunk": {
+        variants: [
+            { url: "blocks/6-t.json", weight: 1.0 }
+        ]
+    },
+
+    // Dead ends
+    "deadend-minor": {
+        variants: [
+            { url: "blocks/2-d.json", weight: 1.0 }
+        ]
+    },
+    "deadend-medium": {
+        variants: [
+            { url: "blocks/4-d.json", weight: 1.0 }
+        ]
+    },
+    "deadend-trunk": {
+        variants: [
+            { url: "blocks/6-d.json", weight: 1.0 }
+        ]
+    }
+} as const;
+
+// Helper function to select a variant based on weights
+function selectVariant(blockType: BlockType): string {
+    const config = BLOCK_CONFIGS[blockType];
+    const totalWeight = config.variants.reduce((sum, variant) => sum + variant.weight, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (const variant of config.variants) {
+        random -= variant.weight;
+        if (random <= 0) {
+            return variant.url;
+        }
+    }
+    
+    // Fallback to first variant if something goes wrong
+    return config.variants[0].url;
+}
+
 export class CityBlockGenerator implements WorldGenerator {
     private readonly width: number = 10;
     private readonly height: number = 10;

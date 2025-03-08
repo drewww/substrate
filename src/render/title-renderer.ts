@@ -36,7 +36,7 @@ export class TitleRenderer implements Renderer {
             roles: ['Level Design', 'Visual Design']
         }
     ];
-    currentMode: TitleMode;
+    currentMode: TitleMode = TitleMode.TITLE;
 
     constructor(
         private readonly display: Display,
