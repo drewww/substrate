@@ -230,10 +230,10 @@ export class CityBlockGenerator implements WorldGenerator {
             // }
 
             // Check for pedestrians
-            const aiComponent = entity.getComponent('enemyAI') as EnemyAIComponent;
-            if (aiComponent && aiComponent.aiType === EnemyAIType.PEDESTRIAN) {
-                return true;
-            }
+            // const aiComponent = entity.getComponent('enemyAI') as EnemyAIComponent;
+            // if (aiComponent && aiComponent.aiType === EnemyAIType.PEDESTRIAN) {
+            //     return true;
+            // }
 
             return false;
         });

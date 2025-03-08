@@ -134,7 +134,7 @@ export class EnemyAISystem {
                 ai.lastPosition = enemy.getPosition();
 
                 // Check if we should explode due to distance
-                if (ai.distanceTraveled > 7) {
+                if (ai.distanceTraveled > 6) {
                     logger.warn("FOLLOWER SELF-DESTRUCTING DUE TO DISTANCE");
                     this.createExplosion(enemy);
                     this.world.removeEntity(enemy.getId());
@@ -172,55 +172,64 @@ export class EnemyAISystem {
                     if (ai.lastPosition && 
                         currentPos.x === ai.lastPosition.x && 
                         currentPos.y === ai.lastPosition.y) {
-                        // Force destination reset if we haven't moved
-                        ai.destination = null;
+                        
+                        // Find a new nav point, excluding current destination
+                        const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation')
+                            .map(point => point.getPosition())
+                            .filter(point => 
+                                point.x !== ai.destination?.x || 
+                                point.y !== ai.destination?.y
+                            );
+                            
+                        if(navPoints.length > 0) {
+                            ai.destination = navPoints[Math.floor(Math.random() * navPoints.length)];
+                        } else {
+                            ai.destination = null;
+                        }
                     }
                     
                     // Store current position for next tick comparison
                     ai.lastPosition = currentPos;
 
+                    // If we don't have a destination, pick one
                     if(!ai.destination) {
-                        const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation');
-                        const sortedNavPoints = navPoints
+                        const navPoints = this.world.getEntitiesWithComponent('pedestrian-navigation')
                             .map(point => ({
                                 point: point.getPosition(),
-                                distance: Math.abs(point.getPosition().x - enemy.getPosition().x) + Math.abs(point.getPosition().y - enemy.getPosition().y)
+                                distance: Math.abs(point.getPosition().x - currentPos.x) + Math.abs(point.getPosition().y - currentPos.y)
                             }))
+                            .filter(destination => destination.distance > 0) // don't pick current location
                             .sort((a, b) => a.distance - b.distance)
                             .slice(0, 6)
-                            .filter(destination => destination.distance > 0) // don't pick current location
-                            .filter(destination => !ai.previousDestination || 
-                                (ai.previousDestination.x !== destination.point.x || ai.previousDestination.y !== destination.point.y))
                             .map(item => item.point);
 
-                        if(sortedNavPoints.length > 0) {
-                            ai.previousDestination = enemy.getPosition(); // Store current position as previous source
-                            ai.destination = sortedNavPoints[Math.floor(Math.random() * sortedNavPoints.length)];
-                            enemy.setComponent(ai);
+                        if(navPoints.length > 0) {
+                            ai.destination = navPoints[Math.floor(Math.random() * navPoints.length)];
                         }
                     }
 
-
+                    // If we have a destination, move towards it
                     if(ai.destination) {
-                        const moveComponent = enemy.getComponent('move') as MoveComponent;
-                        const allowDiagonal = moveComponent?.allowDiagonal || false;
-                        const ignoreImpassable = moveComponent?.ignoreImpassable || false;
+                        // Simple move towards destination
+                        const dx = Math.sign(ai.destination.x - currentPos.x);
+                        const dy = Math.sign(ai.destination.y - currentPos.y);
+                        
+                        const targetPos = {
+                            x: currentPos.x + dx,
+                            y: currentPos.y + dy
+                        };
 
-                        const path = this.world.findPath(enemy.getPosition(), ai.destination, ignoreImpassable, allowDiagonal);
-
-                        if(path && path.length > 1) {
-                            const nextPos = path[1];
+                        // Only move if we're not already at the target position
+                        if(targetPos.x !== currentPos.x || targetPos.y !== currentPos.y) {
                             this.actionHandler.execute({
                                 type: 'entityMove',
                                 entityId: enemy.getId(),
-                                data: { to: nextPos }
+                                data: { to: targetPos }
                             });
+                        }
 
-                            if(nextPos.x === ai.destination.x && nextPos.y === ai.destination.y) {
-                                ai.destination = null;
-                            }
-                        } else {
-                            // Reset destination if no valid path is found
+                        // Check if we've reached destination
+                        if(currentPos.x === ai.destination.x && currentPos.y === ai.destination.y) {
                             ai.destination = null;
                         }
                     }
