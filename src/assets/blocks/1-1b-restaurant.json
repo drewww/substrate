@@ -3799,7 +3799,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -3826,7 +3826,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4189,7 +4189,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4216,7 +4216,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4243,7 +4243,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4270,7 +4270,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4297,7 +4297,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4324,7 +4324,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4351,7 +4351,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4378,7 +4378,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4405,7 +4405,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4432,7 +4432,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4459,7 +4459,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4486,7 +4486,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4513,7 +4513,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4540,7 +4540,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4567,7 +4567,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4594,7 +4594,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4947,7 +4947,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -4974,7 +4974,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,
@@ -5001,7 +5001,7 @@
         {
           "type": "symbol",
           "char": "⚉",
-          "foreground": "#555555FF",
+          "foreground": "#aaaaaaFF",
           "background": "#00000000",
           "zIndex": 50,
           "alwaysRenderIfExplored": true,

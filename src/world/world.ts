@@ -1233,6 +1233,10 @@ export class World {
             return false;
         }
 
+        // If we're ignoring impassable entities, skip the check
+        if (ignoreImpassable) {
+            return true;
+        }
         // Check walls between tiles
         if (dx === 1) { // Moving east
             const [_, __, impassable] = this.hasWall({ x: fromX, y: fromY }, WallDirection.EAST);
@@ -1248,10 +1252,6 @@ export class World {
             if (impassable) return false;
         }
 
-        // If we're ignoring impassable entities, skip the check
-        if (ignoreImpassable) {
-            return true;
-        }
 
         // Check for impassable entities at destination
         const entitiesAtDest = this.getEntitiesAt({ x: toX, y: toY });

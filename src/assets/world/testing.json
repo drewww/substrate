@@ -33901,7 +33901,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "vision",
           "radius": 20
@@ -37027,7 +37027,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -37067,7 +37067,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -37107,7 +37107,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -37147,7 +37147,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -37187,7 +37187,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -37227,7 +37227,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -37267,7 +37267,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "followable"
         },
@@ -40228,7 +40228,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "enemyAI",
           "aiType": "emp_turret",
@@ -40262,7 +40262,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "enemyAI",
           "aiType": "emp_turret",
@@ -40296,7 +40296,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "enemyAI",
           "aiType": "emp_turret",
@@ -40326,7 +40326,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40357,7 +40357,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40388,7 +40388,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40419,7 +40419,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40450,7 +40450,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40481,7 +40481,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40512,7 +40512,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40543,7 +40543,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,
@@ -40574,7 +40574,7 @@
         },
         {
           "type": "impassable"
-        },
+        }
         {
           "type": "follower",
           "followedEntityId": null,

@@ -625,7 +625,7 @@ export class CityBlockGenerator implements WorldGenerator {
     private placePedestrian(x: number, y: number, world: World) {
         const pedestrian = new Entity({x, y});
 
-        pedestrian.setComponent(new SymbolComponent('⚉', '#888888', '#00000000', 200, false));
+        pedestrian.setComponent(new SymbolComponent('⚉', '#aaaaaaff', '#00000000', 200, false));
         // pedestrian.setComponent(new VisionComponent(5, false));
         pedestrian.setComponent(new EnemyAIComponent(EnemyAIType.PEDESTRIAN));
         pedestrian.setComponent(new ImpassableComponent());
