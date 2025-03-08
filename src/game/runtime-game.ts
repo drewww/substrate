@@ -60,6 +60,7 @@ import { PlayerComponent } from '../entity/components/player-component.ts';
 import { BASE_MAX_SPEED } from './systems/movement-predictor.ts';
 import { TitleRenderer } from '../render/title-renderer.ts';
 import { MetricsComponent } from './components/metrics.component';
+import { TitleMode } from '../render/title-renderer';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -154,9 +155,9 @@ export class RuntimeGame extends Game {
         titleCanvas.style.height = '100%';
         titleCanvas.style.zIndex = '1000';  // Make sure this is higher than UI overlay's z-index
 
-        // Create title renderer
+        // Create title renderer and show initial screen
         this.titleRenderer = new TitleRenderer(this.titleDisplay, this.world) as TitleRenderer;
-        this.titleRenderer.showTitle();
+        this.titleRenderer.show(TitleMode.TITLE);
 
         return gameDisplay;
     }
@@ -239,21 +240,17 @@ export class RuntimeGame extends Game {
             logger.warn('Player death:', data);
             this.engine?.stop();
 
-            this.titleRenderer?.prepareDeath();
-
+            this.titleRenderer?.prepare(TitleMode.DEATH);
             
             // Create black tile wipe effect
             this.wipeDownDisplay();
             
-            // After wipe is complete, wait a moment
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-
-                        // Show death screen instead of title screen
-            if (this.titleRenderer) {
-                this.titleRenderer?.show();
-                this.titleRenderer.showDeath();
-            }
+            // After wipe is complete, show death screen
+            setTimeout(() => {
+                if (this.titleRenderer) {
+                    this.titleRenderer.show(TitleMode.DEATH);
+                }
+           
             
             // Reset game state
             this.input.setMode('title');
@@ -266,21 +263,14 @@ export class RuntimeGame extends Game {
             if (minimap) {
                 minimap.style.display = 'none';
             }
-            
-            // Clear the display to remove the black tiles
-            // this.display!.clear();
-            
-            // Re-render title screen
-            // if (this.titleRenderer) {
-            //     this.titleRenderer.show();
-            // }
 
             // Hide game display
             const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
             if (gameCanvas) {
                 gameCanvas.style.visibility = 'hidden';
             }
-            
+
+            }, 1000);
         });
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
@@ -306,18 +296,12 @@ export class RuntimeGame extends Game {
                     break;
                 case 3:
                     this.engine?.stop();
-                    // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
-                    this.titleRenderer?.prepareVictory();
+                    this.titleRenderer?.prepare(TitleMode.VICTORY);
                     this.wipeDownDisplay();
             
-                    // After wipe is complete, wait a moment
-                    // await new Promise(resolve => setTimeout(resolve, 1000));
-        
-                    // Show death screen instead of title screen
                     setTimeout(() => {
                         if (this.titleRenderer) {
-                            this.titleRenderer?.show();
-                            this.titleRenderer?.showVictory();
+                            this.titleRenderer.show(TitleMode.VICTORY);
                         }
                     }, 2000);
         
@@ -938,15 +922,9 @@ export class RuntimeGame extends Game {
 
     public startGame(): void {
         logger.warn('starting game');
-        // Hide title elements
-        const titleCanvas = document.getElementById('title-screen') as HTMLCanvasElement;
-        if (titleCanvas) {
-            titleCanvas.style.visibility = 'hidden';
-        }
-
-        const titleImage = document.getElementById('title-background') as HTMLImageElement;
-        if (titleImage) {
-            titleImage.style.visibility = 'hidden';
+        
+        if (this.titleRenderer) {
+            this.titleRenderer.hide();
         }
 
         // Show game display

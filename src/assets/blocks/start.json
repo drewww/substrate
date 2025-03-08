@@ -2432,6 +2432,11 @@
           "magnitude": 0
         },
         {
+          "type": "health",
+          "health": 12,
+          "maxHealth": 12
+        },
+        {
           "type": "cooldown",
           "cooldowns": {
             "move": {
