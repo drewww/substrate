@@ -2416,7 +2416,7 @@
         },
         {
           "type": "vision",
-          "radius": 40,
+          "radius": 55,
           "ignoreOpacity": true
         },
         {
