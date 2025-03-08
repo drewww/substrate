@@ -157,21 +157,34 @@ export class UISpeedRenderer implements Renderer {
         // );
         // this.uiTiles.set('gear', gearTileId);
 
-        // Create health indicator tiles
-        for (let i = 0; i < this.MAX_HEALTH; i++) {
-            const healthTileId = this.uiDisplay.createTile(
-                this.HEALTH_START_X + i,
-                0,
-                ' ',
-                '#FFFFFFFF',
-                '#00000000',
+        // Create health indicator tiles only if health component exists
+        if (this.player.hasComponent('health')) {
+            // Create health indicator tiles
+            for (let i = 0; i < this.MAX_HEALTH; i++) {
+                const healthTileId = this.uiDisplay.createTile(
+                    this.HEALTH_START_X + i,
+                    0,
+                    ' ',
+                    '#FFFFFFFF',
+                    '#00000000',
+                    1001,
+                    {
+                        walls: [true, false],
+                        wallColors: ['#FFFFFF88', null]
+                    }
+                );
+                this.uiTiles.set(`health_${i}`, [healthTileId]);
+            }
+
+            // Add health/integrity label
+            const healthLabelTileIds = this.uiDisplay.createString(
+                this.HEALTH_START_X,
+                1,
+                'integrity',
                 1001,
-                {
-                    walls: [true, false],
-                    wallColors: ['#FFFFFF88', null]
-                }
+                { fontFamily: 'monospace' }
             );
-            this.uiTiles.set(`health_${i}`, [healthTileId]);
+            this.uiTiles.set('health_label', healthLabelTileIds);
         }
 
         // Create energy indicator tiles
@@ -244,25 +257,6 @@ export class UISpeedRenderer implements Renderer {
         );
         this.uiTiles.set('energy_label', energyLabelTileIds);
 
-        const healthLabelTileIds = this.uiDisplay.createString(
-            this.HEALTH_START_X,
-            1,
-            'integrity',
-            1001,
-            { fontFamily: 'monospace' }
-        );
-        this.uiTiles.set('health_label', healthLabelTileIds);
-
-        // Add objectives label
-        const objectivesLabelTileIds = this.uiDisplay.createString(
-            this.OBJECTIVES_START_X,
-            1,
-            'objectives',
-            1001,
-            { fontFamily: 'monospace' }
-        );
-        this.uiTiles.set('objectives_label', objectivesLabelTileIds);
-
         this.updateSpeedIndicator();
         this.updateEnergyIndicator();
         this.updateHealthIndicator();
@@ -306,6 +300,11 @@ export class UISpeedRenderer implements Renderer {
     }
 
     private updateHealthIndicator(): void {
+        // If no health component, return early
+        if (!this.player.hasComponent('health')) {
+            return;
+        }
+
         const health = this.player.getComponent('health') as HealthComponent;
         const currentHealth = health?.health ?? 0;
 
