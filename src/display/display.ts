@@ -400,8 +400,9 @@ export class Display {
         
         this.renderCtx.save();
         this.renderCtx.translate(x, y);
+        if(tile.blendMode!=BlendMode.Normal) {
         this.renderCtx.globalCompositeOperation = tile.blendMode;
-
+        }
         // Set default font before any transformations
         const fontSize = Math.floor(this.cellHeightScaled * 0.8);
         let fontString = `normal normal ${fontSize}px ${this.defaultFontFamily}`;
@@ -509,7 +510,11 @@ export class Display {
             if (tile.wallOverlays) {
                 for (const overlay of tile.wallOverlays) {
                     this.renderCtx.save();
-                    this.renderCtx.globalCompositeOperation = overlay.blendMode;
+
+                    if(overlay.blendMode!=BlendMode.Normal) {
+                        this.renderCtx.globalCompositeOperation = overlay.blendMode;
+                    }
+                    
                     this.renderCtx.fillStyle = overlay.color;
 
                     if (overlay.direction === 'north' && tile.walls[0]) {
