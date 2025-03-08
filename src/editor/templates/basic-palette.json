@@ -63,13 +63,13 @@
       },
 
       {
-        "id": "lit_server",
+        "id": "crate_template",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
             "type": "symbol",
-            "char": "𝍕",
-            "foreground": "#bbbbbbff",
+            "char": "𝌆",
+            "foreground": "#ddddddff",
             "background": "#6A6F71FF",
             "zIndex": 0,
             "scaleSymbolX": 1.4,
@@ -81,6 +81,9 @@
           {
             "type": "facing",
             "direction": 0
+          },
+          {
+            "type": "impassable"
           }
         ]
       },
@@ -129,15 +132,15 @@
       },
 
       {
-        "id": "empty_space_template",
+        "id": "tree_template",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
             "type": "symbol",
             "char": "⚲",
-            "foreground": "#eeeeeeff",
-            "background": "#6A6F71FF",
-            "zIndex": 0,
+            "foreground": "#55CE4AFF",
+            "background": "#1A3E16ff",
+            "zIndex": 5,
             "alwaysRenderIfExplored": true,
             "scaleSymbolX": 1.1,
             "scaleSymbolY": 1.1
@@ -169,8 +172,40 @@
           {
             "type": "symbol",
             "char": "⚻",
-            "foreground": "#eeeeeeff",
+            "foreground": "#555555ff",
+            "background": "#1A3E16ff",
+            "zIndex": 5,
+            "alwaysRenderIfExplored": true,
+            "fontWeight": "bold"
+          }
+        ]
+      },
+
+      {
+        "id": "table_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⚻",
+            "foreground": "#555555ff",
             "background": "#6A6F71FF",
+            "zIndex": 5,
+            "alwaysRenderIfExplored": true,
+            "fontWeight": "bold"
+          }
+        ]
+      },
+
+      {
+        "id": "grass_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": ".",
+            "foreground": "#555555ff",
+            "background": "#1A3E16ff",
             "zIndex": 0,
             "alwaysRenderIfExplored": true,
             "fontWeight": "bold"
@@ -245,6 +280,39 @@
       }
     ]
     },
+
+    {
+      "id": "cast_red_light_strong",
+      "position": { "x": 0, "y": 0 },
+      "components": [
+      {
+        "type": "symbol",
+        "char": " ",
+        "foreground": "#00000000",
+        "background": "#4D0011",
+        "zIndex": 1000,
+        "alwaysRenderIfExplored": false,
+        "blendMode": "screen"
+      }
+    ]
+  },
+
+
+  {
+    "id": "cast_red_light_weak",
+    "position": { "x": 0, "y": 0 },
+    "components": [
+    {
+      "type": "symbol",
+      "char": " ",
+      "foreground": "#00000000",
+      "background": "#33000C",
+      "zIndex": 1000,
+      "alwaysRenderIfExplored": false,
+      "blendMode": "screen"
+    }
+  ]
+  },
 
       {
         "id": "traffic_light_off",
@@ -487,17 +555,30 @@
       {
         "id": "turn-up",
         "position": { "x": 0, "y": 0 },
-        "components": [
-          {
-            "type": "symbol",
-            "char": "^",
-            "foreground": "#FFFFFFFF",
-            "background": "#000000FF",
-            "zIndex": 100,
-            "alwaysRenderIfExplored": true,
-            "offsetSymbolY": 0.2,
-            "lockRotationToFacing": true
-          },
+          "components": [
+            {
+              "type": "symbol",
+              "char": "^",
+              "foreground": "#FFFFFF44",
+              "background": "#000D12FF",
+              "zIndex": 20,
+              "alwaysRenderIfExplored": true,
+              "rotation": 0,
+              "offsetSymbolX": 0,
+              "offsetSymbolY": 0.2,
+              "scaleSymbolX": 1,
+              "scaleSymbolY": 1,
+              "fontWeight": "normal",
+              "fontStyle": "normal",
+              "fontFamily": "monospace",
+              "lockRotationToFacing": true,
+              "blendMode": "normal"
+            },
+            {
+              "type": "facing",
+              "direction": 1
+            },
+        
           {
             "type": "facing",
             "direction": 0
