@@ -91,6 +91,9 @@ export class EditorRenderer extends BaseRenderer {
                 case "boomer":
                     char = '🜻';
                     break;
+                case "pedestrian":
+                    char = '⚉';
+                    break;
                 default:
                     char = '?';
                     break;

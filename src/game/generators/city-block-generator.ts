@@ -221,8 +221,8 @@ export class CityBlockGenerator implements WorldGenerator {
             }
         }
 
-        // Remove all vehicles and pedestrians
-        const entitiesToRemove = world.getEntities().filter(entity => {
+        // // Remove all vehicles and pedestrians
+        // const entitiesToRemove = world.getEntities().filter(entity => {
             // Check for vehicles (entities with follower/followable components)
             // if (entity.hasComponent('follower') || entity.hasComponent('followable') &&
             //     !entity.hasComponent('objective')) {
@@ -235,23 +235,23 @@ export class CityBlockGenerator implements WorldGenerator {
             //     return true;
             // }
 
-            return false;
-        });
+        //     return false;
+        // });
 
-        entitiesToRemove.forEach(entity => {
-            world.removeEntity(entity.getId());
-        });
+        // entitiesToRemove.forEach(entity => {
+        //     world.removeEntity(entity.getId());
+        // });
 
         // Get all wall tiles (entities with both impassable and symbol components where symbol is '#')
-        const wallTiles = world.getEntities()
-            .filter(entity => {
-                if (!entity.hasComponent("impassable") || !entity.hasComponent("symbol")) return false;
-                const symbol = entity.getComponent("symbol") as SymbolComponent;
-                return symbol.char === '#';
-            });
+        // const wallTiles = world.getEntities()
+        //     .filter(entity => {
+        //         if (!entity.hasComponent("impassable") || !entity.hasComponent("symbol")) return false;
+        //         const symbol = entity.getComponent("symbol") as SymbolComponent;
+        //         return symbol.char === '#';
+        //     });
 
-        // Shuffle array
-        const shuffledWalls = [...wallTiles].sort(() => Math.random() - 0.5);
+        // // Shuffle array
+        // const shuffledWalls = [...wallTiles].sort(() => Math.random() - 0.5);
 
         // Find a location at least 36 tiles away from the start location
         const player = world.getEntities().find(entity => entity.hasComponent('player'));
@@ -273,7 +273,7 @@ export class CityBlockGenerator implements WorldGenerator {
         const heliY = playerPos.y + 5;
 
         
-        // this.placeHelicopter(heliX, heliY, world);
+        this.placeHelicopter(heliX, heliY, world);
 
         this.postProcessEnemies(world);
 
@@ -428,8 +428,29 @@ export class CityBlockGenerator implements WorldGenerator {
                     case 'boomer':
                         this.placeHomingBot(pos.x, pos.y, world);
                         break;
+                    case 'pedestrian':
+                        this.placePedestrian(pos.x, pos.y, world);
+                        break;
                 }
             }
         }
+    }
+
+    private placePedestrian(x: number, y: number, world: World) {
+        const pedestrian = new Entity({x, y});
+
+        pedestrian.setComponent(new SymbolComponent('i', '#888888', '#00000000', 200, false));
+        // pedestrian.setComponent(new VisionComponent(5, false));
+        pedestrian.setComponent(new EnemyAIComponent(EnemyAIType.PEDESTRIAN));
+        pedestrian.setComponent(new ImpassableComponent());
+        pedestrian.setComponent(new CooldownComponent({
+            "move": {
+                "base": 8,
+                "current": 8,
+                "ready": false
+            }
+        }));
+
+        world.addEntity(pedestrian);
     }
 } 
