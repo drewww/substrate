@@ -8,6 +8,7 @@ import { SLIDE_SPEED } from '../constants';
 import { BrakeComponent } from '../components/brake.component';
 import { TurboComponent } from '../components/turbo.component';
 import { directionToPoint, isOppositeDirection } from '../../util';
+import { MetricsComponent } from '../components/metrics.component';
 
 export interface PredictedAction {
     type: 'entityMove';
@@ -219,6 +220,13 @@ export class MovementPredictor {
                             bufferedMove.direction : inertia.direction,
                         magnitude: Math.min(maxSpeed, !turbo ? newMagnitude : newMagnitude+1),  // Cap at max speed
                     };
+
+                // Increment tiles drifted when moving perpendicular to momentum
+                if (player.hasComponent('metrics')) {
+                    const metrics = player.getComponent('metrics') as MetricsComponent;
+                    metrics.tilesDrifted += 1;
+                    player.setComponent(metrics);
+                }
                 }
             }
 

@@ -5,6 +5,7 @@ import { InertiaComponent } from '../components/inertia.component';
 import { Direction } from '../../types';
 import { logger } from '../../util/logger';
 import { StunComponent } from '../components/stun.component';
+import { MetricsComponent } from '../components/metrics.component';
 
 interface StunActionData {
     duration: number;
@@ -48,6 +49,13 @@ export const StunAction: ActionClass<StunActionData> = {
         entity.setComponent(new StunComponent());
 
         logger.info(`Entity ${action.entityId} stunned for ${action.data.duration} ticks`);
+
+        if(entity.hasComponent('metrics')) {
+            const metrics = entity.getComponent('metrics') as MetricsComponent;
+            metrics.timesCrashed += 1;
+            entity.setComponent(metrics);
+        }
+        
         return true;
     }
 } 

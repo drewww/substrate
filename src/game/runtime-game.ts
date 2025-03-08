@@ -59,6 +59,7 @@ import { SymbolComponent } from '../entity/components/symbol-component.ts';
 import { PlayerComponent } from '../entity/components/player-component.ts';
 import { BASE_MAX_SPEED } from './systems/movement-predictor.ts';
 import { TitleRenderer } from '../render/title-renderer.ts';
+import { MetricsComponent } from './components/metrics.component';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -154,7 +155,7 @@ export class RuntimeGame extends Game {
         titleCanvas.style.zIndex = '1000';  // Make sure this is higher than UI overlay's z-index
 
         // Create title renderer
-        this.titleRenderer = new TitleRenderer(this.titleDisplay) as TitleRenderer;
+        this.titleRenderer = new TitleRenderer(this.titleDisplay, this.world) as TitleRenderer;
         this.titleRenderer.showTitle();
 
         return gameDisplay;
@@ -283,20 +284,27 @@ export class RuntimeGame extends Game {
         });
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
-            // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+
+            const player = this.world!.getPlayer();
+            const metrics = player.getComponent('metrics') as MetricsComponent;
+            if (metrics) {
+                metrics.objectivesSecured += 1;
+                player.setComponent(metrics);
+            }
+
             this.objectiveCount++;
 
             switch (this.objectiveCount) {
                 // case 4:
                 // case 3:
                 // case 2:
-                // case 1:
-                //     this.selectObjective(this.world!, false);
-                //     break;
-                // case 2:
-                //     this.selectObjective(this.world!, true);
-                //     break;
                 case 1:
+                    this.selectObjective(this.world!, false);
+                    break;
+                case 2:
+                    this.selectObjective(this.world!, true);
+                    break;
+                case 3:
                     this.engine?.stop();
                     // (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
                     this.titleRenderer?.prepareVictory();
@@ -320,6 +328,7 @@ export class RuntimeGame extends Game {
             }
         });
 
+      
     }
 
     protected wipeDownDisplay(): void {
@@ -436,6 +445,10 @@ export class RuntimeGame extends Game {
             if (options.type === 'city') {
                 this.minimapRenderer.show();
             }
+
+            // Add metrics component to player during initialization
+            const player = this.world.getPlayer();
+            player.setComponent(new MetricsComponent());
 
         } catch (error) {
             logger.error('Failed to initialize game:', error);
@@ -951,5 +964,8 @@ export class RuntimeGame extends Game {
         this.input.setMode('game');
         this.engine?.start();
     }
-
+    public getGameMetrics(): MetricsComponent {
+        const player = this.world!.getPlayer();
+        return player.getComponent('metrics') as MetricsComponent;
+    }
 }

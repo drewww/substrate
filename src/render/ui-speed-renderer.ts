@@ -8,6 +8,7 @@ import { TimestampComponent } from '../game/components/timestamp.component';
 import { logger } from '../util/logger';
 import { HealthComponent } from '../entity/components/health.component';
 import { EnergyComponent } from '../game/components/energy.component';
+import { MetricsComponent } from '../game/components/metrics.component';
 
 export class UISpeedRenderer implements Renderer {
 
@@ -16,12 +17,14 @@ export class UISpeedRenderer implements Renderer {
     private readonly MAX_SPEED = 12;  // Updated to 12 from 8
     private readonly MAX_HEALTH = 12;
     private readonly MAX_ENERGY = 12;
+    private readonly MAX_OBJECTIVES = 12;  // Match other indicators
     private readonly GEAR_X = 0;  // Gear indicator position
     private readonly SPEED_START_X = 1;  // Speed bar starts 2 tiles in
     private readonly ENERGY_START_X = 15;  // Where speed ends
     private readonly HEALTH_START_X = 29;  // Move health further right
     private readonly TIME_X = 55;  // Position for current time display
     private readonly BEST_TIME_X = 65;  // Position for best time display
+    private readonly OBJECTIVES_START_X = 43;  // After health indicator
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
@@ -63,6 +66,20 @@ export class UISpeedRenderer implements Renderer {
         '#0066ffaa',
         '#0055ffcc',
         '#0044ffcc'   // Deep blue with higher opacity
+    ];
+    private readonly OBJECTIVES_COLORS = [
+        '#00ff0088',  // Light green
+        '#00ee0088',
+        '#00dd0088',
+        '#00cc0088',
+        '#00bb0088',
+        '#00aa0088',
+        '#009900aa',
+        '#008800aa',
+        '#007700cc',
+        '#006600cc',
+        '#005500cc',
+        '#004400cc'   // Deep green with higher opacity
     ];
     private readonly displayCanvas: HTMLCanvasElement;
 
@@ -191,6 +208,23 @@ export class UISpeedRenderer implements Renderer {
             this.uiTiles.set(`speed_${i}`, [speedTileId]);
         }
 
+        // Create objectives indicator tiles
+        for (let i = 0; i < this.MAX_OBJECTIVES; i++) {
+            const objectiveTileId = this.uiDisplay.createTile(
+                this.OBJECTIVES_START_X + i,
+                0,
+                ' ',
+                '#FFFFFFFF',
+                '#00000000',
+                1001,
+                {
+                    walls: [true, false],
+                    wallColors: ['#FFFFFF88', null]
+                }
+            );
+            this.uiTiles.set(`objective_${i}`, [objectiveTileId]);
+        }
+
         // Update label positions
         const speedLabelTileIds = this.uiDisplay.createString(
             this.SPEED_START_X,
@@ -219,9 +253,20 @@ export class UISpeedRenderer implements Renderer {
         );
         this.uiTiles.set('health_label', healthLabelTileIds);
 
+        // Add objectives label
+        const objectivesLabelTileIds = this.uiDisplay.createString(
+            this.OBJECTIVES_START_X,
+            1,
+            'objectives',
+            1001,
+            { fontFamily: 'monospace' }
+        );
+        this.uiTiles.set('objectives_label', objectivesLabelTileIds);
+
         this.updateSpeedIndicator();
         this.updateEnergyIndicator();
         this.updateHealthIndicator();
+        this.updateObjectivesIndicator();
     }
 
     private updateSpeedIndicator(): void {
@@ -270,6 +315,25 @@ export class UISpeedRenderer implements Renderer {
                 for (const healthTileId of healthTileIds) {
                     this.uiDisplay.updateTile(healthTileId, {
                         bg: i < currentHealth ? this.HEALTH_COLORS[i] : '#00000000'
+                    });
+                }
+            }
+        }
+    }
+
+    private updateObjectivesIndicator(): void {
+        const metrics = this.player.getComponent('metrics') as MetricsComponent;
+        // If no metrics component exists, just return without updating
+        if (!metrics) {
+            return;
+        }
+
+        for (let i = 0; i < this.MAX_OBJECTIVES; i++) {
+            const objectiveTileIds = this.uiTiles.get(`objective_${i}`);
+            if (objectiveTileIds) {
+                for (const objectiveTileId of objectiveTileIds) {
+                    this.uiDisplay.updateTile(objectiveTileId, {
+                        bg: i < metrics.objectivesSecured ? this.OBJECTIVES_COLORS[i] : '#00000000'
                     });
                 }
             }
@@ -382,6 +446,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateHealthIndicator();
             } else if (componentType === 'energy') {
                 this.updateEnergyIndicator();
+            } else if (componentType === 'metrics') {
+                this.updateObjectivesIndicator();
             }
         }
     }
@@ -395,6 +461,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateHealthIndicator();
             } else if (componentType === 'energy') {
                 this.updateEnergyIndicator();
+            } else if (componentType === 'metrics') {
+                this.updateObjectivesIndicator();
             }
         }
     }

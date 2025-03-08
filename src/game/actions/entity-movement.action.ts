@@ -12,6 +12,7 @@ import { TimestampComponent } from '../components/timestamp.component';
 import { FollowableComponent } from '../../entity/components/followable-component';
 import { MoveComponent } from '../components/move.component';
 import { ObjectiveComponent } from '../components/objective.component';
+import { MetricsComponent } from '../components/metrics.component';
 
 interface EntityMoveActionData {
     to: Point;
@@ -147,6 +148,10 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 const visionComponent = entity.getComponent('vision') as VisionComponent;
                 const radius = visionComponent?.radius ?? 30;
                 world.updateVision(action.data.to, radius);
+
+                const metrics = entity.getComponent('metrics') as MetricsComponent;
+                metrics.tilesTraveled += 1;
+                entity.setComponent(metrics);
             }
         }
 
