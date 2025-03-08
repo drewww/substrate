@@ -563,6 +563,21 @@
       },
 
       {
+        "id": "stationary pedestrian",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⚉",
+            "foreground": "#555555FF",
+            "background": "#00000000",
+            "zIndex": 50,
+            "alwaysRenderIfExplored": true
+          }
+        ]
+      },
+
+      {
         "id": "pedestrian-nav-point",
         "position": { "x": 0, "y": 0 },
         "components": [
