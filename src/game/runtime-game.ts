@@ -307,15 +307,20 @@ export class RuntimeGame extends Game {
             this.objectiveCount++;
 
             switch (this.objectiveCount) {
-                // case 1:
-                //     this.selectObjective(this.world!, false);
-                //     break;
+                // case 4:
+                // case 3:
+                // case 2:
                 case 1:
-                    this.selectObjective(this.world!, true);
+                    this.selectObjective(this.world!, false);
                     break;
                 case 2:
+                    this.selectObjective(this.world!, true);
+                    break;
+                case 3:
                     this.engine?.stop();
                     (this.renderer as RuntimeRenderer).displayMessage("DATA STOLEN");
+
+                    // TODO this is where "level victory" should be handled
                     break;
             }
         });
@@ -875,13 +880,16 @@ export class RuntimeGame extends Game {
                     objective.active = true;
                     entity.setComponent(objective);
 
-                    entity.setComponent(new LightEmitterComponent({
+                    const lightEmitter = new LightEmitterComponent({
                         "radius": 2,
                         "color": "#55CE4A",
                         "intensity": 0.4,
                         "distanceFalloff": "linear",
                         "lightSourceTile": false
-                    }));
+                    });
+
+                    entity.setComponent(lightEmitter);
+                    entity.setComponent(lightEmitter);
                 }
             });
         }

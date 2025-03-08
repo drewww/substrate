@@ -298,7 +298,7 @@ export class CityBlockGenerator implements WorldGenerator {
         const heliY = playerPos.y + 5;
 
         
-        this.placeHelicopter(heliX, heliY, world);
+        // this.placeHelicopter(heliX, heliY, world);
 
 
         return world;
