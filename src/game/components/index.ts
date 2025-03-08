@@ -6,7 +6,7 @@ import './brake.component';
 import './turbo.component';
 import './inertia.component';
 import './apply.timestamp.component';
-import './emp.component';
+import './status-effect.component';
 import './enemy-ai.component';
 import './stun.component';
 import './timestamp.component';

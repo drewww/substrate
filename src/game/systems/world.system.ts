@@ -4,7 +4,7 @@ import { SymbolComponent } from '../../entity/components/symbol-component';
 import { OpacityComponent } from '../../entity/components/opacity-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
 import { Entity } from '../../entity/entity';
-import { EMPComponent } from '../components/emp.component';
+import { StatusEffect, StatusEffectComponent } from '../components/status-effect.component';
 import { ActionHandler } from '../../action/action-handler';
 import { EntitySpawnerComponent, SPAWNER_TYPES } from '../components/entity-spawner.component';
 import { FacingComponent } from '../../entity/components/facing-component';
@@ -29,6 +29,26 @@ const VEHICLE_COOLDOWN = 40;
 
 export class WorldSystem {
     constructor(private world: World, private actionHandler: ActionHandler) { }
+
+    private createExplosion(entity: Entity, template: Entity): void {
+        const pattern = [
+            { x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 },
+            { x: 0, y: 1 }, { x: 0, y: -1 },
+            { x: 1, y: 1 }, { x: -1, y: 1 },
+            { x: 1, y: -1 }, { x: -1, y: -1 }
+        ];
+
+        for (const offset of pattern) {
+            const pos = {
+                x: entity.getPosition().x + offset.x,
+                y: entity.getPosition().y + offset.y
+            };
+
+            const explosion = template.clone();
+            explosion.setPosition(pos.x, pos.y);
+            this.world.addEntity(explosion);
+        }
+    }
 
     tick(totalUpdates?: number): void {
         const cooldownEntities = this.world.getEntitiesWithComponent('cooldown');
@@ -152,11 +172,12 @@ export class WorldSystem {
                 }
             }
 
-            const empState = entity.getComponent('emp') as EMPComponent;
-            if (empState) {
-                // apply EMP effect
-                const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
-                for (const entity of entitiesAtPos) {
+            const statusEffectState = entity.getComponent('status-effect') as StatusEffectComponent;
+            if (statusEffectState) {
+                if (statusEffectState.effect === StatusEffect.EMP) {
+                    // apply EMP effect
+                    const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
+                    for (const entity of entitiesAtPos) {
                     if (entity.hasComponent('player')) {
                         this.actionHandler.execute({
                             type: 'stun',
@@ -168,7 +189,18 @@ export class WorldSystem {
                         });
                     }
                 }
-            }
+                } else if (statusEffectState.effect === StatusEffect.CALTROPS) {
+                    // apply CALTROPS effect
+                    const entitiesAtPos = this.world.getEntitiesAt(entity.getPosition());
+                    for (const entity of entitiesAtPos) {
+                        if (entity.hasComponent('player')) {
+                            
+                        }
+                    }
+                }
+            } 
+
+
 
             const explodeEmpState = cooldowns.getCooldown('explode-emp');
             if (explodeEmpState) {
@@ -179,35 +211,35 @@ export class WorldSystem {
 
                     this.world.removeEntity(entity.getId());
 
-                    // now make an EMP explosion entity on everyt adjacent tile
-                    const pattern = [
-                        { x: 0, y: 0 }, { x: 1, y: 0 }, { x: -1, y: 0 },
-                        { x: 0, y: 1 }, { x: 0, y: -1 },
-                        { x: 1, y: 1 }, { x: -1, y: 1 },
-                        { x: 1, y: -1 }, { x: -1, y: -1 }
-                    ];
+                    const empTemplate = new Entity({ x: 0, y: 0 });
+                    empTemplate.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd177', 1500));
+                    empTemplate.setComponent(new CooldownComponent({
+                        'disperse': {
+                            base: 4,
+                            current: 4,
+                            ready: false
+                        }
+                    }));
+                    empTemplate.setComponent(new StatusEffectComponent(StatusEffect.EMP));
 
-                    for (const offset of pattern) {
-                        const pos = {
-                            x: entity.getPosition().x + offset.x,
-                            y: entity.getPosition().y + offset.y
-                        };
+                    this.createExplosion(entity, empTemplate);
+                }
+            }
 
-                        // this is where we can add other munition effects
+            const explodeCaltropsState = cooldowns.getCooldown('explode-caltrops');
+            if (explodeCaltropsState) {
+                if (explodeCaltropsState.ready) {
+                    explodeCaltropsState.current = explodeCaltropsState.base;
+                    explodeCaltropsState.ready = false;
+                    entity.setComponent(cooldowns);
 
-                        const emp = new Entity(pos);
-                        emp.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd177', 1500));
-                        emp.setComponent(new CooldownComponent({
-                            'disperse': {
-                                base: 4,
-                                current: 4,
-                                ready: false
-                            }
-                        }));
+                    this.world.removeEntity(entity.getId());
 
-                        emp.setComponent(new EMPComponent());
-                        this.world.addEntity(emp);
-                    }
+                    const caltropsTemplate = new Entity({ x: 0, y: 0 });
+                    caltropsTemplate.setComponent(new SymbolComponent('⛼', '#FEE083FF', '#00000000', 1500));
+                    caltropsTemplate.setComponent(new StatusEffectComponent(StatusEffect.CALTROPS));
+
+                    this.createExplosion(entity, caltropsTemplate);
                 }
             }
 
@@ -308,7 +340,7 @@ export class WorldSystem {
         const energy = player.getComponent('energy') as EnergyComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
         if (energy && (!turbo || turbo.turnsSinceEngaged === 0)) {
-            energy.energy = Math.min(energy.energy + 1, energy.maxEnergy);
+            energy.energy = Math.min(energy.energy + 5, energy.maxEnergy);
             player.setComponent(energy);
         }
 
@@ -339,7 +371,7 @@ export class WorldSystem {
             if(locked) {
                 if(locked.deleteNextTurn) {
                     entity.removeComponent('locked');
-                } else if(locked.lastTurnLocked + 10 < (totalUpdates ?? 0)) {
+                } else if(locked.lastTurnLocked < (totalUpdates ?? 0)) {
                     locked.deleteNextTurn = true;
                     entity.setComponent(locked);
                 }

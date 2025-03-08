@@ -2420,8 +2420,8 @@
         },
         {
           "type": "energy",
-          "energy": 200,
-          "maxEnergy": 200
+          "energy": 100,
+          "maxEnergy": 100
         },
         {
           "type": "player"

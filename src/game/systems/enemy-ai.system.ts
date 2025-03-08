@@ -258,9 +258,33 @@ export class EnemyAISystem {
                         const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
                         let playerFuturePos = this.world.getPlayer().getPosition();
                         if (playerInertia && playerInertia.magnitude > 0) {
+                            const currentPos = enemy.getPosition();
+                            const directionVector = directionToPoint(playerInertia.direction);
+                            const MAX_DISTANCE = 8;
+
+                            // Calculate the vector components
+                            const dx = directionVector.x;
+                            const dy = directionVector.y;
+
+                            // Scale to max distance while maintaining direction
+                            const magnitude = Math.sqrt(dx * dx + dy * dy);
+                            if (magnitude > 0) {
+                                playerFuturePos = {
+                                    x: Math.round(currentPos.x + (dx / magnitude) * MAX_DISTANCE),
+                                    y: Math.round(currentPos.y + (dy / magnitude) * MAX_DISTANCE)
+                                };
+                            } else {
+                                playerFuturePos = { ...currentPos };
+                            }
+                        }
+
+                        // check distdance from the launcher, don't shoot too far
+                        const distance = Math.sqrt(Math.pow(playerFuturePos.x - enemy.getPosition().x, 2) + Math.pow(playerFuturePos.y - enemy.getPosition().y, 2));
+                        if(distance > 8) {
+                            // lock it to max distance
                             playerFuturePos = {
-                                x: this.world.getPlayer().getPosition().x + directionToPoint(playerInertia.direction).x * 4,
-                                y: this.world.getPlayer().getPosition().y + directionToPoint(playerInertia.direction).y * 4
+                                x: enemy.getPosition().x + directionToPoint(playerInertia.direction).x * 8,
+                                y: enemy.getPosition().y + directionToPoint(playerInertia.direction).y * 8
                             }
                         }
 
@@ -269,9 +293,9 @@ export class EnemyAISystem {
                             entityId: enemy.getId(),
                             data: {
                                 position: playerFuturePos,
-                                color: '#00ffd1FF',
+                                color: '#FF194DFF',
                                 cooldowns: {
-                                    'explode-emp': {
+                                    'explode-caltrops': {
                                         base: 4,
                                         current: 4,
                                         ready: false
