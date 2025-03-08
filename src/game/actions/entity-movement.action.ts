@@ -167,10 +167,13 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         // check to see if the tile we're entering has components that need to be check
         for (const destinationEntity of entitiesAtNewPos) {
             if (destinationEntity.hasComponent('applyTimestamp')) {
+
+                
                 const applyTimestampComponent = destinationEntity.getComponent('applyTimestamp') as ApplyTimestampComponent;
                 if (applyTimestampComponent.apply === ApplyTimestampType.Start) {
                     entity.setComponent(new TimestampComponent(performance.now()));
                 } else if (applyTimestampComponent.apply === ApplyTimestampType.Stop) {
+
                     const timestamp = entity.getComponent('timestamp') as TimestampComponent;
                     if (timestamp) {
                         timestamp.checkAndUpdateBestTime(performance.now());

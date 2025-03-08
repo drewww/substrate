@@ -13,6 +13,7 @@ export class TimestampComponent extends Component {
 
     public checkAndUpdateBestTime(endTime: number): void {
         const currentTime = endTime - this.start;
+        
         if (TimestampComponent.bestTime === null || currentTime < TimestampComponent.bestTime) {
             TimestampComponent.bestTime = currentTime;
         }

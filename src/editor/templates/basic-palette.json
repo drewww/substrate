@@ -323,7 +323,7 @@
         "components": [
           {
             "type": "symbol",
-            "char": "⧋",
+            "char": "▼",
             "foreground": "#FFFFFFFF",
             "background": "#00D3EF00",
             "zIndex": 300,
@@ -331,7 +331,6 @@
             "lockRotationToFacing": true,
             "scaleSymbolX": 1.5,
             "scaleSymbolY": 1.5,
-            "offsetSymbolY": -0.05,
             "fontWeight": "bold"  
           },
           {

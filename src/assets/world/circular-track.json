@@ -21592,7 +21592,8 @@
           "visionRadius": 5,
           "mode": "idle",
           "destination": null,
-          "previousDestination": null
+          "previousDestination": null,
+          "distanceTraveled": 0
         },
         {
           "type": "cooldown",
@@ -21650,6 +21651,71 @@
           "type": "followable",
           "followPriority": 100,
           "lastPosition": null
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "move": {
+              "base": 4,
+              "current": 4,
+              "ready": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "e16959",
+      "position": {
+        "x": 1,
+        "y": 2
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "▼",
+          "foreground": "#FFFFFFFF",
+          "background": "#00D3EF00",
+          "zIndex": 300,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.5,
+          "scaleSymbolY": 1.5,
+          "fontWeight": "bold",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "normal"
+        },
+        {
+          "type": "facing",
+          "direction": 1
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "vision",
+          "radius": 40,
+          "ignoreOpacity": true
+        },
+        {
+          "type": "energy",
+          "energy": 200,
+          "maxEnergy": 200
+        },
+        {
+          "type": "player"
+        },
+        {
+          "type": "inertia",
+          "direction": 4,
+          "magnitude": 0
         },
         {
           "type": "cooldown",

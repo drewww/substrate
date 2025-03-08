@@ -379,7 +379,7 @@ export class UISpeedRenderer implements Renderer {
 
             // Update current time - use finalTime if available, otherwise show running time
             const elapsed = timestamp.finalTime 
-                ? (timestamp.finalTime - timestamp.start) / 1000
+                ? (timestamp.finalTime) / 1000
                 : (performance.now() - timestamp.start) / 1000;
             
             const newTimeTileIds = this.uiDisplay.createString(
