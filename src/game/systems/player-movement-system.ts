@@ -66,6 +66,26 @@ export class PlayerMovementSystem {
         const energy = player.getComponent('energy') as EnergyComponent;
         const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
 
+        if(inertia && inertia.resetInertia) {
+            inertia.resetInertia = false;
+            inertia.magnitude = 1;
+            player.setComponent(inertia);
+
+            const cooldowns = player.getComponent('cooldown') as CooldownComponent;
+                if (cooldowns) {
+                    cooldowns.setCooldown('move', 4, 4, false);
+                    player.setComponent(cooldowns);
+                }
+            
+            player.setComponent(new InertiaComponent(
+                inertia.direction,
+                1,
+                false
+            ));
+            
+            return;
+        }
+
         if (prediction.willCollide) {
             logger.warn('Player movement collision detected');
             const to = prediction.collision;
