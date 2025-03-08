@@ -80,7 +80,6 @@ export class EditorRenderer extends BaseRenderer {
                 bg: '#00000000'
             });
         } else if (entity.hasComponent(SpawnHintComponent.type)) {
-            // Create tile if it doesn't exist
             let char = '';
             switch ((entity.getComponent(SpawnHintComponent.type) as SpawnHintComponent).hint) {
                 case "camera":
@@ -106,7 +105,17 @@ export class EditorRenderer extends BaseRenderer {
                     '#00000000',
                     1000
                 );
+                this.entityTiles.set(entity.getId(), tileId);
+                this.tileEntities.set(tileId, entity.getId());
+                return;
             }
+
+            // Add update for existing tile
+            this.display.updateTile(tileId, {
+                char: char,
+                fg: '#00FF00AA',
+                bg: '#00000000'
+            });
         }
     }
 
@@ -120,6 +129,12 @@ export class EditorRenderer extends BaseRenderer {
     }
 
     public handleEntityRemoved(entity: Entity): void {
+        const tileId = this.entityTiles.get(entity.getId());
+        if (tileId) {
+            this.display.removeTile(tileId);
+            this.entityTiles.delete(entity.getId());
+            this.tileEntities.delete(tileId);
+        }
     }
 
     public handleEntityMoved(entity: Entity, from: Point, to: Point): boolean {
