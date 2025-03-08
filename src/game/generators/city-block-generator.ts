@@ -333,7 +333,7 @@ export class CityBlockGenerator implements WorldGenerator {
         symbol.blendMode = 'normal';
 
         turret.setComponent(symbol);
-        turret.setComponent(new VisionComponent(10, false));
+        turret.setComponent(new VisionComponent(5, false));
         turret.setComponent(new EnemyAIComponent(EnemyAIType.EMP_TURRET));
         turret.setComponent(new CooldownComponent({
             "fire": {

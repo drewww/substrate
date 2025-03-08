@@ -257,38 +257,35 @@ export class EnemyAISystem {
                         // compute the position of the projectile based on the player's inertia
                         const playerInertia = this.world.getPlayer().getComponent('inertia') as InertiaComponent;
                         let playerFuturePos = this.world.getPlayer().getPosition();
+                        
                         if (playerInertia && playerInertia.magnitude > 0) {
-                            const currentPos = enemy.getPosition();
+                            const playerPos = this.world.getPlayer().getPosition();
                             const directionVector = directionToPoint(playerInertia.direction);
                             const MAX_DISTANCE = 8;
 
-                            // Calculate the vector components
-                            const dx = directionVector.x;
-                            const dy = directionVector.y;
-
+                            // Project 3 turns forward
                             playerFuturePos = {
-                                x: Math.round(currentPos.x + (dx * 3)),
-                                y: Math.round(currentPos.y + (dy * 3))
+                                x: Math.round(playerPos.x + (directionVector.x * 2)),
+                                y: Math.round(playerPos.y + (directionVector.y * 2))
                             };
-                            // // Scale to max distance while maintaining direction
-                            // const magnitude = Math.sqrt(dx * dx + dy * dy);
-                            // if (magnitude > 0) {
-                            //     playerFuturePos = {
-                            //         x: Math.round(currentPos.x + (dx / magnitude) * MAX_DISTANCE),
-                            //         y: Math.round(currentPos.y + (dy / magnitude) * MAX_DISTANCE)
-                            //     };
-                            // } else {
-                            //     playerFuturePos = { ...currentPos };
-                            // }
-                        }
 
-                        // check distdance from the launcher, don't shoot too far
-                        const distance = Math.sqrt(Math.pow(playerFuturePos.x - enemy.getPosition().x, 2) + Math.pow(playerFuturePos.y - enemy.getPosition().y, 2));
-                        if(distance > 8) {
-                            // lock it to max distance
-                            playerFuturePos = {
-                                x: enemy.getPosition().x + directionToPoint(playerInertia.direction).x * 8,
-                                y: enemy.getPosition().y + directionToPoint(playerInertia.direction).y * 8
+                            // Check if projected position is too far from enemy
+                            const distance = Math.sqrt(
+                                Math.pow(playerFuturePos.x - enemy.getPosition().x, 2) + 
+                                Math.pow(playerFuturePos.y - enemy.getPosition().y, 2)
+                            );
+
+                            if (distance > MAX_DISTANCE) {
+                                // Scale back to max range while maintaining direction
+                                const angle = Math.atan2(
+                                    playerFuturePos.y - enemy.getPosition().y,
+                                    playerFuturePos.x - enemy.getPosition().x
+                                );
+                                
+                                playerFuturePos = {
+                                    x: Math.round(enemy.getPosition().x + MAX_DISTANCE * Math.cos(angle)),
+                                    y: Math.round(enemy.getPosition().y + MAX_DISTANCE * Math.sin(angle))
+                                };
                             }
                         }
 
