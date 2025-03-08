@@ -3593,8 +3593,8 @@
         {
           "type": "symbol",
           "char": ".",
-          "foreground": "#000D12ff",
-          "background": "#252525ff",
+          "foreground": "#eeeeeeff",
+          "background": "#484A4BFF",
           "zIndex": 0,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
@@ -3620,8 +3620,8 @@
         {
           "type": "symbol",
           "char": ".",
-          "foreground": "#000D12ff",
-          "background": "#252525ff",
+          "foreground": "#eeeeeeff",
+          "background": "#484A4BFF",
           "zIndex": 0,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
@@ -3647,8 +3647,8 @@
         {
           "type": "symbol",
           "char": ".",
-          "foreground": "#000D12ff",
-          "background": "#252525ff",
+          "foreground": "#eeeeeeff",
+          "background": "#484A4BFF",
           "zIndex": 0,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
@@ -3674,8 +3674,8 @@
         {
           "type": "symbol",
           "char": ".",
-          "foreground": "#000D12ff",
-          "background": "#252525ff",
+          "foreground": "#eeeeeeff",
+          "background": "#484A4BFF",
           "zIndex": 0,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
@@ -4241,8 +4241,8 @@
     {
       "id": "e12414",
       "position": {
-        "x": 7,
-        "y": 7
+        "x": 8,
+        "y": 5
       },
       "components": [
         {
