@@ -77,7 +77,12 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     // Buildings
     "1x1-building": {
         variants: [
-            { url: "1-1b.json", weight: 1.0 }
+            { url: "1-1b.json", weight: 0.4 },
+            { url: "1-1b-a.json", weight: 0.2 },
+            { url: "1-1b-restaurant.json", weight: 0.1 },
+            { url: "1-1b-security.json", weight: 0.1 },
+            { url: "1-1b-shipping.json", weight: 0.1 },
+            { url: "1-1b-park.json", weight: 0.1 },
         ]
     },
     "start-building": {
@@ -128,7 +133,8 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     // Straight roads
     "straight-minor": {
         variants: [
-            { url: "2-s.json", weight: 1.0 }
+            { url: "2-s.json", weight: 0.2 },
+            { url: "2-s-drivethrough.json", weight: 0.8 }
         ]
     },
     "straight-medium": {
