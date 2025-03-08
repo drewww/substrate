@@ -413,7 +413,7 @@
           {
             "type": "symbol",
             "char": "⧯",
-            "foreground": "#FFFFFFFF",
+            "foreground": "#F7BADFFF",
             "background": "#0000FF00",
             "zIndex": 100,
             "lockRotationToFacing": true
@@ -430,6 +430,14 @@
         },
         {
             "type": "move"
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": false
+        },
+        {
+          "type": "vehicle-leader"
         },
         {
             "type": "followable"
@@ -453,7 +461,7 @@
           {
             "type": "symbol",
             "char": "⧯",
-            "foreground": "#5335FFFF",
+            "foreground": "#E87DBEFF",
             "background": "#00000000",
             "zIndex": 20,
             "lockRotationToFacing": true

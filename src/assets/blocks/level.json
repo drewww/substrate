@@ -5635,7 +5635,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -5680,7 +5680,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -5725,7 +5725,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -5821,7 +5821,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -5866,7 +5866,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -5911,7 +5911,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -6007,7 +6007,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -6052,7 +6052,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
@@ -6148,7 +6148,7 @@
         {
           "type": "symbol",
           "char": "⧯",
-          "foreground": "#5335FFFF",
+          "foreground": "#E87DBEFF",
           "background": "#00000000",
           "zIndex": 20,
           "alwaysRenderIfExplored": false,
