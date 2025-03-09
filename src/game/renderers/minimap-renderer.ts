@@ -46,18 +46,8 @@ export class MinimapRenderer extends LayoutRenderer {
         world.on('entityAdded', (data: { entity: Entity }) => {
             if (data.entity.hasComponent('objective') && 
                 (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
-                    
-                    const blockPos = {
-                        x: Math.floor(data.entity.getPosition().x / 12),
-                        y: Math.floor(data.entity.getPosition().y / 12)
-                    };
-                    
-                    // Just update the objective tile position
-                    if(this.objectiveTile) {
-                        this.display.moveTile(this.objectiveTile, blockPos.x, blockPos.y);
-                    } else {
-                        this.objectiveTile = this.display.createTile(blockPos.x, blockPos.y, '◎', '#55CE4AFF', '#00000000', 1000);
-                    }
+
+                    this.updateObjectiveTile(data.entity.getPosition());
             }
         });
         
@@ -81,16 +71,16 @@ export class MinimapRenderer extends LayoutRenderer {
             } else if (data.entity.hasComponent('objective') && 
                        (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
                
-                const blockPos = {
-                    x: Math.floor(data.entity.getPosition().x / 12),
-                    y: Math.floor(data.entity.getPosition().y / 12)
-                };
-                
-                // Just update the objective tile position
-                if(this.objectiveTile) {
-                    this.display.moveTile(this.objectiveTile, blockPos.x, blockPos.y);
-                } else {
-                    this.objectiveTile = this.display.createTile(blockPos.x, blockPos.y, '◎', '#55CE4AFF', '#00000000', 1000);
+                this.updateObjectiveTile(data.entity.getPosition());
+            }
+        });
+
+
+        world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
+            if (data.componentType === 'objective') {
+                const objective = data.entity.getComponent('objective') as ObjectiveComponent;
+                if (objective.active) {
+                    this.updateObjectiveTile(data.entity.getPosition());
                 }
             }
         });
@@ -144,6 +134,20 @@ export class MinimapRenderer extends LayoutRenderer {
                 }
             }
         });
+    }
+
+    private updateObjectiveTile(pos: Point) {
+        
+        const blockPos = {
+            x: Math.floor(pos.x / 12),
+            y: Math.floor(pos.y / 12)
+        };
+
+        if(this.objectiveTile) {
+            this.display.moveTile(this.objectiveTile, blockPos.x, blockPos.y);
+        } else {
+            this.objectiveTile = this.display.createTile(blockPos.x, blockPos.y, '◎', '#55CE4AFF', '#00000000', 1000);
+        }
     }
 
     private updatePlayerBlock() {

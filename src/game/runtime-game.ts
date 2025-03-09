@@ -966,7 +966,6 @@ export class RuntimeGame extends Game {
     private selectObjective(world: World, isExit: boolean = false) {
         let eligibleObjectiveEntities: Entity[] = world.getEntitiesWithComponent('objective');
 
-
         logger.info('SELECT OBJECTIVE')
         logger.info(`eligibleObjectiveEntities: ${eligibleObjectiveEntities.length}`);
         // If no objectives exist at all, just return early
