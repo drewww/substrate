@@ -6,9 +6,17 @@ import { Point } from '../types';
 import { MetricsComponent } from '../game/components/metrics.component';
 import { World } from '../world/world';
 import { logger } from '../util/logger';
+import { FacingComponent } from '../entity/components/facing-component';
 import { ObjectiveComponent } from '../game/components/objective.component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
 import { RuntimeGame } from '../game/runtime-game';
+import { SymbolComponent } from '../entity/components/symbol-component';
+import { OpacityComponent } from '../entity/components/opacity-component';
+import { ImpassableComponent } from '../entity/components/impassable-component';
+import { VehicleLeaderComponent } from '../game/components/vehicle-leader.component';
+import { FollowableComponent } from '../entity/components/followable-component';
+import { CooldownComponent } from '../game/components/cooldown.component';
+import { FollowerComponent } from '../entity/components/follower-component';
 
 export enum TitleMode {
     TITLE,
@@ -246,6 +254,8 @@ export class TitleRenderer implements Renderer {
             }
         });
 
+       
+
         this.display.createString(10, 4, '{w}  W{/}', 1000, {
             backgroundColor: '#000000',
             animate: {
@@ -283,6 +293,144 @@ export class TitleRenderer implements Renderer {
                 this.isInDashboardTutorial = true;
             } 
 
+            if(this.objectiveIndex === 8) {
+                this.display.clear();
+                this.display.createString(19, this.display.getViewportHeight() - 14,
+                '{w}Hold SPACE to brake.{/}', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.0
+                    }
+                });
+    
+            }
+
+            if(this.objectiveIndex === 10) {
+                this.display.clear();
+
+                this.display.createString(19, this.display.getViewportHeight() - 14,
+                '{w}Collide with vehicles to steal their DATA CORES.{/}', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.0
+                    }
+                });
+    
+                // Create vehicle segments
+                const leader = new Entity({x: 26, y: 10});
+                leader.setComponent(new SymbolComponent('⧯', '#E87DBEFF', '#00000000', 20));
+                leader.setComponent(new FacingComponent(0));
+                leader.setComponent(new OpacityComponent());
+                leader.setComponent(new ImpassableComponent());
+                leader.setComponent(new ObjectiveComponent(true, true, 'vehicle', 9));
+                leader.setComponent(new VehicleLeaderComponent());
+                leader.setComponent(new FollowableComponent());
+                // leader.setComponent(new CooldownComponent({
+                //     move: { base: 4, current: 4, ready: false }
+                // }));
+
+                const body = new Entity({x: 26, y: 11});
+                body.setComponent(new SymbolComponent('⧯', '#E87DBEFF', '#00000000', 20));
+                body.setComponent(new FacingComponent(0));
+                body.setComponent(new OpacityComponent());
+                body.setComponent(new ImpassableComponent());
+                body.setComponent(new ObjectiveComponent(true, true, 'vehicle', 9));
+                body.setComponent(new FollowerComponent());
+                body.setComponent(new FollowableComponent());
+
+                const trailer = new Entity({x: 26, y: 12});
+                trailer.setComponent(new SymbolComponent('⧯', '#E87DBEFF', '#00000000', 20));
+                trailer.setComponent(new FacingComponent(0));
+                trailer.setComponent(new OpacityComponent());
+                trailer.setComponent(new ImpassableComponent());
+                trailer.setComponent(new ObjectiveComponent(true, true, 'vehicle', 9));
+                trailer.setComponent(new FollowerComponent());
+
+                // now add the lightEmitters to them. 
+                const lightEmitter = new LightEmitterComponent({
+                    "radius": 3,
+                    "color": "#55CE4A",
+                    "intensity": 0.6,
+                    "distanceFalloff": "linear",
+                    "lightSourceTile": false
+                });
+
+                leader.setComponent(lightEmitter.clone());
+                body.setComponent(lightEmitter.clone());
+                trailer.setComponent(lightEmitter.clone());
+                leader.setComponent(lightEmitter.clone());
+                body.setComponent(lightEmitter.clone());
+                trailer.setComponent(lightEmitter.clone());
+
+                // Add to world
+                this.world.addEntity(leader);
+                this.world.addEntity(body); 
+                this.world.addEntity(trailer);
+            }
+
+
+            if(this.objectiveIndex === 11) {
+                this.display.clear();
+                this.display.createString(19, this.display.getViewportHeight() - 14,
+                '{w}Make it to an extraction point to complete the mission.{/}', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.0
+                    }
+                });
+    
+
+                // now turn on the "exits" to complete the mission.
+                const exit = new Entity({x: 33, y: 10});
+                exit.setComponent(new SymbolComponent('⬚', '#eeeeeeff', '#00000000', 100));
+                exit.setComponent(new ObjectiveComponent(true, true, 'end', 11));
+
+                const lightEmitter = new LightEmitterComponent({
+                    "radius": 3,
+                    "color": "#55CE4A",
+                    "intensity": 0.6,
+                    "distanceFalloff": "linear",
+                    "lightSourceTile": false
+                });
+
+                exit.setComponent(lightEmitter);
+                exit.setComponent(lightEmitter);
+
+                this.world.addEntity(exit);
+
+                const exit2 = exit.clone()
+                exit2.setPosition(33, 11);
+                this.world.addEntity(exit2);
+
+                const exit3 = exit.clone()
+                exit3.setPosition(33, 12);
+                this.world.addEntity(exit3);
+                
+                const exit4 = exit.clone()
+                exit4.setPosition(33, 13);
+                this.world.addEntity(exit4);                
+            } 
+
+            if(this.objectiveIndex === 12) {
+                // game is over.                 
+                this.display.clear();
+                this.game.stopEngine();
+
+                const player = this.world.getPlayer();
+                this.invertDarkBackground(player.getPosition().x, player.getPosition().x + 1, player.getPosition().y, player.getPosition().y + 1);
+
+                this.display.createString(10, 5, '{w}TUTORIAL COMPLETE{/}', 1000, {
+                    backgroundColor: '#000000',
+                });
+
+                this.display.createString(10, 7, '{w}Press [esc] to continue.{/}', 1000, {
+                    backgroundColor: '#000000',
+                });
+            }
+            
             logger.warn("objectiveIndex: " + this.objectiveIndex);
         });
 
@@ -311,12 +459,12 @@ export class TitleRenderer implements Renderer {
 
             if(data.to.x === 2 && data.to.y === 9) {
                 this.display.clear();
-                this.invertDarkBackground(4, 6, 6, 14);
+                this.invertDarkBackground(4, 6, 4, 15);
             }
 
             if(data.to.x === 2 && data.to.y === 12) {
                 this.display.clear();
-                this.invertDarkBackground(4, 6, 10, 14);
+                this.invertDarkBackground(4, 6, 8, 14);
 
                 this.display.createString(8, 12, 'Don\'t crash. We don\'t have time for that.', 1000, {
                     backgroundColor: '#000000',
@@ -499,9 +647,12 @@ export class TitleRenderer implements Renderer {
                     initialDelay: 0.0
                 }
             });
-
         } else if(this.spaceCount === 2) {
-            this.display.createString(14, this.display.getViewportHeight() - 4,
+            this.display.createTile(18, this.display.getViewportHeight() - 4, '⤷', '#FFFFFFFF', '#00000000', 1000, {
+                rotation: 90/180 * Math.PI
+            }
+            );
+            this.display.createString(20, this.display.getViewportHeight() - 4,
             '{w}... engage turbo. That will drain your energy. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
@@ -520,16 +671,24 @@ export class TitleRenderer implements Renderer {
                 }
             });
         } else if(this.spaceCount === 4) {
-            this.display.createString(24, this.display.getViewportHeight() - 4,
-            '{w}Fill your objective meter to unlock an exit. [space]{/}', 1000, {
+            this.display.createString(4, this.display.getViewportHeight() - 4,
+            '{w}Fill this meter to unlock an exit. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
                     delayBetweenChars: 0.05,
                     initialDelay: 0.0
                 }
             });
+
+            this.display.createTile(50, this.display.getViewportHeight() - 4, '⤵', '#FFFFFFFF', '#00000000', 1000, {
+                offsetSymbolX: -0.1
+            });
+
         } else if(this.spaceCount === 5) {
-            this.display.createString(40, this.display.getViewportHeight() - 4,
+
+            this.display.createTile(80, this.display.getViewportHeight() - 4, '⤵', '#FFFFFFFF', '#00000000', 1000);
+
+            this.display.createString(50, this.display.getViewportHeight() - 4,
             '{w}Watch your indicators. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
@@ -545,7 +704,7 @@ export class TitleRenderer implements Renderer {
 
             this.selectObjective(5);
 
-            this.display.createString(20, this.display.getViewportHeight() - 4,
+            this.display.createString(19, this.display.getViewportHeight() - 14,
             '{w}Hold SHIFT while moving at high speeds to TURBO.{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {

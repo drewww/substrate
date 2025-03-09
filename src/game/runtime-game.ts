@@ -610,7 +610,7 @@ export class RuntimeGame extends Game {
 
                     const player = this.world!.getPlayer();
                     const metrics = player.getComponent('metrics') as MetricsComponent;
-                    metrics.maxObjectivesThisLevel = 12;
+                    metrics.maxObjectivesThisLevel = 9;
                     player.setComponent(metrics);
 
                     this.startGame();
@@ -1093,6 +1093,20 @@ export class RuntimeGame extends Game {
     public stopEngine(): void {
         if (this.engine?.isRunning()) {
             this.engine.stop();
+            
+            // remove all the player statuses
+            const player = this.world!.getPlayer();
+            player.removeComponent('stun');
+            player.removeComponent('bufferedMove');
+            const cooldown = new CooldownComponent();
+            cooldown.setCooldown('move', 4, 4, false);
+            player.setComponent(cooldown);
+
+            const inertia = new InertiaComponent(Direction.None, 0);
+            player.setComponent(inertia);
+
+            player.removeComponent('brake');
+            player.removeComponent('turbo');
         }
     }
 
