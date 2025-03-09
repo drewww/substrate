@@ -738,8 +738,11 @@ export class RuntimeGame extends Game {
             }
 
             if (action === 'move' && type !== 'up') {
-                this.player.removeComponent('bufferedMove');
-                this.player.setComponent(new BufferedMoveComponent(direction));
+                // Only set a new buffered move if it's different from current direction OR inertia.magnitude is less than 3
+                if (inertia && (inertia.direction !== direction || inertia.magnitude < 3)) {
+                    this.player.removeComponent('bufferedMove');
+                    this.player.setComponent(new BufferedMoveComponent(direction));
+                }
             }
         }
 
