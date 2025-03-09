@@ -212,8 +212,8 @@ export class WorldSystem {
                     caltropsTemplate.setComponent(new StatusEffectComponent(StatusEffect.CALTROPS));
                     caltropsTemplate.setComponent(new CooldownComponent({
                         'disperse': {
-                            base: 100,
-                            current: 100,
+                            base: 1000,
+                            current: 1000,
                             ready: false
                         }
                     }));

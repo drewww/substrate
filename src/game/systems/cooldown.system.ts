@@ -1,5 +1,6 @@
 import { World } from '../../world/world';
 import { CooldownComponent } from '../components/cooldown.component';
+import { LockedComponent } from '../components/locked.component';
 import { StunComponent } from '../components/stun.component';
 
 export class CooldownSystem {
@@ -19,6 +20,15 @@ export class CooldownSystem {
                 // don't tick other cooldowns if entity is stunned
                 if(stun && type != 'stun') {
                     continue;
+                }
+
+                if(type=='fire') {
+                    const player = this.world.getPlayer();
+                    const locked = player.getComponent('locked') as LockedComponent;
+
+                    if(!locked) {
+                        continue;
+                    }
                 }
 
                 if (state.current > 0) {

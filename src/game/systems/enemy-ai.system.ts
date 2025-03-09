@@ -400,8 +400,8 @@ export class EnemyAISystem {
             entity.setComponent(new ImpassableComponent());
             entity.setComponent(new CooldownComponent({
                 'disperse': {
-                    base: 30,
-                    current: 30,
+                    base: 8,
+                    current: 8,
                     ready: false
                 }
             }));

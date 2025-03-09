@@ -309,56 +309,56 @@ export class RuntimeRenderer extends GameRenderer {
             }
 
             // Handle turret-specific rendering
-            if (ai && ai.aiType === EnemyAIType.EMP_TURRET) {
-                const fireCooldown = cooldowns.getCooldown('fire');
+            // if (ai && ai.aiType === EnemyAIType.EMP_TURRET) {
+            //     const fireCooldown = cooldowns.getCooldown('fire');
                 
-if (fireCooldown && !fireCooldown.ready) {
-                    // Only start the cooldown animation when we're at max cooldown
-                    if (fireCooldown && fireCooldown.current === fireCooldown.base-1) {
-                        this.display.clearAnimations(tileId);
-                        this.display.updateTile(tileId, {
-                            bg: '#FF194DFF',  // bright red
-                            bgPercent: 1.0,
-                            fillDirection: FillDirection.BOTTOM
-                        });
+            //     if (fireCooldown && !fireCooldown.ready) {
+            //         // Only start the cooldown animation when we're at max cooldown
+            //         if (fireCooldown && fireCooldown.current === fireCooldown.base-1) {
+            //             this.display.clearAnimations(tileId);
+            //             this.display.updateTile(tileId, {
+            //                 bg: '#FF194DFF',  // bright red
+            //                 bgPercent: 1.0,
+            //                 fillDirection: FillDirection.BOTTOM
+            //             });
 
-                        this.display.addValueAnimation(tileId, {
-                            bgPercent: {
-                                start: 1.0,
-                                end: 0.0,
-                                duration: (fireCooldown.base-1) * TICK_MS / 1000,
-                                easing: Easing.linear,
-                                loop: false
-                            }
-                        });
-                    }
-                } else if (ai.turnsLocked > 0 && ai.turnsLocked <= 3) {
-                    // Charging up - animate fill with bright red from bottom
-                    // this.display.clearAnimations(tileId);
-                    // this.display.updateTile(tileId, {
-                    //     bg: '#FF194DFF',  // The bright red
-                    //     bgPercent: 0,
-                    //     fillDirection: FillDirection.BOTTOM
-                    // });
+            //             this.display.addValueAnimation(tileId, {
+            //                 bgPercent: {
+            //                     start: 1.0,
+            //                     end: 0.0,
+            //                     duration: (fireCooldown.base-1) * TICK_MS / 1000,
+            //                     easing: Easing.linear,
+            //                     loop: false
+            //                 }
+            //             });
+            //         }
+            //     } else if (ai.turnsLocked > 0 && ai.turnsLocked <= 3) {
+            //         // Charging up - animate fill with bright red from bottom
+            //         // this.display.clearAnimations(tileId);
+            //         // this.display.updateTile(tileId, {
+            //         //     bg: '#FF194DFF',  // The bright red
+            //         //     bgPercent: 0,
+            //         //     fillDirection: FillDirection.BOTTOM
+            //         // });
 
-                    // this.display.addValueAnimation(tileId, {
-                    //     bgPercent: {
-                    //         start: (ai.turnsLocked - 1) / 3,
-                    //         end: ai.turnsLocked / 3,
-                    //         duration: TICK_MS / 1000,
-                    //         easing: Easing.linear,
-                    //         loop: false
-                    //     }
-                    // });
-                } else {
-                    // Clear animations and reset to black when neither charging nor on cooldown
-                    this.display.clearAnimations(tileId);
-                    this.display.updateTile(tileId, {
-                        bg: '#000000FF',
-                        bgPercent: 0
-                    });
-                }
-            }
+            //         // this.display.addValueAnimation(tileId, {
+            //         //     bgPercent: {
+            //         //         start: (ai.turnsLocked - 1) / 3,
+            //         //         end: ai.turnsLocked / 3,
+            //         //         duration: TICK_MS / 1000,
+            //         //         easing: Easing.linear,
+            //         //         loop: false
+            //         //     }
+            //         // });
+            //     } else {
+            //         // Clear animations and reset to black when neither charging nor on cooldown
+            //         this.display.clearAnimations(tileId);
+            //         this.display.updateTile(tileId, {
+            //             bg: '#000000FF',
+            //             bgPercent: 0
+            //         });
+            //     }
+            // }
 
             // Handle stun cooldown (takes precedence over move cooldown)
             const stunState = cooldowns.getCooldown('stun');
