@@ -29,7 +29,7 @@ export class UISpeedRenderer implements Renderer {
     private readonly LOCKED_X = 80;  // Position for locked indicator
     private readonly TURBO_X = 88;   // New position (3 positions after LOCKED)
     private readonly REVERSE_X = 86;  // 6 positions after LOCKED_X (80)
-    private readonly STUNNED_X = 73;  // 7 positions before LOCKED (80)
+    private readonly STUNNED_X = 69;  // Previously 73, moved left to avoid overlap with LOCKED (80)
 
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
@@ -574,38 +574,71 @@ export class UISpeedRenderer implements Renderer {
     }
 
     private updateStunnedIndicator(): void {
-        // Remove existing stunned tiles if they exist
+        // Remove existing stunned tiles and text
         const stunnedTileIds = this.uiTiles.get('stunned');
         if (stunnedTileIds) {
             this.uiDisplay.removeTiles(stunnedTileIds);
             this.uiTiles.delete('stunned');
         }
 
+        const textTileIds = this.uiTiles.get('stunned_text');
+        if (textTileIds) {
+            this.uiDisplay.removeTiles(textTileIds);
+            this.uiTiles.delete('stunned_text');
+        }
+
         // Check for stun cooldown
         const cooldown = this.player.getComponent('cooldown') as CooldownComponent;
+        const stunCooldown = cooldown?.getCooldown('stun');
 
-        // if(cooldown) {
-        //     const stunCooldown = cooldown.getCooldown('stun');
-            
-        // }
-
-        if (cooldown && cooldown.getCooldown('stun') !== undefined) {
-            const newStunnedTileIds = this.uiDisplay.createString(
-                this.STUNNED_X,
-                0,              // Same row as LOCKED
-                'STUNNED',
-                1001,
-                { 
-                    fontFamily: 'monospace',
-                    backgroundColor: '#FF194DFF'  // Bright red background
-                }
-            );
+        if (stunCooldown) {
+            // Create 10 empty tiles for the stun bar
+            const newStunnedTileIds = [];
+            for (let i = 0; i < 10; i++) {
+                const tileId = this.uiDisplay.createTile(
+                    this.STUNNED_X + i,
+                    0,
+                    ' ',
+                    '#FFFFFFFF',
+                    '#FF194DFF',
+                    1001,
+                    { fontFamily: 'monospace' }
+                );
+                newStunnedTileIds.push(tileId);
+            }
             this.uiTiles.set('stunned', newStunnedTileIds);
 
-            // Set white text color
-            for (const tileId of newStunnedTileIds) {
+            // Calculate progress (0 to 1, where 1 means stun just started)
+            const progress = stunCooldown.current / stunCooldown.base;
+
+            // Update each tile's background based on progress
+            newStunnedTileIds.forEach((tileId, index) => {
+                // Each tile represents 10% of the bar
+                const tileThreshold = (index + 1) / 10;
+                
                 this.uiDisplay.updateTile(tileId, {
-                    fg: '#FFFFFFFF'
+                    bg: progress > tileThreshold ? '#FF194DFF' : '#000000FF'  // Red if stun active, black if expired
+                });
+            });
+
+            // Add "STUN" text overlay on top of the bar
+            const textTileIds = this.uiDisplay.createString(
+                this.STUNNED_X + 3,  // Center "STUN" in the 10-tile bar
+                0,
+                'STUN',
+                1002,  // Higher z-index to appear over the bar
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: '#00000000'  // Transparent background
+                }
+            );
+            this.uiTiles.set('stunned_text', textTileIds);
+
+            // Set white text color with transparent background
+            for (const tileId of textTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF',
+                    bg: '#00000000'  // Transparent background
                 });
             }
         }
