@@ -130,8 +130,7 @@ export class RuntimeGame extends Game {
             viewportWidth: 53,  // 1060/20 = 53 cells wide
             viewportHeight: 28, // (600-40)/20 = 28 cells high (leaving 40px for UI)
             worldWidth: this.world.getWorldWidth(),
-            worldHeight: this.world.getWorldHeight(),
-            defaultBackground: '#000000FF'
+            worldHeight: this.world.getWorldHeight()
         });
 
         // Initially hide the game display

@@ -94,8 +94,6 @@ export class Display {
     private linkedTiles: Map<TileId, Set<TileId>> = new Map();  // source -> followers
     private linkedToSource: Map<TileId, TileId> = new Map();    // follower -> source
 
-    private readonly defaultBackground: string;
-
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
         
@@ -204,13 +202,11 @@ export class Display {
             'w': '#FFFFFFFF',  // white
         });
 
-        this.defaultBackground = options.defaultBackground || '#00000000';
+        // Initialize renderCanvas with padding around viewport
+       
         
-        // Initialize render context with default background
-        this.renderCtx = this.renderCanvas.getContext('2d', { alpha: true })!;
-        this.renderCtx.fillStyle = this.defaultBackground;
-        this.renderCtx.fillRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
         
+
         // Initialize dirtyMask for entire world
         this.dirtyMask = new DirtyMask(options.worldWidth, options.worldHeight);
         
@@ -1296,9 +1292,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
         }
 
-        // Clear the entire render canvas with default background
-        this.renderCtx.fillStyle = this.defaultBackground;
-        this.renderCtx.fillRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+        // Clear the entire render canvas once
+        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
         // Get all visible tiles and their current animated positions
         const visibleTiles = Array.from(this.tileMap.values())
