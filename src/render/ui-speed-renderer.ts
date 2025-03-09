@@ -433,19 +433,19 @@ export class UISpeedRenderer implements Renderer {
     }
 
     private updateLockedIndicator(isLocked: boolean): void {
-        logger.info(`Updating locked indicator. isLocked: ${isLocked}`);
+        // logger.info(`Updating locked indicator. isLocked: ${isLocked}`);
         
         // Remove existing locked tiles if they exist
         const lockedTileIds = this.uiTiles.get('locked');
         if (lockedTileIds) {
-            logger.info('Removing existing locked tiles');
+            // logger.info('Removing existing locked tiles');
             this.uiDisplay.removeTiles(lockedTileIds);
             this.uiTiles.delete('locked');
         }
 
         // If locked, create new tiles
         if (isLocked) {
-            logger.info('Creating new locked tiles');
+            // logger.info('Creating new locked tiles');
             const newLockedTileIds = this.uiDisplay.createString(
                 this.LOCKED_X,
                 0,
@@ -501,7 +501,7 @@ export class UISpeedRenderer implements Renderer {
 
     private updateReverseIndicator(isReversing: boolean): void {
 
-        logger.info(`Updating reverse indicator. isReversing: ${isReversing}`);
+        // logger.info(`Updating reverse indicator. isReversing: ${isReversing}`);
 
         // If reversing, create new tiles
         if (isReversing) {
@@ -542,7 +542,6 @@ export class UISpeedRenderer implements Renderer {
     handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {
-        logger.info(`handleComponentModified: ${componentType}`);
         if (entity === this.player) {
             if (componentType === 'inertia') {
                 this.updateSpeedIndicator();
@@ -564,7 +563,7 @@ export class UISpeedRenderer implements Renderer {
         }
     }
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        logger.info(`handleComponentRemoved: ${componentType}`);
+        // logger.info(`handleComponentRemoved: ${componentType}`);
         if (entity === this.player) {
             if (componentType === 'inertia') {
                 this.updateSpeedIndicator();

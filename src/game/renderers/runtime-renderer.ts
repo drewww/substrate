@@ -164,7 +164,7 @@ export class RuntimeRenderer extends GameRenderer {
 
                 if (inertia && inertia.magnitude >= 2) {
                     // Only use yellow color if turbo is active and working (not out of energy)
-                    logger.warn(`turbo: ${turbo?.turnsSinceEngaged} ${turbo?.turnsSinceEngaged > 0}`);
+                    // logger.warn(`turbo: ${turbo?.turnsSinceEngaged} ${turbo?.turnsSinceEngaged > 0}`);
                     const baseColor = turbo && turbo.turnsSinceEngaged > 0 ? '#e8e7a9' : '#005577';
 
                     const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', baseColor + '44', 300, {

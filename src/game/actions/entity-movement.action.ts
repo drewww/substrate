@@ -166,7 +166,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
         const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
 
-        logger.info(`entities at new pos: ${entitiesAtNewPos.length}`);
+        // logger.info(`entities at new pos: ${entitiesAtNewPos.length}`);
 
         // check to see if the tile we're entering has components that need to be check
         for (const destinationEntity of entitiesAtNewPos) {

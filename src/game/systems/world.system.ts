@@ -174,29 +174,29 @@ export class WorldSystem {
             }
 
 
-            const explodeEmpState = cooldowns.getCooldown('explode-emp');
-            if (explodeEmpState) {
-                if (explodeEmpState.ready) {
-                    explodeEmpState.current = explodeEmpState.base;
-                    explodeEmpState.ready = false;
-                    entity.setComponent(cooldowns);
+            // const explodeEmpState = cooldowns.getCooldown('explode-emp');
+            // if (explodeEmpState) {
+            //     if (explodeEmpState.ready) {
+            //         explodeEmpState.current = explodeEmpState.base;
+            //         explodeEmpState.ready = false;
+            //         entity.setComponent(cooldowns);
 
-                    this.world.removeEntity(entity.getId());
+            //         this.world.removeEntity(entity.getId());
 
-                    const empTemplate = new Entity({ x: 0, y: 0 });
-                    empTemplate.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd177', 1500));
-                    empTemplate.setComponent(new CooldownComponent({
-                        'disperse': {
-                            base: 4,
-                            current: 4,
-                            ready: false
-                        }
-                    }));
-                    empTemplate.setComponent(new StatusEffectComponent(StatusEffect.EMP));
+            //         const empTemplate = new Entity({ x: 0, y: 0 });
+            //         empTemplate.setComponent(new SymbolComponent('⚡︎', '#FFFFFFff', '#00ffd177', 1500));
+            //         empTemplate.setComponent(new CooldownComponent({
+            //             'disperse': {
+            //                 base: 4,
+            //                 current: 4,
+            //                 ready: false
+            //             }
+            //         }));
+            //         empTemplate.setComponent(new StatusEffectComponent(StatusEffect.EMP));
 
-                    this.createExplosion(entity, empTemplate);
-                }
-            }
+            //         this.createExplosion(entity, empTemplate);
+            //     }
+            // }
 
             const explodeCaltropsState = cooldowns.getCooldown('explode-caltrops');
             if (explodeCaltropsState) {
@@ -212,8 +212,8 @@ export class WorldSystem {
                     caltropsTemplate.setComponent(new StatusEffectComponent(StatusEffect.CALTROPS));
                     caltropsTemplate.setComponent(new CooldownComponent({
                         'disperse': {
-                            base: 30,
-                            current: 30,
+                            base: 100,
+                            current: 100,
                             ready: false
                         }
                     }));

@@ -17,6 +17,7 @@ import { FollowerComponent } from '../../entity/components/follower-component';
 import { VehicleLeaderComponent } from '../components/vehicle-leader.component';
 import { EnergyComponent } from '../components/energy.component';
 import { SymbolComponent } from '../../entity/components/symbol-component';
+import { ReverseComponent } from '../components/reverse.component';
 
 export const PLAYER_MOVE_COOLDOWN = 1000;
 
@@ -65,6 +66,12 @@ export class PlayerMovementSystem {
         const turbo = player.getComponent('turbo') as TurboComponent;
         const energy = player.getComponent('energy') as EnergyComponent;
         const bufferedMove = player.getComponent('bufferedMove') as BufferedMoveComponent;
+
+        logger.info(`prediction.isReverseing: ${prediction.isReverseing}`);
+        player.removeComponent('reverse');
+        if(prediction.isReverseing) {
+            player.setComponent(new ReverseComponent());
+        }
 
         if(inertia && inertia.resetInertia) {
             inertia.resetInertia = false;

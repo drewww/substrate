@@ -24,6 +24,7 @@ export interface MovementPrediction {
     };
     willCollide: boolean;
     collision?: Point;
+    isReverseing: boolean;
 }
 
 export const MEDIUM_SPEED_THRESHOLD = 2;
@@ -54,6 +55,8 @@ export class MovementPredictor {
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude} brake: ${brake}`);
 
 
+        let isReverseing = false;
+
         // If no buffered move and no significant inertia, no movement
         if (!bufferedMove && !brake&& (!inertia || inertia.magnitude <= 1)) {
             // logger.info(`No buffered move and no significant inertia, no movement`);
@@ -63,7 +66,8 @@ export class MovementPredictor {
                     direction: inertia?.direction ?? Direction.South,
                     magnitude: 0
                 },
-                willCollide: false
+                willCollide: false,
+                isReverseing: false
             };
         }
 
@@ -86,7 +90,8 @@ export class MovementPredictor {
                     collision: {
                         x: newPos.x,
                         y: newPos.y
-                    }
+                    },
+                    isReverseing: false
                 };
             }
 
@@ -101,7 +106,8 @@ export class MovementPredictor {
                     direction: inertia.direction,
                     magnitude: Math.min(maxSpeed, inertia.magnitude+1),  // Cap at max speed. in this model, speed up even if you're not pushing forward.
                 },
-                willCollide: false
+                willCollide: false,
+                isReverseing: false
             };
         }
 
@@ -160,6 +166,8 @@ export class MovementPredictor {
                             entityId: player.getId(),
                             data: { to: { x: pos.x + inertiaDir.x, y: pos.y + inertiaDir.y } }
                         });
+
+                        isReverseing = true;
                     }
                     
                     if(brake) {
@@ -167,6 +175,8 @@ export class MovementPredictor {
                             direction: inertia.direction,
                             magnitude: Math.max(0, inertia.magnitude-1),
                         };
+
+                        
                     } else {
 
                         // don't allow retro thrusting to drop you below 2 speed. 
@@ -175,6 +185,8 @@ export class MovementPredictor {
                             direction: inertia.direction,
                             magnitude: Math.max(SLIDE_SPEED+1, inertia.magnitude-1),
                         };
+
+                        isReverseing = true;
                     }
                     
                 } else if(inertia.magnitude <= SLIDE_SPEED) {
@@ -242,7 +254,8 @@ export class MovementPredictor {
                         collision: {
                             x: action.data.to.x,
                             y: action.data.to.y
-                        }
+                        },
+                        isReverseing: isReverseing
                     };
                 }
             }
@@ -251,6 +264,7 @@ export class MovementPredictor {
                 actions,
                 finalInertia,
                 willCollide: false,
+                isReverseing: isReverseing
             };
         }
 
@@ -261,18 +275,20 @@ export class MovementPredictor {
                 direction: inertia?.direction ?? Direction.South,
                 magnitude: 0,
             },
-            willCollide: false
+            willCollide: false,
+            isReverseing: false
         };
     }
 
-    private handleBrake(player: Entity): MovementPrediction {
-        const inertia = player.getComponent('inertia') as InertiaComponent;
-        const brake = player.getComponent('brake') as BrakeComponent;
+    // private handleBrake(player: Entity): MovementPrediction {
+    //     const inertia = player.getComponent('inertia') as InertiaComponent;
+    //     const brake = player.getComponent('brake') as BrakeComponent;
         
-        return {
-            actions: [],
-            finalInertia: { direction: inertia?.direction ?? Direction.South, magnitude: 0 },
-            willCollide: false
-        };
-    }
+    //     return {
+    //         actions: [],
+    //         finalInertia: { direction: inertia?.direction ?? Direction.South, magnitude: 0 },
+    //         willCollide: false,
+    //         isReverseing: false
+    //     };
+    // }
 } 

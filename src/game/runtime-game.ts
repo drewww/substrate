@@ -566,6 +566,7 @@ export class RuntimeGame extends Game {
 
         // Handle title screen actions
         if (action === 'start' && type === 'up') {
+            this.cleanupSpeedRenderer(); // Add cleanup
             this.initializeWorld({ type: 'city' })
                 .then(() => {
                     this.startGame();
@@ -577,6 +578,7 @@ export class RuntimeGame extends Game {
         }
 
         if (action === 'train' && type === 'up') {
+            this.cleanupSpeedRenderer(); // Add cleanup
             this.initializeWorld({ 
                 type: 'json',
                 url: circleTrackUrl
@@ -694,7 +696,7 @@ export class RuntimeGame extends Game {
             const turbo = this.player.getComponent('turbo') as TurboComponent;
             const energy = this.player.getComponent('energy') as EnergyComponent;
 
-            logger.warn(`turbo: ${turbo} energy: ${energy?.energy}`);
+            // logger.warn(`turbo: ${turbo} energy: ${energy?.energy}`);
 
             // Only allow turbo if we have enough speed AND enough energy
             if (inertia && inertia.magnitude >= BASE_MAX_SPEED && !turbo && energy && energy.energy >= 10) {
@@ -807,27 +809,39 @@ export class RuntimeGame extends Game {
     }
 
     // Add the speed renderer setup method
+    private cleanupSpeedRenderer(): void {
+        if (this.uiSpeedRenderer) {
+            // Remove all event listeners
+            // this.world?.removeAllListeners('componentModified');
+            // this.world?.removeAllListeners('componentRemoved');
+            // Remove frame callback if possible
+            // If Display class has a method to remove callbacks, use that
+            // this.uiSpeedRenderer = null;
+        }
+    }
+
     private setupSpeedRenderer(): void {
         if (!this.display || !this.world || !this.player) {
             throw new Error('Required game objects not initialized');
         }
 
+        // Clean up any existing renderer and listeners
+        this.cleanupSpeedRenderer();
+
         this.uiSpeedRenderer = new UISpeedRenderer(this.player);
         this.uiSpeedRenderer.hide();
 
-        // Listen for component modifications
+        // Add new listeners
         this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
-            this.uiSpeedRenderer.handleComponentModified(data.entity, data.componentType);
+            this.uiSpeedRenderer?.handleComponentModified(data.entity, data.componentType);
         });
 
-        // Listen for component removals
         this.world.on('componentRemoved', (data: { entity: Entity, componentType: string, component: Component }) => {
-            this.uiSpeedRenderer.handleComponentRemoved(data.entity, data.componentType, data.component);
+            this.uiSpeedRenderer?.handleComponentRemoved(data.entity, data.componentType, data.component);
         });
 
-        // The frame callback will handle all updates
         this.display.addFrameCallback((display, timestamp) => {
-            this.uiSpeedRenderer.update(timestamp);
+            this.uiSpeedRenderer?.update(timestamp);
         });
     }
 
