@@ -169,7 +169,7 @@ export class RuntimeRenderer extends GameRenderer {
 
                     const trailTileId = this.display.createTile(from.x, from.y, ' ', '#FFFFFFFF', baseColor + '44', 50, {
                         bgPercent: 1,
-                        blendMode: BlendMode.Screen
+                        blendMode: BlendMode.Normal
                     });
 
                     this.display.addColorAnimation(trailTileId, {

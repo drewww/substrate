@@ -95,14 +95,15 @@
             gap: 0;  /* Remove the gap */
         }
 
-        #title-background {
+        #title-background-title, #title-background-death, #title-background-victory {
             position: absolute;
             top: 0;
             left: 0;
             width: 1060px;
             height: 600px;
-            z-index: 999;  /* Just behind the title canvas which is 1000 */
-            object-fit: cover;  /* This will cover the area while maintaining aspect ratio */
+            z-index: 999;
+            object-fit: cover;
+            display: none;  /* Hide all by default */
         }
 
         #title-screen {
@@ -172,11 +173,24 @@
             image-rendering: pixelated;  /* Makes scaled pixels crisp */
             background-color: #000;
         }
+
+        .title-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1060px;
+            height: 600px;
+            z-index: 999;
+            object-fit: cover;
+            display: none;  /* Hide all by default */
+        }
     </style>
 </head>
 <body>
     <div id="display-container">
-        <img id="title-background" src="../assets/img/title_max_2120.png" alt="title background">
+        <img id="title-background-title" src="../assets/img/title_max.png" alt="title background" class="title-background">
+        <img id="title-background-death" src="../assets/img/death_max.png" alt="death background" class="title-background">
+        <img id="title-background-victory" src="../assets/img/victory_max.png" alt="victory background" class="title-background">
         <canvas id="title-screen"></canvas>
         <canvas id="display"></canvas>
         <canvas id="ui-overlay"></canvas>

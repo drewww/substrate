@@ -907,7 +907,7 @@ export class UISpeedRenderer implements Renderer {
     }
 
     public resetDashboard(): void {
-        // Remove all status indicators
+        // Remove all status indicators including stun-related ones
         ['locked', 'turbo', 'brake', 'reverse', 'stunned', 'stunned_text'].forEach(key => {
             const tileIds = this.uiTiles.get(key);
             if (tileIds) {
@@ -921,7 +921,7 @@ export class UISpeedRenderer implements Renderer {
         this.updateEnergyIndicator();
         this.updateHealthIndicator();
         this.updateObjectivesIndicator();
-        this.updateStunnedIndicator();
+        // Remove updateStunnedIndicator() call since we want stun to be off
 
         // Check and update current component states
         if (this.player.hasComponent('locked')) {

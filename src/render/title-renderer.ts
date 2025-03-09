@@ -27,8 +27,8 @@ export enum TitleMode {
 }
 
 export class TitleRenderer implements Renderer {
+    private titleBackgrounds: {[key: string]: HTMLImageElement} = {};
 
-    private titleBackground: HTMLImageElement;
     private readonly CREDITS = [
         {
             name: 'Drew Harry',
@@ -58,25 +58,37 @@ export class TitleRenderer implements Renderer {
         private readonly world: World,
         private readonly game: RuntimeGame
     ) {
-        this.titleBackground = document.getElementById('title-background') as HTMLImageElement;
-        if (!this.titleBackground) {
-            throw new Error('Title background image not found');
+        // Get all background images
+        this.titleBackgrounds = {
+            title: document.getElementById('title-background-title') as HTMLImageElement,
+            death: document.getElementById('title-background-death') as HTMLImageElement,
+            victory: document.getElementById('title-background-victory') as HTMLImageElement
+        };
+
+        if (!this.titleBackgrounds.title || !this.titleBackgrounds.death || !this.titleBackgrounds.victory) {
+            throw new Error('Title background images not found');
         }
         this.world = world;
         this.game = game;
     }
 
     public prepare(mode: TitleMode): void {
+        // Hide all backgrounds first
+        Object.values(this.titleBackgrounds).forEach(img => {
+            img.style.display = 'none';
+        });
+
+        // Show the appropriate background
         switch(mode) {
             case TitleMode.TITLE:
-                this.titleBackground.src = '../assets/img/title_max.png';
+                this.titleBackgrounds.title.style.display = 'block';
                 break;
             case TitleMode.DEATH:
-                this.titleBackground.src = '../assets/img/death_max.png';
+                this.titleBackgrounds.death.style.display = 'block';
                 break;
             case TitleMode.VICTORY:
             case TitleMode.CREDITS:
-                this.titleBackground.src = '../assets/img/victory_max.png';
+                this.titleBackgrounds.victory.style.display = 'block';
                 break;
         }
     }
@@ -105,10 +117,10 @@ export class TitleRenderer implements Renderer {
         }
 
         if (mode !== TitleMode.TUTORIAL) {
-            this.titleBackground.style.display = 'block';
-            this.titleBackground.style.visibility = 'visible';
+            this.titleBackgrounds.title.style.display = 'block';
+            this.titleBackgrounds.title.style.visibility = 'visible';
         } else {
-            this.titleBackground.style.display = 'none';
+            this.titleBackgrounds.title.style.display = 'none';
         }
 
         this.display.getDisplayCanvas().style.display = 'block';
@@ -622,7 +634,10 @@ export class TitleRenderer implements Renderer {
 
     public hide(): void {
         this.display.getDisplayCanvas().style.display = 'none';
-        this.titleBackground.style.display = 'none';
+        // Hide all backgrounds
+        Object.values(this.titleBackgrounds).forEach(img => {
+            img.style.display = 'none';
+        });
     }
 
     private spaceCount: number = 0;
