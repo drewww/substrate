@@ -38,7 +38,8 @@ export const StunAction: ActionClass<StunActionData> = {
         entity.setComponent(cooldowns);
 
         // Reset inertia if requested
-        if (action.data.resetInertia && entity.hasComponent('inertia')) {
+        // this used to be behind a data.resetInertia flag
+        if (entity.hasComponent('inertia')) {
             const inertia = entity.getComponent('inertia') as InertiaComponent;
             entity.setComponent(new InertiaComponent(
                 inertia.direction ?? Direction.South,
