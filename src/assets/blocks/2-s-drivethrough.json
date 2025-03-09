@@ -3692,8 +3692,7 @@
           "direction": 1
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },
@@ -3997,8 +3996,7 @@
           "direction": 0
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },
@@ -4059,8 +4057,7 @@
           "direction": 3
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },
@@ -4094,8 +4091,7 @@
           "direction": 0
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },
@@ -4853,10 +4849,9 @@
           "lockRotationToFacing": false,
           "blendMode": "normal"
         },
-          {
-            "type": "impassable"
-          }
-
+        {
+          "type": "impassable"
+        }
       ]
     },
     {
@@ -4884,10 +4879,9 @@
           "lockRotationToFacing": false,
           "blendMode": "normal"
         },
-          {
-            "type": "impassable"
-          }
-
+        {
+          "type": "impassable"
+        }
       ]
     },
     {
@@ -4915,10 +4909,9 @@
           "lockRotationToFacing": false,
           "blendMode": "normal"
         },
-          {
-            "type": "impassable"
-          }
-
+        {
+          "type": "impassable"
+        }
       ]
     },
     {
@@ -4965,74 +4958,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "vehicle"
-        },
-        {
-          "type": "vehicle-leader",
-          "vehicleId": 0
-        },
-        {
-          "type": "followable",
-          "followPriority": 100,
-          "lastPosition": null
-        },
-        {
-          "type": "cooldown",
-          "cooldowns": {
-            "move": {
-              "base": 4,
-              "current": 4,
-              "ready": false
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "e16757",
-      "position": {
-        "x": 10,
-        "y": 3
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "⧯",
-          "foreground": "#F7BADFFF",
-          "background": "#0000FF00",
-          "zIndex": 100,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "normal"
-        },
-        {
-          "type": "facing",
-          "direction": 0
-        },
-        {
-          "type": "opacity"
-        },
-        {
-          "type": "impassable"
-        },
-        {
-          "type": "move",
-          "ignoreImpassable": false,
-          "allowDiagonal": false
-        },
-        {
-          "type": "objective",
-          "active": false,
-          "eligible": false,
-          "objectiveType": "vehicle"
+          "objectiveType": "vehicle",
+          "index": 0
         },
         {
           "type": "vehicle-leader",
@@ -6464,6 +6391,74 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "screen"
+        }
+      ]
+    },
+    {
+      "id": "e19228",
+      "position": {
+        "x": 10,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⧯",
+          "foreground": "#F7BADFFF",
+          "background": "#0000FF00",
+          "zIndex": 100,
+          "alwaysRenderIfExplored": false,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "normal"
+        },
+        {
+          "type": "facing",
+          "direction": 0
+        },
+        {
+          "type": "opacity"
+        },
+        {
+          "type": "impassable"
+        },
+        {
+          "type": "move",
+          "ignoreImpassable": false,
+          "allowDiagonal": false
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": false,
+          "objectiveType": "vehicle",
+          "index": 0
+        },
+        {
+          "type": "vehicle-leader",
+          "vehicleId": 0
+        },
+        {
+          "type": "followable",
+          "followPriority": 100,
+          "lastPosition": null
+        },
+        {
+          "type": "cooldown",
+          "cooldowns": {
+            "move": {
+              "base": 4,
+              "current": 4,
+              "ready": false
+            }
+          }
         }
       ]
     }

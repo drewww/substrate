@@ -5144,8 +5144,7 @@
           "direction": 2
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },
@@ -5179,8 +5178,7 @@
           "direction": 3
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },

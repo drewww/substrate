@@ -5629,8 +5629,7 @@
           "direction": 1
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },
@@ -5664,8 +5663,7 @@
           "direction": 1
         },
         {
-          "type": "turn",
-          "direction": 4
+          "type": "turn"
         }
       ]
     },

@@ -181,36 +181,39 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 });
             });
 
-            // Handle turning if entity has a facing component
-            if (entity.hasComponent('facing')) {
-                const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
-                const turnEntity = entitiesAtNewPos.find(e => e.hasComponent('turn'));
-                
-                if (turnEntity && !turnEntity.hasComponent('enemyAI')) {
-
-                    const turnFacing = turnEntity.getComponent('facing') as FacingComponent;
-                    const turnDirection = turnFacing.direction;
-                    const entityFacing = entity.getComponent('facing') as FacingComponent;
-                    entityFacing.direction = turnDirection;
-                    entity.setComponent(entityFacing);
-
-                    // Update light emitter facing
-                    const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
-                    if (lightEmitter) {
-                        // lightEmitter.config.facing = turnDirection;
-                        entity.setComponent(lightEmitter);
-                    }
-                }
-            }
+           
 
             // Handle vision updates for player
-            const visionComponent = entity.getComponent('vision') as VisionComponent;
-            const radius = visionComponent?.radius ?? 30;
-            world.updateVision(action.data.to, radius);
+            // const visionComponent = entity.getComponent('vision') as VisionComponent;
+            // const radius = visionComponent?.radius ?? 30;
+            // world.updateVision(action.data.to, radius);
 
             const metrics = entity.getComponent('metrics') as MetricsComponent;
             metrics.tilesTraveled += 1;
             entity.setComponent(metrics);
+        }
+
+         // Handle turning if entity has a facing component
+         if (entity.hasComponent('facing')) {
+            const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
+            const turnEntity = entitiesAtNewPos.find(e => e.hasComponent('turn'));
+            
+            // do not apply to active enemies
+            if (turnEntity && !turnEntity.hasComponent('enemyAI')) {
+
+                const turnFacing = turnEntity.getComponent('facing') as FacingComponent;
+                const turnDirection = turnFacing.direction;
+                const entityFacing = entity.getComponent('facing') as FacingComponent;
+                entityFacing.direction = turnDirection;
+                entity.setComponent(entityFacing);
+
+                // Update light emitter facing
+                // const lightEmitter = entity.getComponent('lightEmitter') as LightEmitterComponent;
+                // if (lightEmitter) {
+                //     // lightEmitter.config.facing = turnDirection;
+                //     entity.setComponent(lightEmitter);
+                // }
+            }
         }
 
         // check to see if the tile we're entering has components that need to be checkd

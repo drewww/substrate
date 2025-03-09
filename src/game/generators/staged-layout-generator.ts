@@ -144,7 +144,7 @@ export class StagedLayoutGenerator {
                     else if (connections.includes('west')) orientation = 3;
                 } else {
                     roadType = 'turn';
-                    // For turns, use the largest weight of connected roads
+                    //For turns, use the largest weight of connected roads
                     cell.roadInfo.weight = largestWeight;
                     
                     if (connections.includes('south') && connections.includes('east')) orientation = 0;

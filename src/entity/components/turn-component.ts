@@ -6,9 +6,8 @@ import { RegisterComponent } from '../component-registry';
 export class TurnComponent extends Component {
     readonly type = 'turn';
     
-    constructor(
-        public direction: Direction = Direction.None
-    ) {
+    constructor()
+    {
         super();
     }
 } 
