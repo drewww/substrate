@@ -18,6 +18,7 @@ import crashSound from '../assets/sound/crash.wav?url';
 import lowEngineSound from '../assets/sound/low-engine.wav?url';
 import midEngineSound from '../assets/sound/mid-engine.wav?url';
 import highEngineSound from '../assets/sound/high-engine.wav?url';
+import turboEngineSound from '../assets/sound/turbo-engine.wav?url';
 import objectiveSound from '../assets/sound/objective.wav?url';
 import lockedSound from '../assets/sound/locked.wav?url';
 import unlockedSound from '../assets/sound/unlocked.wav?url';
@@ -27,7 +28,8 @@ enum EngineState {
     Off = 0,
     Low = 1,
     Medium = 2,
-    Turbo = 3
+    High = 3,
+    Turbo = 4
 }
 
 export class RuntimeSoundRenderer extends BaseSoundRenderer {
@@ -83,6 +85,13 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                 }
             },
             {
+                id: 'turbo-engine',
+                url: turboEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
                 id: 'objective',
                 url: objectiveSound,
                 options: {
@@ -124,14 +133,14 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
 
         if (stunCooldown && !this.isStunned) {
             logger.warn('playing stunned sound');
-            this.playSound('crashed', { volume: 0.3 });
+            this.playSound('crashed', { volume: 0.2 });
             this.isStunned = true;
         }
 
         if(entity.hasComponent('player') && componentType == "locked") {
             const locked = entity.getComponent('locked') as LockedComponent;
             if(locked && !this.isLocked) {
-                this.playSound('locked', { volume: 0.1 });
+                this.playSound('locked', { volume: 0.05 });
                 this.isLocked = true;
             }
         }
@@ -169,8 +178,10 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
             if (inertia.magnitude > 0) {
                 if (hasTurbo) {
                     newState = EngineState.Turbo;
-                } else if (inertia.magnitude >= 2) {
+                } else if (inertia.magnitude >= 2 && inertia.magnitude < 4) {
                     newState = EngineState.Medium;
+                } else if (inertia.magnitude >= 4) {
+                    newState = EngineState.High;
                 } else {
                     newState = EngineState.Low;
                 }
@@ -187,21 +198,27 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                     case EngineState.Medium:
                         this.stopSound('mid-engine');
                         break;
-                    case EngineState.Turbo:
+                    case EngineState.High:
                         this.stopSound('high-engine');
+                        break;
+                    case EngineState.Turbo:
+                        this.stopSound('turbo-engine');
                         break;
                 }
 
                 // Start new engine sound
                 switch (newState) {
                     case EngineState.Low:
-                        this.playSound('low-engine', { volume: 0.2, loop: true });
+                        this.playSound('low-engine', { volume: 0.3, loop: true });
                         break;
                     case EngineState.Medium:
-                        this.playSound('mid-engine', { volume: 0.2, loop: true });
+                        this.playSound('mid-engine', { volume: 0.3, loop: true });
                         break;
                     case EngineState.Turbo:
-                        this.playSound('high-engine', { volume: 0.2, loop: true });
+                        this.playSound('turbo-engine', { volume: 0.3, loop: true });
+                        break;
+                    case EngineState.High:
+                        this.playSound('high-engine', { volume: 0.3, loop: true });
                         break;
                 }
 
@@ -213,7 +230,7 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
     public handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
         if(entity.hasComponent('player') && componentType === 'locked') {
             this.isLocked = false;  // Reset the lock state when component is removed
-            this.playSound('unlocked', { volume: 0.1 });
+            this.playSound('unlocked', { volume: 0.05 });
         }
 
         if(entity.hasComponent('player') && componentType === 'stun') {
