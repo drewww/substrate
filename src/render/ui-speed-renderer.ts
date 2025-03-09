@@ -26,6 +26,7 @@ export class UISpeedRenderer implements Renderer {
     private readonly BEST_TIME_X = 65;  // Position for best time display
     private readonly OBJECTIVES_START_X = 43;  // After health indicator
     private readonly LOCKED_X = 80;  // Position for locked indicator
+    private readonly TURBO_X = 88;   // New position (3 positions after LOCKED)
     private readonly REVERSE_X = 86;  // 6 positions after LOCKED_X (80)
 
     private readonly SPEED_COLORS = [
@@ -467,6 +468,37 @@ export class UISpeedRenderer implements Renderer {
         }
     }
 
+    private updateTurboIndicator(isTurbo: boolean): void {
+        // Remove existing turbo tiles if they exist
+        const turboTileIds = this.uiTiles.get('turbo');
+        if (turboTileIds) {
+            this.uiDisplay.removeTiles(turboTileIds);
+            this.uiTiles.delete('turbo');
+        }
+
+        // If turbo, create new tiles
+        if (isTurbo) {
+            const newTurboTileIds = this.uiDisplay.createString(
+                this.TURBO_X,
+                0,              // Same row as LOCKED
+                'TURBO',
+                1001,
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: '#0088FFFF'  // Bright blue color used throughout
+                }
+            );
+            this.uiTiles.set('turbo', newTurboTileIds);
+
+            // Set white text color
+            for (const tileId of newTurboTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF'
+                });
+            }
+        }
+    }
+
     private updateBrakeIndicator(isBraking: boolean): void {
         // Remove existing brake tiles if they exist
         // Remove existing brake tiles if they exist
@@ -559,6 +591,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateBrakeIndicator(true);
             } else if (componentType === 'reverse') {
                 this.updateReverseIndicator(true);
+            } else if (componentType === 'turbo') {
+                this.updateTurboIndicator(true);
             }
         }
     }
@@ -581,6 +615,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateBrakeIndicator(false);
             } else if (componentType === 'reverse') {
                 this.updateReverseIndicator(false);
+            } else if (componentType === 'turbo') {
+                this.updateTurboIndicator(false);
             }
         }
     }
