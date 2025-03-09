@@ -9,6 +9,7 @@ import { logger } from '../util/logger';
 import { HealthComponent } from '../entity/components/health.component';
 import { EnergyComponent } from '../game/components/energy.component';
 import { MetricsComponent } from '../game/components/metrics.component';
+import { CooldownComponent } from '../game/components/cooldown.component';
 
 export class UISpeedRenderer implements Renderer {
 
@@ -28,6 +29,7 @@ export class UISpeedRenderer implements Renderer {
     private readonly LOCKED_X = 80;  // Position for locked indicator
     private readonly TURBO_X = 88;   // New position (3 positions after LOCKED)
     private readonly REVERSE_X = 86;  // 6 positions after LOCKED_X (80)
+    private readonly STUNNED_X = 73;  // 7 positions before LOCKED (80)
 
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
@@ -571,6 +573,44 @@ export class UISpeedRenderer implements Renderer {
         }
     }
 
+    private updateStunnedIndicator(): void {
+        // Remove existing stunned tiles if they exist
+        const stunnedTileIds = this.uiTiles.get('stunned');
+        if (stunnedTileIds) {
+            this.uiDisplay.removeTiles(stunnedTileIds);
+            this.uiTiles.delete('stunned');
+        }
+
+        // Check for stun cooldown
+        const cooldown = this.player.getComponent('cooldown') as CooldownComponent;
+
+        // if(cooldown) {
+        //     const stunCooldown = cooldown.getCooldown('stun');
+            
+        // }
+
+        if (cooldown && cooldown.getCooldown('stun') !== undefined) {
+            const newStunnedTileIds = this.uiDisplay.createString(
+                this.STUNNED_X,
+                0,              // Same row as LOCKED
+                'STUNNED',
+                1001,
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: '#FF194DFF'  // Bright red background
+                }
+            );
+            this.uiTiles.set('stunned', newStunnedTileIds);
+
+            // Set white text color
+            for (const tileId of newStunnedTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF'
+                });
+            }
+        }
+    }
+
     update(timestamp: number): void {
         this.updateTimeDisplay();
     }
@@ -599,6 +639,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateReverseIndicator(true);
             } else if (componentType === 'turbo') {
                 this.updateTurboIndicator(true);
+            } else if (componentType === 'cooldown') {
+                this.updateStunnedIndicator();
             }
         }
     }
@@ -623,6 +665,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateReverseIndicator(false);
             } else if (componentType === 'turbo') {
                 this.updateTurboIndicator(false);
+            } else if (componentType === 'cooldown') {
+                this.updateStunnedIndicator();
             }
         }
     }
