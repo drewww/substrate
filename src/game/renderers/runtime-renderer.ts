@@ -371,15 +371,17 @@ if (fireCooldown && !fireCooldown.ready) {
                     });
                 }
 
-                this.display.addValueAnimation(tileId, {
-                    bgPercent: {
-                        start: 1.0,
-                        end: 0.0,
-                        duration: stunState.base * TICK_MS / 1000, // Convert ms to seconds
-                        easing: Easing.linear,
-                        loop: false,
-                    }
-                });
+                if(!entity.hasComponent('player')) {
+                    this.display.addValueAnimation(tileId, {
+                        bgPercent: {
+                            start: 1.0,
+                            end: 0.0,
+                            duration: stunState.base * TICK_MS / 1000, // Convert ms to seconds
+                            easing: Easing.linear,
+                            loop: false,
+                        }
+                        });
+                }
 
                 // set ready to false
                 cooldowns.setCooldown('stun', stunState.base, stunState.current, false);
