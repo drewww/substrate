@@ -15,19 +15,6 @@ const VIEWPORT_PADDING_Y = 0.2; // 20% padding on top/bottom
 // Add new type for mouse event types
 export type MouseTransition = 'down' | 'up';
 
-export interface DisplayOptions {
-    elementId: string;
-    cellWidth: number;
-    cellHeight: number;
-    viewportWidth: number;
-    viewportHeight: number;
-    worldWidth: number;
-    worldHeight: number;
-    defaultFont?: string;
-    customFont?: string;
-    defaultBackground?: string;
-}
-
 export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private renderCanvas: HTMLCanvasElement;

@@ -281,16 +281,19 @@ export class RuntimeGame extends Game {
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
 
-            // ignore normal objectives in tutorial mode
-            if(this.titleRenderer?.getCurrentMode() === TitleMode.TUTORIAL) {
-                return;
-            }
+           
 
             const player = this.world!.getPlayer();
             const metrics = player.getComponent('metrics') as MetricsComponent;
             if (metrics) {
                 metrics.objectivesSecured += 1;
+                metrics.objectivesThisLevel += 1;
                 player.setComponent(metrics);
+            }
+
+            // ignore normal objectives in tutorial mode
+            if(this.titleRenderer?.getCurrentMode() === TitleMode.TUTORIAL) {
+                return;
             }
 
             this.objectiveCount++;
@@ -582,6 +585,13 @@ export class RuntimeGame extends Game {
             this.cleanupSpeedRenderer(); // Add cleanup
             this.initializeWorld({ type: 'city' })
                 .then(() => {
+
+                    // TODO adapt this to the number of objectives generated in the level
+                    const player = this.world!.getPlayer();
+                    const metrics = player.getComponent('metrics') as MetricsComponent;
+                    metrics.maxObjectivesThisLevel = 3;
+                    player.setComponent(metrics);
+
                     this.startGame();
                     this.uiSpeedRenderer?.show();
                     this.setupMinimap(this.world!);
@@ -597,6 +607,12 @@ export class RuntimeGame extends Game {
                 url: tutorialURL
             })
                 .then(() => {
+
+                    const player = this.world!.getPlayer();
+                    const metrics = player.getComponent('metrics') as MetricsComponent;
+                    metrics.maxObjectivesThisLevel = 12;
+                    player.setComponent(metrics);
+
                     this.startGame();
                     if (this.titleRenderer) {
                         this.titleRenderer.show(TitleMode.TUTORIAL);

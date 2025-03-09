@@ -485,8 +485,14 @@ export class TitleRenderer implements Renderer {
         this.spaceCount++;
 
         this.blankScreen();
-        if(this.spaceCount === 1) {
-            this.display.createString(4, this.display.getViewportHeight() - 4, '{w}Your speed. At low speeds, you can turn. At high speeds you can ... [space]{/}', 1000, {
+            if(this.spaceCount === 1) {
+
+                this.display.createTile(3, this.display.getViewportHeight() - 4, '⤷', '#FFFFFFFF', '#00000000', 1000, {
+                    rotation: 90/180 * Math.PI
+                }
+                );
+
+            this.display.createString(6, this.display.getViewportHeight() - 4, '{w}Your speed. At low speeds, you can turn. At high speeds you can ... [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
                     delayBetweenChars: 0.05,

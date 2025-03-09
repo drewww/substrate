@@ -9,6 +9,10 @@ export class MetricsComponent extends Component {
         public tilesTraveled: number = 0,
         public timesCrashed: number = 0,
         public objectivesSecured: number = 0,
+
+        public objectivesThisLevel: number = 0,
+        public maxObjectivesThisLevel: number = 0,
+
         public tilesDrifted: number = 0
     ) {
         super();

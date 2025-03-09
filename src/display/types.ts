@@ -223,6 +223,7 @@ export interface DisplayOptions {
     viewportHeight: number;
     defaultFont?: string;
     customFont?: string;
+    defaultBackground?: string;
 }
 
 export interface StringOptions {

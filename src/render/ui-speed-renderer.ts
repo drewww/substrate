@@ -235,14 +235,20 @@ export class UISpeedRenderer implements Renderer {
                 ' ',
                 '#FFFFFFFF',
                 '#00000000',
-                1001,
-                {
-                    // walls: [true, false],
-                    // wallColors: ['#FFFFFF88', null]
-                }
+                1001
             );
             this.uiTiles.set(`objective_${i}`, [objectiveTileId]);
         }
+
+        // Add objectives label
+        const objectivesLabelTileIds = this.uiDisplay.createString(
+            this.OBJECTIVES_START_X,
+            1,
+            'objectives',
+            1001,
+            { fontFamily: 'monospace' }
+        );
+        this.uiTiles.set('objectives_label', objectivesLabelTileIds);
 
         // Update label positions
         const speedLabelTileIds = this.uiDisplay.createString(
@@ -331,17 +337,66 @@ export class UISpeedRenderer implements Renderer {
 
     private updateObjectivesIndicator(): void {
         const metrics = this.player.getComponent('metrics') as MetricsComponent;
-        // If no metrics component exists, just return without updating
+        
+        // Show or hide the objectives label based on metrics presence
+        const labelTileIds = this.uiTiles.get('objectives_label');
+        if (labelTileIds) {
+            for (const tileId of labelTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: metrics ? '#FFFFFFFF' : '#00000000'  // Show if metrics exists, hide if not
+                });
+            }
+        }
+
         if (!metrics) {
+            // Clear all objective tiles if no metrics
+            for (let i = 0; i < this.MAX_OBJECTIVES; i++) {
+                const objectiveTileIds = this.uiTiles.get(`objective_${i}`);
+                if (objectiveTileIds) {
+                    for (const objectiveTileId of objectiveTileIds) {
+                        this.uiDisplay.updateTile(objectiveTileId, {
+                            bg: '#00000000'
+                        });
+                    }
+                }
+            }
             return;
         }
 
-        for (let i = 0; i < this.MAX_OBJECTIVES; i++) {
+        if(metrics.maxObjectivesThisLevel != 0) {
+        // First create dark green background for total possible objectives
+            for (let i = 0; i < metrics.maxObjectivesThisLevel; i++) {
+                const objectiveTileIds = this.uiTiles.get(`objective_${i}`);
+                if (objectiveTileIds) {
+                    for (const objectiveTileId of objectiveTileIds) {
+                        this.uiDisplay.updateTile(objectiveTileId, {
+                            bg: '#00440088'  // Dark green background for total possible
+                        });
+                    }
+                }
+            }
+        }
+        
+
+        // Then fill in bright green for current level objectives
+        for (let i = 0; i < metrics.objectivesThisLevel; i++) {
             const objectiveTileIds = this.uiTiles.get(`objective_${i}`);
             if (objectiveTileIds) {
                 for (const objectiveTileId of objectiveTileIds) {
                     this.uiDisplay.updateTile(objectiveTileId, {
-                        bg: i < metrics.objectivesSecured ? this.OBJECTIVES_COLORS[i] : '#00000000'
+                        bg: this.OBJECTIVES_COLORS[i]  // Bright green for collected
+                    });
+                }
+            }
+        }
+
+        // Clear any remaining tiles beyond maxObjectives
+        for (let i = metrics.maxObjectivesThisLevel; i < this.MAX_OBJECTIVES; i++) {
+            const objectiveTileIds = this.uiTiles.get(`objective_${i}`);
+            if (objectiveTileIds) {
+                for (const objectiveTileId of objectiveTileIds) {
+                    this.uiDisplay.updateTile(objectiveTileId, {
+                        bg: '#00000000'  // Clear any tiles beyond max
                     });
                 }
             }
