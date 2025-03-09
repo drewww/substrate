@@ -274,7 +274,7 @@ export class RuntimeGame extends Game {
                 gameCanvas.style.visibility = 'hidden';
             }
 
-            }, 1000);
+            }, 50);
         });
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
@@ -314,7 +314,7 @@ export class RuntimeGame extends Game {
                         if (this.titleRenderer) {
                             this.titleRenderer.show(TitleMode.VICTORY);
                         }
-                    }, 2000);
+                    }, 50);
         
                     // TODO this is where "level victory" should be handled
 
@@ -375,7 +375,12 @@ export class RuntimeGame extends Game {
         try {
             const generator: WorldGenerator = options.type === 'json' 
                 ? await JsonWorldGenerator.fromUrl(options.url!)
-                : new CityBlockGenerator({ layoutType: 'fixed' });
+                : new CityBlockGenerator({ layoutType: 'fixed', spawnHelicopter: true, spawnProbabilities: {
+                    pedestrian: 0.3,
+                    camera: 0.8,
+                    boomer: 0.0,
+                    turret: 0.0
+                } });
             
             this.generator = generator;
             this.world = await generator.generate();
@@ -1019,7 +1024,6 @@ export class RuntimeGame extends Game {
 
             const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
             symbol.foreground = '#FF0000FF';
-            symbol.char = '◎';
             randomObjective.setComponent(symbol);
 
             // Set up the objective itself

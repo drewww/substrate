@@ -201,9 +201,16 @@ function selectVariant(blockType: BlockType): string {
     return config.variants[0].url;
 }
 
-// First, add the configuration type near the top of the file with the other types
+// First, update the CityBlockGeneratorOptions type to include spawn probabilities
 type CityBlockGeneratorOptions = {
     layoutType: 'generate' | 'fixed';
+    spawnProbabilities?: {
+        pedestrian?: number;  // 0.0 to 1.0
+        camera?: number;      // 0.0 to 1.0
+        boomer?: number;      // 0.0 to 1.0
+        turret?: number;      // 0.0 to 1.0
+    };
+    spawnHelicopter?: boolean; // Whether to spawn a helicopter
 };
 
 export class CityBlockGenerator implements WorldGenerator {
@@ -211,6 +218,14 @@ export class CityBlockGenerator implements WorldGenerator {
     private readonly blockHeight: number = 12;
     private readonly options: CityBlockGeneratorOptions;
     private layout: ChunkMetadata[][] | null = null;
+    
+    // Default probabilities
+    private readonly defaultProbabilities = {
+        pedestrian: 0.3,
+        camera: 0.2,
+        boomer: 0.15,
+        turret: 0.1
+    };
     
     // Remove the hardcoded width/height and make them computed properties
     private get width(): number {
@@ -222,7 +237,14 @@ export class CityBlockGenerator implements WorldGenerator {
     }
 
     constructor(options: CityBlockGeneratorOptions = { layoutType: 'generate' }) {
-        this.options = options;
+        this.options = {
+            ...options,
+            spawnProbabilities: {
+                ...this.defaultProbabilities,
+                ...options.spawnProbabilities
+            },
+            spawnHelicopter: options.spawnHelicopter !== undefined ? options.spawnHelicopter : true
+        };
     }
 
     private rotateEntityPosition(entity: Entity, orientation: number, blockWidth: number, blockHeight: number): void {
@@ -444,60 +466,16 @@ export class CityBlockGenerator implements WorldGenerator {
             }
         }
 
-        // // Remove all vehicles and pedestrians
-        // const entitiesToRemove = world.getEntities().filter(entity => {
-            // Check for vehicles (entities with follower/followable components)
-            // if (entity.hasComponent('follower') || entity.hasComponent('followable') &&
-            //     !entity.hasComponent('objective')) {
-            //     return true;
-            // }
+        // Only place helicopter if spawnHelicopter is true
+        if (this.options.spawnHelicopter) {
+            // Your existing helicopter placement code
+            const x = Math.floor(Math.random() * (this.width-2))+1;
+            const y = Math.floor(Math.random() * (this.height-2))+1;
 
-            // Check for pedestrians
-            // const aiComponent = entity.getComponent('enemyAI') as EnemyAIComponent;
-            // if (aiComponent && aiComponent.aiType === EnemyAIType.PEDESTRIAN) {
-            //     return true;
-            // }
-
-        //     return false;
-        // });
-
-        // entitiesToRemove.forEach(entity => {
-        //     world.removeEntity(entity.getId());
-        // });
-
-        // Get all wall tiles (entities with both impassable and symbol components where symbol is '#')
-        // const wallTiles = world.getEntities()
-        //     .filter(entity => {
-        //         if (!entity.hasComponent("impassable") || !entity.hasComponent("symbol")) return false;
-        //         const symbol = entity.getComponent("symbol") as SymbolComponent;
-        //         return symbol.char === '#';
-        //     });
-
-        // // Shuffle array
-        // const shuffledWalls = [...wallTiles].sort(() => Math.random() - 0.5);
-
-        // Find a location at least 36 tiles away from the start location
-        const player = world.getEntities().find(entity => entity.hasComponent('player'));
-        if (!player) {
-            logger.error('No player found');
-            return world;
+            this.placeHelicopter(x * this.blockWidth, y * this.blockHeight, world);
         }
 
-        const playerPos = player.getPosition();
-
-        // let heliX, heliY;
-        // do {
-        //     heliX = Math.floor(Math.random() * this.width * this.blockWidth);
-        //     heliY = Math.floor(Math.random() * this.height * this.blockHeight);
-        // } while (Math.sqrt(Math.pow(heliX - playerPos.x, 2) + Math.pow(heliY - playerPos.y, 2)) < 36);
-
-        // Place helicopter close to player for testing
-        const heliX = playerPos.x + 5;
-        const heliY = playerPos.y + 5;
-
-        
-        // this.placeHelicopter(heliX + 1, heliY + 1, world);
-
+        // Use the spawn hinting system instead of random placements
         this.postProcessEnemies(world);
 
         return world;
@@ -608,7 +586,7 @@ export class CityBlockGenerator implements WorldGenerator {
         symbol.alwaysRenderIfExplored = false;
         
         camera.setComponent(symbol);
-        camera.setComponent(new VisionComponent(5, false));
+        camera.setComponent(new VisionComponent(8, false));
         camera.setComponent(new EnemyAIComponent(EnemyAIType.CAMERA));
 
         world.addEntity(camera);
@@ -636,12 +614,13 @@ export class CityBlockGenerator implements WorldGenerator {
             const pos = hintEntity.getPosition();
             const hint = (hintEntity.getComponent(SpawnHintComponent.type) as SpawnHintComponent).hint;
             const roll = Math.random();
+            const threshold = 1 - this.getProbability(hint as 'pedestrian' | 'camera' | 'boomer' | 'turret');
 
             // Remove the hint entity
             world.removeEntity(hintEntity.getId());
 
-            // 30% chance to spawn the designated enemy
-            if (roll > 0.7) {
+            // Use the configured probability for this enemy type
+            if (roll > threshold) {
                 switch (hint) {
                     case 'camera':
                         this.placeCamera(pos.x, pos.y, world);
@@ -676,5 +655,10 @@ export class CityBlockGenerator implements WorldGenerator {
         }));
 
         world.addEntity(pedestrian);
+    }
+
+    // Helper method to get the probability with fallback to defaults
+    private getProbability(enemyType: 'pedestrian' | 'camera' | 'boomer' | 'turret'): number {
+        return this.options.spawnProbabilities?.[enemyType] ?? this.defaultProbabilities[enemyType];
     }
 } 
