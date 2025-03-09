@@ -115,6 +115,21 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
         ]);
     }
 
+    public stopAllSounds(): void {
+        this.stopSound('low-engine');
+        this.stopSound('mid-engine');
+        this.stopSound('high-engine');
+        this.stopSound('turbo-engine');
+        super.stopAllSounds();
+
+        setTimeout(() => {
+            this.stopSound('low-engine');
+            this.stopSound('mid-engine');
+            this.stopSound('high-engine');
+            this.stopSound('turbo-engine');
+        }, 100);
+    }
+
     public handleEntityAdded(entity: Entity): void {
         // No-op
     }

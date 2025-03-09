@@ -23,6 +23,22 @@ interface EntityMoveActionData {
     force?: boolean;
 }
 
+function checkAndHandleObjectives(world: World, position: Point) {
+    // Get objectives at this position
+    const entitiesAtPos = world.getEntitiesAt(position);
+    const objectives = entitiesAtPos.filter(e => {
+        const objComponent = e.getComponent('objective') as ObjectiveComponent;
+        return e.hasComponent('objective') && objComponent?.active === true;
+    });
+
+    objectives.forEach(objective => {
+        world.emit('objective-complete', { objective });
+        const objComponent = objective.getComponent('objective') as ObjectiveComponent;
+        objComponent.active = false;
+        objective.setComponent(objComponent);
+    });
+}
+
 export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
     canExecute(world: World, action: BaseAction<EntityMoveActionData>): boolean {
         const entity = world.getEntity(action.entityId);
@@ -124,7 +140,43 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
         const result = world.moveEntity(action.entityId, action.data.to);
         
-        if (result) {
+        if (result && entity.hasComponent('player')) {
+            // Check the destination tile and all adjacent tiles for vehicle objectives
+            const adjacentPositions = [
+                { x: action.data.to.x, y: action.data.to.y },     // Current position
+                { x: action.data.to.x + 1, y: action.data.to.y }, // Right
+                { x: action.data.to.x - 1, y: action.data.to.y }, // Left
+                { x: action.data.to.x, y: action.data.to.y + 1 }, // Down
+                { x: action.data.to.x, y: action.data.to.y - 1 }, // Up
+            ];
+
+            // Check each position for vehicle objectives
+            adjacentPositions.forEach(pos => {
+                const entitiesAtPos = world.getEntitiesAt(pos);
+                const vehicleObjectives = entitiesAtPos.filter(e => {
+                    const objComponent = e.getComponent('objective') as ObjectiveComponent;
+                    return e.hasComponent('objective') && 
+                           objComponent?.active === true && 
+                           objComponent.objectiveType === 'vehicle';
+                });
+
+                vehicleObjectives.forEach(objective => {
+                    // First emit the completion event
+                    world.emit('objective-complete', { objective });
+
+                    // Get all currently active objectives and deactivate them
+                    const activeObjectives = world.getEntitiesWithComponent('objective')
+                        .filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+                    
+                    activeObjectives.forEach(e => {
+                        logger.info(`deactivating objective: ${e.getId()}`);
+                        const objComponent = e.getComponent('objective') as ObjectiveComponent;
+                        objComponent.active = false;
+                        e.setComponent(objComponent);
+                    });
+                });
+            });
+
             // Handle turning if entity has a facing component
             if (entity.hasComponent('facing')) {
                 const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
@@ -148,15 +200,13 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
             }
 
             // Handle vision updates for player
-            if (entity.hasComponent('player')) {
-                const visionComponent = entity.getComponent('vision') as VisionComponent;
-                const radius = visionComponent?.radius ?? 30;
-                world.updateVision(action.data.to, radius);
+            const visionComponent = entity.getComponent('vision') as VisionComponent;
+            const radius = visionComponent?.radius ?? 30;
+            world.updateVision(action.data.to, radius);
 
-                const metrics = entity.getComponent('metrics') as MetricsComponent;
-                metrics.tilesTraveled += 1;
-                entity.setComponent(metrics);
-            }
+            const metrics = entity.getComponent('metrics') as MetricsComponent;
+            metrics.tilesTraveled += 1;
+            entity.setComponent(metrics);
         }
 
         // check to see if the tile we're entering has components that need to be checkd

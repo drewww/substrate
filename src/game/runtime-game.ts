@@ -279,8 +279,7 @@ export class RuntimeGame extends Game {
         });
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
-
-           
+            this.soundRenderer?.playSound('objective', {volume: 0.2});
 
             const player = this.world!.getPlayer();
             const metrics = player.getComponent('metrics') as MetricsComponent;
@@ -1102,6 +1101,8 @@ export class RuntimeGame extends Game {
     }
 
     public stopEngine(): void {
+        this.soundRenderer?.stopAllSounds();
+        
         if (this.engine?.isRunning()) {
             this.engine.stop();
 

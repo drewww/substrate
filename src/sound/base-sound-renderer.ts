@@ -220,23 +220,37 @@ export abstract class BaseSoundRenderer implements Renderer {
      * Stop all currently playing sounds and clean up audio nodes
      */
     public stopAllSounds(): void {
+        logger.warn('Starting stopAllSounds');
         try {
-            // Create a copy of all active sounds
+            // First, remove all event listeners to prevent new sounds from being added
             const soundIds = Array.from(this.activeSounds.keys());
-            const loopingSoundIds = Array.from(this.entityLoopingSounds.values()).flat();
+            const loopingSoundIds = Array.from(this.entityLoopingSounds.values())
+                .flatMap(set => Array.from(set));
+
+            // Combine all sound IDs to process
+            const allSoundIds = new Set([...soundIds, ...loopingSoundIds]);
             
-            // Stop each regular sound and disconnect its nodes
-            for (const soundId of soundIds) {
+            logger.info(`Stopping ${allSoundIds.size} sounds (${soundIds.length} active, ${loopingSoundIds.length} looping)`);
+
+            // Stop and disconnect all sounds immediately
+            for (const soundId of allSoundIds) {
                 const sound = this.activeSounds.get(soundId);
                 if (sound) {
                     try {
-                        // Stop the source immediately
                         if (sound.source) {
-                            sound.source.stop(0);
+                            // Remove the onended callback to prevent race conditions
+                            sound.source.onended = null;
+                            try {
+                                sound.source.stop(0);
+                            } catch (e) {
+                                // Ignore "invalid state" errors that occur if sound is already stopped
+                                if (!(e instanceof Error) || !e.message.includes('invalid state')) {
+                                    logger.warn(`Error stopping sound ${soundId}:`, e);
+                                }
+                            }
                             sound.source.disconnect();
                         }
                         
-                        // Disconnect any associated nodes
                         if (sound.gainNode) {
                             sound.gainNode.disconnect();
                         }
@@ -244,48 +258,49 @@ export abstract class BaseSoundRenderer implements Renderer {
                             sound.panNode.disconnect();
                         }
                     } catch (e) {
-                        console.warn(`Failed to stop sound ${soundId}:`, e);
+                        logger.warn(`Failed to clean up sound ${soundId}:`, e);
                     }
                 }
             }
-            
-            // Stop each looping sound
-            for (const soundId of loopingSoundIds) {
-                try {
-                    const sound = this.activeSounds.get(soundId);
-                    if (sound) {
-                        if (sound.source) {
-                            sound.source.stop(0);
-                            sound.source.disconnect();
-                        }
-                        if (sound.gainNode) {
-                            sound.gainNode.disconnect();
-                        }
-                        if (sound.panNode) {
-                            sound.panNode.disconnect();
-                        }
-                    }
-                } catch (e) {
-                    console.warn(`Failed to stop looping sound ${soundId}:`, e);
-                }
-            }
-            
-            // Clear all tracking maps
+
+            // Clear all tracking maps immediately
             this.activeSounds.clear();
             this.entityLoopingSounds.clear();
-            
-            // Optional: Schedule a small timeout to ensure all audio operations complete
-            setTimeout(() => {
-                // Double check that everything is cleared
-                if (this.activeSounds.size > 0 || this.entityLoopingSounds.size > 0) {
-                    console.warn('Some sounds persisted after stopAll, forcing clear');
+
+            // Double check after a short delay
+            const checkTimeout = setTimeout(() => {
+                const activeCount = this.activeSounds.size;
+                const loopingCount = this.entityLoopingSounds.size;
+                
+                if (activeCount > 0 || loopingCount > 0) {
+                    logger.warn(`Found persisting sounds after stopAll: ${activeCount} active, ${loopingCount} looping sounds`);
+                    // Force clear again
                     this.activeSounds.clear();
                     this.entityLoopingSounds.clear();
+                    
+                    // Log the persisting sound IDs for debugging
+                    if (activeCount > 0) {
+                        logger.warn('Persisting active sounds:', Array.from(this.activeSounds.keys()));
+                    }
+                    if (loopingCount > 0) {
+                        logger.warn('Persisting looping sounds:', 
+                            Array.from(this.entityLoopingSounds.entries())
+                                .map(([entityId, sounds]) => `${entityId}: [${Array.from(sounds).join(', ')}]`)
+                                .join(', ')
+                        );
+                    }
+                } else {
+                    logger.info('All sounds successfully stopped and cleared');
                 }
-            }, 100);
+            }, 200);  // Increased timeout to ensure we catch any stragglers
+
+            // Cleanup the timeout if the context is closed
+            if (this.audioContext.state === 'closed') {
+                clearTimeout(checkTimeout);
+            }
             
         } catch (e) {
-            console.error('Error in stopAllSounds:', e);
+            logger.error('Critical error in stopAllSounds:', e);
             // Force clear everything as a last resort
             this.activeSounds.clear();
             this.entityLoopingSounds.clear();

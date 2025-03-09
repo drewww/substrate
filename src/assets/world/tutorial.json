@@ -17048,7 +17048,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 5
         }
       ]
@@ -17082,7 +17082,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 5
         }
       ]
@@ -17116,7 +17116,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 5
         }
       ]
@@ -17393,7 +17393,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 1
         }
       ]
@@ -17454,7 +17454,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 1
         }
       ]
@@ -17488,7 +17488,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 1
         }
       ]
@@ -17522,7 +17522,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 1
         }
       ]
@@ -17556,7 +17556,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 1
         }
       ]
@@ -18022,7 +18022,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 2
         }
       ]
@@ -18056,7 +18056,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 2
         }
       ]
@@ -18361,68 +18361,6 @@
       "position": {
         "x": 2,
         "y": 4
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": ".",
-          "foreground": "#000D12ff",
-          "background": "#252525ff",
-          "zIndex": 0,
-          "alwaysRenderIfExplored": true,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": false,
-          "blendMode": "normal"
-        },
-        {
-          "type": "status-effect",
-          "effect": "caltrops"
-        }
-      ]
-    },
-    {
-      "id": "e15868",
-      "position": {
-        "x": 2,
-        "y": 5
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": ".",
-          "foreground": "#000D12ff",
-          "background": "#252525ff",
-          "zIndex": 0,
-          "alwaysRenderIfExplored": true,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1,
-          "scaleSymbolY": 1,
-          "fontWeight": "normal",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": false,
-          "blendMode": "normal"
-        },
-        {
-          "type": "status-effect",
-          "effect": "caltrops"
-        }
-      ]
-    },
-    {
-      "id": "e15893",
-      "position": {
-        "x": 2,
-        "y": 6
       },
       "components": [
         {
@@ -18973,7 +18911,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 3
         }
       ]
@@ -19007,7 +18945,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 3
         }
       ]
@@ -19041,7 +18979,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 3
         }
       ]
@@ -19075,7 +19013,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 3
         }
       ]
@@ -19109,7 +19047,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 3
         }
       ]
@@ -19197,7 +19135,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 0
         }
       ]
@@ -19231,7 +19169,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 0
         }
       ]
@@ -19265,7 +19203,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 0
         }
       ]
@@ -19299,7 +19237,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 6
         }
       ]
@@ -19333,7 +19271,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 6
         }
       ]
@@ -19367,7 +19305,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 6
         }
       ]
@@ -19401,7 +19339,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 6
         }
       ]
@@ -19435,7 +19373,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 6
         }
       ]
@@ -19469,7 +19407,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 7
         }
       ]
@@ -19503,7 +19441,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 7
         }
       ]
@@ -19537,7 +19475,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 2
         }
       ]
@@ -19571,7 +19509,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 7
         }
       ]
@@ -19605,7 +19543,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 8
         }
       ]
@@ -19639,7 +19577,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 8
         }
       ]
@@ -19673,7 +19611,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 8
         }
       ]
@@ -19707,7 +19645,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 8
         }
       ]
@@ -19834,7 +19772,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 10
         }
       ]
@@ -19868,7 +19806,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 10
         }
       ]
@@ -19902,7 +19840,7 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 10
         }
       ]
@@ -19936,13 +19874,13 @@
           "type": "objective",
           "active": false,
           "eligible": true,
-          "objectiveType": "vehicle",
+          "objectiveType": "tile",
           "index": 10
         }
       ]
     },
     {
-      "id": "e20443",
+      "id": "e21298",
       "position": {
         "x": 2,
         "y": 2
@@ -20004,6 +19942,60 @@
               "ready": false
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "e21817",
+      "position": {
+        "x": 2,
+        "y": 5
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": ".",
+          "foreground": "#000D12ff",
+          "background": "#252525ff",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
+        }
+      ]
+    },
+    {
+      "id": "e21845",
+      "position": {
+        "x": 2,
+        "y": 6
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": ".",
+          "foreground": "#000D12ff",
+          "background": "#252525ff",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
         }
       ]
     }

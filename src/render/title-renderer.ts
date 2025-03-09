@@ -376,30 +376,28 @@ export class TitleRenderer implements Renderer {
                 });
     
                 // Create vehicle segments
-                const leader = new Entity({x: 26, y: 10});
+                const leader = new Entity({x: 27, y: 11});
                 leader.setComponent(new SymbolComponent('⧯', '#E87DBEFF', '#00000000', 20));
-                leader.setComponent(new FacingComponent(0));
+                leader.setComponent(new FacingComponent(1));
                 leader.setComponent(new OpacityComponent());
                 leader.setComponent(new ImpassableComponent());
                 leader.setComponent(new ObjectiveComponent(true, true, 'vehicle', 9));
                 leader.setComponent(new VehicleLeaderComponent());
                 leader.setComponent(new FollowableComponent());
-                // leader.setComponent(new CooldownComponent({
-                //     move: { base: 4, current: 4, ready: false }
-                // }));
+
 
                 const body = new Entity({x: 26, y: 11});
                 body.setComponent(new SymbolComponent('⧯', '#E87DBEFF', '#00000000', 20));
-                body.setComponent(new FacingComponent(0));
+                body.setComponent(new FacingComponent(1));
                 body.setComponent(new OpacityComponent());
                 body.setComponent(new ImpassableComponent());
                 body.setComponent(new ObjectiveComponent(true, true, 'vehicle', 9));
                 body.setComponent(new FollowerComponent());
                 body.setComponent(new FollowableComponent());
 
-                const trailer = new Entity({x: 26, y: 12});
+                const trailer = new Entity({x: 25, y: 11});
                 trailer.setComponent(new SymbolComponent('⧯', '#E87DBEFF', '#00000000', 20));
-                trailer.setComponent(new FacingComponent(0));
+                trailer.setComponent(new FacingComponent(1));
                 trailer.setComponent(new OpacityComponent());
                 trailer.setComponent(new ImpassableComponent());
                 trailer.setComponent(new ObjectiveComponent(true, true, 'vehicle', 9));
@@ -501,7 +499,7 @@ export class TitleRenderer implements Renderer {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,
-                        initialDelay: 1.0
+                        initialDelay: 0.0
                     }
                 });
         
@@ -509,15 +507,15 @@ export class TitleRenderer implements Renderer {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,
-                        initialDelay: 1.0
+                        initialDelay: 0.0
                     }
                 });  
             }
 
-            if(data.to.x === 2 && data.to.y === 9) {
-                this.display.clear();
-                this.invertDarkBackground(2, 8, 4, 15);
-            }
+            // if(data.to.x === 2 && data.to.y === 9) {
+            //     this.display.clear();
+            //     this.invertDarkBackground(2, 8, 4, 15);
+            // }
 
             if(data.to.x === 2 && data.to.y === 12) {
                 this.display.clear();
