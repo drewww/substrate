@@ -4736,7 +4736,7 @@
         },
         {
           "type": "facing",
-          "direction": 1
+          "direction": 2
         },
         {
           "type": "turn"
@@ -4770,7 +4770,7 @@
         },
         {
           "type": "facing",
-          "direction": 2
+          "direction": 3
         },
         {
           "type": "turn"
@@ -4804,7 +4804,7 @@
         },
         {
           "type": "facing",
-          "direction": 1
+          "direction": 2
         },
         {
           "type": "turn"
@@ -4838,7 +4838,7 @@
         },
         {
           "type": "facing",
-          "direction": 2
+          "direction": 3
         },
         {
           "type": "turn"
