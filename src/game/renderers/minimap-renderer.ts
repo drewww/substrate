@@ -7,6 +7,7 @@ import { Entity } from '../../entity/entity';
 import { removeOpacity } from '../../display/util/color';
 import { ObjectiveComponent } from '../components/objective.component';
 import { logger } from '../../util/logger';
+import { LockedComponent } from '../components/locked.component';
 
 export class MinimapRenderer extends LayoutRenderer {
     private playerBlock: Point | null = null;
@@ -18,6 +19,7 @@ export class MinimapRenderer extends LayoutRenderer {
     private helicopterTile: string | null = null;
     private exploredBlocks: Set<string> = new Set();
     private isVisible: boolean = false;
+    private firstLock: boolean = true;
 
     constructor(display: Display, world: World, private readonly minimapCellSize: number = 20) {
         super(display);
@@ -83,6 +85,26 @@ export class MinimapRenderer extends LayoutRenderer {
                     this.updateObjectiveTile(data.entity.getPosition());
                 }
             }
+
+            if(data.componentType === 'locked') {
+                const locked = data.entity.getComponent('locked') as LockedComponent;
+                if(locked && this.firstLock) {
+                    this.firstLock = false;
+
+                    logger.info(`Starting helicopter spin animation`);
+                    // start spinning the helicopter tile
+                    if(this.helicopterTile) {
+                        this.display.addValueAnimation(this.helicopterTile, {
+                            rotation: {
+                                start: 0,
+                                end: 2*Math.PI,
+                                duration: 2,
+                                loop: true
+                            }
+                        });
+                    }
+                }
+            }
         });
 
         // world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
@@ -133,11 +155,22 @@ export class MinimapRenderer extends LayoutRenderer {
                     this.objectiveTile = null;
                 }
             }
+
+            const locked = data.entity.getComponent('locked') as LockedComponent;
+            if(locked) {
+                // start spinning the helicopter tile
+                logger.info(`Clearing helicopter spin animation`);
+                if(this.helicopterTile) {
+                    this.display.clearAnimations(this.helicopterTile);
+                }
+
+                this.firstLock = true;
+            }
         });
     }
 
     private updateObjectiveTile(pos: Point) {
-        
+
         const blockPos = {
             x: Math.floor(pos.x / 12),
             y: Math.floor(pos.y / 12)
