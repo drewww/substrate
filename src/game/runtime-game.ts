@@ -373,15 +373,26 @@ export class RuntimeGame extends Game {
 
     protected async initializeWorld(options: GeneratorConfig): Promise<void> {
         try {
+            // const generator: WorldGenerator = options.type === 'json' 
+            //     ? await JsonWorldGenerator.fromUrl(options.url!)
+            //     : new CityBlockGenerator({ layoutType: 'fixed', spawnHelicopter: true, spawnProbabilities: {
+            //         pedestrian: 0.3,
+            //         camera: 0.8,
+            //         boomer: 0.0,
+            //         turret: 0.0
+            //     } });
+            
+
             const generator: WorldGenerator = options.type === 'json' 
                 ? await JsonWorldGenerator.fromUrl(options.url!)
-                : new CityBlockGenerator({ layoutType: 'fixed', spawnHelicopter: true, spawnProbabilities: {
+                : new CityBlockGenerator({ layoutType: 'generate', spawnHelicopter: true, spawnProbabilities: {
                     pedestrian: 0.3,
                     camera: 0.8,
                     boomer: 0.0,
                     turret: 0.0
                 } });
-            
+
+
             this.generator = generator;
             this.world = await generator.generate();
 

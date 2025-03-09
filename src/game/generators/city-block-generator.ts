@@ -211,6 +211,8 @@ type CityBlockGeneratorOptions = {
         turret?: number;      // 0.0 to 1.0
     };
     spawnHelicopter?: boolean; // Whether to spawn a helicopter
+    width?: number;
+    height?: number;
 };
 
 export class CityBlockGenerator implements WorldGenerator {
@@ -229,11 +231,17 @@ export class CityBlockGenerator implements WorldGenerator {
     
     // Remove the hardcoded width/height and make them computed properties
     private get width(): number {
-        return this.options.layoutType === 'fixed' ? 4 : 10;
+        if (this.options.layoutType === 'fixed') {
+            return 4;
+        }
+        return this.options.width || 10; // Default to 10 if not specified
     }
     
     private get height(): number {
-        return this.options.layoutType === 'fixed' ? 4 : 10;
+        if (this.options.layoutType === 'fixed') {
+            return 4;
+        }
+        return this.options.height || 10; // Default to 10 if not specified
     }
 
     constructor(options: CityBlockGeneratorOptions = { layoutType: 'generate' }) {
