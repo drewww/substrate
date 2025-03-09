@@ -24,23 +24,23 @@ interface EntityMoveActionData {
     force?: boolean;
 }
 
-function checkAndHandleObjectives(world: World, position: Point) {
-    // Get objectives at this position
-    const entitiesAtPos = world.getEntitiesAt(position);
-    const objectives : Entity[] = entitiesAtPos.filter(e => {
-        const objComponent = e.getComponent('objective') as ObjectiveComponent;
-        return e.hasComponent('objective') && objComponent?.active === true;
-    });
+// function checkAndHandleObjectives(world: World, position: Point) {
+//     // Get objectives at this position
+//     const entitiesAtPos = world.getEntitiesAt(position);
+//     const objectives : Entity[] = entitiesAtPos.filter(e => {
+//         const objComponent = e.getComponent('objective') as ObjectiveComponent;
+//         return e.hasComponent('objective') && objComponent?.active === true;
+//     });
 
-    objectives.forEach(objective => {
-        world.emit('objective-complete', { objective });
-        const objComponent = objective.getComponent('objective') as ObjectiveComponent;
-        objComponent.active = false;
+//     objectives.forEach(objective => {
+//         world.emit('objective-complete', { objective });
+//         const objComponent = objective.getComponent('objective') as ObjectiveComponent;
+//         objComponent.active = false;
         
-        objective.setComponent(objComponent);
-        objective.removeComponent('lightEmitter');
-    });
-}
+//         objective.setComponent(objComponent);
+//         objective.removeComponent('lightEmitter');
+//     });
+// }
 
 export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
     canExecute(world: World, action: BaseAction<EntityMoveActionData>): boolean {
@@ -103,18 +103,20 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
             const objective = entitiesAtNewPos.find(e => e.hasComponent('objective') && (e.getComponent('objective') as ObjectiveComponent)?.active === true);
             if (objective) {
                 // First emit the completion event
-                world.emit('objective-complete', { objective });
+                
 
                 // Get all currently active objectives and deactivate them
-                const activeObjectives = world.getEntitiesWithComponent('objective')
-                    .filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+                // const activeObjectives = world.getEntitiesWithComponent('objective')
+                //     .filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
                 
-                activeObjectives.forEach(e => {
-                    logger.info(`deactivating objective: ${e.getId()}`);
-                    const objComponent = e.getComponent('objective') as ObjectiveComponent;
-                    objComponent.active = false;
-                    e.setComponent(objComponent);  // This will trigger componentModified
-                });
+                // activeObjectives.forEach(e => {
+                //     logger.info(`deactivating objective: ${e.getId()}`);
+                //     const objComponent = e.getComponent('objective') as ObjectiveComponent;
+                //     objComponent.active = false;
+                //     e.setComponent(objComponent);  // This will trigger componentModified
+                // });
+
+                world.emit('objective-complete', { objective });
             }
 
             entity.setComponent(new BumpingComponent({
@@ -156,6 +158,8 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
             // Check each position for vehicle objectives
             adjacentPositions.forEach(pos => {
                 const entitiesAtPos = world.getEntitiesAt(pos);
+
+                logger.info(`entities at pos: ${entitiesAtPos.map(e => e.getId()).join(", ")}`);
                 const vehicleObjectives = entitiesAtPos.filter(e => {
                     const objComponent = e.getComponent('objective') as ObjectiveComponent;
                     return e.hasComponent('objective') && 
@@ -163,9 +167,11 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                            objComponent.objectiveType === 'vehicle';
                 });
 
+                logger.info(`vehicle objectives: ${vehicleObjectives.length}`);
+                
+
                 vehicleObjectives.forEach(objective => {
-                    // First emit the completion event
-                    world.emit('objective-complete', { objective });
+                   
 
                     // Get all currently active objectives and deactivate them
                     const activeObjectives = world.getEntitiesWithComponent('objective')
@@ -178,6 +184,9 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                         e.setComponent(objComponent);
                         e.removeComponent('lightEmitter');
                     });
+
+                     // First emit the completion event
+                     world.emit('objective-complete', { objective });
                 });
             });
 

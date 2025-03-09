@@ -43,22 +43,23 @@ export class MinimapRenderer extends LayoutRenderer {
             };
         }
 
-        // world.on('entityAdded', (data: { entity: Entity }) => {
-        //     if (data.entity.hasComponent('objective') && 
-        //         (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
-        //         // this.objectiveTiles.set(data.entity.getId(), this.display.createTile(
-        //         //     data.entity.getPosition().x,
-        //         //     data.entity.getPosition().y,
-        //         //     '◎',
-        //         //     '#55CE4AFF',
-        //         //     '#00000000',
-        //         //     1000,
-        //         //     {
-        //         //         fontWeight: 'bold'
-        //         //     }
-        //         // ));
-        //     }
-        // });
+        world.on('entityAdded', (data: { entity: Entity }) => {
+            if (data.entity.hasComponent('objective') && 
+                (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
+                    
+                    const blockPos = {
+                        x: Math.floor(data.entity.getPosition().x / 12),
+                        y: Math.floor(data.entity.getPosition().y / 12)
+                    };
+                    
+                    // Just update the objective tile position
+                    if(this.objectiveTile) {
+                        this.display.moveTile(this.objectiveTile, blockPos.x, blockPos.y);
+                    } else {
+                        this.objectiveTile = this.display.createTile(blockPos.x, blockPos.y, '◎', '#55CE4AFF', '#00000000', 1000);
+                    }
+            }
+        });
         
         world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {

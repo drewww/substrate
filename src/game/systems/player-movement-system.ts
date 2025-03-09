@@ -140,7 +140,7 @@ export class PlayerMovementSystem {
                     entity.removeComponent('lightEmitter');
 
                     const symbol = entity.getComponent('symbol') as SymbolComponent;
-                    symbol.foreground = '#F7BADF';
+                    symbol.foreground = '#aaaaaaff';
                     entity.setComponent(symbol);
         
                 }
@@ -157,7 +157,7 @@ export class PlayerMovementSystem {
                 });
             }
 
-            if (inertia && inertia.magnitude > 1) {
+        if (inertia && inertia.magnitude > 1) {
                 this.stunPlayer(player, inertia.magnitude);
             }
             return;

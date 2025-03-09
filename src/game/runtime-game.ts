@@ -966,6 +966,7 @@ export class RuntimeGame extends Game {
     private selectObjective(world: World, isExit: boolean = false) {
         let eligibleObjectiveEntities: Entity[] = world.getEntitiesWithComponent('objective');
 
+
         logger.info('SELECT OBJECTIVE')
         logger.info(`eligibleObjectiveEntities: ${eligibleObjectiveEntities.length}`);
         // If no objectives exist at all, just return early
@@ -1018,7 +1019,8 @@ export class RuntimeGame extends Game {
             });
 
             const symbol = randomObjective.getComponent('symbol') as SymbolComponent;
-            symbol.foreground = '#FFFFFFFF';
+            symbol.foreground = '#FF0000FF';
+            symbol.char = '◎';
             randomObjective.setComponent(symbol);
 
             // Set up the objective itself
