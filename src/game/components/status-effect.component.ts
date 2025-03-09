@@ -12,7 +12,7 @@ export class StatusEffectComponent extends Component {
 
     constructor(public effect: StatusEffect = StatusEffect.CALTROPS) {
         super();
-    }
+}
 
     static fromJSON(data: any): StatusEffectComponent {
         return new StatusEffectComponent();

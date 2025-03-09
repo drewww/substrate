@@ -34,6 +34,27 @@
             "alwaysRenderIfExplored": true          }
         ]
       },
+
+
+      {
+        "id": "sidewalk_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": ".",
+            "foreground": "#000D12ff",
+            "background": "#252525ff",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type": "status-effect",
+            "effect": "caltrops"
+          }
+        ]
+      },
+
       {
         "id": "lit_floor_template",
         "position": { "x": 0, "y": 0 },
