@@ -280,6 +280,11 @@ export class RuntimeGame extends Game {
 
         this.world.on('objective-complete', (data: { objective: Entity }) => {
 
+            // ignore normal objectives in tutorial mode
+            if(this.titleRenderer?.getCurrentMode() === TitleMode.TUTORIAL) {
+                return;
+            }
+
             const player = this.world!.getPlayer();
             const metrics = player.getComponent('metrics') as MetricsComponent;
             if (metrics) {
@@ -587,6 +592,10 @@ export class RuntimeGame extends Game {
                 .then(() => {
                     this.startGame();
                     this.uiSpeedRenderer?.show();
+                    // Show tutorial screen after game starts
+                    if (this.titleRenderer) {
+                        this.titleRenderer.show(TitleMode.TUTORIAL);
+                    }
                 })
                 .catch(error => logger.error('Failed to start tutorial:', error));
             return;

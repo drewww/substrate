@@ -132,6 +132,30 @@
       },
 
       {
+        "id": "empty_space_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⬚",
+            "foreground": "#eeeeeeff",
+            "background": "#00000000",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "fontWeight": "bold",
+            "scaleSymbolX": 1.6,
+            "scaleSymbolY": 1.6
+          },
+          {
+            "type": "objective",
+            "eligible": true,
+            "active": false,
+            "index": 0
+          }
+        ]
+      },
+
+      {
         "id": "tree_template",
         "position": { "x": 0, "y": 0 },
         "components": [

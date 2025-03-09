@@ -6,12 +6,15 @@ import { Point } from '../types';
 import { MetricsComponent } from '../game/components/metrics.component';
 import { World } from '../world/world';
 import { logger } from '../util/logger';
+import { ObjectiveComponent } from '../game/components/objective.component';
+import { LightEmitterComponent } from '../entity/components/light-emitter-component';
 
 export enum TitleMode {
     TITLE,
     DEATH,
     VICTORY,
-    CREDITS
+    CREDITS,
+    TUTORIAL
 }
 
 export class TitleRenderer implements Renderer {
@@ -37,6 +40,7 @@ export class TitleRenderer implements Renderer {
         }
     ];
     currentMode: TitleMode = TitleMode.TITLE;
+    objectiveIndex: number = 0;
 
     constructor(
         private readonly display: Display,
@@ -82,10 +86,17 @@ export class TitleRenderer implements Renderer {
             case TitleMode.CREDITS:
                 this.renderCreditsScreen();
                 break;
+            case TitleMode.TUTORIAL:
+                this.renderTutorialScreen();
+                break;
         }
 
-        this.titleBackground.style.display = 'block';
-        this.titleBackground.style.visibility = 'visible';
+        if (mode !== TitleMode.TUTORIAL) {
+            this.titleBackground.style.display = 'block';
+            this.titleBackground.style.visibility = 'visible';
+        } else {
+            this.titleBackground.style.display = 'none';
+        }
 
         this.display.getDisplayCanvas().style.display = 'block';
         this.display.getDisplayCanvas().style.visibility = 'visible';
@@ -216,6 +227,160 @@ export class TitleRenderer implements Renderer {
 
             currentY += credit.roles.length + 1;
         });
+    }
+
+    private renderTutorialScreen(): void {
+        // this.createDarkBackground(5, 30, 5, 7);
+        this.invertDarkBackground(4, 6, 2, 8);
+
+        this.display.createString(10, 2, '{w}This is your RUNNER.{/}', 1000, {
+            backgroundColor: '#000000',
+            animate: {
+                delayBetweenChars: 0.05,
+                initialDelay: 0.1
+            }
+        });
+
+        this.display.createString(10, 4, '{w}  W{/}', 1000, {
+            backgroundColor: '#000000',
+            animate: {
+                delayBetweenChars: 0.05,
+                initialDelay: 1.0
+            }
+        });
+
+        this.display.createString(10, 5, '{w}A S D     Tap to move.{/}', 1000, {
+            backgroundColor: '#000000',
+            animate: {
+                delayBetweenChars: 0.05,
+                initialDelay: 1.0
+            }
+        });
+
+        this.world.on('objective-complete', () => {
+            this.selectObjective(this.objectiveIndex);
+        });
+
+        this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
+            if(!data.entity.hasComponent('player')) return;
+            if(data.to.x === 2 && data.to.y === 5) {
+                this.display.clear();
+                this.invertDarkBackground(4, 6, 4, 15);
+
+                this.display.createString(10, 5, '{w}  W{/}', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 1.0
+                    }
+                });
+        
+                this.display.createString(10, 6, '{w}A S D     Hold to accelerate.{/}', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 1.0
+                    }
+                });  
+            }
+
+            if(data.to.x === 2 && data.to.y === 9) {
+                this.display.clear();
+                this.invertDarkBackground(4, 6, 6, 14);
+            }
+
+            if(data.to.x === 2 && data.to.y === 13) {
+                this.display.clear();
+                this.invertDarkBackground(4, 6, 10, 14);
+
+                this.display.createString(8, 12, 'Don\'t crash. We don\'t have time for that.', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.5
+                    }
+                });
+            }
+
+            if(data.to.x === 3 && data.to.y === 13) {
+                this.display.clear();
+                // this.invertDarkBackground(4, 65, 8, 14);
+
+                this.display.createString(10, 11, 'Make haste.', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.0
+                    }
+                });
+
+                this.selectObjective(0);
+            }
+        });
+    }
+
+    private invertDarkBackground(startX: number, endX: number, startY: number, endY: number): void {
+        // Fill top section
+        for (let y = 0; y < startY; y++) {
+            for (let x = 0; x < this.display.getViewportWidth(); x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 400);
+            }
+        }
+
+        // Fill left and right sections
+        for (let y = startY; y < endY; y++) {
+            // Left section
+            for (let x = 0; x < startX; x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 400);
+            }
+            // Right section
+            for (let x = endX; x < this.display.getViewportWidth(); x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 400);
+            }
+        }
+
+        // Fill bottom section
+        for (let y = endY; y < this.display.getViewportHeight(); y++) {
+            for (let x = 0; x < this.display.getViewportWidth(); x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
+            }
+        }
+    }
+
+    private selectObjective(index: number): void {
+        const entities = this.world.getEntitiesWithComponent('objective');
+
+        const activeObjectiveEntities = entities.filter((objective) => (objective.getComponent('objective') as ObjectiveComponent).active);
+
+        for(const entity of activeObjectiveEntities) {
+            const objective = entity.getComponent('objective') as ObjectiveComponent;
+
+            if(objective) {
+                objective.active = false;
+                entity.setComponent(objective);
+                entity.removeComponent('lightEmitter');
+            }
+        }
+
+        const nextObjectives = entities.filter((objective) => (objective.getComponent('objective') as ObjectiveComponent).index === index);
+
+        for(const entity of nextObjectives) {
+            const objective = entity.getComponent('objective') as ObjectiveComponent;
+            objective.active = true;
+            entity.setComponent(objective);
+            const lightEmitter = new LightEmitterComponent({
+                "radius": 3,
+                "color": "#55CE4A",
+                "intensity": 0.6,
+                "distanceFalloff": "linear",
+                "lightSourceTile": false
+            });
+
+            entity.setComponent(lightEmitter);
+            entity.setComponent(lightEmitter);
+        }
+
+        this.objectiveIndex++;
     }
 
     private createDarkBackground(startX: number, endX: number, startY: number, endY: number): void {
