@@ -905,22 +905,22 @@ export class RuntimeGame extends Game {
         const layout = cityGenerator.getLayout();
         const blockWidth = Math.floor(gameWorld.getWorldWidth() / 12);
         const blockHeight = Math.floor(gameWorld.getWorldHeight() / 12);
-
-        // Create minimap display
+    
+        // Create minimap display with larger cell size for better visibility
         this.minimapDisplay = new Display({
             elementId: 'minimap',
             worldWidth: blockWidth,
             worldHeight: blockHeight,
-            cellWidth: 10,
-            cellHeight: 10,
+            cellWidth: 20,  // Increased from 10 to 40
+            cellHeight: 20, // Increased from 10 to 40
             viewportWidth: blockWidth,
             viewportHeight: blockHeight
         });
-
+    
         // Create minimap renderer
-        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay, this.world!);
+        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay, this.world!, 20);
         this.minimapRenderer.renderLayout(cityGenerator.getLayout()!);
-
+    
         if (layout) {
             this.minimapRenderer.renderLayout(layout);
         }
@@ -967,6 +967,8 @@ export class RuntimeGame extends Game {
     private selectObjective(world: World, isExit: boolean = false) {
         let eligibleObjectiveEntities: Entity[] = world.getEntitiesWithComponent('objective');
 
+        logger.info('SELECT OBJECTIVE')
+        logger.info(`eligibleObjectiveEntities: ${eligibleObjectiveEntities.length}`);
         // If no objectives exist at all, just return early
         if (eligibleObjectiveEntities.length === 0) {
             logger.info('No objectives found in world');
@@ -1032,6 +1034,8 @@ export class RuntimeGame extends Game {
             });
             randomObjective.setComponent(lightEmitter);
             randomObjective.setComponent(lightEmitter);
+
+            logger.info(`selected objective: ${randomObjective.getId()}`);
         } else {
             // Handle exit objectives
             if (eligibleObjectiveEntities.length === 0) {
@@ -1058,6 +1062,8 @@ export class RuntimeGame extends Game {
                     entity.setComponent(lightEmitter);
                 }
             });
+
+            logger.info('selected exit objective');
         }
     }
 

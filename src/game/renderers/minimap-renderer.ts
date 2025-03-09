@@ -18,7 +18,7 @@ export class MinimapRenderer extends LayoutRenderer {
     private exploredBlocks: Set<string> = new Set();
     private isVisible: boolean = false;
 
-    constructor(display: Display, world: World) {
+    constructor(display: Display, world: World, private readonly minimapCellSize: number = 20) {
         super(display);
         this.world = world;
         
@@ -289,16 +289,45 @@ export class MinimapRenderer extends LayoutRenderer {
         if (!this.isVisible) {
             this.isVisible = true;
             const canvas = this.display.getDisplayCanvas();
-            canvas.style.position = 'absolute';
-            canvas.style.top = '20px';  // Adjust these values as needed
-            canvas.style.right = '20px';
-            canvas.style.width = '200px';  // Adjust size as needed
-            canvas.style.height = '200px';
-            canvas.style.display = 'block';
-            canvas.style.border = '2px solid #333';
-            canvas.style.borderRadius = '4px';
-            canvas.style.backgroundColor = '#000';
-            canvas.style.zIndex = '1000';
+            const worldWidth = this.world.getWorldWidth();
+            const worldHeight = this.world.getWorldHeight();
+            
+            // Calculate block size (assuming 12x12 blocks as per the code)
+            const blockWidth = worldWidth / 12;
+            const blockHeight = worldHeight / 12;
+
+            logger.info(`MINIMAP blockWidth: ${blockWidth}, blockHeight: ${blockHeight}`);
+            
+            // Each block should be visible, let's make each block 40px
+            const width = blockWidth * this.minimapCellSize;
+            const height = blockHeight * this.minimapCellSize;
+
+            logger.info(`MINIMAP width: ${width}, height: ${height}`);
+
+            // Get the game display element to position relative to it
+            const gameDisplay = document.getElementById('display');
+            if (gameDisplay) {
+                
+                // canvas.style.position = 'absolute';
+                // Position flush with right and bottom edges of game display
+                // canvas.style.right = '0px';
+                // canvas.style.bottom = '40px'; // Account for UI bar height
+                // canvas.style.width = `${width}px`;
+                // canvas.style.height = `${height}px`;
+                canvas.style.display = 'block';
+                canvas.style.border = '1px solid #fff';
+                canvas.style.borderRadius = '4px';
+                canvas.style.backgroundColor = '#000';
+                canvas.style.zIndex = '1000';
+
+                const minimapContainer = document.getElementById('minimap-container');
+                if (minimapContainer) {
+                    // minimapContainer.style.width = `${width}px`;
+                    // minimapContainer.style.height = `${height}px`;
+                    minimapContainer.style.right = `${width}px`;
+                    minimapContainer.style.bottom = `${height+40}px`;
+                }
+            }
         }
     }
 
