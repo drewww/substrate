@@ -11,7 +11,8 @@ import { logger } from '../../util/logger';
 export class MinimapRenderer extends LayoutRenderer {
     private playerBlock: Point | null = null;
     private helicopterBlock: Point | null = null;
-    private objectiveTiles: Map<string, string> = new Map(); // Map entityId -> tileId
+    // private objectiveTiles: Map<string, string> = new Map(); // Map entityId -> tileId
+    private objectiveTile: string | null = null;
     private world: World;
     private playerTile: string | null = null;
     private helicopterTile: string | null = null;
@@ -42,22 +43,22 @@ export class MinimapRenderer extends LayoutRenderer {
             };
         }
 
-        world.on('entityAdded', (data: { entity: Entity }) => {
-            if (data.entity.hasComponent('objective') && 
-                (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
-                // this.objectiveTiles.set(data.entity.getId(), this.display.createTile(
-                //     data.entity.getPosition().x,
-                //     data.entity.getPosition().y,
-                //     '◎',
-                //     '#55CE4AFF',
-                //     '#00000000',
-                //     1000,
-                //     {
-                //         fontWeight: 'bold'
-                //     }
-                // ));
-            }
-        });
+        // world.on('entityAdded', (data: { entity: Entity }) => {
+        //     if (data.entity.hasComponent('objective') && 
+        //         (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
+        //         // this.objectiveTiles.set(data.entity.getId(), this.display.createTile(
+        //         //     data.entity.getPosition().x,
+        //         //     data.entity.getPosition().y,
+        //         //     '◎',
+        //         //     '#55CE4AFF',
+        //         //     '#00000000',
+        //         //     1000,
+        //         //     {
+        //         //         fontWeight: 'bold'
+        //         //     }
+        //         // ));
+        //     }
+        // });
         
         world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
             if (data.entity.hasComponent('player')) {
@@ -78,68 +79,67 @@ export class MinimapRenderer extends LayoutRenderer {
                 this.updateHelicopterBlock();
             } else if (data.entity.hasComponent('objective') && 
                        (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
+               
                 const blockPos = {
-                    x: Math.floor(data.to.x / 12),
-                    y: Math.floor(data.to.y / 12)
+                    x: Math.floor(data.entity.getPosition().x / 12),
+                    y: Math.floor(data.entity.getPosition().y / 12)
                 };
                 
                 // Just update the objective tile position
-                const tileId = this.objectiveTiles.get(data.entity.getId());
-                if (tileId) {
-                    this.display.moveTile(tileId, blockPos.x, blockPos.y);
+                if(this.objectiveTile) {
+                    this.display.moveTile(this.objectiveTile, blockPos.x, blockPos.y);
+                } else {
+                    this.objectiveTile = this.display.createTile(blockPos.x, blockPos.y, '◎', '#55CE4AFF', '#00000000', 1000);
                 }
             }
         });
 
-        world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
-            if (data.componentType === 'objective') {
-                const objective = data.entity.getComponent('objective') as ObjectiveComponent;
-                const entityId = data.entity.getId();
+        // world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
+        //     if (data.componentType === 'objective') {
+        //         const objective = data.entity.getComponent('objective') as ObjectiveComponent;
+        //         const entityId = data.entity.getId();
                 
-                if (objective.active) {
-                    // Add or update objective tile
-                    const pos = data.entity.getPosition();
-                    const blockPos = {
-                        x: Math.floor(pos.x / 12),
-                        y: Math.floor(pos.y / 12)
-                    };
+        //         if (objective.active) {
+        //             // Add or update objective tile
+        //             const pos = data.entity.getPosition();
+        //             const blockPos = {
+        //                 x: Math.floor(pos.x / 12),
+        //                 y: Math.floor(pos.y / 12)
+        //             };
                     
-                    if (!this.objectiveTiles.has(entityId)) {
-                        // const tileId = this.display.createTile(
-                        //     blockPos.x,
-                        //     blockPos.y,
-                        //     '◎',
-                        //     '#55CE4AFF',
-                        //     '#00000000',
-                        //     1000,
-                        //     {
-                        //         fontWeight: 'bold'
-                        //     }
-                        // );
-                        // this.objectiveTiles.set(entityId, tileId);
-                        // logger.info(`Created new objective tile ${tileId} for entity ${entityId}`);
-                    }
-                } else {
-                    // Remove objective tile when objective becomes inactive
-                    const tileId = this.objectiveTiles.get(entityId);
-                    if (tileId) {
-                        logger.info(`Removing objective tile ${tileId} for entity ${entityId}`);
-                        this.display.removeTile(tileId);
-                        this.objectiveTiles.delete(entityId);
-                    }
-                }
-            }
-        });
+        //             if (!this.objectiveTiles.has(entityId)) {
+        //                 // const tileId = this.display.createTile(
+        //                 //     blockPos.x,
+        //                 //     blockPos.y,
+        //                 //     '◎',
+        //                 //     '#55CE4AFF',
+        //                 //     '#00000000',
+        //                 //     1000,
+        //                 //     {
+        //                 //         fontWeight: 'bold'
+        //                 //     }
+        //                 // );
+        //                 // this.objectiveTiles.set(entityId, tileId);
+        //                 // logger.info(`Created new objective tile ${tileId} for entity ${entityId}`);
+        //             }
+        //         } else {
+        //             // Remove objective tile when objective becomes inactive
+        //             const tileId = this.objectiveTiles.get(entityId);
+        //             if (tileId) {
+        //                 logger.info(`Removing objective tile ${tileId} for entity ${entityId}`);
+        //                 this.display.removeTile(tileId);
+        //                 this.objectiveTiles.delete(entityId);
+        //             }
+        //         }
+        //     }
+        // });
 
         // We can keep this as a backup cleanup mechanism
         world.on('componentRemoved', (data: { entity: Entity, componentType: string }) => {
             if (data.componentType === 'objective') {
-                const entityId = data.entity.getId();
-                const tileId = this.objectiveTiles.get(entityId);
-                if (tileId) {
-                    logger.info(`Cleaning up objective tile ${tileId} for removed entity ${entityId}`);
-                    this.display.removeTile(tileId);
-                    this.objectiveTiles.delete(entityId);
+                if(this.objectiveTile) {
+                    this.display.removeTile(this.objectiveTile);
+                    this.objectiveTile = null;
                 }
             }
         });
@@ -246,44 +246,44 @@ export class MinimapRenderer extends LayoutRenderer {
         }
 
         if (this.helicopterBlock) {
-            // this.helicopterTile = this.display.createTile(
-            //     this.helicopterBlock.x,
-            //     this.helicopterBlock.y,
-            //     '🜛',
-            //     '#FF0000FF',
-            //     '#00000000',
-            //     1000,
-            //     {
-            //         fontWeight: 'bold'
-            //     }
-            // );
+            this.helicopterTile = this.display.createTile(
+                this.helicopterBlock.x,
+                this.helicopterBlock.y,
+                '🜛',
+                '#FF0000FF',
+                '#00000000',
+                1000,
+                {
+                    fontWeight: 'bold'
+                }
+            );
         }
 
         // Add markers for all active objectives
-        const objectives = this.world.getEntitiesWithComponent('objective')
-            .filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.active === true);
+        // const objectives = this.world.getEntitiesWithComponent('objective')
+        //     .filter(entity => (entity.getComponent('objective') as ObjectiveComponent)?.active === true);
         
-        objectives.forEach(objective => {
-            const pos = objective.getPosition();
-            const blockPos = {
-                x: Math.floor(pos.x / 12),
-                y: Math.floor(pos.y / 12)
-            };
+        // objectives.forEach(objective => {
+        //     const pos = objective.getPosition();
+        //     const blockPos = {
+        //         x: Math.floor(pos.x / 12),
+        //         y: Math.floor(pos.y / 12)
+        //     };
             
-            // const tileId = this.display.createTile(
-            //     blockPos.x,
-            //     blockPos.y,
-            //     '◎',
-            //     '#55CE4AFF',
-            //     '#00000000',
-            //     1000,
-            //     {
-            //         fontWeight: 'bold'
-            //     }
-            // );
+        //     // const tileId = this.display.createTile(
+        //     //     blockPos.x,
+        //     //     blockPos.y,
+        //     //     '◎',
+        //     //     '#55CE4AFF',
+        //     //     '#00000000',
+        //     //     1000,
+        //     //     {
+        //     //         fontWeight: 'bold'
+        //     //     }
+        //     // );
             
-            // this.objectiveTiles.set(objective.getId(), tileId);
-        });
+        //     // this.objectiveTiles.set(objective.getId(), tileId);
+        // };
     }
 
     public show(): void {
