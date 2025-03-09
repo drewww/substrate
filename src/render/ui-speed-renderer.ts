@@ -137,10 +137,10 @@ export class UISpeedRenderer implements Renderer {
                     '#FFFFFFFF',
                     '#000000FF',
                     1000,
-                    {
-                        walls: y === 0 ? [true, false] : [false, false],  // Only top row gets north wall
-                        wallColors: y === 0 ? ['#FFFFFFFF', null] : [null, null]  // Semi-transparent white for north wall
-                    }
+                    // {
+                    //     walls: y === 0 ? [true, false] : [false, false],  // Only top row gets north wall
+                    //     wallColors: y === 0 ? ['#FFFFFFFF', null] : [null, null]  // Semi-transparent white for north wall
+                    // }
                 );
                 this.uiTiles.set(`bg_${x}_${y}`, [tileId]);
             }
@@ -172,10 +172,10 @@ export class UISpeedRenderer implements Renderer {
                     '#FFFFFFFF',
                     '#00000000',
                     1001,
-                    {
-                        walls: [true, false],
-                        wallColors: ['#FFFFFF88', null]
-                    }
+                    // {
+                    //     walls: [true, false],
+                    //     wallColors: ['#FFFFFF88', null]
+                    // }
                 );
                 this.uiTiles.set(`health_${i}`, [healthTileId]);
             }
@@ -200,10 +200,10 @@ export class UISpeedRenderer implements Renderer {
                 '#FFFFFFFF',
                 '#00000000',
                 1001,
-                {
-                    walls: [true, false],
-                    wallColors: ['#FFFFFF88', null]
-                }
+                // {
+                    // walls: [true, false],
+                    // wallColors: ['#FFFFFF88', null]
+                // }
             );
             this.uiTiles.set(`energy_${i}`, [energyTileId]);
         }
@@ -218,8 +218,8 @@ export class UISpeedRenderer implements Renderer {
                 '#00000000',
                 1001,
                 {
-                    walls: [true, false],
-                    wallColors: ['#FFFFFF88', null]
+                    // walls: [true, false],
+                    // wallColors: ['#FFFFFF88', null]
                 }
             );
             this.uiTiles.set(`speed_${i}`, [speedTileId]);
@@ -235,8 +235,8 @@ export class UISpeedRenderer implements Renderer {
                 '#00000000',
                 1001,
                 {
-                    walls: [true, false],
-                    wallColors: ['#FFFFFF88', null]
+                    // walls: [true, false],
+                    // wallColors: ['#FFFFFF88', null]
                 }
             );
             this.uiTiles.set(`objective_${i}`, [objectiveTileId]);
@@ -271,8 +271,6 @@ export class UISpeedRenderer implements Renderer {
         const inertia = this.player.getComponent('inertia') as InertiaComponent;
         const magnitude = inertia?.magnitude ?? 0;
 
-        // Update gear display
-
         // Update speed tiles
         for (let i = 0; i < this.MAX_SPEED; i++) {
             const speedTileIds = this.uiTiles.get(`speed_${i}`);
@@ -284,6 +282,9 @@ export class UISpeedRenderer implements Renderer {
                 }
             }
         }
+
+        // Update turbo indicator based on current turbo component state
+        this.updateTurboIndicator(this.player.hasComponent('turbo'));
     }
 
     private updateEnergyIndicator(): void {
@@ -476,8 +477,13 @@ export class UISpeedRenderer implements Renderer {
             this.uiTiles.delete('turbo');
         }
 
-        // If turbo, create new tiles
-        if (isTurbo) {
+        // Check inertia magnitude
+        const inertia = this.player.getComponent('inertia') as InertiaComponent;
+        const magnitude = inertia?.magnitude ?? 0;
+        const hasTurboSpeed = magnitude >= 2;
+
+        // Show TURBO if we have the component or sufficient speed
+        if (isTurbo || hasTurboSpeed) {
             const newTurboTileIds = this.uiDisplay.createString(
                 this.TURBO_X,
                 0,              // Same row as LOCKED
@@ -485,15 +491,15 @@ export class UISpeedRenderer implements Renderer {
                 1001,
                 { 
                     fontFamily: 'monospace',
-                    backgroundColor: '#0088FFFF'  // Bright blue color used throughout
+                    backgroundColor: isTurbo ? '#0088FFFF' : '#000000FF'  // Blue bg when component active, black when just speed
                 }
             );
             this.uiTiles.set('turbo', newTurboTileIds);
 
-            // Set white text color
+            // Set text color - white when component active, blue when just speed
             for (const tileId of newTurboTileIds) {
                 this.uiDisplay.updateTile(tileId, {
-                    fg: '#FFFFFFFF'
+                    fg: isTurbo ? '#FFFFFFFF' : '#0088FFFF'
                 });
             }
         }
