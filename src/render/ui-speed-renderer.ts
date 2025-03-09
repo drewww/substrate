@@ -432,7 +432,6 @@ export class UISpeedRenderer implements Renderer {
     }
 
     private updateLockedIndicator(isLocked: boolean): void {
-        logger.info("LOCKED: " + this.player.getComponentTypes());
         logger.info(`Updating locked indicator. isLocked: ${isLocked}`);
         
         // Remove existing locked tiles if they exist
@@ -467,6 +466,38 @@ export class UISpeedRenderer implements Renderer {
         }
     }
 
+    private updateBrakeIndicator(isBraking: boolean): void {
+        // Remove existing brake tiles if they exist
+        // Remove existing brake tiles if they exist
+        const brakeTileIds = this.uiTiles.get('brake');
+        if (brakeTileIds) {
+            this.uiDisplay.removeTiles(brakeTileIds);
+            this.uiTiles.delete('brake');
+        }
+
+        // If braking, create new tiles
+        if (isBraking) {
+            const newBrakeTileIds = this.uiDisplay.createString(
+                this.LOCKED_X,  // Use same X position as LOCKED
+                1,              // One row below LOCKED
+                'BRAKE',
+                1001,
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: '#F76505'
+                }
+            );
+            this.uiTiles.set('brake', newBrakeTileIds);
+
+            // Set white text color
+            for (const tileId of newBrakeTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF'
+                });
+            }
+        }
+    }
+
     update(timestamp: number): void {
         this.updateTimeDisplay();
     }
@@ -488,7 +519,9 @@ export class UISpeedRenderer implements Renderer {
             } else if (componentType === 'metrics') {
                 this.updateObjectivesIndicator();
             } else if (componentType === 'locked') {
-                this.updateLockedIndicator(false);
+                this.updateLockedIndicator(true);
+            } else if (componentType === 'brake') {
+                this.updateBrakeIndicator(true);
             }
         }
     }
@@ -505,7 +538,9 @@ export class UISpeedRenderer implements Renderer {
             } else if (componentType === 'metrics') {
                 this.updateObjectivesIndicator();
             } else if (componentType === 'locked') {
-                this.updateLockedIndicator(true);
+                this.updateLockedIndicator(false);
+            } else if (componentType === 'brake') {
+                this.updateBrakeIndicator(false);
             }
         }
     }
