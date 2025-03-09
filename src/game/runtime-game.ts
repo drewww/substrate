@@ -376,7 +376,7 @@ export class RuntimeGame extends Game {
         try {
             const generator: WorldGenerator = options.type === 'json' 
                 ? await JsonWorldGenerator.fromUrl(options.url!)
-                : new CityBlockGenerator();
+                : new CityBlockGenerator({ layoutType: 'fixed' });
             
             this.generator = generator;
             this.world = await generator.generate();
@@ -1102,7 +1102,7 @@ export class RuntimeGame extends Game {
 
     public stopEngine(): void {
         this.soundRenderer?.stopAllSounds();
-        
+
         if (this.engine?.isRunning()) {
             this.engine.stop();
 

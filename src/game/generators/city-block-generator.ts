@@ -26,6 +26,7 @@ import { WorldGenerator } from '../../world/world-generator';
 import startBuildingUrl from '../../assets/blocks/start.json?url';
 import endBuildingUrl from '../../assets/blocks/end.json?url';
 import { SpawnHintComponent } from '../components/spawn-hint.component';
+import { SimpleLayoutGenerator } from './simple-layout-generator';
 
 // Import all block files with ?url suffix
 const blockFiles = import.meta.glob<string>('../../assets/blocks/*.json', { query: 'url', import: 'default' });
@@ -200,14 +201,29 @@ function selectVariant(blockType: BlockType): string {
     return config.variants[0].url;
 }
 
-export class CityBlockGenerator implements WorldGenerator {
-    private readonly width: number = 10;
-    private readonly height: number = 10;
+// First, add the configuration type near the top of the file with the other types
+type CityBlockGeneratorOptions = {
+    layoutType: 'generate' | 'fixed';
+};
 
+export class CityBlockGenerator implements WorldGenerator {
     private readonly blockWidth: number = 12;
     private readonly blockHeight: number = 12;
-
+    private readonly options: CityBlockGeneratorOptions;
     private layout: ChunkMetadata[][] | null = null;
+    
+    // Remove the hardcoded width/height and make them computed properties
+    private get width(): number {
+        return this.options.layoutType === 'fixed' ? 4 : 10;
+    }
+    
+    private get height(): number {
+        return this.options.layoutType === 'fixed' ? 4 : 10;
+    }
+
+    constructor(options: CityBlockGeneratorOptions = { layoutType: 'generate' }) {
+        this.options = options;
+    }
 
     private rotateEntityPosition(entity: Entity, orientation: number, blockWidth: number, blockHeight: number): void {
         const pos = entity.getPosition();
@@ -260,8 +276,11 @@ export class CityBlockGenerator implements WorldGenerator {
             (this.height * this.blockHeight) + 2
         );
 
-        // Create and use the staged layout generator
-        const layoutGenerator = new StagedLayoutGenerator(this.width, this.height);
+        // Create and use the appropriate layout generator based on options
+        const layoutGenerator = this.options.layoutType === 'fixed' 
+            ? new SimpleLayoutGenerator()
+            : new StagedLayoutGenerator(this.width, this.height);
+            
         this.layout = layoutGenerator.generate();
 
         // Add border walls first
