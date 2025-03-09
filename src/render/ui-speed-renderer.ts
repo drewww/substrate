@@ -703,4 +703,183 @@ export class UISpeedRenderer implements Renderer {
             }
         }
     }
+
+    public lightUpDashboard(): void {
+        // Speed indicator - full speed
+        for (let i = 0; i < this.MAX_SPEED; i++) {
+            const speedTileIds = this.uiTiles.get(`speed_${i}`);
+            if (speedTileIds) {
+                for (const speedTileId of speedTileIds) {
+                    this.uiDisplay.updateTile(speedTileId, {
+                        bg: this.SPEED_COLORS[i]
+                    });
+                }
+            }
+        }
+
+        // Energy indicator - full energy
+        for (let i = 0; i < this.MAX_ENERGY; i++) {
+            const energyTileIds = this.uiTiles.get(`energy_${i}`);
+            if (energyTileIds) {
+                for (const energyTileId of energyTileIds) {
+                    this.uiDisplay.updateTile(energyTileId, {
+                        bg: this.ENERGY_COLORS[i]
+                    });
+                }
+            }
+        }
+
+        // Health indicator - full health
+        for (let i = 0; i < this.MAX_HEALTH; i++) {
+            const healthTileIds = this.uiTiles.get(`health_${i}`);
+            if (healthTileIds) {
+                for (const healthTileId of healthTileIds) {
+                    this.uiDisplay.updateTile(healthTileId, {
+                        bg: this.HEALTH_COLORS[i]
+                    });
+                }
+            }
+        }
+
+        // Objectives indicator - all objectives
+        for (let i = 0; i < this.MAX_OBJECTIVES; i++) {
+            const objectiveTileIds = this.uiTiles.get(`objective_${i}`);
+            if (objectiveTileIds) {
+                for (const objectiveTileId of objectiveTileIds) {
+                    this.uiDisplay.updateTile(objectiveTileId, {
+                        bg: this.OBJECTIVES_COLORS[i]
+                    });
+                }
+            }
+        }
+
+        // Light up all labels with bright colors
+        const labels = [
+            { text: 'velocity', x: this.SPEED_START_X, color: '#FFD700FF' },  // Gold
+            { text: 'energy', x: this.ENERGY_START_X, color: '#00FFFFFF' },   // Cyan
+            { text: 'integrity', x: this.HEALTH_START_X, color: '#FF0000FF' }, // Red
+            { text: 'objectives', x: this.OBJECTIVES_START_X, color: '#00FF00FF' } // Green
+        ];
+
+        labels.forEach(label => {
+            // Remove existing label if it exists
+            const existingLabelIds = this.uiTiles.get(`${label.text}_label`);
+            if (existingLabelIds) {
+                this.uiDisplay.removeTiles(existingLabelIds);
+            }
+
+            // Create new bright label
+            const labelTileIds = this.uiDisplay.createString(
+                label.x,
+                1,
+                label.text,
+                1001,
+                { fontFamily: 'monospace' }
+            );
+            this.uiTiles.set(`${label.text}_label`, labelTileIds);
+
+            // Set bright color
+            for (const tileId of labelTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: label.color,
+                    bg: '#00000000'
+                });
+            }
+        });
+
+        // Show all status indicators with bright colors
+        const indicators = [
+            { name: 'LOCKED', x: this.LOCKED_X, bg: '#FF194DFF' },
+            { name: 'TURBO', x: this.TURBO_X, bg: '#0088FFFF' },
+            { name: 'BRAKE', x: this.LOCKED_X, y: 1, bg: '#F76505FF' },
+            { name: 'REVERSE', x: this.REVERSE_X, y: 1, bg: '#FFC505FF' },
+            { name: 'STUN', x: this.STUNNED_X + 3, y: 0, bg: '#FFC505FF' }
+        ];
+
+        indicators.forEach(indicator => {
+            const tileIds = this.uiDisplay.createString(
+                indicator.x,
+                indicator.y || 0,
+                indicator.name,
+                1001,
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: indicator.bg
+                }
+            );
+            this.uiTiles.set(indicator.name.toLowerCase(), tileIds);
+
+            for (const tileId of tileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF'
+                });
+            }
+        });
+
+        // Show stun bar fully lit with maximum brightness
+        const stunnedTileIds = [];
+        for (let i = 0; i < 10; i++) {
+            const tileId = this.uiDisplay.createTile(
+                this.STUNNED_X + i,
+                0,
+                ' ',
+                '#FFFFFFFF',
+                '#FFC505FF',
+                1001
+            );
+            stunnedTileIds.push(tileId);
+        }
+        this.uiTiles.set('stunned', stunnedTileIds);
+
+        // Add STUN text with maximum brightness
+        const textTileIds = this.uiDisplay.createString(
+            this.STUNNED_X + 3,
+            0,
+            'STUN',
+            1002,
+            { 
+                fontFamily: 'monospace',
+                backgroundColor: '#00000000'
+            }
+        );
+        this.uiTiles.set('stunned_text', textTileIds);
+        for (const tileId of textTileIds) {
+            this.uiDisplay.updateTile(tileId, {
+                fg: '#FFFFFF',
+                bg: '#00000000'
+            });
+        }
+    }
+
+    public resetDashboard(): void {
+        // Remove all status indicators
+        ['locked', 'turbo', 'brake', 'reverse', 'stunned', 'stunned_text'].forEach(key => {
+            const tileIds = this.uiTiles.get(key);
+            if (tileIds) {
+                this.uiDisplay.removeTiles(tileIds);
+                this.uiTiles.delete(key);
+            }
+        });
+
+        // Reset all indicators to their current state
+        this.updateSpeedIndicator();
+        this.updateEnergyIndicator();
+        this.updateHealthIndicator();
+        this.updateObjectivesIndicator();
+        this.updateStunnedIndicator();
+
+        // Check and update current component states
+        if (this.player.hasComponent('locked')) {
+            this.updateLockedIndicator(true);
+        }
+        if (this.player.hasComponent('brake')) {
+            this.updateBrakeIndicator(true);
+        }
+        if (this.player.hasComponent('reverse')) {
+            this.updateReverseIndicator(true);
+        }
+        if (this.player.hasComponent('turbo')) {
+            this.updateTurboIndicator(true);
+        }
+    }
 } 

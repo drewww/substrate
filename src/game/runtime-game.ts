@@ -161,7 +161,7 @@ export class RuntimeGame extends Game {
         titleCanvas.style.zIndex = '1000';  // Make sure this is higher than UI overlay's z-index
 
         // Create title renderer and show initial screen
-        this.titleRenderer = new TitleRenderer(this.titleDisplay, this.world) as TitleRenderer;
+        this.titleRenderer = new TitleRenderer(this.titleDisplay, this.world, this) as TitleRenderer;
         this.titleRenderer.show(TitleMode.TITLE);
 
         return gameDisplay;
@@ -569,6 +569,12 @@ export class RuntimeGame extends Game {
 
         logger.warn(`action: ${action} type: ${type}`);
 
+        if(this.titleRenderer?.getCurrentMode() === TitleMode.TUTORIAL) {
+            if(!this.engine?.isRunning() && action === 'brake' && type === 'up') {
+                this.titleRenderer.spacePressed();
+            }
+        }
+
 
         // Handle title screen actions
         if (action === 'start' && type === 'up') {
@@ -591,8 +597,6 @@ export class RuntimeGame extends Game {
             })
                 .then(() => {
                     this.startGame();
-                    this.uiSpeedRenderer?.show();
-                    // Show tutorial screen after game starts
                     if (this.titleRenderer) {
                         this.titleRenderer.show(TitleMode.TUTORIAL);
                     }
@@ -1055,5 +1059,33 @@ export class RuntimeGame extends Game {
     public getGameMetrics(): MetricsComponent {
         const player = this.world!.getPlayer();
         return player.getComponent('metrics') as MetricsComponent;
+    }
+
+    public showUISpeedBar(): void {
+        this.uiSpeedRenderer?.show();
+    }
+
+    public hideUISpeedBar(): void {
+        this.uiSpeedRenderer?.hide();
+    }
+
+    public getUISpeedRenderer(): UISpeedRenderer {
+        return this.uiSpeedRenderer;
+    }
+
+    public stopEngine(): void {
+        if (this.engine?.isRunning()) {
+            this.engine.stop();
+        }
+    }
+
+    public startEngine(): void {
+        if (this.engine && !this.engine.isRunning()) {
+            this.engine.start();
+        }
+    }
+
+    public isEngineRunning(): boolean {
+        return this.engine?.isRunning() ?? false;
     }
 }

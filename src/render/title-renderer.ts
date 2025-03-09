@@ -8,6 +8,7 @@ import { World } from '../world/world';
 import { logger } from '../util/logger';
 import { ObjectiveComponent } from '../game/components/objective.component';
 import { LightEmitterComponent } from '../entity/components/light-emitter-component';
+import { RuntimeGame } from '../game/runtime-game';
 
 export enum TitleMode {
     TITLE,
@@ -18,6 +19,7 @@ export enum TitleMode {
 }
 
 export class TitleRenderer implements Renderer {
+
     private titleBackground: HTMLImageElement;
     private readonly CREDITS = [
         {
@@ -41,16 +43,19 @@ export class TitleRenderer implements Renderer {
     ];
     currentMode: TitleMode = TitleMode.TITLE;
     objectiveIndex: number = 0;
+    isInDashboardTutorial: boolean = false;
 
     constructor(
         private readonly display: Display,
-        private readonly world: World
+        private readonly world: World,
+        private readonly game: RuntimeGame
     ) {
         this.titleBackground = document.getElementById('title-background') as HTMLImageElement;
         if (!this.titleBackground) {
             throw new Error('Title background image not found');
         }
         this.world = world;
+        this.game = game;
     }
 
     public prepare(mode: TitleMode): void {
@@ -259,6 +264,26 @@ export class TitleRenderer implements Renderer {
 
         this.world.on('objective-complete', () => {
             this.selectObjective(this.objectiveIndex);
+
+            if(this.objectiveIndex === 5) {
+                this.game.stopEngine();
+                this.game.showUISpeedBar();
+
+                this.blankScreen();
+
+                this.display.createString(10, this.display.getViewportHeight() - 4, '{w}Pay attention to your dashboard.   [space]{/}', 1000, {
+                    backgroundColor: '#000000',
+                    animate: {
+                        delayBetweenChars: 0.05,
+                        initialDelay: 0.0
+                    }
+                });
+
+                this.game.getUISpeedRenderer().lightUpDashboard();
+                this.isInDashboardTutorial = true;
+            } 
+
+            logger.warn("objectiveIndex: " + this.objectiveIndex);
         });
 
         this.world.on('entityMoved', (data: { entity: Entity, from: Point, to: Point }) => {
@@ -289,7 +314,7 @@ export class TitleRenderer implements Renderer {
                 this.invertDarkBackground(4, 6, 6, 14);
             }
 
-            if(data.to.x === 2 && data.to.y === 13) {
+            if(data.to.x === 2 && data.to.y === 12) {
                 this.display.clear();
                 this.invertDarkBackground(4, 6, 10, 14);
 
@@ -306,7 +331,7 @@ export class TitleRenderer implements Renderer {
                 this.display.clear();
                 // this.invertDarkBackground(4, 65, 8, 14);
 
-                this.display.createString(10, 11, 'Make haste.', 1000, {
+                this.display.createString(19, 11, 'Make haste.', 1000, {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,
@@ -317,6 +342,16 @@ export class TitleRenderer implements Renderer {
                 this.selectObjective(0);
             }
         });
+    }
+
+    private blankScreen(): void {
+        this.display.clear();
+
+        for(let y = 0; y < this.display.getViewportHeight()-2; y++) {
+            for(let x = 0; x < this.display.getViewportWidth(); x++) {
+                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 400);
+            }
+        }
     }
 
     private invertDarkBackground(startX: number, endX: number, startY: number, endY: number): void {
@@ -440,6 +475,79 @@ export class TitleRenderer implements Renderer {
     public hide(): void {
         this.display.getDisplayCanvas().style.display = 'none';
         this.titleBackground.style.display = 'none';
+    }
+
+    private spaceCount: number = 0;
+    public spacePressed() {
+
+        if(!this.isInDashboardTutorial) { return; }
+
+        this.spaceCount++;
+
+        this.blankScreen();
+        if(this.spaceCount === 1) {
+            this.display.createString(4, this.display.getViewportHeight() - 4, '{w}Your speed. At low speeds, you can turn. At high speeds you can ... [space]{/}', 1000, {
+                backgroundColor: '#000000',
+                animate: {
+                    delayBetweenChars: 0.05,
+                    initialDelay: 0.0
+                }
+            });
+
+        } else if(this.spaceCount === 2) {
+            this.display.createString(14, this.display.getViewportHeight() - 4,
+            '{w}... engage turbo. That will drain your energy. [space]{/}', 1000, {
+                backgroundColor: '#000000',
+                animate: {
+                    delayBetweenChars: 0.05,
+                    initialDelay: 0.0
+                }
+            });
+
+        } else if(this.spaceCount === 3) {
+            this.display.createString(10, this.display.getViewportHeight() - 4,
+            '{w}You will be hunted. Staying too long in a SECOPS {r}spotlight{/} will destroy your RUNNER. [space]{/}', 1000, {
+                backgroundColor: '#000000',
+                animate: {
+                    delayBetweenChars: 0.05,
+                    initialDelay: 0.0
+                }
+            });
+        } else if(this.spaceCount === 4) {
+            this.display.createString(24, this.display.getViewportHeight() - 4,
+            '{w}Fill your objective meter to unlock an exit. [space]{/}', 1000, {
+                backgroundColor: '#000000',
+                animate: {
+                    delayBetweenChars: 0.05,
+                    initialDelay: 0.0
+                }
+            });
+        } else if(this.spaceCount === 5) {
+            this.display.createString(40, this.display.getViewportHeight() - 4,
+            '{w}Watch your indicators. [space]{/}', 1000, {
+                backgroundColor: '#000000',
+                animate: {
+                    delayBetweenChars: 0.05,
+                    initialDelay: 0.0
+                }
+            });
+        } else if(this.spaceCount === 6) {
+            this.display.clear();
+            this.game.getUISpeedRenderer().resetDashboard();
+            this.game.startEngine();
+            this.isInDashboardTutorial = false;
+
+            this.selectObjective(5);
+
+            this.display.createString(20, this.display.getViewportHeight() - 4,
+            '{w}Hold SHIFT while moving at high speeds to TURBO.{/}', 1000, {
+                backgroundColor: '#000000',
+                animate: {
+                    delayBetweenChars: 0.05,
+                    initialDelay: 0.0
+                }
+            });
+        }
     }
 
     update(timestamp: number): void {}
