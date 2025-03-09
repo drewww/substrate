@@ -17,6 +17,7 @@ import { StatusEffectComponent } from '../components/status-effect.component';
 import { StatusEffect } from '../components/status-effect.component';
 import { InertiaComponent } from '../components/inertia.component';
 import { CooldownComponent } from '../components/cooldown.component';
+import { Entity } from '../../entity/entity';
 
 interface EntityMoveActionData {
     to: Point;
@@ -26,7 +27,7 @@ interface EntityMoveActionData {
 function checkAndHandleObjectives(world: World, position: Point) {
     // Get objectives at this position
     const entitiesAtPos = world.getEntitiesAt(position);
-    const objectives = entitiesAtPos.filter(e => {
+    const objectives : Entity[] = entitiesAtPos.filter(e => {
         const objComponent = e.getComponent('objective') as ObjectiveComponent;
         return e.hasComponent('objective') && objComponent?.active === true;
     });
@@ -35,7 +36,9 @@ function checkAndHandleObjectives(world: World, position: Point) {
         world.emit('objective-complete', { objective });
         const objComponent = objective.getComponent('objective') as ObjectiveComponent;
         objComponent.active = false;
+        
         objective.setComponent(objComponent);
+        objective.removeComponent('lightEmitter');
     });
 }
 
@@ -173,6 +176,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                         const objComponent = e.getComponent('objective') as ObjectiveComponent;
                         objComponent.active = false;
                         e.setComponent(objComponent);
+                        e.removeComponent('lightEmitter');
                     });
                 });
             });
@@ -238,6 +242,9 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
                 if(objective.active) {
                     world.emit('objective-complete', { objective: destinationEntity });
+                    objective.active = false;
+                    destinationEntity.setComponent(objective);
+                    destinationEntity.removeComponent('lightEmitter');
                 }
             }
 
