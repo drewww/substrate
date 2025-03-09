@@ -284,11 +284,8 @@ export class Display {
     }
 
     private setupFont(defaultFont?: string, customFont?: string) {
-        // Ensure font family is properly quoted if it contains spaces
-        this.defaultFontFamily = customFont || defaultFont || 'monospace';
-        if (this.defaultFontFamily.includes(' ') && !this.defaultFontFamily.includes('"')) {
-            this.defaultFontFamily = `"${this.defaultFontFamily}"`;
-        }
+        // Create a complete font stack with all required fonts
+        this.defaultFontFamily = `'JetBrains Mono', 'Noto Sans Symbols', 'Noto Sans Symbols 2', monospace`;
         
         const fontSize = Math.floor(this.cellHeightScaled * 0.8);
         const fontString = `normal normal ${fontSize}px ${this.defaultFontFamily}`;
@@ -415,12 +412,10 @@ export class Display {
         if (tile.fontWeight || tile.fontStyle || tile.fontFamily) {
             const weight = tile.fontWeight || 'normal';
             const style = tile.fontStyle || 'normal';
-            let family = tile.fontFamily || this.defaultFontFamily;
-            
-            // Ensure font family is properly quoted if it contains spaces
-            if (family.includes(' ') && !family.includes('"')) {
-                family = `"${family}"`;
-            }
+            // If custom font family is specified, use it, otherwise use the default stack
+            const family = tile.fontFamily ? 
+                `${tile.fontFamily}, ${this.defaultFontFamily}` : 
+                this.defaultFontFamily;
             
             fontString = `${style} ${weight} ${fontSize}px ${family}`;
         }

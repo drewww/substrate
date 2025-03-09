@@ -3,25 +3,25 @@
 <head>
     <title>RUNNER_2/RUNTIME</title>
     <meta charset="UTF-8">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" as="style">
-    <link rel="preload" href="https://fonts.gstatic.com/s/jetbrainsmono/v13/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOV.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- Move font loading earlier and make it blocking -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles.css">
+    
     <style>
-        @font-face {
-            font-family: 'JetBrains Mono';
-            font-style: normal;
-            font-weight: 400;
-            font-display: swap;
-            src: url(https://fonts.gstatic.com/s/jetbrainsmono/v13/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxTOlOV.woff2) format('woff2');
+        /* Force font loading before rendering */
+        .fonts-loading {
+            visibility: hidden;
         }
-        
-        /* Ensure the font is loaded before use */
-        body {
-            font-family: 'JetBrains Mono', ui-monospace, Menlo, Monaco, monospace;
+
+        @supports (font-variation-settings: normal) {
+            body {
+                font-family: 'JetBrains Mono', 'Noto Sans Symbols', 'Noto Sans Symbols 2', monospace;
+            }
         }
+
         body {
             display: flex;
             flex-direction: column;
@@ -184,7 +184,40 @@
             object-fit: cover;
             display: none;  /* Hide all by default */
         }
+
+        /* Special class for game symbols */
+        .game-symbol {
+            font-family: 'Noto Sans Symbols', 'Noto Sans Symbols 2', 'JetBrains Mono', ui-monospace, 'Courier New', Courier, monospace;
+        }
     </style>
+
+    <script>
+        // Add loading class immediately
+        document.documentElement.classList.add('fonts-loading');
+
+        // More robust font loading check
+        if ('fonts' in document) {
+            Promise.all([
+                document.fonts.load('400 1em "JetBrains Mono"'),
+                document.fonts.load('700 1em "JetBrains Mono"'),
+                document.fonts.load('1em "Noto Sans Symbols"'),
+                document.fonts.load('1em "Noto Sans Symbols 2"')
+            ]).then(() => {
+                // Double check that fonts are actually ready
+                document.fonts.ready.then(() => {
+                    document.documentElement.classList.remove('fonts-loading');
+                    console.log('Fonts confirmed loaded');
+                });
+            }).catch(err => {
+                console.error('Font loading error:', err);
+                // Remove loading class anyway to ensure content is visible
+                document.documentElement.classList.remove('fonts-loading');
+            });
+        } else {
+            // Fallback for browsers without font API
+            document.documentElement.classList.remove('fonts-loading');
+        }
+    </script>
 </head>
 <body>
     <div id="display-container">
@@ -227,6 +260,35 @@
         <div id="world-debug"></div>
         <div id="engine-debug"></div>
     </div>
+    <div id="font-test" style="position: fixed; top: 10px; left: 10px; z-index: 9999; background: black; color: white; padding: 10px; font-size: 20px;">
+        <div style="font-family: 'JetBrains Mono'">JetBrains: ⧋</div>
+        <div style="font-family: 'Noto Sans Symbols'">Noto Symbols: ⧯ ⬚ ●</div>
+        <div style="font-family: 'Noto Sans Symbols 2'">Noto Symbols 2: 🜛 ⏚ ⛣ 🜻</div>
+    </div>
     <script type="module" src="./main.ts"></script>
+    <script>
+        if ('fonts' in document) {
+            console.log('Fonts API available');
+            document.fonts.ready.then(() => {
+                console.log('All fonts loaded!');
+                console.log('Available fonts:', document.fonts);
+                // List all loaded fonts
+                for (let font of document.fonts) {
+                    console.log(`Font: ${font.family}, Status: ${font.status}`);
+                }
+            });
+            
+            // Check specific fonts
+            document.fonts.load('1em "JetBrains Mono"').then(fonts => {
+                console.log('JetBrains Mono loaded:', fonts);
+            });
+            
+            document.fonts.load('1em "Noto Sans Symbols"').then(fonts => {
+                console.log('Noto Sans Symbols loaded:', fonts);
+            });
+        } else {
+            console.log('Fonts API not available');
+        }
+    </script>
 </body>
 </html> 
