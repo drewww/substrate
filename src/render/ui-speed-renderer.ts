@@ -25,6 +25,8 @@ export class UISpeedRenderer implements Renderer {
     private readonly TIME_X = 55;  // Position for current time display
     private readonly BEST_TIME_X = 65;  // Position for best time display
     private readonly OBJECTIVES_START_X = 43;  // After health indicator
+    private readonly LOCKED_X = 80;  // Position for locked indicator
+
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
         '#ffbb0088',  // Speed 2
@@ -429,6 +431,42 @@ export class UISpeedRenderer implements Renderer {
         }
     }
 
+    private updateLockedIndicator(isLocked: boolean): void {
+        logger.info("LOCKED: " + this.player.getComponentTypes());
+        logger.info(`Updating locked indicator. isLocked: ${isLocked}`);
+        
+        // Remove existing locked tiles if they exist
+        const lockedTileIds = this.uiTiles.get('locked');
+        if (lockedTileIds) {
+            logger.info('Removing existing locked tiles');
+            this.uiDisplay.removeTiles(lockedTileIds);
+            this.uiTiles.delete('locked');
+        }
+
+        // If locked, create new tiles
+        if (isLocked) {
+            logger.info('Creating new locked tiles');
+            const newLockedTileIds = this.uiDisplay.createString(
+                this.LOCKED_X,
+                0,
+                'LOCKED',
+                1001,
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: '#FF194DFF'
+                }
+            );
+            this.uiTiles.set('locked', newLockedTileIds);
+
+            // Set white text color
+            for (const tileId of newLockedTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF'
+                });
+            }
+        }
+    }
+
     update(timestamp: number): void {
         this.updateTimeDisplay();
     }
@@ -449,6 +487,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateEnergyIndicator();
             } else if (componentType === 'metrics') {
                 this.updateObjectivesIndicator();
+            } else if (componentType === 'locked') {
+                this.updateLockedIndicator(false);
             }
         }
     }
@@ -464,6 +504,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateEnergyIndicator();
             } else if (componentType === 'metrics') {
                 this.updateObjectivesIndicator();
+            } else if (componentType === 'locked') {
+                this.updateLockedIndicator(true);
             }
         }
     }

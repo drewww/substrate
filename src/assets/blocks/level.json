@@ -5557,7 +5557,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable",
           "followPriority": 100
@@ -5608,7 +5608,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable",
           "followPriority": 100
@@ -5658,7 +5658,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5703,7 +5703,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5748,7 +5748,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5794,7 +5794,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable",
           "followPriority": 100
@@ -5844,7 +5844,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5889,7 +5889,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5934,7 +5934,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5980,7 +5980,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable",
           "followPriority": 100
@@ -6030,7 +6030,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -6075,7 +6075,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -6121,7 +6121,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable",
           "followPriority": 100
@@ -6171,7 +6171,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,

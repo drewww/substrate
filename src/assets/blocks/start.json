@@ -4164,7 +4164,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "vision",
           "radius": 40,

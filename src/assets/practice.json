@@ -73252,7 +73252,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "cooldown",
           "cooldowns": {
@@ -73301,7 +73301,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "cooldown",
           "cooldowns": {
@@ -73402,7 +73402,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "cooldown",
           "cooldowns": {
@@ -73451,7 +73451,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "cooldown",
           "cooldowns": {
@@ -73498,7 +73498,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "move",
           "ignoreImpassable": false,
@@ -73555,7 +73555,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "move",
           "ignoreImpassable": false,
@@ -75139,7 +75139,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "enemyAI",
           "aiType": "emp_turret",

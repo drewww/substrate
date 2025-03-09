@@ -5245,7 +5245,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5293,7 +5293,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "follower",
           "followedEntityId": null,
@@ -5341,7 +5341,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "move",
           "ignoreImpassable": false,

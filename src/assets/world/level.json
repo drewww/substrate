@@ -39966,7 +39966,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "vision",
           "radius": 20
@@ -40416,7 +40416,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable"
         },
@@ -40459,7 +40459,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable"
         },
@@ -40502,7 +40502,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable"
         },
@@ -40545,7 +40545,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "followable"
         },

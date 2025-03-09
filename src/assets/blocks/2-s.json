@@ -5681,7 +5681,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "move",
           "ignoreImpassable": false,
@@ -5748,7 +5748,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "move",
           "ignoreImpassable": false,
@@ -5815,7 +5815,7 @@
         },
         {
           "type": "impassable"
-        }
+        },
         {
           "type": "move",
           "ignoreImpassable": false,
