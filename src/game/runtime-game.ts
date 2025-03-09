@@ -5,6 +5,7 @@ import { Display } from '../display/display.ts';
 import { Easing } from '../display/types.ts';
 import { Engine } from '../engine/engine.ts';
 import { VisionComponent } from '../entity/components/vision-component.ts';
+import { Component } from '../entity/component.ts';
 import { Entity } from '../entity/entity.ts';
 import { BaseRenderer } from '../render/base-renderer.ts';
 import { UISpeedRenderer } from '../render/ui-speed-renderer.ts';
@@ -814,12 +815,17 @@ export class RuntimeGame extends Game {
         this.uiSpeedRenderer = new UISpeedRenderer(this.player);
         this.uiSpeedRenderer.hide();
 
-        // Listen for component modifications to update speed display
+        // Listen for component modifications
         this.world.on('componentModified', (data: { entity: Entity, componentType: string }) => {
             this.uiSpeedRenderer.handleComponentModified(data.entity, data.componentType);
         });
 
-        // Add frame callback to update speed renderer
+        // Listen for component removals
+        this.world.on('componentRemoved', (data: { entity: Entity, componentType: string, component: Component }) => {
+            this.uiSpeedRenderer.handleComponentRemoved(data.entity, data.componentType, data.component);
+        });
+
+        // The frame callback will handle all updates
         this.display.addFrameCallback((display, timestamp) => {
             this.uiSpeedRenderer.update(timestamp);
         });

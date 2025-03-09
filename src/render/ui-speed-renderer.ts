@@ -26,6 +26,7 @@ export class UISpeedRenderer implements Renderer {
     private readonly BEST_TIME_X = 65;  // Position for best time display
     private readonly OBJECTIVES_START_X = 43;  // After health indicator
     private readonly LOCKED_X = 80;  // Position for locked indicator
+    private readonly REVERSE_X = 86;  // 6 positions after LOCKED_X (80)
 
     private readonly SPEED_COLORS = [
         '#ffd70088',  // Speed 1 - light yellow
@@ -498,6 +499,40 @@ export class UISpeedRenderer implements Renderer {
         }
     }
 
+    private updateReverseIndicator(isReversing: boolean): void {
+
+        logger.info(`Updating reverse indicator. isReversing: ${isReversing}`);
+
+        // If reversing, create new tiles
+        if (isReversing) {
+            const newReverseTileIds = this.uiDisplay.createString(
+                this.REVERSE_X,  // To the right of BRAKE
+                1,               // Same row as BRAKE
+                'REVERSE',
+                1001,
+                { 
+                    fontFamily: 'monospace',
+                    backgroundColor: '#FFC505FF'
+                }
+            );
+            this.uiTiles.set('reverse', newReverseTileIds);
+
+            // Set white text color
+            for (const tileId of newReverseTileIds) {
+                this.uiDisplay.updateTile(tileId, {
+                    fg: '#FFFFFFFF'
+                });
+            }
+        } else {
+            // Remove the tiles if they exist before deleting the map entry
+            const reverseTileIds = this.uiTiles.get('reverse');
+            if (reverseTileIds) {
+                this.uiDisplay.removeTiles(reverseTileIds);
+                this.uiTiles.delete('reverse');
+            }
+        }
+    }
+
     update(timestamp: number): void {
         this.updateTimeDisplay();
     }
@@ -507,6 +542,7 @@ export class UISpeedRenderer implements Renderer {
     handleEntityMoved(entity: Entity, from: Point, to: Point): boolean { return true; }
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {
+        logger.info(`handleComponentModified: ${componentType}`);
         if (entity === this.player) {
             if (componentType === 'inertia') {
                 this.updateSpeedIndicator();
@@ -522,10 +558,13 @@ export class UISpeedRenderer implements Renderer {
                 this.updateLockedIndicator(true);
             } else if (componentType === 'brake') {
                 this.updateBrakeIndicator(true);
+            } else if (componentType === 'reverse') {
+                this.updateReverseIndicator(true);
             }
         }
     }
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
+        logger.info(`handleComponentRemoved: ${componentType}`);
         if (entity === this.player) {
             if (componentType === 'inertia') {
                 this.updateSpeedIndicator();
@@ -541,6 +580,8 @@ export class UISpeedRenderer implements Renderer {
                 this.updateLockedIndicator(false);
             } else if (componentType === 'brake') {
                 this.updateBrakeIndicator(false);
+            } else if (componentType === 'reverse') {
+                this.updateReverseIndicator(false);
             }
         }
     }
