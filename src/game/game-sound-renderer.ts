@@ -175,6 +175,10 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
             
             let newState = EngineState.Off;
             
+            if(inertia.magnitude == 0) {
+                newState = EngineState.Off;
+            }
+
             if (inertia.magnitude > 0) {
                 if (hasTurbo) {
                     newState = EngineState.Turbo;
@@ -208,6 +212,12 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
 
                 // Start new engine sound
                 switch (newState) {
+                    case EngineState.Off:
+                        this.stopSound('low-engine');
+                        this.stopSound('mid-engine');
+                        this.stopSound('high-engine');
+                        this.stopSound('turbo-engine');
+                        break;
                     case EngineState.Low:
                         this.playSound('low-engine', { volume: 0.3, loop: true });
                         break;

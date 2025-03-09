@@ -15,6 +15,19 @@ const VIEWPORT_PADDING_Y = 0.2; // 20% padding on top/bottom
 // Add new type for mouse event types
 export type MouseTransition = 'down' | 'up';
 
+export interface DisplayOptions {
+    elementId: string;
+    cellWidth: number;
+    cellHeight: number;
+    viewportWidth: number;
+    viewportHeight: number;
+    worldWidth: number;
+    worldHeight: number;
+    defaultFont?: string;
+    customFont?: string;
+    defaultBackground?: string;
+}
+
 export class Display {
     private displayCanvas: HTMLCanvasElement;    // The canvas shown to the user
     private renderCanvas: HTMLCanvasElement;
@@ -93,6 +106,8 @@ export class Display {
     // Add these properties at the class level
     private linkedTiles: Map<TileId, Set<TileId>> = new Map();  // source -> followers
     private linkedToSource: Map<TileId, TileId> = new Map();    // follower -> source
+
+    private readonly defaultBackground: string;
 
     constructor(options: DisplayOptions) {
         logger.info('Initializing Display with options:', options);
@@ -202,11 +217,13 @@ export class Display {
             'w': '#FFFFFFFF',  // white
         });
 
-        // Initialize renderCanvas with padding around viewport
-       
+        this.defaultBackground = options.defaultBackground || '#00000000';
         
+        // Initialize render context with default background
+        this.renderCtx = this.renderCanvas.getContext('2d', { alpha: true })!;
+        this.renderCtx.fillStyle = this.defaultBackground;
+        this.renderCtx.fillRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
         
-
         // Initialize dirtyMask for entire world
         this.dirtyMask = new DirtyMask(options.worldWidth, options.worldHeight);
         
@@ -1292,8 +1309,9 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
         }
 
-        // Clear the entire render canvas once
-        this.renderCtx.clearRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
+        // Clear the entire render canvas with default background
+        this.renderCtx.fillStyle = this.defaultBackground;
+        this.renderCtx.fillRect(0, 0, this.renderCanvas.width, this.renderCanvas.height);
 
         // Get all visible tiles and their current animated positions
         const visibleTiles = Array.from(this.tileMap.values())
