@@ -95,25 +95,28 @@ export class TitleRenderer implements Renderer {
 
     private renderTitleScreen(): void {
         this.createDarkBackground(
-            this.display.getViewportWidth() - 25,
+            this.display.getViewportWidth() - 35,
             this.display.getViewportWidth() - 4,
             2,
             this.display.getViewportHeight() - 2
         );
 
-        this.display.createString(this.display.getViewportWidth() - 23, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(this.display.getViewportWidth() - 33, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
         });
 
         const menuItems = [
             '{w}[r]un{/}',
-            '{w}[t]rain{/}',
+            '',
+            '{w}[t]utorial{/}',
+            '{w}[p]ractice{/}',
+            '',
             '{w}[c]redits{/}'
         ];
 
         menuItems.forEach((item, index) => {
-            this.display.createString(this.display.getViewportWidth() - 21, 5 + index, item, 1000, {
+            this.display.createString(this.display.getViewportWidth() - 31, 5 + index, item, 1000, {
                 animate: {
                     delayBetweenChars: 0.05,
                     initialDelay: 0.0

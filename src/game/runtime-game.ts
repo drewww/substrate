@@ -51,7 +51,7 @@ import { EnergyComponent } from './components/energy.component.ts';
 import practiceWorldUrl from '../assets/practice.json?url';
 import circleTrackUrl from '../assets/world/circular-track.json?url';
 import testWorldUrl from '../assets/world/test-world.json?url';
-
+import tutorialURL from '../assets/world/tutorial.json?url';
 
 import { WorldGenerator } from '../world/world-generator.ts';
 import { ImpassableComponent } from '../entity/components/impassable-component.ts';
@@ -83,7 +83,8 @@ mode: title
 map: default
 ---
 r start
-t train
+t tutorial
+p practice
 c credits
 Escape reset
 `;
@@ -577,7 +578,21 @@ export class RuntimeGame extends Game {
             return;
         }
 
-        if (action === 'train' && type === 'up') {
+        if(action === 'tutorial' && type === 'up') {
+            this.cleanupSpeedRenderer(); // Add cleanup
+            this.initializeWorld({ 
+                type: 'json',
+                url: tutorialURL
+            })
+                .then(() => {
+                    this.startGame();
+                    this.uiSpeedRenderer?.show();
+                })
+                .catch(error => logger.error('Failed to start tutorial:', error));
+            return;
+        }
+
+        if (action === 'practice' && type === 'up') {
             this.cleanupSpeedRenderer(); // Add cleanup
             this.initializeWorld({ 
                 type: 'json',
