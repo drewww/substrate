@@ -19806,7 +19806,143 @@
       ]
     },
     {
-      "id": "e20119",
+      "id": "e20305",
+      "position": {
+        "x": 33,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⬚",
+          "foreground": "#eeeeeeff",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.6,
+          "scaleSymbolY": 1.6,
+          "fontWeight": "bold",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": true,
+          "objectiveType": "vehicle",
+          "index": 10
+        }
+      ]
+    },
+    {
+      "id": "e20330",
+      "position": {
+        "x": 32,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⬚",
+          "foreground": "#eeeeeeff",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.6,
+          "scaleSymbolY": 1.6,
+          "fontWeight": "bold",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": true,
+          "objectiveType": "vehicle",
+          "index": 10
+        }
+      ]
+    },
+    {
+      "id": "e20355",
+      "position": {
+        "x": 31,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⬚",
+          "foreground": "#eeeeeeff",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.6,
+          "scaleSymbolY": 1.6,
+          "fontWeight": "bold",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": true,
+          "objectiveType": "vehicle",
+          "index": 10
+        }
+      ]
+    },
+    {
+      "id": "e20380",
+      "position": {
+        "x": 30,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⬚",
+          "foreground": "#eeeeeeff",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.6,
+          "scaleSymbolY": 1.6,
+          "fontWeight": "bold",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
+        },
+        {
+          "type": "objective",
+          "active": false,
+          "eligible": true,
+          "objectiveType": "vehicle",
+          "index": 10
+        }
+      ]
+    },
+    {
+      "id": "e20443",
       "position": {
         "x": 2,
         "y": 2
@@ -19852,11 +19988,6 @@
         },
         {
           "type": "player"
-        },
-        {
-          "type": "health",
-          "health": 12,
-          "maxHealth": 12
         },
         {
           "type": "inertia",

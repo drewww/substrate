@@ -10,6 +10,7 @@ import { HealthComponent } from '../entity/components/health.component';
 import { EnergyComponent } from '../game/components/energy.component';
 import { MetricsComponent } from '../game/components/metrics.component';
 import { CooldownComponent } from '../game/components/cooldown.component';
+import { StunComponent } from '../game/components/stun.component';
 
 export class UISpeedRenderer implements Renderer {
 
@@ -645,8 +646,10 @@ export class UISpeedRenderer implements Renderer {
         // Check for stun cooldown
         const cooldown = this.player.getComponent('cooldown') as CooldownComponent;
         const stunCooldown = cooldown?.getCooldown('stun');
+        
+        const stunComponent = this.player.getComponent('stun') as StunComponent;
 
-        if (stunCooldown) {
+        if (stunComponent && stunCooldown) {
             // Create 10 empty tiles for the stun bar
             const newStunnedTileIds = [];
             for (let i = 0; i < 10; i++) {

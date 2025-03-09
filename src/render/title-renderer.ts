@@ -441,34 +441,34 @@ export class TitleRenderer implements Renderer {
     
 
                 // now turn on the "exits" to complete the mission.
-                const exit = new Entity({x: 33, y: 10});
-                exit.setComponent(new SymbolComponent('⬚', '#eeeeeeff', '#00000000', 100));
-                exit.setComponent(new ObjectiveComponent(true, true, 'end', 11));
+                // const exit = new Entity({x: 33, y: 10});
+                // exit.setComponent(new SymbolComponent('⬚', '#eeeeeeff', '#00000000', 100));
+                // exit.setComponent(new ObjectiveComponent(true, true, 'end', 11));
 
-                const lightEmitter = new LightEmitterComponent({
-                    "radius": 3,
-                    "color": "#55CE4A",
-                    "intensity": 0.6,
-                    "distanceFalloff": "linear",
-                    "lightSourceTile": false
-                });
+                // const lightEmitter = new LightEmitterComponent({
+                //     "radius": 3,
+                //     "color": "#55CE4A",
+                //     "intensity": 0.6,
+                //     "distanceFalloff": "linear",
+                //     "lightSourceTile": false
+                // });
 
-                exit.setComponent(lightEmitter);
-                exit.setComponent(lightEmitter);
+                // exit.setComponent(lightEmitter);
+                // exit.setComponent(lightEmitter);
 
-                this.world.addEntity(exit);
+                // this.world.addEntity(exit);
 
-                const exit2 = exit.clone()
-                exit2.setPosition(33, 11);
-                this.world.addEntity(exit2);
+                // const exit2 = exit.clone()
+                // exit2.setPosition(33, 11);
+                // this.world.addEntity(exit2);
 
-                const exit3 = exit.clone()
-                exit3.setPosition(33, 12);
-                this.world.addEntity(exit3);
+                // const exit3 = exit.clone()
+                // exit3.setPosition(33, 12);
+                // this.world.addEntity(exit3);
                 
-                const exit4 = exit.clone()
-                exit4.setPosition(33, 13);
-                this.world.addEntity(exit4);                
+                // const exit4 = exit.clone()
+                // exit4.setPosition(33, 13);
+                // this.world.addEntity(exit4);                
             } 
 
             if(this.objectiveIndex === 12) {
@@ -495,7 +495,7 @@ export class TitleRenderer implements Renderer {
             if(!data.entity.hasComponent('player')) return;
             if(data.to.x === 2 && data.to.y === 5) {
                 this.display.clear();
-                this.invertDarkBackground(4, 6, 4, 15);
+                this.invertDarkBackground(2, 8, 4, 15);
 
                 this.display.createString(10, 5, '{w}  W{/}', 1000, {
                     backgroundColor: '#000000',
@@ -516,12 +516,12 @@ export class TitleRenderer implements Renderer {
 
             if(data.to.x === 2 && data.to.y === 9) {
                 this.display.clear();
-                this.invertDarkBackground(4, 6, 4, 15);
+                this.invertDarkBackground(2, 8, 4, 15);
             }
 
             if(data.to.x === 2 && data.to.y === 12) {
                 this.display.clear();
-                this.invertDarkBackground(4, 8, 8, 14);
+                this.invertDarkBackground(2, 8, 4, 15);
 
                 this.display.createString(8, 12, 'Don\'t crash. We don\'t have time for that.', 1000, {
                     backgroundColor: '#000000',
@@ -536,7 +536,7 @@ export class TitleRenderer implements Renderer {
                 this.display.clear();
                 // this.invertDarkBackground(4, 65, 8, 14);
 
-                this.display.createString(19, 11, 'Make haste.', 1000, {
+                this.display.createString(20, 11, 'Make haste.', 1000, {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,

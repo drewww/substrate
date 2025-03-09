@@ -648,6 +648,8 @@ export class RuntimeGame extends Game {
             if (this.engine?.isRunning()) {
                 this.engine.stop();
             }
+
+            this.soundRenderer?.stopAllSounds();
             
             // Only show title screen if we're not already on it
             if (this.titleRenderer && this.titleRenderer.getCurrentMode() !== TitleMode.TITLE) {
@@ -663,6 +665,7 @@ export class RuntimeGame extends Game {
         if (action === 'quit' && type === 'down') {
             // Only handle quit if we're in game mode
             if (this.input.getCurrentMode() === 'game') {
+                this.soundRenderer?.stopAllSounds();
                 // Stop the game engine
                 if (this.engine?.isRunning()) {
                     this.engine.stop();

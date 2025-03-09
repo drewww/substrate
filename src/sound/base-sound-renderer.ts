@@ -214,6 +214,23 @@ export abstract class BaseSoundRenderer implements Renderer {
             this.activeSounds.delete(soundId);
         }
     }
+
+    /**
+     * Stop all currently playing sounds
+     */
+    public stopAllSounds(): void {
+        // Create a copy of the keys since we'll be modifying the map while iterating
+        const soundIds = Array.from(this.activeSounds.keys());
+        
+        // Stop each sound
+        for (const soundId of soundIds) {
+            this.stopSound(soundId);
+        }
+        
+        // Clear the maps
+        this.activeSounds.clear();
+        this.entityLoopingSounds.clear();
+    }
     
     // Required Renderer interface methods
     public abstract handleEntityAdded(entity: Entity): void;

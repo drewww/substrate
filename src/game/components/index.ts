@@ -23,3 +23,4 @@ import './vehicle-leader.component';
 import './energy.component';
 import './spawn-hint.component';
 import './reverse.component';
+import './../../entity/components/health.component'

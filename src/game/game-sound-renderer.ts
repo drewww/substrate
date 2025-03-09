@@ -133,6 +133,10 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
 
         if (stunCooldown && !this.isStunned) {
             logger.warn('playing stunned sound');
+            this.stopSound('low-engine');
+            this.stopSound('mid-engine');
+            this.stopSound('high-engine');
+            this.stopSound('turbo-engine');
             this.playSound('crashed', { volume: 0.2 });
             this.isStunned = true;
         }
