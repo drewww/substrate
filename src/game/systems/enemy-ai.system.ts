@@ -158,7 +158,7 @@ export class EnemyAISystem {
                 ai.lastPosition = enemy.getPosition();
 
                 // Check if we should explode due to distance
-                if (ai.distanceTraveled > 6) {
+                if (ai.distanceTraveled > 4) {
                     logger.warn("FOLLOWER SELF-DESTRUCTING DUE TO DISTANCE");
                     this.createExplosion(enemy);
                     this.world.removeEntity(enemy.getId());
@@ -415,8 +415,8 @@ export class EnemyAISystem {
             const entity = new Entity(tile);
 
             const symbol = new SymbolComponent('🝆', '#FFFFFFFF', '#C8BDBD88', 1000, false);
-            symbol.scaleSymbolX = 1.5;
-            symbol.scaleSymbolY = 1.5;
+            symbol.scaleSymbolX = 1.1;
+            symbol.scaleSymbolY = 1.1;
             symbol.offsetSymbolY = -0.2;
             
             entity.setComponent(symbol);

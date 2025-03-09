@@ -476,10 +476,41 @@ export class CityBlockGenerator implements WorldGenerator {
 
         // Only place helicopter if spawnHelicopter is true
         if (this.options.spawnHelicopter) {
-            // Your existing helicopter placement code
-            const x = Math.floor(Math.random() * (this.width-2))+1;
-            const y = Math.floor(Math.random() * (this.height-2))+1;
-
+            // Get player position
+            const player = world.getPlayer();
+            const playerPos = player ? player.getPosition() : null;
+            
+            // Try to find a position that's at least 20 blocks away from the player
+            let x, y, attempts = 0;
+            const MAX_ATTEMPTS = 50; // Prevent infinite loops
+            
+            do {
+                x = Math.floor(Math.random() * (this.width-2))+1;
+                y = Math.floor(Math.random() * (this.height-2))+1;
+                
+                // Convert to world coordinates
+                const worldX = x * this.blockWidth;
+                const worldY = y * this.blockHeight;
+                
+                // If no player or we've tried too many times, use this position
+                if (!playerPos || attempts >= MAX_ATTEMPTS) {
+                    break;
+                }
+                
+                // Calculate distance to player
+                const distanceToPlayer = Math.sqrt(
+                    Math.pow(worldX - playerPos.x, 2) + 
+                    Math.pow(worldY - playerPos.y, 2)
+                );
+                
+                // If distance is greater than 20, we're good
+                if (distanceToPlayer > 20) {
+                    break;
+                }
+                
+                attempts++;
+            } while (attempts < MAX_ATTEMPTS);
+            
             this.placeHelicopter(x * this.blockWidth, y * this.blockHeight, world);
         }
 
@@ -497,8 +528,8 @@ export class CityBlockGenerator implements WorldGenerator {
         symbol.foreground = '#FFFFFFFF';
         symbol.background = '#FF194D00';
         symbol.zIndex = 500;
-        symbol.scaleSymbolX = 1.4;
-        symbol.scaleSymbolY = 1.4;
+        symbol.scaleSymbolX = 1.1;
+        symbol.scaleSymbolY = 1.1;
         symbol.offsetSymbolY = -0.1;
         symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
