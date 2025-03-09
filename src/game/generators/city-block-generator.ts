@@ -589,7 +589,7 @@ export class CityBlockGenerator implements WorldGenerator {
         symbol.alwaysRenderIfExplored = false;
         
         camera.setComponent(symbol);
-        camera.setComponent(new VisionComponent(10, false));
+        camera.setComponent(new VisionComponent(5, false));
         camera.setComponent(new EnemyAIComponent(EnemyAIType.CAMERA));
 
         world.addEntity(camera);

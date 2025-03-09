@@ -23,10 +23,17 @@ import lockedSound from '../assets/sound/locked.wav?url';
 import unlockedSound from '../assets/sound/unlocked.wav?url';
 import { LockedComponent } from './components/locked.component';
 
+enum EngineState {
+    Off = 0,
+    Low = 1,
+    Medium = 2,
+    Turbo = 3
+}
 
 export class RuntimeSoundRenderer extends BaseSoundRenderer {
     private isLocked: boolean = false;  // Add state 
     private isStunned: boolean = false;
+    private currentEngineState: EngineState = EngineState.Off;
 
     constructor(world: World, audioContext: AudioContext) {
         super(world, audioContext);
@@ -124,7 +131,7 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
         if(entity.hasComponent('player') && componentType == "locked") {
             const locked = entity.getComponent('locked') as LockedComponent;
             if(locked && !this.isLocked) {
-                this.playSound('locked', { volume: 0.3 });
+                this.playSound('locked', { volume: 0.1 });
                 this.isLocked = true;
             }
         }
@@ -152,12 +159,34 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                 }
             }
         }
+
+        if (entity.hasComponent('player') && componentType === 'inertia') {
+            const inertia = entity.getComponent('inertia') as InertiaComponent;
+            const hasTurbo = entity.hasComponent('turbo');
+            
+            let newState = EngineState.Off;
+            
+            if (inertia.magnitude > 0) {
+                if (hasTurbo) {
+                    newState = EngineState.Turbo;
+                } else if (inertia.magnitude >= 2) {
+                    newState = EngineState.Medium;
+                } else {
+                    newState = EngineState.Low;
+                }
+            }
+
+            if (newState !== this.currentEngineState) {
+                logger.warn('Engine state changed:', EngineState[this.currentEngineState], '->', EngineState[newState]);
+                this.currentEngineState = newState;
+            }
+        }
     }
 
     public handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
         if(entity.hasComponent('player') && componentType === 'locked') {
             this.isLocked = false;  // Reset the lock state when component is removed
-            this.playSound('unlocked', { volume: 0.3 });
+            this.playSound('unlocked', { volume: 0.1 });
         }
 
         if(entity.hasComponent('player') && componentType === 'stun') {
