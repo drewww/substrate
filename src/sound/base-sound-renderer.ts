@@ -23,6 +23,7 @@ interface SoundState {
     position?: Point;
     source?: AudioBufferSourceNode;
     gainNode?: GainNode;
+    panNode?: StereoPannerNode;
 }
 
 export abstract class BaseSoundRenderer implements Renderer {
@@ -216,20 +217,79 @@ export abstract class BaseSoundRenderer implements Renderer {
     }
 
     /**
-     * Stop all currently playing sounds
+     * Stop all currently playing sounds and clean up audio nodes
      */
     public stopAllSounds(): void {
-        // Create a copy of the keys since we'll be modifying the map while iterating
-        const soundIds = Array.from(this.activeSounds.keys());
-        
-        // Stop each sound
-        for (const soundId of soundIds) {
-            this.stopSound(soundId);
+        try {
+            // Create a copy of all active sounds
+            const soundIds = Array.from(this.activeSounds.keys());
+            const loopingSoundIds = Array.from(this.entityLoopingSounds.values()).flat();
+            
+            // Stop each regular sound and disconnect its nodes
+            for (const soundId of soundIds) {
+                const sound = this.activeSounds.get(soundId);
+                if (sound) {
+                    try {
+                        // Stop the source immediately
+                        if (sound.source) {
+                            sound.source.stop(0);
+                            sound.source.disconnect();
+                        }
+                        
+                        // Disconnect any associated nodes
+                        if (sound.gainNode) {
+                            sound.gainNode.disconnect();
+                        }
+                        if (sound.panNode) {
+                            sound.panNode.disconnect();
+                        }
+                    } catch (e) {
+                        console.warn(`Failed to stop sound ${soundId}:`, e);
+                    }
+                }
+            }
+            
+            // Stop each looping sound
+            for (const soundId of loopingSoundIds) {
+                try {
+                    const sound = this.activeSounds.get(soundId);
+                    if (sound) {
+                        if (sound.source) {
+                            sound.source.stop(0);
+                            sound.source.disconnect();
+                        }
+                        if (sound.gainNode) {
+                            sound.gainNode.disconnect();
+                        }
+                        if (sound.panNode) {
+                            sound.panNode.disconnect();
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Failed to stop looping sound ${soundId}:`, e);
+                }
+            }
+            
+            // Clear all tracking maps
+            this.activeSounds.clear();
+            this.entityLoopingSounds.clear();
+            
+            // Optional: Schedule a small timeout to ensure all audio operations complete
+            setTimeout(() => {
+                // Double check that everything is cleared
+                if (this.activeSounds.size > 0 || this.entityLoopingSounds.size > 0) {
+                    console.warn('Some sounds persisted after stopAll, forcing clear');
+                    this.activeSounds.clear();
+                    this.entityLoopingSounds.clear();
+                }
+            }, 100);
+            
+        } catch (e) {
+            console.error('Error in stopAllSounds:', e);
+            // Force clear everything as a last resort
+            this.activeSounds.clear();
+            this.entityLoopingSounds.clear();
         }
-        
-        // Clear the maps
-        this.activeSounds.clear();
-        this.entityLoopingSounds.clear();
     }
     
     // Required Renderer interface methods

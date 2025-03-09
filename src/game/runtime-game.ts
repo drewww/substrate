@@ -72,11 +72,9 @@ w move up
 s move down
 a move left
 d move right
-e shift up
-q shift down
 Space brake
 Shift turbo
-Escape quit
+q quit
 
 mode: title
 ==========
@@ -87,7 +85,7 @@ t tutorial
 p practice
 i instructions
 c credits
-Escape reset
+q reset
 `;
 
 type GeneratorConfig = {
@@ -1106,6 +1104,8 @@ export class RuntimeGame extends Game {
     public stopEngine(): void {
         if (this.engine?.isRunning()) {
             this.engine.stop();
+
+            this.soundRenderer?.stopAllSounds();
             
             // remove all the player statuses
             const player = this.world!.getPlayer();

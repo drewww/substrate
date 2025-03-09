@@ -483,7 +483,7 @@ export class TitleRenderer implements Renderer {
                     backgroundColor: '#000000',
                 });
 
-                this.display.createString(10, 7, '{w}Press [esc] to continue.{/}', 1000, {
+                this.display.createString(10, 7, '{w}Press [q] to continue.{/}', 1000, {
                     backgroundColor: '#000000',
                 });
             }
@@ -605,7 +605,7 @@ export class TitleRenderer implements Renderer {
         this.display.createString(
             leftX,
             this.display.getViewportHeight() - 3,
-            '{#666666}Press [esc] to return{/}',
+            '{#666666}Press [q] to return{/}',
             1000,
             { backgroundColor: '#00000000' }
         );

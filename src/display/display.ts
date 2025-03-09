@@ -765,23 +765,28 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
 
         segments.forEach(segment => {
             Array.from(segment.text).forEach(char => {
+                // If a custom font family is specified, append it to the default stack
+                const fontFamily = options?.fontFamily ? 
+                    `${options.fontFamily}, ${this.defaultFontFamily}` : 
+                    this.defaultFontFamily;
+
                 const tileId = this.createTile(
                     currentX++,
                     y,
                     char,
                     segment.color,
-                    segment.backgroundColor || options?.backgroundColor || "#00000000",  // Use segment's background if available
+                    segment.backgroundColor || options?.backgroundColor || "#00000000",
                     zIndex,
                     { 
                         bgPercent: options?.animate ? 0 : 1,
                         fontWeight: options?.fontWeight,
                         fontStyle: options?.fontStyle,
-                        fontFamily: options?.fontFamily
+                        fontFamily: fontFamily  // Use the combined font stack
                     }
                 );
                 tileIds.push(tileId);
 
-                // Add animation if requested
+                // Rest of animation code remains the same
                 if (options?.animate) {
                     const delay = (options.animate.initialDelay || 0) + 
                         (charIndex * options.animate.delayBetweenChars);
