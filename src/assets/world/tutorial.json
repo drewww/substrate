@@ -15733,77 +15733,6 @@
       ]
     },
     {
-      "id": "e5989",
-      "position": {
-        "x": 2,
-        "y": 2
-      },
-      "components": [
-        {
-          "type": "symbol",
-          "char": "▼",
-          "foreground": "#FFFFFFFF",
-          "background": "#00D3EF00",
-          "zIndex": 300,
-          "alwaysRenderIfExplored": false,
-          "rotation": 0,
-          "offsetSymbolX": 0,
-          "offsetSymbolY": 0,
-          "scaleSymbolX": 1.5,
-          "scaleSymbolY": 1.5,
-          "fontWeight": "bold",
-          "fontStyle": "normal",
-          "fontFamily": "monospace",
-          "lockRotationToFacing": true,
-          "blendMode": "normal"
-        },
-        {
-          "type": "facing",
-          "direction": 0
-        },
-        {
-          "type": "opacity"
-        },
-        {
-          "type": "impassable"
-        },
-        {
-          "type": "vision",
-          "radius": 40,
-          "ignoreOpacity": true
-        },
-        {
-          "type": "energy",
-          "energy": 200,
-          "maxEnergy": 200
-        },
-        {
-          "type": "player"
-        },
-        {
-          "type":"health",
-          "health": 12,
-          "maxHealth": 12
-        },
-        {
-          "type": "inertia",
-          "direction": 4,
-          "magnitude": 0,
-          "resetInertia": false
-        },
-        {
-          "type": "cooldown",
-          "cooldowns": {
-            "move": {
-              "base": 4,
-              "current": 4,
-              "ready": false
-            }
-          }
-        }
-      ]
-    },
-    {
       "id": "e6484",
       "position": {
         "x": 12,
@@ -19780,6 +19709,99 @@
           "eligible": true,
           "objectiveType": "vehicle",
           "index": 8
+        }
+      ]
+    },
+    {
+      "id": "e20020",
+      "position": {
+        "x": 2,
+        "y": 13
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⇇",
+          "foreground": "#55CE4AFF",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.2,
+          "scaleSymbolY": 1.2,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "normal"
+        },
+        {
+          "type": "facing",
+          "direction": 2
+        }
+      ]
+    },
+    {
+      "id": "e20038",
+      "position": {
+        "x": 3,
+        "y": 13
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⇇",
+          "foreground": "#55CE4AFF",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.2,
+          "scaleSymbolY": 1.2,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "normal"
+        },
+        {
+          "type": "facing",
+          "direction": 2
+        }
+      ]
+    },
+    {
+      "id": "e20060",
+      "position": {
+        "x": 4,
+        "y": 13
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": "⇇",
+          "foreground": "#55CE4AFF",
+          "background": "#00000000",
+          "zIndex": 0,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1.2,
+          "scaleSymbolY": 1.2,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": true,
+          "blendMode": "normal"
+        },
+        {
+          "type": "facing",
+          "direction": 2
         }
       ]
     }

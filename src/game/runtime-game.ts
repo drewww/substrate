@@ -85,6 +85,7 @@ map: default
 r start
 t tutorial
 p practice
+i instructions
 c credits
 Escape reset
 `;
@@ -693,6 +694,12 @@ export class RuntimeGame extends Game {
                 // Switch back to title mode
                 this.input.setMode('title');
             }
+            return;
+        }
+
+        if (action === 'instructions' && type === 'up') {
+            this.titleRenderer?.prepare(TitleMode.INSTRUCTIONS);
+            this.titleRenderer?.show(TitleMode.INSTRUCTIONS);
             return;
         }
 

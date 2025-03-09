@@ -132,6 +132,29 @@
         ]
       },
 
+      {
+        "id": "floor_arrow_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⇇",
+            "foreground": "#55CE4AFF",
+            "background": "#00000000",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true,
+            "lockRotationToFacing": true,
+
+            "scaleSymbolX": 1.2,
+            "scaleSymbolY": 1.2
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
       
 
       {

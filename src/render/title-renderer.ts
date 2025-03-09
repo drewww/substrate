@@ -23,7 +23,8 @@ export enum TitleMode {
     DEATH,
     VICTORY,
     CREDITS,
-    TUTORIAL
+    TUTORIAL,
+    INSTRUCTIONS
 }
 
 export class TitleRenderer implements Renderer {
@@ -49,6 +50,44 @@ export class TitleRenderer implements Renderer {
             roles: ['Level Design', 'Visual Design']
         }
     ];
+    private readonly INSTRUCTIONS = {
+        leftColumn: [
+            "MOVEMENT",
+            " ",
+            "   W ",
+            "  ASD   tap to move slowly",
+            " ",
+            "   W ",
+            "  ASD   hold to accelerate",
+            " ",
+
+            "  SHIFT - Turbo",
+            "  SPACE - Brake",
+            "",
+            "",
+            "OBJECTIVES",
+            "  {#F7BADF}⧯{/} {w}Steal DATA CORES{/}",
+            "  {#eeeeee}⬚{/} {w}Find EXTRACTION point{/}",
+            "  {#FF194D}●{/} {w}Avoid SECOPS spotlights{/}",
+            "",
+
+        ],
+        rightColumn: [
+            "VEHICLES",
+            "  RAM to steal cores",
+            "  Cores power exits",
+            "  Watch for patrols",
+            "",
+            "WARNINGS",
+            "  LOCKED - In spotlight",
+            "  TURBO - High speed",
+            "  BRAKE - Slowing down",
+            "  STUN - Crash recovery",
+            "",
+            "TIPS",
+            "  Practice drifting"
+        ]
+    };
     currentMode: TitleMode = TitleMode.TITLE;
     objectiveIndex: number = 0;
     isInDashboardTutorial: boolean = false;
@@ -88,6 +127,7 @@ export class TitleRenderer implements Renderer {
                 break;
             case TitleMode.VICTORY:
             case TitleMode.CREDITS:
+            case TitleMode.INSTRUCTIONS:
                 this.titleBackgrounds.victory.style.display = 'block';
                 break;
         }
@@ -113,6 +153,9 @@ export class TitleRenderer implements Renderer {
                 break;
             case TitleMode.TUTORIAL:
                 this.renderTutorialScreen();
+                break;
+            case TitleMode.INSTRUCTIONS:
+                this.renderInstructionsScreen();
                 break;
         }
 
@@ -147,6 +190,7 @@ export class TitleRenderer implements Renderer {
             '',
             '{w}[t]utorial{/}',
             '{w}[p]ractice{/}',
+            '{w}[i]nstructions{/}',
             '',
             '{w}[c]redits{/}'
         ];
@@ -476,7 +520,7 @@ export class TitleRenderer implements Renderer {
 
             if(data.to.x === 2 && data.to.y === 12) {
                 this.display.clear();
-                this.invertDarkBackground(4, 6, 8, 14);
+                this.invertDarkBackground(4, 8, 8, 14);
 
                 this.display.createString(8, 12, 'Don\'t crash. We don\'t have time for that.', 1000, {
                     backgroundColor: '#000000',
@@ -502,6 +546,68 @@ export class TitleRenderer implements Renderer {
                 this.selectObjective(0);
             }
         });
+    }
+
+    private renderInstructionsScreen(): void {
+        // Create semi-transparent black background with 1 cell padding
+        this.createDarkBackground(
+            1,
+            this.display.getViewportWidth() - 1,
+            1,
+            this.display.getViewportHeight() - 1
+        );
+
+        const leftX = 4;
+        const rightX = Math.floor(this.display.getViewportWidth() / 2) + 2;
+        const startY = 3;
+
+        // Title
+        this.display.createString(leftX, 1, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+            fontWeight: 'bold',
+        });
+
+        // Render left column
+        this.INSTRUCTIONS.leftColumn.forEach((line, index) => {
+            this.display.createString(
+                leftX,
+                startY + index,
+                `{#FFFFFF}${line}{/}`,
+                1000,
+                {
+                    backgroundColor: '#00000000',
+                    // animate: {
+                    //     delayBetweenChars: 0.05,
+                    //     initialDelay: 0.1 + (index * 0.05)
+                    // }
+                }
+            );
+        });
+
+        // Render right column
+        this.INSTRUCTIONS.rightColumn.forEach((line, index) => {
+            this.display.createString(
+                rightX,
+                startY + index,
+                `{#FFFFFF}${line}{/}`,
+                1000,
+                {
+                    backgroundColor: '#00000000',
+                    // animate: {
+                    //     delayBetweenChars: 0.05,
+                    //     initialDelay: 0.1 + (index * 0.05)
+                    // }
+                }
+            );
+        });
+
+        // Add return instruction at bottom
+        this.display.createString(
+            leftX,
+            this.display.getViewportHeight() - 3,
+            '{#666666}Press [esc] to return{/}',
+            1000,
+            { backgroundColor: '#00000000' }
+        );
     }
 
     private blankScreen(): void {
