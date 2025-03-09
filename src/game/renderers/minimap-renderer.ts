@@ -45,17 +45,17 @@ export class MinimapRenderer extends LayoutRenderer {
         world.on('entityAdded', (data: { entity: Entity }) => {
             if (data.entity.hasComponent('objective') && 
                 (data.entity.getComponent('objective') as ObjectiveComponent)?.active === true) {
-                this.objectiveTiles.set(data.entity.getId(), this.display.createTile(
-                    data.entity.getPosition().x,
-                    data.entity.getPosition().y,
-                    '◎',
-                    '#55CE4AFF',
-                    '#00000000',
-                    1000,
-                    {
-                        fontWeight: 'bold'
-                    }
-                ));
+                // this.objectiveTiles.set(data.entity.getId(), this.display.createTile(
+                //     data.entity.getPosition().x,
+                //     data.entity.getPosition().y,
+                //     '◎',
+                //     '#55CE4AFF',
+                //     '#00000000',
+                //     1000,
+                //     {
+                //         fontWeight: 'bold'
+                //     }
+                // ));
             }
         });
         
@@ -105,19 +105,19 @@ export class MinimapRenderer extends LayoutRenderer {
                     };
                     
                     if (!this.objectiveTiles.has(entityId)) {
-                        const tileId = this.display.createTile(
-                            blockPos.x,
-                            blockPos.y,
-                            '◎',
-                            '#55CE4AFF',
-                            '#00000000',
-                            1000,
-                            {
-                                fontWeight: 'bold'
-                            }
-                        );
-                        this.objectiveTiles.set(entityId, tileId);
-                        logger.info(`Created new objective tile ${tileId} for entity ${entityId}`);
+                        // const tileId = this.display.createTile(
+                        //     blockPos.x,
+                        //     blockPos.y,
+                        //     '◎',
+                        //     '#55CE4AFF',
+                        //     '#00000000',
+                        //     1000,
+                        //     {
+                        //         fontWeight: 'bold'
+                        //     }
+                        // );
+                        // this.objectiveTiles.set(entityId, tileId);
+                        // logger.info(`Created new objective tile ${tileId} for entity ${entityId}`);
                     }
                 } else {
                     // Remove objective tile when objective becomes inactive
@@ -158,6 +158,7 @@ export class MinimapRenderer extends LayoutRenderer {
     }
 
     private markBlockExplored(block: Point): void {
+        // this.display.clear();
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
                 const x = block.x + dx;
@@ -171,8 +172,8 @@ export class MinimapRenderer extends LayoutRenderer {
                         if (tile) {
                             // Restore original colors but with 50% opacity
                             this.display.updateTile(tileId, {
-                                fg: removeOpacity(tile.color) + '70',
-                                bg: removeOpacity(tile.backgroundColor) + '70'
+                                fg: removeOpacity(tile.color) + 'FF',
+                                bg: removeOpacity(tile.backgroundColor) + 'FF'
                             });
                         }
                     }
@@ -205,8 +206,8 @@ export class MinimapRenderer extends LayoutRenderer {
                         const tile = this.display.getTile(tileId);
                         if (tile) {
                             this.display.updateTile(tileId, {
-                                fg: removeOpacity(tile.color) + '70',
-                                bg: removeOpacity(tile.backgroundColor) + '70'
+                                fg: removeOpacity(tile.color) + 'AA',
+                                bg: removeOpacity(tile.backgroundColor) + 'AA'
                             });
                         }
                     }
@@ -245,17 +246,17 @@ export class MinimapRenderer extends LayoutRenderer {
         }
 
         if (this.helicopterBlock) {
-            this.helicopterTile = this.display.createTile(
-                this.helicopterBlock.x,
-                this.helicopterBlock.y,
-                '🜛',
-                '#FF0000FF',
-                '#00000000',
-                1000,
-                {
-                    fontWeight: 'bold'
-                }
-            );
+            // this.helicopterTile = this.display.createTile(
+            //     this.helicopterBlock.x,
+            //     this.helicopterBlock.y,
+            //     '🜛',
+            //     '#FF0000FF',
+            //     '#00000000',
+            //     1000,
+            //     {
+            //         fontWeight: 'bold'
+            //     }
+            // );
         }
 
         // Add markers for all active objectives
@@ -269,19 +270,19 @@ export class MinimapRenderer extends LayoutRenderer {
                 y: Math.floor(pos.y / 12)
             };
             
-            const tileId = this.display.createTile(
-                blockPos.x,
-                blockPos.y,
-                '◎',
-                '#55CE4AFF',
-                '#00000000',
-                1000,
-                {
-                    fontWeight: 'bold'
-                }
-            );
+            // const tileId = this.display.createTile(
+            //     blockPos.x,
+            //     blockPos.y,
+            //     '◎',
+            //     '#55CE4AFF',
+            //     '#00000000',
+            //     1000,
+            //     {
+            //         fontWeight: 'bold'
+            //     }
+            // );
             
-            this.objectiveTiles.set(objective.getId(), tileId);
+            // this.objectiveTiles.set(objective.getId(), tileId);
         });
     }
 
