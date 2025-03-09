@@ -14,7 +14,20 @@ import { Component } from '../entity/component';
 import turboSound from '../assets/sound/turbo.mp3?url';
 import tickSound from '../assets/sound/beat-Tone3E.wav?url';
 
+import crashSound from '../assets/sound/crash.wav?url';
+import lowEngineSound from '../assets/sound/low-engine.wav?url';
+import midEngineSound from '../assets/sound/mid-engine.wav?url';
+import highEngineSound from '../assets/sound/high-engine.wav?url';
+import objectiveSound from '../assets/sound/objective.wav?url';
+import lockedSound from '../assets/sound/locked.wav?url';
+import unlockedSound from '../assets/sound/unlocked.wav?url';
+import { LockedComponent } from './components/locked.component';
+
+
 export class RuntimeSoundRenderer extends BaseSoundRenderer {
+    private isLocked: boolean = false;  // Add state 
+    private isStunned: boolean = false;
+
     constructor(world: World, audioContext: AudioContext) {
         super(world, audioContext);
         
@@ -33,6 +46,55 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                 options: {
                     category: 'sfx'
                 }
+            },
+            {
+                id: 'crashed',
+                url: crashSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'low-engine',
+                url: lowEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'mid-engine',
+                url: midEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'high-engine',
+                url: highEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'objective',
+                url: objectiveSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'locked',
+                url: lockedSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'unlocked',
+                url: unlockedSound,
+                options: {
+                    category: 'sfx'
+                }
             }
         ]);
     }
@@ -46,6 +108,27 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
     }
 
     public handleComponentModified(entity: Entity, componentType: string): void {
+        // if (componentType in ['stun', 'locked', 'cooldown']) {
+        //     logger.warn('SOUND component modified', componentType);
+        // }
+        
+        const cooldown =  entity.getComponent('cooldown') as CooldownComponent;
+        const stunCooldown = cooldown?.getCooldown('stun');
+
+        if (stunCooldown && !this.isStunned) {
+            logger.warn('playing stunned sound');
+            this.playSound('crashed', { volume: 0.3 });
+            this.isStunned = true;
+        }
+
+        if(entity.hasComponent('player') && componentType == "locked") {
+            const locked = entity.getComponent('locked') as LockedComponent;
+            if(locked && !this.isLocked) {
+                this.playSound('locked', { volume: 0.3 });
+                this.isLocked = true;
+            }
+        }
+
         if(entity.hasComponent('player') && componentType == 'cooldown') {
             const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
             if(cooldowns) {
@@ -72,7 +155,14 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
     }
 
     public handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {
-        // No-op
+        if(entity.hasComponent('player') && componentType === 'locked') {
+            this.isLocked = false;  // Reset the lock state when component is removed
+            this.playSound('unlocked', { volume: 0.3 });
+        }
+
+        if(entity.hasComponent('player') && componentType === 'stun') {
+            this.isStunned = false;  // Reset the stun state when component is removed
+        }
     }
 
     public handleEntityRemoved(entity: Entity): void {
