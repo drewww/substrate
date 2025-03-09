@@ -57,35 +57,36 @@ export class TitleRenderer implements Renderer {
             "   W ",
             "  ASD   tap to move slowly",
             " ",
-            "   W ",
-            "  ASD   hold to accelerate",
+            "   {#000000,#FFFFFF}W{/} ",
+            "  {#000000,#FFFFFF}ASD{/}   hold to accelerate",
             " ",
-
-            "  SHIFT - Turbo",
-            "  SPACE - Brake",
-            "",
+            "  {#000000,#FFFFFF}SHIFT{/} - hold for turbo",
+            "  {#000000,#FFFFFF}SPACE{/} - hold to brake",
             "",
             "OBJECTIVES",
             "  {#F7BADF}⧯{/} {w}Steal DATA CORES{/}",
             "  {#eeeeee}⬚{/} {w}Find EXTRACTION point{/}",
             "  {#FF194D}●{/} {w}Avoid SECOPS spotlights{/}",
-            "",
-
+            ""
         ],
         rightColumn: [
-            "VEHICLES",
-            "  RAM to steal cores",
-            "  Cores power exits",
-            "  Watch for patrols",
+            "ENEMIES",
+            "  {#FFFFFF,#FF194D} 🜛 {/} {w}COPTER{/} - tracks and destroys you",
+            "  {#FFFFFF,#FF194D} ⏚ {/} {w}CAMERA{/} - calls the copter",
+            "  {#FFFFFF,#FF194D} ⛣ {/} {w}TURRET{/} - shoots caltrops that slow you down",
+            "  {#FFFFFF,#FF194D} 🜻 {/} {w}BOOMER{/} - explodes into impassable terrain",
+            "",
+
             "",
             "WARNINGS",
-            "  LOCKED - In spotlight",
-            "  TURBO - High speed",
-            "  BRAKE - Slowing down",
-            "  STUN - Crash recovery",
+            "  {#FFFFFF,#FF194D}LOCKED{/} - An enemy can see you, and the COPTER is coming.",
+            "  {#0088FF}TURBO{/} - Available / Engaged",
+            "  {#F76505}BRAKE{/} - Slowing down",
+            "  {#FFC505}STUN{/} - Time to recover from a crash.",
             "",
             "TIPS",
-            "  Practice drifting"
+            "  - Start with the tutorial, then practice to get used to movement."
+            
         ]
     };
     currentMode: TitleMode = TitleMode.TITLE;
@@ -558,11 +559,11 @@ export class TitleRenderer implements Renderer {
         );
 
         const leftX = 4;
-        const rightX = Math.floor(this.display.getViewportWidth() / 2) + 2;
-        const startY = 3;
+        const rightX = Math.floor(this.display.getViewportWidth() / 2) - 17;
+        const startY = 4;
 
         // Title
-        this.display.createString(leftX, 1, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(leftX, 2, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
             fontWeight: 'bold',
         });
 

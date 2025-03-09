@@ -754,8 +754,8 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
         zIndex: number = 1,
         options?: {
             animate?: {
-                delayBetweenChars: number;  // Delay in seconds between each character
-                initialDelay?: number;      // Initial delay before first character
+                delayBetweenChars: number;
+                initialDelay?: number;
             }
             fontWeight?: string;
             fontStyle?: string;
@@ -775,10 +775,10 @@ Active Animations: ${this.metrics.symbolAnimationCount + this.metrics.colorAnima
                     y,
                     char,
                     segment.color,
-                    options?.backgroundColor || "#000000FF",  // Default background
+                    segment.backgroundColor || options?.backgroundColor || "#00000000",  // Use segment's background if available
                     zIndex,
                     { 
-                        bgPercent: options?.animate ? 0 : 1,  // Start invisible if animating
+                        bgPercent: options?.animate ? 0 : 1,
                         fontWeight: options?.fontWeight,
                         fontStyle: options?.fontStyle,
                         fontFamily: options?.fontFamily
