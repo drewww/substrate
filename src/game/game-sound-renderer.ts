@@ -178,6 +178,33 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
 
             if (newState !== this.currentEngineState) {
                 logger.warn('Engine state changed:', EngineState[this.currentEngineState], '->', EngineState[newState]);
+                
+                // Stop current engine sound if any
+                switch (this.currentEngineState) {
+                    case EngineState.Low:
+                        this.stopSound('low-engine');
+                        break;
+                    case EngineState.Medium:
+                        this.stopSound('mid-engine');
+                        break;
+                    case EngineState.Turbo:
+                        this.stopSound('high-engine');
+                        break;
+                }
+
+                // Start new engine sound
+                switch (newState) {
+                    case EngineState.Low:
+                        this.playSound('low-engine', { volume: 0.2, loop: true });
+                        break;
+                    case EngineState.Medium:
+                        this.playSound('mid-engine', { volume: 0.2, loop: true });
+                        break;
+                    case EngineState.Turbo:
+                        this.playSound('high-engine', { volume: 0.2, loop: true });
+                        break;
+                }
+
                 this.currentEngineState = newState;
             }
         }
@@ -216,10 +243,6 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
 
     protected updateSoundVolume(soundId: string, volume: number): void {
         // TODO: Implement when we need dynamic volume control
-    }
-
-    protected stopSound(soundId: string): void {
-        // TODO: Implement when we need to stop sounds
     }
 
     public handleComponentAdded(entity: Entity, componentType: string): void {

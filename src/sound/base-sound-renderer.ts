@@ -21,6 +21,8 @@ interface SoundState {
     loop: boolean;
     volume: number;
     position?: Point;
+    source?: AudioBufferSourceNode;
+    gainNode?: GainNode;
 }
 
 export abstract class BaseSoundRenderer implements Renderer {
@@ -150,7 +152,9 @@ export abstract class BaseSoundRenderer implements Renderer {
         const state: SoundState = {
             id,
             loop: source.loop,
-            volume: baseVolume
+            volume: baseVolume,
+            source,
+            gainNode
         };
         this.activeSounds.set(id, state);
 
@@ -199,7 +203,17 @@ export abstract class BaseSoundRenderer implements Renderer {
     /**
      * Stop a specific sound
      */
-    protected abstract stopSound(soundId: string): void;
+    public stopSound(soundId: string): void {
+        const sound = this.activeSounds.get(soundId);
+        if (sound && sound.source) {
+            sound.source.stop();
+            sound.source.disconnect();
+            if (sound.gainNode) {
+                sound.gainNode.disconnect();
+            }
+            this.activeSounds.delete(soundId);
+        }
+    }
     
     // Required Renderer interface methods
     public abstract handleEntityAdded(entity: Entity): void;
