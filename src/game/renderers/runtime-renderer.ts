@@ -365,10 +365,10 @@ if (fireCooldown && !fireCooldown.ready) {
             if (stunState && stunState.current > 0 && stunState.ready) {
                 logger.info(`stunState.current: ${stunState.current} base: ${stunState.base} ==? ${stunState.current === stunState.base}`);
                 if (stunState.current === stunState.base) {
-                    this.display.updateTile(tileId, {
-                        bg: '#770505',
-                        fillDirection: FillDirection.TOP
-                    });
+                    // this.display.updateTile(tileId, {
+                    //     bg: '#770505',
+                    //     fillDirection: FillDirection.TOP
+                    // });
                 }
 
                 if(!entity.hasComponent('player')) {
@@ -381,6 +381,12 @@ if (fireCooldown && !fireCooldown.ready) {
                             loop: false,
                         }
                         });
+                } else {
+                    this.display.updateTile(tileId, {
+                        bg: '#FFC505FF',
+                        bgPercent: 1.0,
+                        fillDirection: FillDirection.TOP
+                    });
                 }
 
                 // set ready to false

@@ -600,7 +600,7 @@ export class UISpeedRenderer implements Renderer {
                     0,
                     ' ',
                     '#FFFFFFFF',
-                    '#FF194DFF',
+                    '#FFC505FF',
                     1001,
                     { fontFamily: 'monospace' }
                 );
@@ -617,7 +617,7 @@ export class UISpeedRenderer implements Renderer {
                 const tileThreshold = (index + 1) / 10;
                 
                 this.uiDisplay.updateTile(tileId, {
-                    bg: progress > tileThreshold ? '#FF194DFF' : '#000000FF'  // Red if stun active, black if expired
+                    bg: progress > tileThreshold ? '#FFC505FF' : '#000000FF'  // Red if stun active, black if expired
                 });
             });
 
