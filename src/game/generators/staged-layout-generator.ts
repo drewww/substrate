@@ -129,6 +129,9 @@ export class StagedLayoutGenerator {
         switch (connections.length) {
             case 1:
                 roadType = 'deadend';
+                // For dead-ends, use the weight of the connected road
+                cell.roadInfo.weight = connectedWeights[0];
+                
                 if (connections[0] === 'north') orientation = 2;
                 else if (connections[0] === 'east') orientation = 3;
                 else if (connections[0] === 'south') orientation = 0;

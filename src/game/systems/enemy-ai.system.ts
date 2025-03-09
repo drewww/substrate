@@ -105,8 +105,32 @@ export class EnemyAISystem {
                
                 break;
             case EnemyAIType.HELICOPTER:
-
                 const playerLocked = this.world.getPlayer().getComponent('locked') as LockedComponent;
+                
+                // Calculate distance to player
+                const helicopterPos = enemy.getPosition();
+                const playerPosition = this.world.getPlayer().getPosition();
+                const distanceToPlayer = Math.sqrt(
+                    Math.pow(playerPosition.x - helicopterPos.x, 2) + 
+                    Math.pow(playerPosition.y - helicopterPos.y, 2)
+                );
+                
+                // Adjust cooldown based on distance
+                const helicopterCooldowns = enemy.getComponent('cooldown') as CooldownComponent;
+                if (helicopterCooldowns) {
+                    const helicopterMoveCooldown = helicopterCooldowns.getCooldown('move');
+                    if (helicopterMoveCooldown) {
+                        // If more than 30 blocks away, set cooldown to 1 (very fast)
+                        // Otherwise, set cooldown to 3 (normal speed)
+                        const newHelicopterCooldownBase = distanceToPlayer > 30 ? 1 : 3;
+                        
+                        // Only update if the cooldown value has changed
+                        if (helicopterMoveCooldown.base !== newHelicopterCooldownBase) {
+                            helicopterCooldowns.setCooldown('move', newHelicopterCooldownBase);
+                            enemy.setComponent(helicopterCooldowns);
+                        }
+                    }
+                }
 
                 if(canSeePlayer || playerLocked) {
                     this.moveTowardsPlayer(enemy);

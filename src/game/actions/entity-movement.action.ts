@@ -116,7 +116,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 //     e.setComponent(objComponent);  // This will trigger componentModified
                 // });
 
-                world.emit('objective-complete', { objective });
+                // world.emit('objective-complete', { objective });
             }
 
             entity.setComponent(new BumpingComponent({
