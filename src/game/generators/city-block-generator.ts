@@ -254,14 +254,33 @@ export class CityBlockGenerator implements WorldGenerator {
     }
 
     async generate(): Promise<World> {
+        // Add 2 to each dimension for the border walls
         const world = new World(
-            this.width * this.blockWidth,
-            this.height * this.blockHeight
+            (this.width * this.blockWidth) + 2,
+            (this.height * this.blockHeight) + 2
         );
 
         // Create and use the staged layout generator
         const layoutGenerator = new StagedLayoutGenerator(this.width, this.height);
         this.layout = layoutGenerator.generate();
+
+        // Add border walls first
+        const worldWidth = (this.width * this.blockWidth) + 2;
+        const worldHeight = (this.height * this.blockHeight) + 2;
+
+        // Create walls around the border
+        for (let x = 0; x < worldWidth; x++) {
+            for (let y = 0; y < worldHeight; y++) {
+                // Only add walls at the edges
+                if (x === 0 || x === worldWidth - 1 || y === 0 || y === worldHeight - 1) {
+                    const wall = new Entity({ x, y });
+                    wall.setComponent(new SymbolComponent('#', '#666666', '#000000', 100));
+                    wall.setComponent(new ImpassableComponent());
+                    wall.setComponent(new OpacityComponent());
+                    world.addEntity(wall);
+                }
+            }
+        }
 
         // First pass: collect all building locations
         const buildingLocations: { x: number, y: number }[] = [];
@@ -374,7 +393,7 @@ export class CityBlockGenerator implements WorldGenerator {
                     const blockGenerator = await JsonWorldGenerator.fromUrl(blockUrl);
                     const blockWorld = await blockGenerator.generate();
 
-                    // Process block entities
+                    // Process block entities with offset
                     blockWorld.getEntities().forEach((entity: Entity) => {
                         const newEntity = entity.clone();
                         if (cell.type === 'road' && cell.roadInfo?.orientation) {
@@ -383,8 +402,8 @@ export class CityBlockGenerator implements WorldGenerator {
                         
                         const pos = newEntity.getPosition();
                         newEntity.setPosition(
-                            pos.x + (x * this.blockWidth), 
-                            pos.y + (y * this.blockHeight)
+                            pos.x + (x * this.blockWidth) + 1, // Add 1 for border offset
+                            pos.y + (y * this.blockHeight) + 1 // Add 1 for border offset
                         );
                         
                         // Set blockId if component supports it
@@ -458,7 +477,7 @@ export class CityBlockGenerator implements WorldGenerator {
         const heliY = playerPos.y + 5;
 
         
-        this.placeHelicopter(heliX, heliY, world);
+        this.placeHelicopter(heliX + 1, heliY + 1, world);
 
         this.postProcessEnemies(world);
 
