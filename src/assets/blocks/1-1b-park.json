@@ -3792,7 +3792,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {
@@ -4080,7 +4084,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {
@@ -4107,7 +4115,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {
@@ -4134,7 +4146,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {
@@ -4161,7 +4177,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {
@@ -4575,7 +4595,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {
@@ -4602,7 +4626,11 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
-        }
+        },
+          {
+            "type": "impassable"
+          }
+
       ]
     },
     {

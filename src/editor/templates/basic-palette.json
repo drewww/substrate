@@ -189,6 +189,9 @@
             "alwaysRenderIfExplored": true,
             "scaleSymbolX": 1.1,
             "scaleSymbolY": 1.1
+          },
+          {
+            "type": "impassable"
           }
         ]
       },
@@ -699,6 +702,9 @@
             "background": "#00000000",
             "zIndex": 50,
             "alwaysRenderIfExplored": true
+          },
+          {
+            "type": "impassable"
           }
         ]
       },
