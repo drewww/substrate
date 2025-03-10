@@ -54,6 +54,7 @@ export const StunAction: ActionClass<StunActionData> = {
         if(entity.hasComponent('metrics')) {
             const metrics = entity.getComponent('metrics') as MetricsComponent;
             metrics.timesCrashed += 1;
+            metrics.currentTilesBetweenCrashes = 0;
             entity.setComponent(metrics);
         }
         

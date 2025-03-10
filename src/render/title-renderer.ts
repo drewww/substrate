@@ -784,11 +784,32 @@ export class TitleRenderer implements Renderer {
         const metrics = this.world.getPlayer().getComponent('metrics') as MetricsComponent;
         if (!metrics) return;
 
+        // Format time in minutes:seconds
+        const formatTime = (timeInSeconds: number): string => {
+            const minutes = Math.floor(timeInSeconds / 60);
+            const seconds = Math.floor(timeInSeconds % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        };
+
+        // Calculate tiles between crashes (average)
+        const tilesBetweenCrashes = metrics.timesCrashed > 0 
+            ? Math.round(metrics.tilesTraveled / metrics.timesCrashed) 
+            : metrics.tilesTraveled; // If no crashes, use total tiles
+        
+        // Calculate tiles per second with 2 decimal places
+        const tilesPerSecond = metrics.timeEnded && metrics.timeStarted
+            ? (metrics.tilesTraveled / ((metrics.timeEnded - metrics.timeStarted) / 1000)).toFixed(2)
+            : "0.00";
+
         const metricsData = [
             { label: 'Tiles Traveled', value: metrics.tilesTraveled },
             { label: 'Times Crashed', value: metrics.timesCrashed },
             { label: 'Objectives Secured', value: metrics.objectivesSecured },
-            { label: 'Tiles Drifted', value: metrics.tilesDrifted }
+            { label: 'Tiles Drifted', value: metrics.tilesDrifted },
+            { label: 'Turbo Tiles', value: metrics.turboTilesTraveled },
+            { label: 'Tiles Between Crashes', value: tilesBetweenCrashes },
+            { label: 'Total Time', value: formatTime((metrics.timeEnded - metrics.timeStarted) / 1000) },
+            { label: 'Tiles / Second', value: tilesPerSecond }
         ];
 
         metricsData.forEach((metric, index) => {

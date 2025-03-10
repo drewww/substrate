@@ -498,11 +498,27 @@ export class CityBlockGenerator implements WorldGenerator {
                     const blockGenerator = await JsonWorldGenerator.fromUrl(blockUrl);
                     const blockWorld = await blockGenerator.generate();
 
+                    // Determine rotation for the entire block
+                    let blockRotation = 0;
+                    
+                    if (cell.type === 'road' && cell.roadInfo?.orientation) {
+                        // For roads, use the predefined orientation from the layout
+                        blockRotation = cell.roadInfo.orientation;
+                    } else if (cell.type === 'building') {
+                        // For buildings, apply random rotation (0, 1, 2, or 3)
+                        // Skip rotation for special buildings like start and end
+                        if (blockType !== 'start-building' && blockType !== 'end-building') {
+                            blockRotation = Math.floor(Math.random() * 4); // 0-3
+                        }
+                    }
+
                     // Process block entities with offset
                     blockWorld.getEntities().forEach((entity: Entity) => {
                         const newEntity = entity.clone();
-                        if (cell.type === 'road' && cell.roadInfo?.orientation) {
-                            this.rotateEntityPosition(newEntity, cell.roadInfo.orientation, this.blockWidth, this.blockHeight);
+                        
+                        // Apply the block rotation to this entity
+                        if (blockRotation > 0) {
+                            this.rotateEntityPosition(newEntity, blockRotation, this.blockWidth, this.blockHeight);
                         }
                         
                         const pos = newEntity.getPosition();

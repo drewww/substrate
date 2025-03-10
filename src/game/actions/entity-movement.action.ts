@@ -203,6 +203,16 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
 
             const metrics = entity.getComponent('metrics') as MetricsComponent;
             metrics.tilesTraveled += 1;
+            metrics.currentTilesBetweenCrashes += 1;
+
+            if(metrics.currentTilesBetweenCrashes > metrics.bestTilesBetweenCrashes) {
+                metrics.bestTilesBetweenCrashes = metrics.currentTilesBetweenCrashes;
+            }
+
+            if(entity.hasComponent('turbo')) {
+                metrics.turboTilesTraveled += 1;
+            }
+
             entity.setComponent(metrics);
         }
 

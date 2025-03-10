@@ -13,6 +13,12 @@ export class MetricsComponent extends Component {
         public objectivesThisLevel: number = 0,
         public maxObjectivesThisLevel: number = 0,
 
+        public timeStarted: number = 0,
+        public timeEnded: number = 0,
+        public currentTilesBetweenCrashes: number = 0,
+        public bestTilesBetweenCrashes: number = 0,
+        public turboTilesTraveled: number = 0,
+
         public tilesDrifted: number = 0
     ) {
         super();

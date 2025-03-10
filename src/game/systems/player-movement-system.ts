@@ -270,5 +270,6 @@ export class PlayerMovementSystem {
                 resetInertia: true
             }
         });
+        
     }
 } 

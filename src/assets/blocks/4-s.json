@@ -6074,7 +6074,7 @@
         {
           "type": "symbol",
           "char": "C",
-          "foreground": "#666666",
+          "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
           "alwaysRenderIfExplored": true,
@@ -6104,7 +6104,7 @@
         {
           "type": "symbol",
           "char": "C",
-          "foreground": "#666666",
+          "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
           "alwaysRenderIfExplored": true,

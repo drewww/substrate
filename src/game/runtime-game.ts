@@ -127,12 +127,18 @@ export class RuntimeGame extends Game {
             throw new Error('World must be initialized before creating display');
         }
 
-        // Create main game display
+        // Calculate dimensions that leave space for minimap
+        // Standard width is 53 cells (1060px)
+        // Minimap is typically around 200px wide
+        const minimapWidthInCells = 10; // Assuming minimap is about 200px (10 cells at 20px each)
+        const gameDisplayWidth = 53 - minimapWidthInCells; // Reduce width to leave space for minimap
+        
+        // Create main game display with adjusted width
         const gameDisplay = new Display({
             elementId: this.canvasId,
             cellWidth: 20,
             cellHeight: 20,
-            viewportWidth: 53,  // 1060/20 = 53 cells wide
+            viewportWidth: gameDisplayWidth,  // Reduced width to avoid overlapping with minimap
             viewportHeight: 28, // (600-40)/20 = 28 cells high (leaving 40px for UI)
             worldWidth: this.world.getWorldWidth(),
             worldHeight: this.world.getWorldHeight()
@@ -142,6 +148,27 @@ export class RuntimeGame extends Game {
         const gameCanvas = document.getElementById(this.canvasId) as HTMLCanvasElement;
         if (gameCanvas) {
             gameCanvas.style.visibility = 'hidden';
+            
+            // Add black bar to the right of the game display
+            const gameContainer = gameCanvas.parentElement;
+            if (gameContainer) {
+                // Set the container to display flex to position elements side by side
+                gameContainer.style.display = 'flex';
+                gameContainer.style.position = 'relative';
+                
+                // Create black bar element
+                const blackBar = document.createElement('div');
+                blackBar.id = 'minimap-spacer';
+                blackBar.style.width = `${minimapWidthInCells * 20}px`; // Same width as minimap
+                blackBar.style.height = '40px'; // Height of the UI area above minimap
+                blackBar.style.backgroundColor = '#000000';
+                blackBar.style.position = 'absolute';
+                blackBar.style.top = '0';
+                blackBar.style.right = '0';
+                
+                // Add black bar to container
+                gameContainer.appendChild(blackBar);
+            }
         }
 
         // Create title display with full height to cover UI
@@ -314,6 +341,11 @@ export class RuntimeGame extends Game {
             // If we've completed all objectives, show victory
             else if (this.objectiveCount >= maxObjectives) {
                 this.engine?.stop();
+                
+                const metrics = this.player!.getComponent('metrics') as MetricsComponent;
+                metrics.timeEnded = performance.now();
+                this.player!.setComponent(metrics);
+
                 this.titleRenderer?.prepare(TitleMode.VICTORY);
                 this.wipeDownDisplay();
                 this.soundRenderer?.stopAllSounds();
@@ -474,7 +506,9 @@ export class RuntimeGame extends Game {
 
             // Add metrics component to player during initialization
             const player = this.world.getPlayer();
-            player.setComponent(new MetricsComponent());
+            const metrics = new MetricsComponent();
+            metrics.timeStarted = performance.now();
+            player.setComponent(metrics);
 
         } catch (error) {
             logger.error('Failed to initialize world:', error);
@@ -957,8 +991,8 @@ export class RuntimeGame extends Game {
             elementId: 'minimap',
             worldWidth: blockWidth,
             worldHeight: blockHeight,
-            cellWidth: 20,  // Increased from 10 to 40
-            cellHeight: 20, // Increased from 10 to 40
+            cellWidth: 20,
+            cellHeight: 20,
             viewportWidth: blockWidth,
             viewportHeight: blockHeight
         });
@@ -969,6 +1003,17 @@ export class RuntimeGame extends Game {
     
         if (layout) {
             this.minimapRenderer.renderLayout(layout);
+        }
+        
+        // Position minimap in the right side of the screen
+        const minimapElement = document.getElementById('minimap');
+        if (minimapElement) {
+            minimapElement.style.position = 'absolute';
+            minimapElement.style.top = '40px'; // Position below the black bar
+            minimapElement.style.right = '0';
+            minimapElement.style.zIndex = '500';
+            minimapElement.style.border = '1px solid #333';
+            minimapElement.style.backgroundColor = '#000';
         }
     }
 
@@ -1074,9 +1119,9 @@ export class RuntimeGame extends Game {
             const lightEmitter = new LightEmitterComponent({
                 "radius": 3,
                 "color": "#55CE4A",
-                "intensity": 0.6,
+                "intensity": 1.0,
                 "distanceFalloff": "linear",
-                "lightSourceTile": false
+                "lightSourceTile": true
             });
             randomObjective.setComponent(lightEmitter);
             randomObjective.setComponent(lightEmitter);
