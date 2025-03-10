@@ -367,6 +367,17 @@ export class CityBlockGenerator implements WorldGenerator {
         buildingLocations.splice(startIndex, 1);
         const endLocation = buildingLocations[Math.floor(Math.random() * buildingLocations.length)];
 
+        // First pass: identify intersections and their weights
+        const intersectionWeights = new Map<string, string>();
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                const cell = this.layout[y][x];
+                if (cell?.type === 'road' && cell.roadInfo?.type === 'intersection') {
+                    intersectionWeights.set(`${x},${y}`, cell.roadInfo.weight);
+                }
+            }
+        }
+
         // Now process all cells
         let blockId = 0;
         for (let y = 0; y < this.height; y++) {
@@ -423,7 +434,33 @@ export class CityBlockGenerator implements WorldGenerator {
                                 blockType = 'turn-medium';
                         }
                     } else if (cell.roadInfo?.type === 'deadend') {
-                        switch (cell.roadInfo.weight) {
+                        // Check adjacent cells for intersections to match their weight
+                        let matchedWeight = cell.roadInfo.weight;
+                        
+                        // Define directions to check (up, right, down, left)
+                        const directions = [{dx: 0, dy: -1}, {dx: 1, dy: 0}, {dx: 0, dy: 1}, {dx: -1, dy: 0}];
+                        
+                        // Check each adjacent cell
+                        for (const dir of directions) {
+                            const nx = x + dir.dx;
+                            const ny = y + dir.dy;
+                            
+                            // Skip if out of bounds
+                            if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) continue;
+                            
+                            // Check if this is an intersection
+                            const adjacentKey = `${nx},${ny}`;
+                            const intersectionWeight = intersectionWeights.get(adjacentKey);
+                            if (intersectionWeight) {
+                                // Match the weight of the adjacent intersection
+                                // Cast to the correct type to avoid type error
+                                matchedWeight = intersectionWeight as 'trunk' | 'medium' | 'minor';
+                                break;
+                            }
+                        }
+                        
+                        // Use the matched weight for the dead-end
+                        switch (matchedWeight) {
                             case 'trunk':
                                 blockType = 'deadend-trunk';
                                 break;
@@ -438,7 +475,6 @@ export class CityBlockGenerator implements WorldGenerator {
                         throw new Error(`Unknown road type at ${x},${y}`);
                     }
 
-                    
                     // Select a variant based on weights and get its URL path
                     const variantPath = selectVariant(blockType, this.options);
                     

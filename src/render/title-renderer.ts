@@ -247,19 +247,19 @@ export class TitleRenderer implements Renderer {
             this.display.getViewportHeight() - 2
         );
 
-        this.display.createString(this.display.getViewportWidth() - 33, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(this.display.getViewportWidth() - 33, 3, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
         });
 
         const menuItems = [
-            '{w}[r]un{/}',
+            '{#FF194D}r{/}un',
             '',
-            '{w}[t]utorial{/}',
-            '{w}[p]ractice{/}',
-            '{w}[i]nstructions{/}',
+            '{#FF194D}t{/}utorial',
+            '{#FF194D}p{/}ractice',
+            '{#FF194D}i{/}nstructions',
             '',
-            '{w}[c]redits{/}'
+            '{#FF194D}c{/}redits'
         ];
 
         menuItems.forEach((item, index) => {
@@ -275,7 +275,7 @@ export class TitleRenderer implements Renderer {
     private renderDeathScreen(): void {
         this.createDarkBackground(4, 44, 2, this.display.getViewportHeight() - 2);
 
-        this.display.createString(6, 3, '{#w}GAME OVER{/}', 1000, {
+        this.display.createString(6, 3, '{w}GAME OVER{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -330,7 +330,7 @@ export class TitleRenderer implements Renderer {
             this.display.getViewportHeight() - 2
         );
         
-        this.display.createString(leftX + 1, 3, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(leftX + 1, 3, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -646,7 +646,7 @@ export class TitleRenderer implements Renderer {
         const startY = 4;
 
         // Title
-        this.display.createString(leftX, 2, '{#999999}RUNNER_2/{/}{#w}RUNTIME{/}', 1000, {
+        this.display.createString(leftX, 2, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
             fontWeight: 'bold',
         });
 
