@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "deploy": "npm run build && butler push dist/src/game/ drewww/substrate:web && npm run notify-discord",
+    "deploy": "npm run build && butler push dist/src/game/ drewww/gridlock:web && npm run notify-discord",
     "notify-discord": "node scripts/notify-discord.js",
     "export-prefab": "tsx src/scripts/export-prefab.ts"
   },

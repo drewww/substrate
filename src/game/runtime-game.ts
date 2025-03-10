@@ -593,6 +593,9 @@ export class RuntimeGame extends Game {
                 minimap.style.display = 'none';
             }
         }
+
+        // Add the title screen cycle button
+        this.addTitleScreenCycleButton();
     }
 
     // Update the Game's prepare method to call setupAfterDisplay
@@ -1267,5 +1270,59 @@ export class RuntimeGame extends Game {
 
     public isEngineRunning(): boolean {
         return this.engine?.isRunning() ?? false;
+    }
+
+    // Add this method to the RuntimeGame class
+    private addTitleScreenCycleButton(): void {
+        // Create a button element
+        const cycleButton = document.createElement('button');
+        cycleButton.textContent = 'Cycle Title Screens';
+        cycleButton.style.position = 'fixed';
+        cycleButton.style.bottom = '10px';
+        cycleButton.style.right = '10px';
+        cycleButton.style.zIndex = '2000';
+        cycleButton.style.padding = '8px 12px';
+        cycleButton.style.backgroundColor = '#333';
+        cycleButton.style.color = '#fff';
+        cycleButton.style.border = '1px solid #555';
+        cycleButton.style.borderRadius = '4px';
+        cycleButton.style.cursor = 'pointer';
+        
+        // Current screen index
+        let currentScreenIndex = 0;
+        const titleScreens = [
+            TitleMode.TITLE,
+            TitleMode.DEATH,
+            TitleMode.VICTORY,
+            TitleMode.TRUE_VICTORY,
+            TitleMode.CREDITS,
+            TitleMode.TUTORIAL,
+            TitleMode.INSTRUCTIONS,
+            TitleMode.DIFFICULTY
+        ];
+        
+        // Add click event listener
+        cycleButton.addEventListener('click', () => {
+            if (!this.titleRenderer) return;
+            
+            // Cycle to the next screen
+            currentScreenIndex = (currentScreenIndex + 1) % titleScreens.length;
+            const nextScreen = titleScreens[currentScreenIndex];
+            
+            // Show the screen name in the button
+            cycleButton.textContent = `Screen: ${TitleMode[nextScreen]}`;
+            
+            // Stop the game engine if it's running
+            if (this.engine?.isRunning()) {
+                this.engine.stop();
+            }
+            
+            // Show the selected title screen
+            this.titleRenderer.prepare(nextScreen);
+            this.titleRenderer.show(nextScreen);
+        });
+        
+        // Add button to the document
+        document.body.appendChild(cycleButton);
     }
 }

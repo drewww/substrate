@@ -280,9 +280,9 @@ export class TitleRenderer implements Renderer {
     }
 
     private renderDeathScreen(): void {
-        this.createDarkBackground(4, 44, 2, this.display.getViewportHeight() - 2);
+        this.createDarkBackground(4, 30, 2, this.display.getViewportHeight() - 2);
 
-        this.display.createString(6, 3, '{w}GAME OVER{/}', 1000, {
+        this.display.createString(2, 1, '{w}GAME OVER{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -291,10 +291,10 @@ export class TitleRenderer implements Renderer {
             }
         });
 
-        this.renderMetrics(6, 6, '#999999', '#FF4444');
+        this.renderMetrics(3, 3, '#999999', '#FF4444');
         
         // Add "B to go back" instruction at the bottom
-        this.display.createString(6, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
+        this.display.createString(35, this.display.getViewportHeight() - 1, '{#666666}Press [b] to go back{/}', 1000, {
             backgroundColor: '#00000000'
         });
     }
