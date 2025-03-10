@@ -284,7 +284,10 @@ export class RuntimeGame extends Game {
             const player = this.world!.getPlayer();
             const metrics = player.getComponent('metrics') as MetricsComponent;
             if (metrics) {
-                metrics.timeEnded = performance.now();
+                // Only set timeEnded if timeStarted is valid
+                if (metrics.timeStarted > 0) {
+                    metrics.timeEnded = performance.now();
+                }
                 player.setComponent(metrics);
             }
 
@@ -332,7 +335,10 @@ export class RuntimeGame extends Game {
                 const player = this.world!.getPlayer();
                 const metrics = player.getComponent('metrics') as MetricsComponent;
                 if (metrics) {
-                    metrics.timeEnded = performance.now();
+                    // Only set timeEnded if timeStarted is valid
+                    if (metrics.timeStarted > 0) {
+                        metrics.timeEnded = performance.now();
+                    }
                     player.setComponent(metrics);
                 }
                 
@@ -1199,11 +1205,10 @@ export class RuntimeGame extends Game {
             this.minimapRenderer.show();
         }
 
-        // Set the start time in metrics
+        // Set the start time in metrics and reset end time
         const player = this.world!.getPlayer();
         const metrics = player.getComponent('metrics') as MetricsComponent;
         if (metrics) {
-            // Reset any previous time tracking
             metrics.timeStarted = performance.now();
             metrics.timeEnded = 0; // Clear end time when starting a new game
             player.setComponent(metrics);

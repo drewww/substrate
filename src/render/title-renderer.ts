@@ -833,8 +833,9 @@ export class TitleRenderer implements Renderer {
         const metrics = this.world.getPlayer().getComponent('metrics') as MetricsComponent;
         if (!metrics) return;
 
-        // Format time in minutes:seconds
+        // Format time in minutes:seconds with proper error handling
         const formatTime = (timeInSeconds: number): string => {
+            if (isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
             const minutes = Math.floor(timeInSeconds / 60);
             const seconds = Math.floor(timeInSeconds % 60);
             return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -845,9 +846,17 @@ export class TitleRenderer implements Renderer {
             ? Math.round(metrics.tilesTraveled / metrics.timesCrashed) 
             : metrics.tilesTraveled; // If no crashes, use total tiles
         
+        // Calculate total time safely
+        let totalTimeSeconds = 0;
+        if (metrics.timeStarted > 0) {
+            // If timeEnded is set and valid, use it, otherwise use current time
+            const endTime = (metrics.timeEnded > 0) ? metrics.timeEnded : performance.now();
+            totalTimeSeconds = (endTime - metrics.timeStarted) / 1000;
+        }
+        
         // Calculate tiles per second with 2 decimal places
-        const tilesPerSecond = metrics.timeEnded && metrics.timeStarted
-            ? (metrics.tilesTraveled / ((metrics.timeEnded - metrics.timeStarted) / 1000)).toFixed(2)
+        const tilesPerSecond = totalTimeSeconds > 0
+            ? (metrics.tilesTraveled / totalTimeSeconds).toFixed(2)
             : "0.00";
 
         const metricsData = [
@@ -857,7 +866,7 @@ export class TitleRenderer implements Renderer {
             { label: 'Tiles Drifted', value: metrics.tilesDrifted },
             { label: 'Turbo Tiles', value: metrics.turboTilesTraveled },
             { label: 'Tiles Between Crashes', value: tilesBetweenCrashes },
-            { label: 'Total Time', value: formatTime((metrics.timeEnded - metrics.timeStarted) / 1000) },
+            { label: 'Total Time', value: formatTime(totalTimeSeconds) },
             { label: 'Tiles / Second', value: tilesPerSecond }
         ];
 
