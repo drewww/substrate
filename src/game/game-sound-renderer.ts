@@ -23,6 +23,7 @@ import objectiveSound from '../assets/sound/objective.wav?url';
 import lockedSound from '../assets/sound/locked.wav?url';
 import unlockedSound from '../assets/sound/unlocked.wav?url';
 import { LockedComponent } from './components/locked.component';
+import laserSound from '../assets/sound/laser.wav?url';
 
 enum EngineState {
     Off = 0,
@@ -42,6 +43,13 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
         
         // Load initial sounds
         this.loadSounds([
+            {
+                id: 'laser',
+                url: laserSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
             {
                 id: 'turbo',
                 url: turboSound,

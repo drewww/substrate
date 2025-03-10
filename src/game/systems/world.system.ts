@@ -334,6 +334,10 @@ export class WorldSystem {
             if (distanceSquared <= aoeDamage.radius * aoeDamage.radius) {
                 playerHealth.health = Math.max(0, playerHealth.health - aoeDamage.damage);
                 player.setComponent(playerHealth);
+
+                this.world.emit('damage', {
+                    entityId: entity.getId(),
+                });
             }
 
             if(playerHealth && playerHealth.health <= 0) {

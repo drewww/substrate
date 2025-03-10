@@ -282,8 +282,12 @@ export class RuntimeGame extends Game {
             }, 50);
         });
 
+        this.world.on('damage', (data: { entityId: string }) => {
+            this.soundRenderer?.playSound('laser', {volume: 0.05});
+        });
+
         this.world.on('objective-complete', (data: { objective: Entity }) => {
-            this.soundRenderer?.playSound('objective', {volume: 0.2});
+            this.soundRenderer?.playSound('objective', {volume: 0.1});
 
             const player = this.world!.getPlayer();
             const metrics = player.getComponent('metrics') as MetricsComponent;

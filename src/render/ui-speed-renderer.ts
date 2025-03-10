@@ -323,13 +323,19 @@ export class UISpeedRenderer implements Renderer {
 
         const health = this.player.getComponent('health') as HealthComponent;
         const currentHealth = health?.health ?? 0;
+        const maxHealth = health?.maxHealth ?? this.MAX_HEALTH;
+        
+        // Calculate how many tiles to fill based on current health percentage
+        const healthPercentage = currentHealth / maxHealth;
+        const tilesToFill = Math.ceil(healthPercentage * this.MAX_HEALTH);
 
         for (let i = 0; i < this.MAX_HEALTH; i++) {
             const healthTileIds = this.uiTiles.get(`health_${i}`);
             if (healthTileIds) {
                 for (const healthTileId of healthTileIds) {
+                    // Fill tiles proportionally to health percentage
                     this.uiDisplay.updateTile(healthTileId, {
-                        bg: i < currentHealth ? this.HEALTH_COLORS[i] : '#00000000'
+                        bg: i < tilesToFill ? this.HEALTH_COLORS[i] : '#00000000'
                     });
                 }
             }
