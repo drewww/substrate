@@ -24,7 +24,8 @@ export enum TitleMode {
     VICTORY,
     CREDITS,
     TUTORIAL,
-    INSTRUCTIONS
+    INSTRUCTIONS,
+    DIFFICULTY
 }
 
 export class TitleRenderer implements Renderer {
@@ -129,6 +130,7 @@ export class TitleRenderer implements Renderer {
             case TitleMode.VICTORY:
             case TitleMode.CREDITS:
             case TitleMode.INSTRUCTIONS:
+            case TitleMode.DIFFICULTY:
                 this.titleBackgrounds.victory.style.display = 'block';
                 break;
         }
@@ -157,6 +159,9 @@ export class TitleRenderer implements Renderer {
                 break;
             case TitleMode.INSTRUCTIONS:
                 this.renderInstructionsScreen();
+                break;
+            case TitleMode.DIFFICULTY:
+                this.renderDifficultyScreen();
                 break;
         }
 
@@ -612,8 +617,8 @@ export class TitleRenderer implements Renderer {
     private blankScreen(): void {
         this.display.clear();
 
-        for(let y = 0; y < this.display.getViewportHeight()-2; y++) {
-            for(let x = 0; x < this.display.getViewportWidth(); x++) {
+        for(let y = 2; y < this.display.getViewportHeight()-4; y++) {
+            for(let x = 2; x < this.display.getViewportWidth()-60; x++) {
                 this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 400);
             }
         }
@@ -842,4 +847,36 @@ export class TitleRenderer implements Renderer {
     handleEntityRemoved(entity: Entity): void {}
     handleComponentModified(entity: Entity, componentType: string): void {}
     handleComponentRemoved(entity: Entity, componentType: string, component: Component): void {}
+
+    private renderDifficultyScreen(): void {
+        this.blankScreen();
+        
+        const width = this.display.getViewportWidth();
+        const height = this.display.getViewportHeight();
+        
+        // Create dark background
+        // this.createDarkBackground(2, 30, 2, height-2);
+        
+        // Title at the top
+        const titleX = Math.floor(width / 2) - 6; // Center "PREPARE RUN" (11 characters)
+        const titleY = Math.floor(height / 4);
+        
+        // Create the title text
+        this.display.createString(
+            4,
+            3,
+            "{w}PREPARE RUN{/}",
+            10000,
+            { fontWeight: 'bold' }
+        );
+        
+        // Instructions at the bottom
+        const instructionsY = height - 6;
+        this.display.createString(
+            5,
+            instructionsY,
+            "{w}Press R to run, B to go back{/}",
+            10000
+        );
+    }
 } 

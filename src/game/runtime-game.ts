@@ -74,7 +74,7 @@ a move left
 d move right
 Space brake
 Shift turbo
-q quit
+b quit
 
 mode: title
 ==========
@@ -85,7 +85,7 @@ t tutorial
 p practice
 i instructions
 c credits
-q reset
+b reset
 `;
 
 type GeneratorConfig = {
@@ -596,20 +596,22 @@ export class RuntimeGame extends Game {
         // Handle title screen actions
         if (action === 'start' && type === 'up') {
             this.cleanupSpeedRenderer(); // Add cleanup
-            this.initializeWorld({ type: 'city' })
-                .then(() => {
+            // this.initializeWorld({ type: 'city' })
+            //     .then(() => {
 
-                    // TODO adapt this to the number of objectives generated in the level
-                    const player = this.world!.getPlayer();
-                    const metrics = player.getComponent('metrics') as MetricsComponent;
-                    metrics.maxObjectivesThisLevel = 3;
-                    player.setComponent(metrics);
+            //         // TODO adapt this to the number of objectives generated in the level
+            //         const player = this.world!.getPlayer();
+            //         const metrics = player.getComponent('metrics') as MetricsComponent;
+            //         metrics.maxObjectivesThisLevel = 3;
+            //         player.setComponent(metrics);
 
-                    this.startGame();
-                    this.uiSpeedRenderer?.show();
-                    this.setupMinimap(this.world!);
-                })
-                .catch(error => logger.error('Failed to start game:', error));
+            //         this.startGame();
+            //         this.uiSpeedRenderer?.show();
+            //         this.setupMinimap(this.world!);
+            //     })
+            //     .catch(error => logger.error('Failed to start game:', error));
+            this.titleRenderer?.prepare(TitleMode.DIFFICULTY);
+            this.titleRenderer?.show(TitleMode.DIFFICULTY);
             return;
         }
 
