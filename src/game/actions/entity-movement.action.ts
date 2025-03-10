@@ -171,27 +171,10 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                            objComponent.objectiveType === 'vehicle';
                 });
 
-                logger.info(`vehicle objectives: ${vehicleObjectives.length}`);
-                
-
-                vehicleObjectives.forEach(objective => {
-                   
-
-                    // Get all currently active objectives and deactivate them
-                    const activeObjectives = world.getEntitiesWithComponent('objective')
-                        .filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
-                    
-                    activeObjectives.forEach(e => {
-                        logger.info(`deactivating objective: ${e.getId()}`);
-                        const objComponent = e.getComponent('objective') as ObjectiveComponent;
-                        objComponent.active = false;
-                        e.setComponent(objComponent);
-                        e.removeComponent('lightEmitter');
-                    });
-
-                     // First emit the completion event
-                     world.emit('objective-complete', { objective });
-                });
+                // First emit the completion event
+                if(vehicleObjectives.length > 0) {
+                    world.emit('objective-complete', { vehicleObjective: vehicleObjectives[0] });
+                }
             });
 
            

@@ -74,6 +74,7 @@ a,ArrowLeft move left
 d,ArrowRight move right
 Space brake
 Shift turbo
+o objective
 b quit
 
 mode: title
@@ -301,8 +302,11 @@ export class RuntimeGame extends Game {
             this.soundRenderer?.playSound('laser', {volume: 0.05});
         });
 
-        this.world.on('objective-complete', (data: { objective: Entity }) => {
+        // we're not using any parameters here
+        this.world.on('objective-complete', () => {
             this.soundRenderer?.playSound('objective', {volume: 0.1});
+
+            logger.info('objective-complete');
 
             const player = this.world!.getPlayer();
             const metrics = player.getComponent('metrics') as MetricsComponent;
@@ -912,7 +916,10 @@ export class RuntimeGame extends Game {
 
         // maybe the play is that an "up" should cancel buffered move.
 
-
+        if (action === 'objective' && type === 'up') {
+            this.world?.emit('objective-complete', {});
+            return;
+        }
 
         if (params.length > 0) {
             let direction: Direction;
@@ -1164,10 +1171,22 @@ export class RuntimeGame extends Game {
     }
 
     private selectObjective(world: World, isExit: boolean = false) {
+        // Get all currently active objectives and deactivate them
+        const activeObjectives = world.getEntitiesWithComponent('objective')
+            .filter(e => (e.getComponent('objective') as ObjectiveComponent)?.active === true);
+
+        activeObjectives.forEach(e => {
+            logger.info(`deactivating objective: ${e.getId()}`);
+            const objComponent = e.getComponent('objective') as ObjectiveComponent;
+            objComponent.active = false;
+            e.setComponent(objComponent);
+            e.removeComponent('lightEmitter');
+        });
+
         let eligibleObjectiveEntities: Entity[] = world.getEntitiesWithComponent('objective');
 
         logger.info('SELECT OBJECTIVE')
-        logger.info(`eligibleObjectiveEntities: ${eligibleObjectiveEntities.length}`);
+        logger.info(`eligibleObjectiveEntities: ${eligibleObjectiveEntities.length} isExit: ${isExit}`);
         // If no objectives exist at all, just return early
         if (eligibleObjectiveEntities.length === 0) {
             logger.info('No objectives found in world');
@@ -1188,7 +1207,11 @@ export class RuntimeGame extends Game {
                             Math.pow(entityPosition.x - playerPosition.x, 2) +
                             Math.pow(entityPosition.y - playerPosition.y, 2)
                         );
-                        return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end' && distance > 20;
+
+                        // adapt limit to distance
+                        const minDistance = (this.world?.getWorldHeight()?? 0) <= 5 ? 2 : 15;
+
+                        return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end' && distance > minDistance;
                     } else {
                         return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end';
                     }
@@ -1279,6 +1302,7 @@ export class RuntimeGame extends Game {
 
     public startGame(): void {
         logger.warn('starting game');
+        this.objectiveCount = 0;
         
         if (this.titleRenderer) {
             this.titleRenderer.hide();

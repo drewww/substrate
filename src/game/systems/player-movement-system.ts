@@ -132,18 +132,18 @@ export class PlayerMovementSystem {
 
                 entitiesToReset.push(...leaders, ...followers);
 
-                for(const entity of entitiesToReset) {
-                //     const objectiveComponent = entity.getComponent('objective') as ObjectiveComponent;
-                //     objectiveComponent.active = !objectiveComponent.active;
-                //     entity.setComponent(objectiveComponent);
-                    entity.removeComponent('objective');
-                    entity.removeComponent('lightEmitter');
+                // for(const entity of entitiesToReset) {
+                // //     const objectiveComponent = entity.getComponent('objective') as ObjectiveComponent;
+                // //     objectiveComponent.active = !objectiveComponent.active;
+                // //     entity.setComponent(objectiveComponent);
+                //     entity.removeComponent('objective');
+                //     entity.removeComponent('lightEmitter');
 
-                    const symbol = entity.getComponent('symbol') as SymbolComponent;
-                    symbol.foreground = '#aaaaaaff';
-                    entity.setComponent(symbol);
+                //     const symbol = entity.getComponent('symbol') as SymbolComponent;
+                //     symbol.foreground = '#aaaaaaff';
+                //     entity.setComponent(symbol);
         
-                }
+                // }
          
                 this.world.emit('objective-complete', { objective });
 
