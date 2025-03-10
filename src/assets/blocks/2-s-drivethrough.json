@@ -3611,7 +3611,7 @@
       "components": [
         {
           "type": "symbol",
-          "char": "C",
+          "char": " ",
           "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
@@ -3641,7 +3641,7 @@
       "components": [
         {
           "type": "symbol",
-          "char": "C",
+          "char": " ",
           "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
@@ -6459,6 +6459,36 @@
               "ready": false
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "e19295",
+      "position": {
+        "x": 8,
+        "y": 8
+      },
+      "components": [
+        {
+          "type": "symbol",
+          "char": " ",
+          "foreground": "#666600",
+          "background": "#000D12",
+          "zIndex": 10,
+          "alwaysRenderIfExplored": true,
+          "rotation": 0,
+          "offsetSymbolX": 0,
+          "offsetSymbolY": 0,
+          "scaleSymbolX": 1,
+          "scaleSymbolY": 1,
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "fontFamily": "monospace",
+          "lockRotationToFacing": false,
+          "blendMode": "normal"
+        },
+        {
+          "type": "entity-consumer"
         }
       ]
     }

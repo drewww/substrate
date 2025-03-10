@@ -774,8 +774,8 @@
         "components": [
           {
             "type": "symbol",
-            "char": "C",
-            "foreground": "#666666",
+            "char": " ",
+            "foreground": "#666600",
             "background": "#000D12",
             "zIndex": 10,
             "alwaysRenderIfExplored": true

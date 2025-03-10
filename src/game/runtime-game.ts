@@ -279,6 +279,14 @@ export class RuntimeGame extends Game {
                 gameCanvas.style.visibility = 'hidden';
             }
 
+            // Set the end time in metrics
+            const player = this.world!.getPlayer();
+            const metrics = player.getComponent('metrics') as MetricsComponent;
+            if (metrics) {
+                metrics.timeEnded = performance.now();
+                player.setComponent(metrics);
+            }
+
             }, 50);
         });
 
@@ -318,14 +326,31 @@ export class RuntimeGame extends Game {
             // If we've completed all objectives, show victory
             else if (this.objectiveCount >= maxObjectives) {
                 this.engine?.stop();
-                this.titleRenderer?.prepare(TitleMode.VICTORY);
+                
+                // Set the end time in metrics
+                const player = this.world!.getPlayer();
+                const metrics = player.getComponent('metrics') as MetricsComponent;
+                if (metrics) {
+                    metrics.timeEnded = performance.now();
+                    player.setComponent(metrics);
+                }
+                
+                if(this.world && this.titleRenderer?.getDifficultySettings().trueEnd) {
+                    this.titleRenderer?.prepare(TitleMode.TRUE_VICTORY);
+                } else {
+                    this.titleRenderer?.prepare(TitleMode.VICTORY);
+                }
+
                 this.wipeDownDisplay();
                 this.soundRenderer?.stopAllSounds();
 
                 setTimeout(() => {
                     if (this.titleRenderer) {
-                        this.titleRenderer.show(TitleMode.VICTORY);
-                    }
+                        if(this.world && this.titleRenderer?.getDifficultySettings().trueEnd) {
+                            this.titleRenderer?.show(TitleMode.TRUE_VICTORY);
+                        } else {
+                            this.titleRenderer?.show(TitleMode.VICTORY);
+                        }                    }
                 }, 50);
             }
         });
@@ -1165,6 +1190,16 @@ export class RuntimeGame extends Game {
         // Show minimap only if not in training map
         if (this.generator instanceof CityBlockGenerator && this.minimapRenderer) {
             this.minimapRenderer.show();
+        }
+
+        // Set the start time in metrics
+        const player = this.world!.getPlayer();
+        const metrics = player.getComponent('metrics') as MetricsComponent;
+        if (metrics) {
+            // Reset any previous time tracking
+            metrics.timeStarted = performance.now();
+            metrics.timeEnded = 0; // Clear end time when starting a new game
+            player.setComponent(metrics);
         }
 
         // Start the engine

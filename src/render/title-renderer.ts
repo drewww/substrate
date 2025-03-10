@@ -26,7 +26,8 @@ export enum TitleMode {
     CREDITS,
     TUTORIAL,
     INSTRUCTIONS,
-    DIFFICULTY
+    DIFFICULTY,
+    TRUE_VICTORY
 }
 
 export class TitleRenderer implements Renderer {
@@ -48,10 +49,10 @@ export class TitleRenderer implements Renderer {
                 objectiveCount = 7;    // Medium number of objectives
                 break;
             case 'large':
-                width = 14;
-                height = 14;
+                width = 12;
+                height = 12;
                 layoutType = 'generate';
-                objectiveCount = 5;    // More objectives for large maps
+                objectiveCount = 4;    // More objectives for large maps
                 break;
             default:
                 width = 10;
@@ -61,9 +62,9 @@ export class TitleRenderer implements Renderer {
         }
         
         // Set trueEnd flag if helicopter is enabled and map size is large
-        // const trueEnd = this.difficultySettings.helicopter && this.difficultySettings.mapSize === 'large';
+        const trueEnd = this.difficultySettings.helicopter && this.difficultySettings.mapSize === 'large';
         
-        const trueEnd = true;
+        // const trueEnd = true;
 
         // Return a complete object with all required properties
         return {
@@ -164,7 +165,8 @@ export class TitleRenderer implements Renderer {
         this.titleBackgrounds = {
             title: document.getElementById('title-background-title') as HTMLImageElement,
             death: document.getElementById('title-background-death') as HTMLImageElement,
-            victory: document.getElementById('title-background-victory') as HTMLImageElement
+            victory: document.getElementById('title-background-victory') as HTMLImageElement,
+            trueVictory: document.getElementById('title-background-true-victory') as HTMLImageElement
         };
 
         if (!this.titleBackgrounds.title || !this.titleBackgrounds.death || !this.titleBackgrounds.victory) {
@@ -187,6 +189,9 @@ export class TitleRenderer implements Renderer {
                 break;
             case TitleMode.DEATH:
                 this.titleBackgrounds.death.style.display = 'block';
+                break;
+            case TitleMode.TRUE_VICTORY:
+                this.titleBackgrounds.trueVictory.style.display = 'block';
                 break;
             case TitleMode.VICTORY:
             case TitleMode.CREDITS:
@@ -211,6 +216,9 @@ export class TitleRenderer implements Renderer {
                 break;
             case TitleMode.VICTORY:
                 this.renderVictoryScreen();
+                break;
+            case TitleMode.TRUE_VICTORY:
+                this.renderTrueVictoryScreen();
                 break;
             case TitleMode.CREDITS:
                 this.renderCreditsScreen();
@@ -312,6 +320,45 @@ export class TitleRenderer implements Renderer {
         });
 
         this.renderMetrics(rightX, 6, '#FFFFFF', '#55CE4A');
+        
+        // Add "B to go back" instruction at the bottom
+        this.display.createString(rightX, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
+            backgroundColor: '#00000000'
+        });
+    }
+
+    private renderTrueVictoryScreen(): void {
+
+        this.createDarkBackground(
+            this.display.getViewportWidth() - 44,
+            this.display.getViewportWidth() - 4,
+            2,
+            this.display.getViewportHeight() - 2
+        );
+
+        const rightX = this.display.getViewportWidth() - 42;
+        
+        // Display "TRUE VICTORY" instead of "MISSION COMPLETE"
+        this.display.createString(rightX, 3, '{#55CE4A}TRUE VICTORY{/}', 1000, {
+            fontWeight: 'bold',
+            backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.05,
+                initialDelay: 0.1
+            }
+        });
+        
+        // Add "OPERATOR ESCAPES" subtitle
+        this.display.createString(rightX, 5, '{#55CE4A}OPERATOR ESCAPES{/}', 1000, {
+            backgroundColor: '#00000000',
+            animate: {
+                delayBetweenChars: 0.05,
+                initialDelay: 0.3
+            }
+        });
+
+        // Render metrics starting 2 rows lower to accommodate the subtitle
+        this.renderMetrics(rightX, 8, '#FFFFFF', '#55CE4A');
         
         // Add "B to go back" instruction at the bottom
         this.display.createString(rightX, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {

@@ -5536,7 +5536,7 @@
       "components": [
         {
           "type": "symbol",
-          "char": "C",
+          "char": " ",
           "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
@@ -5566,7 +5566,7 @@
       "components": [
         {
           "type": "symbol",
-          "char": "C",
+          "char": " ",
           "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
@@ -5596,7 +5596,7 @@
       "components": [
         {
           "type": "symbol",
-          "char": "C",
+          "char": " ",
           "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
@@ -5626,7 +5626,7 @@
       "components": [
         {
           "type": "symbol",
-          "char": "C",
+          "char": " ",
           "foreground": "#666600",
           "background": "#000D12",
           "zIndex": 10,
