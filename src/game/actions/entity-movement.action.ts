@@ -153,6 +153,10 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
                 { x: action.data.to.x - 1, y: action.data.to.y }, // Left
                 { x: action.data.to.x, y: action.data.to.y + 1 }, // Down
                 { x: action.data.to.x, y: action.data.to.y - 1 }, // Up
+                { x: action.data.to.x + 1, y: action.data.to.y + 1 }, // Down-right
+                { x: action.data.to.x - 1, y: action.data.to.y + 1 }, // Down-left
+                { x: action.data.to.x + 1, y: action.data.to.y - 1 }, // Up-right
+                { x: action.data.to.x - 1, y: action.data.to.y - 1 }, // Up-left
             ];
 
             // Check each position for vehicle objectives

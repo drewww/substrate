@@ -32,36 +32,47 @@ export enum TitleMode {
 export class TitleRenderer implements Renderer {
     getDifficultySettings(): CityBlockGeneratorOptions {
         // Convert map size to actual dimensions and set layout type
-        let width: number, height: number, layoutType: 'generate' | 'fixed';
+        let width: number, height: number, layoutType: 'generate' | 'fixed', objectiveCount: number;
         
         switch (this.difficultySettings.mapSize) {
             case 'small':
                 width = 4;  // Even smaller for fixed layout
                 height = 4;
                 layoutType = 'fixed';  // Use fixed layout for small maps
+                objectiveCount = 3;    // Fewer objectives for small maps
                 break;
             case 'medium':
                 width = 10;
                 height = 10;
                 layoutType = 'generate';
+                objectiveCount = 2;    // Medium number of objectives
                 break;
             case 'large':
                 width = 15;
                 height = 15;
                 layoutType = 'generate';
+                objectiveCount = 6;    // More objectives for large maps
                 break;
             default:
                 width = 10;
                 height = 10;
                 layoutType = 'generate';
+                objectiveCount = 5;    // Default to medium
         }
         
+        // Set trueEnd flag if helicopter is enabled and map size is large
+        // const trueEnd = this.difficultySettings.helicopter && this.difficultySettings.mapSize === 'large';
+        
+        const trueEnd = true;
+
         // Return a complete object with all required properties
         return {
             layoutType: layoutType,
             width: width,
             height: height,
+            objectiveCount: objectiveCount,
             spawnHelicopter: this.difficultySettings.helicopter,
+            trueEnd: trueEnd,
             spawnProbabilities: {
                 pedestrian: 0.3,
                 camera: 0.6,

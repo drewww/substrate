@@ -185,14 +185,20 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
 } as const;
 
 // Helper function to select a variant based on weights
-function selectVariant(blockType: BlockType): string {
+function selectVariant(blockType: BlockType, options?: CityBlockGeneratorOptions): string {
     const config = BLOCK_CONFIGS[blockType];
     const totalWeight = config.variants.reduce((sum, variant) => sum + variant.weight, 0);
     let random = Math.random() * totalWeight;
-    
+    logger.warn(`blockType: ${blockType} random: ${random} options.trueEnd: ${options?.trueEnd}`);
+
+    if (blockType == "end-building" && options?.trueEnd) {
+        return "end-true.json"; // Use the true end template
+    }
+
     for (const variant of config.variants) {
         random -= variant.weight;
         if (random <= 0) {
+            // Check if we're selecting an end building and trueEnd is enabled      
             return variant.url;
         }
     }
@@ -213,6 +219,8 @@ export type CityBlockGeneratorOptions = {
     spawnHelicopter?: boolean; // Whether to spawn a helicopter
     width?: number;
     height?: number;
+    objectiveCount?: number;   // Number of objectives to generate
+    trueEnd?: boolean;         // Whether to use the true end template
 };
 
 export class CityBlockGenerator implements WorldGenerator {
@@ -245,15 +253,14 @@ export class CityBlockGenerator implements WorldGenerator {
     }
 
     constructor(options: CityBlockGeneratorOptions = { layoutType: 'generate' }) {
+        // Make a deep copy of the options to ensure all properties are preserved
         this.options = {
             ...options,
-            spawnProbabilities: {
-                ...this.defaultProbabilities,
-                ...options.spawnProbabilities
-            },
-            spawnHelicopter: options.spawnHelicopter !== undefined ? options.spawnHelicopter : true
+            spawnProbabilities: options.spawnProbabilities ? { ...options.spawnProbabilities } : undefined,
+            trueEnd: options.trueEnd // Explicitly copy the trueEnd property
         };
-
+        
+        // Log the options for debugging
         logger.warn(`CityBlockGenerator options: ${JSON.stringify(this.options)}`);
     }
 
@@ -423,9 +430,12 @@ export class CityBlockGenerator implements WorldGenerator {
                         throw new Error(`Unknown road type at ${x},${y}`);
                     }
 
-                    // Select a variant based on weights and get its URL path
-                    const variantPath = selectVariant(blockType);
                     
+                    // Select a variant based on weights and get its URL path
+                    const variantPath = selectVariant(blockType, this.options);
+                    
+                    logger.warn(`blockType: ${blockType} variantPath: ${variantPath}`);
+
                     // Fix: Call the import function and await its result
                     const importPath = `../../assets/blocks/${variantPath}`;
                     if (!(importPath in blockFiles)) {
@@ -518,6 +528,16 @@ export class CityBlockGenerator implements WorldGenerator {
 
         // Use the spawn hinting system instead of random placements
         this.postProcessEnemies(world);
+
+        // Get the objective count from options or use a default
+        const objectiveCount = this.options.objectiveCount || 3;
+        
+        // Generate objectives based on the count
+        // This is just a placeholder - you'll need to adapt this to your actual objective generation logic
+        for (let i = 0; i < objectiveCount; i++) {
+            // Generate an objective
+            // ...
+        }
 
         return world;
     }

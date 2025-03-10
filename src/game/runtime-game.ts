@@ -615,7 +615,6 @@ export class RuntimeGame extends Game {
                 logger.warn(`difficultySettings: ${JSON.stringify(difficultySettings)}`);
 
                 if (difficultySettings) {
-                    // Use the difficultySettings directly without creating a new object
                     this.initializeWorld({ 
                         type: 'city', 
                         difficultySettings: difficultySettings 
@@ -626,7 +625,9 @@ export class RuntimeGame extends Game {
 
                         const player = this.world!.getPlayer();
                         const metrics = player.getComponent('metrics') as MetricsComponent;
-                        metrics.maxObjectivesThisLevel = 3;
+                        
+                        // Use the objectiveCount from difficulty settings if available
+                        metrics.maxObjectivesThisLevel = difficultySettings.objectiveCount || 3;
                         player.setComponent(metrics);
 
                         this.setupMinimap(this.world!);
@@ -640,20 +641,6 @@ export class RuntimeGame extends Game {
         // Handle title screen actions
         if (action === 'start' && type === 'up' && this.titleRenderer?.getCurrentMode() !== TitleMode.DIFFICULTY) {
             this.cleanupSpeedRenderer(); // Add cleanup
-            // this.initializeWorld({ type: 'city' })
-            //     .then(() => {
-
-            //         // TODO adapt this to the number of objectives generated in the level
-            //         const player = this.world!.getPlayer();
-            //         const metrics = player.getComponent('metrics') as MetricsComponent;
-            //         metrics.maxObjectivesThisLevel = 3;
-            //         player.setComponent(metrics);
-
-            //         this.startGame();
-            //         this.uiSpeedRenderer?.show();
-            //         this.setupMinimap(this.world!);
-            //     })
-            //     .catch(error => logger.error('Failed to start game:', error));
             this.titleRenderer?.prepare(TitleMode.DIFFICULTY);
             this.titleRenderer?.show(TitleMode.DIFFICULTY);
             return;
