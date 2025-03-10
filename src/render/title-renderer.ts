@@ -94,6 +94,11 @@ export class TitleRenderer implements Renderer {
     objectiveIndex: number = 0;
     isInDashboardTutorial: boolean = false;
 
+    private difficultySettings = {
+        mapSize: 'medium', // 'small', 'medium', 'large'
+        helicopter: true,  // true/false
+    };
+
     constructor(
         private readonly display: Display,
         private readonly world: World,
@@ -870,6 +875,61 @@ export class TitleRenderer implements Renderer {
             { fontWeight: 'bold' }
         );
         
+        // City size section
+        this.display.createString(
+            4,
+            7,
+            "{w}CITY SIZE{/}",
+            10000,
+            { fontWeight: 'bold' }
+        );
+        
+        // Map size options with visual toggles
+        const smallColor = this.difficultySettings.mapSize === 'small' ? "{y}" : "{g}";
+        const mediumColor = this.difficultySettings.mapSize === 'medium' ? "{y}" : "{g}";
+        const largeColor = this.difficultySettings.mapSize === 'large' ? "{y}" : "{g}";
+        
+        this.display.createString(
+            4,
+            9,
+            `${smallColor}1 - small{/}`,
+            10000
+        );
+        
+        this.display.createString(
+            4,
+            10,
+            `${mediumColor}2 - medium{/}`,
+            10000
+        );
+        
+        this.display.createString(
+            4,
+            11,
+            `${largeColor}3 - large{/}`,
+            10000
+        );
+        
+        // Challenges section
+        this.display.createString(
+            4,
+            14,
+            "{w}CHALLENGE{/}",
+            10000,
+            { fontWeight: 'bold' }
+        );
+        
+        // Helicopter toggle
+        const helicopterColor = this.difficultySettings.helicopter ? "{y}" : "{g}";
+        const helicopterStatus = this.difficultySettings.helicopter ? "ON" : "OFF";
+        
+        this.display.createString(
+            4,
+            16,
+            `${helicopterColor}h - helicopter ${helicopterStatus}{/}`,
+            10000
+        );
+        
         // Instructions at the bottom
         const instructionsY = height - 6;
         this.display.createString(
@@ -878,5 +938,101 @@ export class TitleRenderer implements Renderer {
             "{w}Press R to run, B to go back{/}",
             10000
         );
+        
+        // Add a summary of selected options
+        // this.display.createString(
+        //     width - 25,
+        //     7,
+        //     "{w}SELECTED OPTIONS:{/}",
+        //     10000
+        // );
+        
+        // this.display.createString(
+        //     width - 25,
+        //     9,
+        //     `City size: {y}${this.difficultySettings.mapSize}{/}`,
+        //     10000
+        // );
+        
+        // this.display.createString(
+        //     width - 25,
+        //     10,
+        //     `Helicopter: {y}${this.difficultySettings.helicopter ? "ON" : "OFF"}{/}`,
+        //     10000
+        // );
+    }
+
+    public handleDifficultyKeyUp(action: string): void {
+        if (this.currentMode !== TitleMode.DIFFICULTY) {
+            return;
+        }
+
+        logger.warn(` IN TITLE RENDERER action: ${action}`);
+        
+        switch (action) {
+            case 'small':
+                // Set map size to small
+                this.difficultySettings.mapSize = 'small';
+                this.renderDifficultyScreen();
+                break;
+            case 'medium':
+                // Set map size to medium
+                this.difficultySettings.mapSize = 'medium';
+                this.renderDifficultyScreen();
+                break;
+            case 'large':
+                // Set map size to large
+                this.difficultySettings.mapSize = 'large';
+                this.renderDifficultyScreen();
+                break;
+            case 'helicopter':
+                // Toggle helicopter
+                this.difficultySettings.helicopter = !this.difficultySettings.helicopter;
+                this.renderDifficultyScreen();
+                break;
+            case 'start':
+                // Start the game with current settings
+                this.hide();
+                
+                // Convert map size to actual dimensions
+                let width, height;
+                switch (this.difficultySettings.mapSize) {
+                    case 'small':
+                        width = 6;
+                        height = 6;
+                        break;
+                    case 'medium':
+                        width = 10;
+                        height = 10;
+                        break;
+                    case 'large':
+                        width = 15;
+                        height = 15;
+                        break;
+                    default:
+                        width = 10;
+                        height = 10;
+                }
+                
+                // Start the game with selected options
+                // this.game.startGame({
+                //     type: 'city',
+                //     layoutType: 'generate',
+                //     width: width,
+                //     height: height,
+                //     spawnHelicopter: this.difficultySettings.helicopter,
+                //     spawnProbabilities: {
+                //         pedestrian: 0.3,
+                //         camera: 0.8,
+                //         boomer: 0.0,
+                //         turret: 0.0
+                //     }
+                // });
+                break;
+            case 'b':
+                // Go back to title screen
+                this.show(TitleMode.TITLE);
+                break;
+        }
     }
 } 

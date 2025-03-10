@@ -86,6 +86,10 @@ p practice
 i instructions
 c credits
 b reset
+1 small
+2 medium
+3 large
+h helicopter
 `;
 
 type GeneratorConfig = {
@@ -590,8 +594,9 @@ export class RuntimeGame extends Game {
             if(!this.engine?.isRunning() && action === 'brake' && type === 'up') {
                 this.titleRenderer.spacePressed();
             }
+        } else if(this.titleRenderer?.getCurrentMode() === TitleMode.DIFFICULTY && type === 'up') {
+            this.titleRenderer.handleDifficultyKeyUp(action);
         }
-
 
         // Handle title screen actions
         if (action === 'start' && type === 'up') {
