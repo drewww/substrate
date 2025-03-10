@@ -155,7 +155,7 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
         const stunCooldown = cooldown?.getCooldown('stun');
 
         if (stunCooldown && !this.isStunned) {
-            logger.warn('playing stunned sound');
+            logger.debug('playing stunned sound');
             this.stopSound('low-engine');
             this.stopSound('mid-engine');
             this.stopSound('high-engine');
@@ -215,7 +215,7 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
             }
 
             if (newState !== this.currentEngineState) {
-                logger.warn('Engine state changed:', EngineState[this.currentEngineState], '->', EngineState[newState]);
+                logger.info('Engine state changed:', EngineState[this.currentEngineState], '->', EngineState[newState]);
                 
                 // Stop current engine sound if any
                 switch (this.currentEngineState) {

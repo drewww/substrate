@@ -10,7 +10,7 @@ import { Entity } from '../entity/entity.ts';
 import { BaseRenderer } from '../render/base-renderer.ts';
 import { UISpeedRenderer } from '../render/ui-speed-renderer.ts';
 import { Direction, Point } from '../types.ts';
-import { logger } from '../util/logger.ts';
+import { logger, LogLevel } from '../util/logger.ts';
 import { EnemyWorldGenerator } from '../world/generators/enemy-world-generator.ts';
 import { World } from '../world/world.ts';
 import { CreateEntityAction } from './actions/create-projectile.action.ts';
@@ -74,7 +74,6 @@ a,ArrowLeft move left
 d,ArrowRight move right
 Space brake
 Shift turbo
-o objective
 b quit
 
 mode: title
@@ -349,7 +348,9 @@ export class RuntimeGame extends Game {
                     player.setComponent(metrics);
                 }
                 
-                if(this.world && this.titleRenderer?.getDifficultySettings().trueEnd) {
+                const trueEnd = this.world && this.world.getWorldWidth() >= 12*10 && this.world.getEntitiesWithComponent('aoe-damage').length > 0;
+                console.log('OBJECTIVE trueEnd', trueEnd);
+                if(this.world && trueEnd) {
                     this.titleRenderer?.prepare(TitleMode.TRUE_VICTORY);
                 } else {
                     this.titleRenderer?.prepare(TitleMode.VICTORY);
@@ -360,7 +361,7 @@ export class RuntimeGame extends Game {
 
                 setTimeout(() => {
                     if (this.titleRenderer) {
-                        if(this.world && this.titleRenderer?.getDifficultySettings().trueEnd) {
+                        if(this.world && trueEnd) {
                             this.titleRenderer?.show(TitleMode.TRUE_VICTORY);
                         } else {
                             this.titleRenderer?.show(TitleMode.VICTORY);
@@ -570,22 +571,22 @@ export class RuntimeGame extends Game {
             }
 
             // Log the visibility mask
-            const renderer = this.renderer as RuntimeRenderer;
-            const visibilityMask = renderer.getVisibilityMask?.();
-            if (visibilityMask) {
-                logger.info('Visibility:', visibilityMask[pos.y][pos.x]);
-            }
+            // const renderer = this.renderer as RuntimeRenderer;
+            // const visibilityMask = renderer.getVisibilityMask?.();
+            // if (visibilityMask) {
+            //     logger.info('Visibility:', visibilityMask[pos.y][pos.x]);
+            // }
 
-            // Log FOV information
-            const fovMap = this.world.getFOVMap();
-            logger.info('FOV Status:', {
-                visible: this.world.isLocationVisible(pos),
-                discovered: this.world.isLocationDiscovered(pos),
-                maskValue: this.display!.getVisibilityMask()[pos.y][pos.x],
-                hasBody: fovMap.getBody(pos.x, pos.y),
-                hasWalls: fovMap.getWalls(pos.x, pos.y),
-                tiles: this.display!.getTilesAt(pos.x, pos.y)
-            });
+            // // Log FOV information
+            // const fovMap = this.world.getFOVMap();
+            // logger.info('FOV Status:', {
+            //     visible: this.world.isLocationVisible(pos),
+            //     discovered: this.world.isLocationDiscovered(pos),
+            //     maskValue: this.display!.getVisibilityMask()[pos.y][pos.x],
+            //     hasBody: fovMap.getBody(pos.x, pos.y),
+            //     hasWalls: fovMap.getWalls(pos.x, pos.y),
+            //     tiles: this.display!.getTilesAt(pos.x, pos.y)
+            // });
         });
 
         this.selectObjective(this.world);
@@ -1302,6 +1303,8 @@ export class RuntimeGame extends Game {
 
     public startGame(): void {
         logger.warn('starting game');
+
+        logger.setLogLevel(LogLevel.WARN);
         this.objectiveCount = 0;
         
         if (this.titleRenderer) {

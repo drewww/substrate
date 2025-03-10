@@ -50,7 +50,7 @@ export class MovementPredictor {
         const turbo = player.getComponent('turbo') as TurboComponent;
 
         const maxSpeed = turbo ? TURBO_MAX_SPEED : Math.max(BASE_MAX_SPEED, inertia?.magnitude ?? BASE_MAX_SPEED);
-        logger.warn(`maxSpeed: ${maxSpeed} turbo: ${turbo} inertia: ${inertia?.magnitude}`);
+        logger.info(`maxSpeed: ${maxSpeed} turbo: ${turbo} inertia: ${inertia?.magnitude}`);
 
         logger.info(`buffered: ${bufferedMove?.direction} inertia: ${inertia?.direction} magnitude: ${inertia?.magnitude} brake: ${brake}`);
 
