@@ -251,13 +251,13 @@ export class TitleRenderer implements Renderer {
 
     private renderTitleScreen(): void {
         this.createDarkBackground(
-            this.display.getViewportWidth() - 35,
+            this.display.getViewportWidth() - 32,
             this.display.getViewportWidth() - 4,
             2,
             this.display.getViewportHeight() - 2
         );
 
-        this.display.createString(this.display.getViewportWidth() - 33, 3, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
+        this.display.createString(this.display.getViewportWidth() - 30, 3, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
         });
@@ -273,7 +273,7 @@ export class TitleRenderer implements Renderer {
         ];
 
         menuItems.forEach((item, index) => {
-            this.display.createString(this.display.getViewportWidth() - 31, 5 + index, item, 1000, {
+            this.display.createString(this.display.getViewportWidth() - 28, 5 + index, item, 1000, {
                 animate: {
                     delayBetweenChars: 0.05,
                     initialDelay: 0.0

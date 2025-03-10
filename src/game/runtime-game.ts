@@ -148,10 +148,10 @@ export class RuntimeGame extends Game {
         // Create title display with full height to cover UI
         this.titleDisplay = new Display({
             elementId: 'title-screen',
-            cellWidth: 10,
-            cellHeight: 20,
-            viewportWidth: 106,  // Match main display width (1060/20 = 53)
-            viewportHeight: 30, // Match total height (600/20 = 30)
+            cellWidth: 15,
+            cellHeight: 30,
+            viewportWidth: 70,  // Match main display width (1060/20 = 53)
+            viewportHeight: 20, // Match total height (600/20 = 30)
             worldWidth: 106,
             worldHeight: 30
         });
