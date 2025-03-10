@@ -129,21 +129,18 @@ export class TitleRenderer implements Renderer {
         ],
         rightColumn: [
             "ENEMIES",
-            "  {#FFFFFF,#FF194D} 🜛 {/} {w}COPTER{/} - tracks and destroys you",
+            "  {#FFFFFF,#FF194D} 🜛 {/} {w}COPTER{/} - shoots you if close",
             "  {#FFFFFF,#FF194D} ⏚ {/} {w}CAMERA{/} - calls the copter",
-            "  {#FFFFFF,#FF194D} ⛣ {/} {w}TURRET{/} - shoots caltrops that slow you down",
-            "  {#FFFFFF,#FF194D} 🜻 {/} {w}BOOMER{/} - explodes into impassable terrain",
+            "  {#FFFFFF,#FF194D} 🜻 {/} {w}BOOMER{/} - blocks your path",
             "",
 
             "",
             "WARNINGS",
-            "  {#FFFFFF,#FF194D}LOCKED{/} - An enemy can see you, and the COPTER is coming.",
+            "  {#FFFFFF,#FF194D}LOCKED{/} - Seen by an enemy",
             "  {#0088FF}TURBO{/} - Available / Engaged",
             "  {#F76505}BRAKE{/} - Slowing down",
-            "  {#FFC505}STUN{/} - Time to recover from a crash.",
+            "  {#FFC505}STUN{/} - Can't move",
             "",
-            "TIPS",
-            "  - Start with the tutorial, then practice to get used to movement."
             
         ]
     };
@@ -691,8 +688,8 @@ export class TitleRenderer implements Renderer {
         );
 
         const leftX = 4;
-        const rightX = Math.floor(this.display.getViewportWidth() / 2) - 17;
-        const startY = 4;
+        const rightX = Math.floor(this.display.getViewportWidth() / 2) - 2;
+        const startY = 3;
 
         // Title
         this.display.createString(leftX, 2, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
@@ -735,7 +732,7 @@ export class TitleRenderer implements Renderer {
 
         // Add return instruction at bottom
         this.display.createString(
-            leftX,
+            rightX+2,
             this.display.getViewportHeight() - 3,
             '{#666666}Press [b] to return{/}',
             1000,
