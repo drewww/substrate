@@ -294,17 +294,4 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
         //     this.playSound('turbo', { volume: 1.0 });
         // }
     }
-
-    public async loadSound(definition: SoundDefinition): Promise<void> {
-        try {
-            logger.info(`Loading sound: ${definition.id} from ${definition.url}`);
-            const response = await fetch(definition.url);
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-            this.soundBuffers.set(definition.id, audioBuffer);
-            logger.info(`Successfully loaded sound: ${definition.id}`);
-        } catch (error) {
-            console.error(`Failed to load sound ${definition.id}:`, error);
-        }
-    }
 } 

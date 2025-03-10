@@ -1105,18 +1105,19 @@ export class RuntimeGame extends Game {
         const blockHeight = Math.floor(gameWorld.getWorldHeight() / 12);
     
         // Create minimap display with larger cell size for better visibility
+        const cellSize = 15;
         this.minimapDisplay = new Display({
             elementId: 'minimap',
             worldWidth: blockWidth,
             worldHeight: blockHeight,
-            cellWidth: 20,  // Increased from 10 to 40
-            cellHeight: 20, // Increased from 10 to 40
+            cellWidth: cellSize,  // Increased from 10 to 40
+            cellHeight: cellSize, // Increased from 10 to 40
             viewportWidth: blockWidth,
             viewportHeight: blockHeight
         });
     
         // Create minimap renderer
-        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay, this.world!, 20);
+        this.minimapRenderer = new MinimapRenderer(this.minimapDisplay, this.world!, cellSize);
         this.minimapRenderer.renderLayout(cityGenerator.getLayout()!);
     
         if (layout) {
@@ -1180,7 +1181,18 @@ export class RuntimeGame extends Game {
             eligibleObjectiveEntities = eligibleObjectiveEntities
                 .filter(entity => {
                     const objective = entity.getComponent('objective') as ObjectiveComponent;
-                    return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end';
+                    const playerPosition = this.player?.getPosition();
+                    if(playerPosition) {
+                        const entityPosition = entity.getPosition();
+                        const distance = Math.sqrt(
+                            Math.pow(entityPosition.x - playerPosition.x, 2) +
+                            Math.pow(entityPosition.y - playerPosition.y, 2)
+                        );
+                        return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end' && distance > 20;
+                    } else {
+                        return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end';
+                    }
+
                 });
         }
 

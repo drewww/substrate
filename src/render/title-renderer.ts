@@ -49,8 +49,8 @@ export class TitleRenderer implements Renderer {
                 objectiveCount = 7;    // Medium number of objectives
                 break;
             case 'large':
-                width = 12;
-                height = 12;
+                width = 10;
+                height = 10;
                 layoutType = 'generate';
                 objectiveCount = 4;    // More objectives for large maps
                 break;
@@ -77,10 +77,10 @@ export class TitleRenderer implements Renderer {
             spawnProbabilities: {
                 pedestrian: this.difficultySettings.mapSize === 'small' ? 0.5 :
                            this.difficultySettings.mapSize === 'medium' ? 0.5 : 0.5,
-                camera: this.difficultySettings.mapSize === 'small' ? 0.7 :
-                        this.difficultySettings.mapSize === 'medium' ? 0.8 : 0.9,
+                camera: this.difficultySettings.mapSize === 'small' ? 0.6 :
+                        this.difficultySettings.mapSize === 'medium' ? 0.7 : 0.8,
                 boomer: this.difficultySettings.mapSize === 'small' ? 0.0 :
-                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.4,
+                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.3,
                 turret: this.difficultySettings.mapSize === 'small' ? 0.0 :
                         this.difficultySettings.mapSize === 'medium' ? 0.0 : 0.0
             }
