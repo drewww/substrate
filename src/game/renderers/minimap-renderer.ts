@@ -364,7 +364,7 @@ export class MinimapRenderer extends LayoutRenderer {
                     // minimapContainer.style.width = `${width}px`;
                     // minimapContainer.style.height = `${height}px`;
                     minimapContainer.style.right = `${width}px`;
-                    minimapContainer.style.bottom = `${height+40}px`;
+                    minimapContainer.style.bottom = `${height+60}px`;
                 }
             }
         }

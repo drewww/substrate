@@ -878,7 +878,8 @@ export abstract class BaseRenderer implements Renderer {
                 const player = this.world.getPlayer();
                 
                 // Check if it's in visible range of the player
-                const isVisible = this.world.canEntitySeePosition(player, entity.getPosition());
+                // const isVisible = this.world.canEntitySeePosition(player, entity.getPosition());
+                const isVisible = true;
                 
                 // If it's visible but has no light tiles, re-render it
                 const existingTiles = this.lightSourceTiles.get(entityId);

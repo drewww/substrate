@@ -116,6 +116,7 @@ export class RuntimeGame extends Game {
     private objectiveCount: number = 0;
     private titleDisplay: Display | null = null;
     private titleRenderer: TitleRenderer | null = null;
+    private starting: boolean = false;
     // private world!: World;
 
     constructor(private readonly canvasId: string) {
@@ -130,10 +131,10 @@ export class RuntimeGame extends Game {
         // Create main game display
         const gameDisplay = new Display({
             elementId: this.canvasId,
-            cellWidth: 20,
-            cellHeight: 20,
-            viewportWidth: 53,  // 1060/20 = 53 cells wide
-            viewportHeight: 28, // (600-40)/20 = 28 cells high (leaving 40px for UI)
+            cellWidth: 30,
+            cellHeight: 30,
+            viewportWidth: 35,  // 1060/20 = 53 cells wide
+            viewportHeight: 18, // (600-40)/20 = 28 cells high (leaving 40px for UI)
             worldWidth: this.world.getWorldWidth(),
             worldHeight: this.world.getWorldHeight()
         });
@@ -667,8 +668,10 @@ export class RuntimeGame extends Game {
                 this.titleRenderer.spacePressed();
             }
         } else if(this.titleRenderer?.getCurrentMode() === TitleMode.DIFFICULTY && type === 'up') {
-            if(action === 'start' && type === 'up') {
+            if(action === 'start' && type === 'up' && !this.starting) {
                 logger.warn('start');
+
+                this.starting = true;
 
                 const difficultySettings = this.titleRenderer?.getDifficultySettings();
                 logger.warn(`difficultySettings: ${JSON.stringify(difficultySettings)}`);
@@ -749,6 +752,8 @@ export class RuntimeGame extends Game {
 
         if (action === 'reset' && type === 'down') {
             // Stop the game engine if it's running
+
+            this.starting = false;
             if (this.engine?.isRunning()) {
                 this.engine.stop();
             }
@@ -774,6 +779,8 @@ export class RuntimeGame extends Game {
                 if (this.engine?.isRunning()) {
                     this.engine.stop();
                 }
+
+                this.starting = false;
 
                 // Hide game-specific UI elements
                 if (this.uiSpeedRenderer) {

@@ -111,7 +111,7 @@ export class UISpeedRenderer implements Renderer {
 
         // Position UI canvas absolutely
         this.displayCanvas.style.position = 'absolute';
-        this.displayCanvas.style.bottom = '0';
+        this.displayCanvas.style.bottom = '20px';
         this.displayCanvas.style.left = '0';
         this.displayCanvas.style.pointerEvents = 'none';
         this.displayCanvas.style.zIndex = '100';
