@@ -218,7 +218,9 @@ export class TitleRenderer implements Renderer {
                 this.renderVictoryScreen();
                 break;
             case TitleMode.TRUE_VICTORY:
-                this.renderTrueVictoryScreen();
+                setTimeout(() => {
+                    this.renderTrueVictoryScreen();
+                }, 1500);
                 break;
             case TitleMode.CREDITS:
                 this.renderCreditsScreen();
