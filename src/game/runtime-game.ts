@@ -595,11 +595,31 @@ export class RuntimeGame extends Game {
                 this.titleRenderer.spacePressed();
             }
         } else if(this.titleRenderer?.getCurrentMode() === TitleMode.DIFFICULTY && type === 'up') {
-            this.titleRenderer.handleDifficultyKeyUp(action);
+            if(action === 'start' && type === 'up') {
+                logger.warn('start');
+
+                this.initializeWorld({ type: 'city' })
+                    .then(() => {
+                        this.startGame();
+                        this.uiSpeedRenderer?.show();
+
+                        const player = this.world!.getPlayer();
+                        const metrics = player.getComponent('metrics') as MetricsComponent;
+                        metrics.maxObjectivesThisLevel = 3;
+                        player.setComponent(metrics);
+
+                        this.startGame();
+                        this.uiSpeedRenderer?.show();
+                        this.setupMinimap(this.world!);
+                        })
+                    .catch(error => logger.error('Failed to start game:', error));
+            } else {
+                this.titleRenderer.handleDifficultyKeyUp(action);
+            }
         }
 
         // Handle title screen actions
-        if (action === 'start' && type === 'up') {
+        if (action === 'start' && type === 'up' && this.titleRenderer?.getCurrentMode() !== TitleMode.DIFFICULTY) {
             this.cleanupSpeedRenderer(); // Add cleanup
             // this.initializeWorld({ type: 'city' })
             //     .then(() => {
