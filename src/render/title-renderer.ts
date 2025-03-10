@@ -263,13 +263,13 @@ export class TitleRenderer implements Renderer {
         });
 
         const menuItems = [
-            '{#FF194D}r{/}un',
+            '{#FF6D6D}r{/}un',
             '',
-            '{#FF194D}t{/}utorial',
-            '{#FF194D}p{/}ractice',
-            '{#FF194D}i{/}nstructions',
+            '{#FF6D6D}t{/}utorial',
+            '{#FF6D6D}p{/}ractice',
+            '{#FF6D6D}i{/}nstructions',
             '',
-            '{#FF194D}c{/}redits'
+            '{#FF6D6D}c{/}redits'
         ];
 
         menuItems.forEach((item, index) => {
