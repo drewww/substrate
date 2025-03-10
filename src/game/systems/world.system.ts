@@ -318,7 +318,7 @@ export class WorldSystem {
         const energy = player.getComponent('energy') as EnergyComponent;
         const turbo = player.getComponent('turbo') as TurboComponent;
         if (energy && !turbo) {
-            energy.energy = Math.min(energy.energy + 8, energy.maxEnergy);
+            energy.energy = Math.min(energy.energy + 5, energy.maxEnergy);
             player.setComponent(energy);
         }
 

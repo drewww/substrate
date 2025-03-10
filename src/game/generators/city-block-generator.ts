@@ -261,7 +261,7 @@ export class CityBlockGenerator implements WorldGenerator {
         // Infer trueEnd based on map size and helicopter
         // Check if width exists and is 10+ (medium or large)
         const width = this.options.width || 0; // Default to 0 if undefined
-        const isMediumOrLarge = width >= 10;
+        const isMediumOrLarge = width >= 8;
         const hasHelicopter = this.options.spawnHelicopter === true;
         
         // Set trueEnd flag

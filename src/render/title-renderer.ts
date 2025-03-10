@@ -45,11 +45,11 @@ export class TitleRenderer implements Renderer {
                 width = 8;
                 height = 8;
                 layoutType = 'generate';
-                objectiveCount = 5;    // Medium number of objectives
+                objectiveCount = 7;    // Medium number of objectives
                 break;
             case 'large':
-                width = 12;
-                height = 12;
+                width = 14;
+                height = 14;
                 layoutType = 'generate';
                 objectiveCount = 5;    // More objectives for large maps
                 break;
@@ -74,12 +74,12 @@ export class TitleRenderer implements Renderer {
             spawnHelicopter: this.difficultySettings.helicopter,
             trueEnd: trueEnd,
             spawnProbabilities: {
-                pedestrian: this.difficultySettings.mapSize === 'small' ? 0.4 :
-                           this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.3,
+                pedestrian: this.difficultySettings.mapSize === 'small' ? 0.5 :
+                           this.difficultySettings.mapSize === 'medium' ? 0.2 : 0.2,
                 camera: this.difficultySettings.mapSize === 'small' ? 0.7 :
-                        this.difficultySettings.mapSize === 'medium' ? 0.5 : 0.5,
+                        this.difficultySettings.mapSize === 'medium' ? 0.8 : 0.9,
                 boomer: this.difficultySettings.mapSize === 'small' ? 0.0 :
-                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.3,
+                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.5,
                 turret: this.difficultySettings.mapSize === 'small' ? 0.0 :
                         this.difficultySettings.mapSize === 'medium' ? 0.0 : 0.0
             }
@@ -285,6 +285,11 @@ export class TitleRenderer implements Renderer {
         });
 
         this.renderMetrics(6, 6, '#999999', '#FF4444');
+        
+        // Add "B to go back" instruction at the bottom
+        this.display.createString(6, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
+            backgroundColor: '#00000000'
+        });
     }
 
     private renderVictoryScreen(): void {
@@ -307,6 +312,11 @@ export class TitleRenderer implements Renderer {
         });
 
         this.renderMetrics(rightX, 6, '#FFFFFF', '#55CE4A');
+        
+        // Add "B to go back" instruction at the bottom
+        this.display.createString(rightX, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
+            backgroundColor: '#00000000'
+        });
     }
 
     private renderCreditsScreen(): void {
@@ -363,6 +373,15 @@ export class TitleRenderer implements Renderer {
 
             currentY += credit.roles.length + 1;
         });
+        
+        // Add "B to go back" instruction at the bottom
+        this.display.createString(
+            leftX + 2,
+            this.display.getViewportHeight() - 4,
+            '{#666666}Press [b] to go back{/}',
+            1000,
+            { backgroundColor: '#00000000' }
+        );
     }
 
     private renderTutorialScreen(): void {
@@ -669,7 +688,7 @@ export class TitleRenderer implements Renderer {
         this.display.createString(
             leftX,
             this.display.getViewportHeight() - 3,
-            '{#666666}Press [q] to return{/}',
+            '{#666666}Press [b] to return{/}',
             1000,
             { backgroundColor: '#00000000' }
         );

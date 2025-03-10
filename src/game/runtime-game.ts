@@ -599,7 +599,7 @@ export class RuntimeGame extends Game {
 
     protected handleInput(type: string, action: string, params: string[]): void {
 
-        logger.warn(`action: ${action} type: ${type}`);
+        // logger.warn(`action: ${action} type: ${type}`);
 
         if(this.titleRenderer?.getCurrentMode() === TitleMode.TUTORIAL) {
             if(!this.engine?.isRunning() && action === 'brake' && type === 'up') {
