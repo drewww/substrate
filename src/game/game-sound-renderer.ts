@@ -71,34 +71,34 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                     category: 'sfx'
                 }
             },
-            // {
-            //     id: 'low-engine',
-            //     url: lowEngineSound,
-            //     options: {
-            //         category: 'sfx'
-            //     }
-            // },
-            // {
-            //     id: 'mid-engine',
-            //     url: midEngineSound,
-            //     options: {
-            //         category: 'sfx'
-            //     }
-            // },
-            // {
-            //     id: 'high-engine',
-            //     url: highEngineSound,
-            //     options: {
-            //         category: 'sfx'
-            //     }
-            // },
-            // {
-            //     id: 'turbo-engine',
-            //     url: turboEngineSound,
-            //     options: {
-            //         category: 'sfx'
-            //     }
-            // },
+            {
+                id: 'low-engine',
+                url: lowEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'mid-engine',
+                url: midEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'high-engine',
+                url: highEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
+            {
+                id: 'turbo-engine',
+                url: turboEngineSound,
+                options: {
+                    category: 'sfx'
+                }
+            },
             {
                 id: 'objective',
                 url: objectiveSound,
@@ -183,7 +183,7 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                         const turbo = entity.getComponent('turbo') as TurboComponent;
 
                         if(turbo.turnsSinceEngaged==0) {
-                            this.playSound('turbo', { volume: 0.3 });
+                            this.playSound('turbo', { volume: 0.1 });
                         }
                     }
                     const inertia = entity.getComponent('inertia') as InertiaComponent;
@@ -234,20 +234,20 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                 }
 
                 // Start new engine sound
-                switch (newState) {
-                    case EngineState.Low:
-                        this.playSound('low-engine', { volume: 0.3, loop: true });
-                        break;
-                    case EngineState.Medium:
-                        this.playSound('mid-engine', { volume: 0.3, loop: true });
-                        break;
-                    case EngineState.Turbo:
-                        this.playSound('turbo-engine', { volume: 0.3, loop: true });
-                        break;
-                    case EngineState.High:
-                        this.playSound('high-engine', { volume: 0.3, loop: true });
-                        break;
-                }
+                // switch (newState) {
+                //     case EngineState.Low:
+                //         this.playSound('low-engine', { volume: 0.3, loop: true });
+                //         break;
+                //     case EngineState.Medium:
+                //         this.playSound('mid-engine', { volume: 0.3, loop: true });
+                //         break;
+                //     case EngineState.Turbo:
+                //         this.playSound('turbo-engine', { volume: 0.3, loop: true });
+                //         break;
+                //     case EngineState.High:
+                //         this.playSound('high-engine', { volume: 0.3, loop: true });
+                //         break;
+                // }
 
                 this.currentEngineState = newState;
             }
@@ -293,5 +293,18 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
         // if(entity.hasComponent('player') && componentType == 'turbo') {
         //     this.playSound('turbo', { volume: 1.0 });
         // }
+    }
+
+    public async loadSound(definition: SoundDefinition): Promise<void> {
+        try {
+            logger.info(`Loading sound: ${definition.id} from ${definition.url}`);
+            const response = await fetch(definition.url);
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+            this.soundBuffers.set(definition.id, audioBuffer);
+            logger.info(`Successfully loaded sound: ${definition.id}`);
+        } catch (error) {
+            console.error(`Failed to load sound ${definition.id}:`, error);
+        }
     }
 } 

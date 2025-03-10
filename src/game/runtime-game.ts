@@ -119,7 +119,7 @@ export class RuntimeGame extends Game {
     private starting: boolean = false;
     private lastDirection: Direction = Direction.None;
     private turnsInSameDirection: number = 0;
-    private readonly MAX_LOOK_AHEAD = 3;
+    private readonly MAX_LOOK_AHEAD = 5;
     // private world!: World;
 
     constructor(private readonly canvasId: string) {
