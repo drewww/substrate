@@ -71,34 +71,34 @@ export class RuntimeSoundRenderer extends BaseSoundRenderer {
                     category: 'sfx'
                 }
             },
-            {
-                id: 'low-engine',
-                url: lowEngineSound,
-                options: {
-                    category: 'sfx'
-                }
-            },
-            {
-                id: 'mid-engine',
-                url: midEngineSound,
-                options: {
-                    category: 'sfx'
-                }
-            },
-            {
-                id: 'high-engine',
-                url: highEngineSound,
-                options: {
-                    category: 'sfx'
-                }
-            },
-            {
-                id: 'turbo-engine',
-                url: turboEngineSound,
-                options: {
-                    category: 'sfx'
-                }
-            },
+            // {
+            //     id: 'low-engine',
+            //     url: lowEngineSound,
+            //     options: {
+            //         category: 'sfx'
+            //     }
+            // },
+            // {
+            //     id: 'mid-engine',
+            //     url: midEngineSound,
+            //     options: {
+            //         category: 'sfx'
+            //     }
+            // },
+            // {
+            //     id: 'high-engine',
+            //     url: highEngineSound,
+            //     options: {
+            //         category: 'sfx'
+            //     }
+            // },
+            // {
+            //     id: 'turbo-engine',
+            //     url: turboEngineSound,
+            //     options: {
+            //         category: 'sfx'
+            //     }
+            // },
             {
                 id: 'objective',
                 url: objectiveSound,

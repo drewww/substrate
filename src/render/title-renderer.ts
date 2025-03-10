@@ -163,7 +163,7 @@ export class TitleRenderer implements Renderer {
             title: document.getElementById('title-background-title') as HTMLImageElement,
             death: document.getElementById('title-background-death') as HTMLImageElement,
             victory: document.getElementById('title-background-victory') as HTMLImageElement,
-            trueVictory: document.getElementById('title-background-true-victory') as HTMLImageElement
+            trueVictory: document.getElementById('title-background-true-victory') as HTMLImageElement,
         };
 
         if (!this.titleBackgrounds.title || !this.titleBackgrounds.death || !this.titleBackgrounds.victory) {
@@ -193,8 +193,10 @@ export class TitleRenderer implements Renderer {
             case TitleMode.VICTORY:
             case TitleMode.CREDITS:
             case TitleMode.INSTRUCTIONS:
-            case TitleMode.DIFFICULTY:
                 this.titleBackgrounds.victory.style.display = 'block';
+                break;
+
+            case TitleMode.DIFFICULTY:
                 break;
         }
     }
@@ -483,7 +485,7 @@ export class TitleRenderer implements Renderer {
 
             if(this.objectiveIndex === 8) {
                 this.display.clear();
-                this.display.createString(19, this.display.getViewportHeight() - 14,
+                this.display.createString(19, this.display.getViewportHeight() - 2,
                 '{w}Hold SPACE to brake.{/}', 1000, {
                     backgroundColor: '#000000',
                     animate: {
@@ -497,8 +499,8 @@ export class TitleRenderer implements Renderer {
             if(this.objectiveIndex === 10) {
                 this.display.clear();
 
-                this.display.createString(19, this.display.getViewportHeight() - 14,
-                '{w}Collide with vehicles to steal their DATA CORES.{/}', 1000, {
+                this.display.createString(19, this.display.getViewportHeight() - 4,
+                '{w}Slide past objective vehicles to steal their DATA CORES.{/}', 1000, {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,
@@ -559,7 +561,7 @@ export class TitleRenderer implements Renderer {
 
             if(this.objectiveIndex === 11) {
                 this.display.clear();
-                this.display.createString(19, this.display.getViewportHeight() - 14,
+                this.display.createString(3, this.display.getViewportHeight() - 4,
                 '{w}Make it to an extraction point to complete the mission.{/}', 1000, {
                     backgroundColor: '#000000',
                     animate: {
@@ -612,7 +614,7 @@ export class TitleRenderer implements Renderer {
                     backgroundColor: '#000000',
                 });
 
-                this.display.createString(10, 7, '{w}Press [q] to continue.{/}', 1000, {
+                this.display.createString(10, 7, '{w}Press B to continue.{/}', 1000, {
                     backgroundColor: '#000000',
                 });
             }
@@ -652,7 +654,7 @@ export class TitleRenderer implements Renderer {
                 this.display.clear();
                 this.invertDarkBackground(2, 8, 4, 15);
 
-                this.display.createString(8, 12, 'Don\'t crash. We don\'t have time for that.', 1000, {
+                this.display.createString(8, 12, 'Walls are hard, try to avoid them.', 1000, {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,
@@ -665,7 +667,7 @@ export class TitleRenderer implements Renderer {
                 this.display.clear();
                 // this.invertDarkBackground(4, 65, 8, 14);
 
-                this.display.createString(20, 11, 'Make haste.', 1000, {
+                this.display.createString(20, 11, 'Punch it.', 1000, {
                     backgroundColor: '#000000',
                     animate: {
                         delayBetweenChars: 0.05,
@@ -743,8 +745,8 @@ export class TitleRenderer implements Renderer {
     private blankScreen(): void {
         this.display.clear();
 
-        for(let y = 2; y < this.display.getViewportHeight()-4; y++) {
-            for(let x = 2; x < this.display.getViewportWidth()-60; x++) {
+        for(let y = 0; y < this.display.getViewportHeight()-2; y++) {
+            for(let x = 0; x < this.display.getViewportWidth(); x++) {
                 this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 400);
             }
         }
@@ -921,7 +923,7 @@ export class TitleRenderer implements Renderer {
                 }
                 );
 
-            this.display.createString(6, this.display.getViewportHeight() - 4, '{w}Your speed. At low speeds, you can turn. At high speeds you can ... [space]{/}', 1000, {
+            this.display.createString(6, this.display.getViewportHeight() - 4, '{w}Go fast to enable turbo. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
                     delayBetweenChars: 0.05,
@@ -934,7 +936,7 @@ export class TitleRenderer implements Renderer {
             }
             );
             this.display.createString(20, this.display.getViewportHeight() - 4,
-            '{w}... engage turbo. That will drain your energy. [space]{/}', 1000, {
+            '{w}Turbo drains your energy. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
                     delayBetweenChars: 0.05,
@@ -944,7 +946,7 @@ export class TitleRenderer implements Renderer {
 
         } else if(this.spaceCount === 3) {
             this.display.createString(10, this.display.getViewportHeight() - 4,
-            '{w}You will be hunted. Staying too long in a SECOPS {r}spotlight{/} will destroy your RUNNER. [space]{/}', 1000, {
+            '{w}Stay too long in a {#FF194D}spotlight{/} and you die. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
                     delayBetweenChars: 0.05,
@@ -953,7 +955,7 @@ export class TitleRenderer implements Renderer {
             });
         } else if(this.spaceCount === 4) {
             this.display.createString(4, this.display.getViewportHeight() - 4,
-            '{w}Fill this meter to unlock an exit. [space]{/}', 1000, {
+            '{w}Fill objective meter to unlock an exit. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
                     delayBetweenChars: 0.05,
@@ -961,15 +963,15 @@ export class TitleRenderer implements Renderer {
                 }
             });
 
-            this.display.createTile(50, this.display.getViewportHeight() - 4, '⤵', '#FFFFFFFF', '#00000000', 1000, {
-                offsetSymbolX: -0.1
-            });
+            // this.display.createTile(50, this.display.getViewportHeight() - 4, '⤵', '#FFFFFFFF', '#00000000', 1000, {
+            //     offsetSymbolX: -0.1
+            // });
 
         } else if(this.spaceCount === 5) {
 
-            this.display.createTile(80, this.display.getViewportHeight() - 4, '⤵', '#FFFFFFFF', '#00000000', 1000);
+            // this.display.createTile(80, this.display.getViewportHeight() - 4, '⤵', '#FFFFFFFF', '#00000000', 1000);
 
-            this.display.createString(50, this.display.getViewportHeight() - 4,
+            this.display.createString(38, this.display.getViewportHeight() - 4,
             '{w}Watch your indicators. [space]{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
@@ -985,7 +987,7 @@ export class TitleRenderer implements Renderer {
 
             this.selectObjective(5);
 
-            this.display.createString(19, this.display.getViewportHeight() - 14,
+            this.display.createString(19, this.display.getViewportHeight()-4,
             '{w}Hold SHIFT while moving at high speeds to TURBO.{/}', 1000, {
                 backgroundColor: '#000000',
                 animate: {
@@ -1011,7 +1013,7 @@ export class TitleRenderer implements Renderer {
         const height = this.display.getViewportHeight();
         
         // Create dark background
-        this.createDarkBackground(2, 38, 2, height-2, "#000000");
+        this.createDarkBackground(0, width+1, 0, height, "#000000");
         
         // Title at the top
         const titleX = Math.floor(width / 2) - 6; // Center "PREPARE RUN" (11 characters)
