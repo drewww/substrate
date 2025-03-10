@@ -369,17 +369,17 @@ export class TitleRenderer implements Renderer {
     }
 
     private renderCreditsScreen(): void {
-        const leftX = this.display.getViewportWidth() - 60;
+        const leftX = this.display.getViewportWidth() - 40;
         const rightX = this.display.getViewportWidth() - 4;
 
         this.createDarkBackground(
             leftX,
             rightX,
-            2,
+            1,
             this.display.getViewportHeight() - 2
         );
         
-        this.display.createString(leftX + 1, 3, '{#999999}RUNNER/{/}{#w}GRIDLOCK{/}', 1000, {
+        this.display.createString(leftX + 2, 2, '{#999999}RUNNER/{/}{w}GRIDLOCK{/} BY', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -388,7 +388,7 @@ export class TitleRenderer implements Renderer {
             }
         });
 
-        let currentY = 6;
+        let currentY = 4;
         this.CREDITS.forEach((credit, index) => {
             this.display.createString(
                 leftX + 2,
@@ -420,7 +420,7 @@ export class TitleRenderer implements Renderer {
                 );
             });
 
-            currentY += credit.roles.length + 1;
+            currentY += credit.roles.length;
         });
         
         // Add "B to go back" instruction at the bottom
