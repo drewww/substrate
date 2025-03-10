@@ -29,6 +29,40 @@ export enum TitleMode {
 }
 
 export class TitleRenderer implements Renderer {
+    getDifficultySettings() {
+        // Convert map size to actual dimensions
+        let width, height;
+        switch (this.difficultySettings.mapSize) {
+            case 'small':
+                width = 6;
+                height = 6;
+                break;
+            case 'medium':
+                width = 10;
+                height = 10;
+                break;
+            case 'large':
+                width = 15;
+                height = 15;
+                break;
+            default:
+                width = 10;
+                height = 10;
+        }
+        
+        return {
+            layoutType: this.difficultySettings.mapSize === 'small' ? 'fixed' : 'generate',
+            width: width,
+            height: height,
+            spawnHelicopter: this.difficultySettings.helicopter,
+            spawnProbabilities: {
+                pedestrian: 0.3,
+                camera: 0.6,
+                boomer: 0.0,
+                turret: 0.0
+            }
+        };
+    }
     private titleBackgrounds: {[key: string]: HTMLImageElement} = {};
 
     private readonly CREDITS = [
@@ -988,45 +1022,6 @@ export class TitleRenderer implements Renderer {
                 // Toggle helicopter
                 this.difficultySettings.helicopter = !this.difficultySettings.helicopter;
                 this.renderDifficultyScreen();
-                break;
-            case 'start':
-                // Start the game with current settings
-                this.hide();
-                
-                // Convert map size to actual dimensions
-                let width, height;
-                switch (this.difficultySettings.mapSize) {
-                    case 'small':
-                        width = 6;
-                        height = 6;
-                        break;
-                    case 'medium':
-                        width = 10;
-                        height = 10;
-                        break;
-                    case 'large':
-                        width = 15;
-                        height = 15;
-                        break;
-                    default:
-                        width = 10;
-                        height = 10;
-                }
-                
-                // Start the game with selected options
-                // this.game.startGame({
-                //     type: 'city',
-                //     layoutType: 'generate',
-                //     width: width,
-                //     height: height,
-                //     spawnHelicopter: this.difficultySettings.helicopter,
-                //     spawnProbabilities: {
-                //         pedestrian: 0.3,
-                //         camera: 0.8,
-                //         boomer: 0.0,
-                //         turret: 0.0
-                //     }
-                // });
                 break;
             case 'b':
                 // Go back to title screen
