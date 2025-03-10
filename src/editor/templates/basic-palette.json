@@ -35,9 +35,44 @@
         ]
       },
 
-
       {
         "id": "sidewalk_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": " ",
+            "foreground": "#000D12ff",
+            "background": "#252525ff",
+            "zIndex": 0,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+
+      {
+        "id": "server_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "☷",
+            "foreground": "#ffffffff",
+            "background": "#00000000",
+            "zIndex": 0,
+            "scaleSymbolX": 1.2,
+            "scaleSymbolY": 1.2,
+            "alwaysRenderIfExplored": true
+          },
+          {
+            "type": "impassable"
+          }
+        ]
+      },
+
+
+      
+      {
+        "id": "sidewalk_template_caltrops",
         "position": { "x": 0, "y": 0 },
         "components": [
           {
@@ -299,6 +334,84 @@
             "alwaysRenderIfExplored": true          }
         ]
       },
+
+
+      {
+        "id": "fence_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "▩",
+            "foreground": "#ffffffFF",
+            "background": "#000D1200",
+            "zIndex": 0,
+            "scaleSymbolX": 1.7,
+            "scaleSymbolY": 1.7,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+
+      {
+        "id": "bars_template",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "▥",
+            "foreground": "#ffffffFF",
+            "background": "#000D1200",
+            "zIndex": 0,
+            "scaleSymbolX": 1.7,
+            "scaleSymbolY": 1.7,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+
+      {
+        "id": "monument_topper",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⧊",
+            "foreground": "#ffffffFF",
+            "background": "#000D1200",
+            "zIndex": 0,
+            "scaleSymbolX": 1.2,
+            "scaleSymbolY": 1.2,
+            "alwaysRenderIfExplored": true          }
+        ]
+      },
+
+      {
+        "id": "rumble_topper",
+        "position": { "x": 0, "y": 0 },
+        "components": [
+          {
+            "type": "symbol",
+            "char": "⧚",
+            "foreground": "#FEE083",
+            "background": "#000D1200",
+            "zIndex": 0,
+            "scaleSymbolX": 1.2,
+            "scaleSymbolY": 1.2,
+            "alwaysRenderIfExplored": true,
+            "lockRotationToFacing": true
+          },
+          {
+            "type": "facing",
+            "direction": 0
+          }
+        ]
+      },
+
+
+      
+
+
+ 
+      
       {
         "id": "street_light",
         "position": { "x": 0, "y": 0 },

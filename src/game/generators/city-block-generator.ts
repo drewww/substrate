@@ -78,12 +78,17 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     // Buildings
     "1x1-building": {
         variants: [
-            { url: "1-1b.json", weight: 0.4 },
-            { url: "1-1b-a.json", weight: 0.2 },
+            { url: "1-1b.json", weight: 0.2 },
+            { url: "1-1b-a.json", weight: 0.1 },
             { url: "1-1b-restaurant.json", weight: 0.1 },
             { url: "1-1b-security.json", weight: 0.1 },
             { url: "1-1b-shipping.json", weight: 0.1 },
             { url: "1-1b-park.json", weight: 0.1 },
+            { url: "1-1b-monument.json", weight: 0.1 },
+            { url: "1-1b-copse.json", weight: 0.1 },
+            { url: "1-1b-curve.json", weight: 0.1 },
+            { url: "1-1b-tree-lined.json", weight: 0.1 },
+            { url: "1-1b-square.json", weight: 0.1 }
         ]
     },
     "start-building": {
