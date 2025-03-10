@@ -594,7 +594,39 @@ export class RuntimeGame extends Game {
             duration: 0.5,  // 100ms transition
             easing: Easing.linear
         });
-        // this.display.setViewport(viewportX, viewportY);
+        
+        // Check if player is near the southeast corner and update minimap opacity
+        this.updateMinimapOpacity(pos);
+    }
+
+    // Add new method to update minimap opacity based on player position
+    private updateMinimapOpacity(playerPos: Point): void {
+        if (!this.world || !this.minimapDisplay) {
+            return;
+        }
+        
+        const worldWidth = this.world.getWorldWidth();
+        const worldHeight = this.world.getWorldHeight();
+        
+        // Define the proximity threshold (30 tiles from SE corner)
+        const proximityThreshold = 15;
+        
+        // Calculate distance from SE corner
+        const distanceFromSE = Math.min(
+            worldWidth - playerPos.x,
+            worldHeight - playerPos.y
+        );
+        
+        // Get the minimap element
+        const minimapElement = document.getElementById('minimap');
+        if (minimapElement) {
+            // Set opacity based on proximity
+            if (distanceFromSE < proximityThreshold) {
+                minimapElement.style.opacity = '0.4';
+            } else {
+                minimapElement.style.opacity = '0.8';
+            }
+        }
     }
 
     protected handleInput(type: string, action: string, params: string[]): void {
