@@ -266,7 +266,7 @@ export class PlayerMovementSystem {
             type: 'stun',
             entityId: player.getId(),
             data: {
-                duration: magnitude * 3,
+                duration: magnitude > 5 ? 10 : 1,
                 resetInertia: true
             }
         });
