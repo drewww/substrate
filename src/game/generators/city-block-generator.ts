@@ -202,7 +202,7 @@ function selectVariant(blockType: BlockType): string {
 }
 
 // First, update the CityBlockGeneratorOptions type to include spawn probabilities
-type CityBlockGeneratorOptions = {
+export type CityBlockGeneratorOptions = {
     layoutType: 'generate' | 'fixed';
     spawnProbabilities?: {
         pedestrian?: number;  // 0.0 to 1.0
@@ -253,6 +253,8 @@ export class CityBlockGenerator implements WorldGenerator {
             },
             spawnHelicopter: options.spawnHelicopter !== undefined ? options.spawnHelicopter : true
         };
+
+        logger.warn(`CityBlockGenerator options: ${JSON.stringify(this.options)}`);
     }
 
     private rotateEntityPosition(entity: Entity, orientation: number, blockWidth: number, blockHeight: number): void {

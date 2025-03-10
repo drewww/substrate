@@ -17,6 +17,7 @@ import { VehicleLeaderComponent } from '../game/components/vehicle-leader.compon
 import { FollowableComponent } from '../entity/components/followable-component';
 import { CooldownComponent } from '../game/components/cooldown.component';
 import { FollowerComponent } from '../entity/components/follower-component';
+import { CityBlockGeneratorOptions } from '../game/generators/city-block-generator';
 
 export enum TitleMode {
     TITLE,
@@ -29,29 +30,35 @@ export enum TitleMode {
 }
 
 export class TitleRenderer implements Renderer {
-    getDifficultySettings() {
-        // Convert map size to actual dimensions
-        let width, height;
+    getDifficultySettings(): CityBlockGeneratorOptions {
+        // Convert map size to actual dimensions and set layout type
+        let width: number, height: number, layoutType: 'generate' | 'fixed';
+        
         switch (this.difficultySettings.mapSize) {
             case 'small':
-                width = 6;
-                height = 6;
+                width = 4;  // Even smaller for fixed layout
+                height = 4;
+                layoutType = 'fixed';  // Use fixed layout for small maps
                 break;
             case 'medium':
                 width = 10;
                 height = 10;
+                layoutType = 'generate';
                 break;
             case 'large':
                 width = 15;
                 height = 15;
+                layoutType = 'generate';
                 break;
             default:
                 width = 10;
                 height = 10;
+                layoutType = 'generate';
         }
         
+        // Return a complete object with all required properties
         return {
-            layoutType: this.difficultySettings.mapSize === 'small' ? 'fixed' : 'generate',
+            layoutType: layoutType,
             width: width,
             height: height,
             spawnHelicopter: this.difficultySettings.helicopter,

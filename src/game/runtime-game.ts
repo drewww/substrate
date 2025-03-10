@@ -34,7 +34,7 @@ import { WorldSystem } from './systems/world.system.ts';
 import { JsonWorldGenerator } from '../world/generators/json-world-generator.ts';
 
 
-import { CityBlockGenerator } from './generators/city-block-generator.ts';
+import { CityBlockGenerator, CityBlockGeneratorOptions } from './generators/city-block-generator.ts';
 import { EntitySpawnAction } from './actions/entity-spawn.action.ts';
 import { tileFlagsHasCardinalDirection } from 'wally-fov/lib/tile-flags';
 import { MinimapRenderer } from './renderers/minimap-renderer.ts';
@@ -95,6 +95,7 @@ h helicopter
 type GeneratorConfig = {
     type: 'city' | 'json';
     url?: string;
+    difficultySettings?: CityBlockGeneratorOptions;
 };
 
 export class RuntimeGame extends Game {
@@ -377,25 +378,37 @@ export class RuntimeGame extends Game {
 
     protected async initializeWorld(options: GeneratorConfig): Promise<void> {
         try {
-            // const generator: WorldGenerator = options.type === 'json' 
-            //     ? await JsonWorldGenerator.fromUrl(options.url!)
-            //     : new CityBlockGenerator({ layoutType: 'fixed', spawnHelicopter: true, spawnProbabilities: {
-            //         pedestrian: 0.3,
-            //         camera: 0.8,
-            //         boomer: 0.0,
-            //         turret: 0.0
-            //     } });
+            let generator: WorldGenerator;
             
-
-            const generator: WorldGenerator = options.type === 'json' 
-                ? await JsonWorldGenerator.fromUrl(options.url!)
-                : new CityBlockGenerator({ layoutType: 'generate', spawnHelicopter: true, spawnProbabilities: {
-                    pedestrian: 0.3,
-                    camera: 0.8,
-                    boomer: 0.0,
-                    turret: 0.0
-                } });
-
+            if (options.type === 'json') {
+                generator = await JsonWorldGenerator.fromUrl(options.url!);
+            } else {
+                // Use difficulty settings if provided, otherwise use defaults
+                if (options.difficultySettings) {
+                    logger.warn(`Using provided difficulty settings: ${JSON.stringify(options.difficultySettings)}`);
+                    
+                    // Make sure we're passing all the settings correctly
+                    generator = new CityBlockGenerator({
+                        layoutType: options.difficultySettings.layoutType,
+                        width: options.difficultySettings.width,
+                        height: options.difficultySettings.height,
+                        spawnHelicopter: options.difficultySettings.spawnHelicopter,
+                        spawnProbabilities: options.difficultySettings.spawnProbabilities
+                    });
+                } else {
+                    logger.warn('Using default difficulty settings');
+                    generator = new CityBlockGenerator({ 
+                        layoutType: 'generate', 
+                        spawnHelicopter: true, 
+                        spawnProbabilities: {
+                            pedestrian: 0.3,
+                            camera: 0.8,
+                            boomer: 0.0,
+                            turret: 0.0
+                        } 
+                    });
+                }
+            }
 
             this.generator = generator;
             this.world = await generator.generate();
@@ -466,7 +479,7 @@ export class RuntimeGame extends Game {
             player.setComponent(new MetricsComponent());
 
         } catch (error) {
-            logger.error('Failed to initialize game:', error);
+            logger.error('Failed to initialize world:', error);
             throw error;
         }
     }
@@ -598,7 +611,15 @@ export class RuntimeGame extends Game {
             if(action === 'start' && type === 'up') {
                 logger.warn('start');
 
-                this.initializeWorld({ type: 'city' })
+                const difficultySettings = this.titleRenderer?.getDifficultySettings();
+                logger.warn(`difficultySettings: ${JSON.stringify(difficultySettings)}`);
+
+                if (difficultySettings) {
+                    // Use the difficultySettings directly without creating a new object
+                    this.initializeWorld({ 
+                        type: 'city', 
+                        difficultySettings: difficultySettings 
+                    })
                     .then(() => {
                         this.startGame();
                         this.uiSpeedRenderer?.show();
@@ -608,11 +629,9 @@ export class RuntimeGame extends Game {
                         metrics.maxObjectivesThisLevel = 3;
                         player.setComponent(metrics);
 
-                        this.startGame();
-                        this.uiSpeedRenderer?.show();
                         this.setupMinimap(this.world!);
-                        })
-                    .catch(error => logger.error('Failed to start game:', error));
+                    });
+                }
             } else {
                 this.titleRenderer.handleDifficultyKeyUp(action);
             }
