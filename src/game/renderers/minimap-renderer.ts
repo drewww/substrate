@@ -354,8 +354,9 @@ export class MinimapRenderer extends LayoutRenderer {
                 // canvas.style.width = `${width}px`;
                 // canvas.style.height = `${height}px`;
                 canvas.style.display = 'block';
-                canvas.style.border = '1px solid #fff';
-                canvas.style.borderRadius = '4px';
+                canvas.style.borderTop = '1px solid #fff';
+                canvas.style.borderLeft = '1px solid #fff';
+                // canvas.style.borderRadius = '4px';
                 canvas.style.backgroundColor = '#000';
                 canvas.style.zIndex = '1000';
 

@@ -150,7 +150,7 @@
           "char": ".",
           "foreground": "#000D12ff",
           "background": "#252525ff",
-          "zIndex": 0,
+          "zIndex": 11,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
           "offsetSymbolX": 0,
@@ -852,7 +852,7 @@
           "char": ".",
           "foreground": "#000D12ff",
           "background": "#252525ff",
-          "zIndex": 0,
+          "zIndex": 11,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
           "offsetSymbolX": 0,
@@ -1365,7 +1365,7 @@
           "char": ".",
           "foreground": "#000D12ff",
           "background": "#252525ff",
-          "zIndex": 0,
+          "zIndex": 11,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
           "offsetSymbolX": 0,
@@ -1500,7 +1500,7 @@
           "char": ".",
           "foreground": "#000D12ff",
           "background": "#252525ff",
-          "zIndex": 0,
+          "zIndex": 11,
           "alwaysRenderIfExplored": true,
           "rotation": 0,
           "offsetSymbolX": 0,
@@ -5691,7 +5691,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "vehicle"
+          "objectiveType": "vehicle",
+          "index": 0
         },
         {
           "type": "vehicle-leader",
@@ -5758,7 +5759,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "vehicle"
+          "objectiveType": "vehicle",
+          "index": 0
         },
         {
           "type": "vehicle-leader",
@@ -5825,7 +5827,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "vehicle"
+          "objectiveType": "vehicle",
+          "index": 0
         },
         {
           "type": "vehicle-leader",

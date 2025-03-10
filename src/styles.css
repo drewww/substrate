@@ -54,7 +54,7 @@ textarea {
 /* Display test specific */
 #display-container {
     position: relative;
-    width: 1440px;
+    /* width: 1440px; */
     height: 600px;
     margin: auto;
 }

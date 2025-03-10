@@ -76,11 +76,11 @@ export class TitleRenderer implements Renderer {
             trueEnd: trueEnd,
             spawnProbabilities: {
                 pedestrian: this.difficultySettings.mapSize === 'small' ? 0.5 :
-                           this.difficultySettings.mapSize === 'medium' ? 0.2 : 0.2,
+                           this.difficultySettings.mapSize === 'medium' ? 0.5 : 0.5,
                 camera: this.difficultySettings.mapSize === 'small' ? 0.7 :
                         this.difficultySettings.mapSize === 'medium' ? 0.8 : 0.9,
                 boomer: this.difficultySettings.mapSize === 'small' ? 0.0 :
-                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.5,
+                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.4,
                 turret: this.difficultySettings.mapSize === 'small' ? 0.0 :
                         this.difficultySettings.mapSize === 'medium' ? 0.0 : 0.0
             }
@@ -197,6 +197,7 @@ export class TitleRenderer implements Renderer {
                 break;
 
             case TitleMode.DIFFICULTY:
+                this.titleBackgrounds.title.style.display = 'none';
                 break;
         }
     }

@@ -68,10 +68,10 @@ mode: game
 ==========
 map: default
 ---
-w move up
-s move down
-a move left
-d move right
+w,ArrowUp move up
+s,ArrowDown move down
+a,ArrowLeft move left
+d,ArrowRight move right
 Space brake
 Shift turbo
 b quit
@@ -117,6 +117,9 @@ export class RuntimeGame extends Game {
     private titleDisplay: Display | null = null;
     private titleRenderer: TitleRenderer | null = null;
     private starting: boolean = false;
+    private lastDirection: Direction = Direction.None;
+    private turnsInSameDirection: number = 0;
+    private readonly MAX_LOOK_AHEAD = 3;
     // private world!: World;
 
     constructor(private readonly canvasId: string) {
@@ -150,7 +153,7 @@ export class RuntimeGame extends Game {
             elementId: 'title-screen',
             cellWidth: 15,
             cellHeight: 30,
-            viewportWidth: 70,  // Match main display width (1060/20 = 53)
+            viewportWidth: 71,  // Match main display width (1060/20 = 53)
             viewportHeight: 20, // Match total height (600/20 = 30)
             worldWidth: 106,
             worldHeight: 30
@@ -595,7 +598,7 @@ export class RuntimeGame extends Game {
         }
 
         // Add the title screen cycle button
-        this.addTitleScreenCycleButton();
+        // this.addTitleScreenCycleButton();
     }
 
     // Update the Game's prepare method to call setupAfterDisplay
@@ -618,19 +621,91 @@ export class RuntimeGame extends Game {
         const viewportWidth = this.display.getViewportWidth();
         const viewportHeight = this.display.getViewportHeight();
 
-        // Center the viewport on the player
+        // Get player's inertia to determine movement
+        const inertia = this.player.getComponent('inertia') as InertiaComponent;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        if (inertia && inertia.magnitude > 0) {
+            const currentDirection = inertia.direction;
+            
+            // Update turns in same direction counter
+            if (currentDirection === this.lastDirection) {
+                this.turnsInSameDirection = Math.min(this.turnsInSameDirection + 1, this.MAX_LOOK_AHEAD);
+            } else {
+                this.turnsInSameDirection = 1; // Reset counter when direction changes
+            }
+
+            // Calculate the current look ahead distance based on turns in same direction
+            const currentLookAhead = this.turnsInSameDirection;
+            
+            // If direction changed, interpolate between old and new direction
+            if (this.lastDirection !== Direction.None && 
+                currentDirection !== this.lastDirection && 
+                currentDirection !== Direction.None) {
+                
+                // Get offsets for both directions
+                let oldX = 0, oldY = 0, newX = 0, newY = 0;
+                
+                // Calculate old direction offsets with previous look ahead distance
+                switch (this.lastDirection) {
+                    case Direction.North: oldY = -this.MAX_LOOK_AHEAD; break;
+                    case Direction.South: oldY = this.MAX_LOOK_AHEAD; break;
+                    case Direction.East: oldX = this.MAX_LOOK_AHEAD; break;
+                    case Direction.West: oldX = -this.MAX_LOOK_AHEAD; break;
+                }
+                
+                // Calculate new direction offsets with initial look ahead distance
+                switch (currentDirection) {
+                    case Direction.North: newY = -1; break;
+                    case Direction.South: newY = 1; break;
+                    case Direction.East: newX = 1; break;
+                    case Direction.West: newX = -1; break;
+                }
+                
+                // Interpolate between the two directions
+                const interpolationFactor = 0.5;
+                xOffset = oldX * (1 - interpolationFactor) + newX * interpolationFactor;
+                yOffset = oldY * (1 - interpolationFactor) + newY * interpolationFactor;
+            } else {
+                // Normal single-direction offset with current look ahead distance
+                switch (currentDirection) {
+                    case Direction.North:
+                        yOffset = -currentLookAhead;
+                        break;
+                    case Direction.South:
+                        yOffset = currentLookAhead;
+                        break;
+                    case Direction.East:
+                        xOffset = currentLookAhead;
+                        break;
+                    case Direction.West:
+                        xOffset = -currentLookAhead;
+                        break;
+                }
+            }
+            
+            // Update last direction for next frame
+            this.lastDirection = currentDirection;
+        } else {
+            // Reset counters when not moving
+            this.lastDirection = Direction.None;
+            this.turnsInSameDirection = 0;
+        }
+
+        // Center the viewport on the player, including the offsets
         const viewportX = Math.max(0, Math.min(
-            pos.x - Math.floor(viewportWidth / 2),
+            pos.x - Math.floor(viewportWidth / 2) + xOffset,
             this.world.getWorldWidth() - viewportWidth
         ));
         const viewportY = Math.max(0, Math.min(
-            pos.y - Math.floor(viewportHeight / 2),
+            pos.y - Math.floor(viewportHeight / 2) + yOffset,
             this.world.getWorldHeight() - viewportHeight
         ));
 
         this.display.setViewport(Math.floor(viewportX), Math.floor(viewportY), {
             smooth: animate,
-            duration: 0.5,  // 100ms transition
+            duration: 0.75,
             easing: Easing.linear
         });
         
@@ -648,7 +723,7 @@ export class RuntimeGame extends Game {
         const worldHeight = this.world.getWorldHeight();
         
         // Define the proximity threshold (30 tiles from SE corner)
-        const proximityThreshold = 15;
+        const proximityThreshold = 8;
         
         // Calculate distance from SE corner
         const distanceFromSE = Math.min(

@@ -5740,6 +5740,62 @@
           "blendMode": "normal"
         }
       ]
+    },
+    {
+      "id": "e26462",
+      "position": {
+        "x": 1,
+        "y": 10
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
+    },
+    {
+      "id": "e26512",
+      "position": {
+        "x": 10,
+        "y": 10
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
+    },
+    {
+      "id": "e26566",
+      "position": {
+        "x": 10,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
+    },
+    {
+      "id": "e26625",
+      "position": {
+        "x": 1,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
     }
   ]
 }

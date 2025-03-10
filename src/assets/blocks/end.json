@@ -2960,7 +2960,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "end"
+          "objectiveType": "end",
+          "index": 0
         }
       ]
     },
@@ -2993,7 +2994,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "end"
+          "objectiveType": "end",
+          "index": 0
         }
       ]
     },
@@ -3026,7 +3028,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "end"
+          "objectiveType": "end",
+          "index": 0
         }
       ]
     },
@@ -3059,7 +3062,8 @@
           "type": "objective",
           "active": false,
           "eligible": false,
-          "objectiveType": "end"
+          "objectiveType": "end",
+          "index": 0
         }
       ]
     },
@@ -4140,6 +4144,62 @@
           "fontFamily": "monospace",
           "lockRotationToFacing": false,
           "blendMode": "normal"
+        }
+      ]
+    },
+    {
+      "id": "e13004",
+      "position": {
+        "x": 10,
+        "y": 10
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
+    },
+    {
+      "id": "e13063",
+      "position": {
+        "x": 1,
+        "y": 10
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
+    },
+    {
+      "id": "e13145",
+      "position": {
+        "x": 1,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
+        }
+      ]
+    },
+    {
+      "id": "e13179",
+      "position": {
+        "x": 10,
+        "y": 1
+      },
+      "components": [
+        {
+          "type": "spawn-hint",
+          "editorOnly": true,
+          "hint": "camera"
         }
       ]
     }

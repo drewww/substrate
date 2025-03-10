@@ -10,6 +10,9 @@ import { MoveComponent } from '../components/move.component';
 import { LockedComponent } from '../components/locked.component';
 import { SymbolComponent } from '../../entity/components/symbol-component';
 import { ImpassableComponent } from '../../entity/components/impassable-component';
+import { ObjectiveComponent } from '../components/objective.component';
+import { Point } from '../../types';
+
 
 
 export class EnemyAISystem {
@@ -132,8 +135,10 @@ export class EnemyAISystem {
                     }
                 }
 
-                if(canSeePlayer || playerLocked) {
+                if (canSeePlayer || playerLocked) {
                     this.moveTowardsPlayer(enemy);
+                } else {
+                    this.moveTowardsObjective(enemy);
                 }
 
                 break;
@@ -354,17 +359,16 @@ export class EnemyAISystem {
         }
     }
 
-    private moveTowardsPlayer(enemy: Entity): void {
-        // Get player and enemy positions
-        const playerPos = this.world.getPlayer().getPosition();
+    private moveTowardsPosition(enemy: Entity, targetPos: Point): void {
+        // Get enemy position
         const enemyPos = enemy.getPosition();
 
-        // Calculate direction to player
-        const dx = Math.sign(playerPos.x - enemyPos.x);  // Will be -1, 0, or 1
-        const dy = Math.sign(playerPos.y - enemyPos.y);  // Will be -1, 0, or 1
+        // Calculate direction to target
+        const dx = Math.sign(targetPos.x - enemyPos.x);  // Will be -1, 0, or 1
+        const dy = Math.sign(targetPos.y - enemyPos.y);  // Will be -1, 0, or 1
 
-        // Target position is adjacent tile in direction of player
-        const targetPos = {
+        // Target position is adjacent tile in direction of target
+        const nextPos = {
             x: enemyPos.x + dx,
             y: enemyPos.y + dy
         };
@@ -379,15 +383,33 @@ export class EnemyAISystem {
 
         if (moveCooldown?.ready && 
             // Don't try to move if we're already at target
-            (targetPos.x !== enemyPos.x || targetPos.y !== enemyPos.y)) {
+            (nextPos.x !== enemyPos.x || nextPos.y !== enemyPos.y)) {
             
             this.actionHandler.execute({
                 type: 'entityMove',
                 entityId: enemy.getId(),
                 data: { 
-                    to: targetPos,
+                    to: nextPos,
                 }
             });
+        }
+    }
+
+    private moveTowardsPlayer(enemy: Entity): void {
+        const playerPos = this.world.getPlayer().getPosition();
+        this.moveTowardsPosition(enemy, playerPos);
+    }
+
+    private moveTowardsObjective(enemy: Entity): void {
+        // Find active objective
+        const objectives = this.world.getEntitiesWithComponent('objective');
+        const activeObjective = objectives.find(obj => {
+            const objComponent = obj.getComponent('objective') as ObjectiveComponent;
+            return objComponent && objComponent.active;
+        });
+
+        if (activeObjective) {
+            this.moveTowardsPosition(enemy, activeObjective.getPosition());
         }
     }
 
@@ -433,4 +455,5 @@ export class EnemyAISystem {
         }
     }
 } 
+
 

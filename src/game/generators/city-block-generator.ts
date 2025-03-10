@@ -140,7 +140,7 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
     "straight-minor": {
         variants: [
             { url: "2-s.json", weight: 0.2 },
-            { url: "2-s-drivethrough.json", weight: 0.8 }
+            // { url: "2-s-drivethrough.json", weight: 0.8 }
         ]
     },
     "straight-medium": {
