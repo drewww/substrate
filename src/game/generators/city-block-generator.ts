@@ -186,14 +186,16 @@ const BLOCK_CONFIGS: Record<BlockType, BlockConfig> = {
 
 // Helper function to select a variant based on weights
 function selectVariant(blockType: BlockType, options?: CityBlockGeneratorOptions): string {
+    // Special case for end-building when trueEnd is enabled
+    if (blockType === "end-building" && options?.trueEnd) {
+        logger.warn(`Using true end template because trueEnd is ${options.trueEnd}`);
+        return "end-true.json";
+    }
+    
     const config = BLOCK_CONFIGS[blockType];
     const totalWeight = config.variants.reduce((sum, variant) => sum + variant.weight, 0);
     let random = Math.random() * totalWeight;
     logger.warn(`blockType: ${blockType} random: ${random} options.trueEnd: ${options?.trueEnd}`);
-
-    if (blockType == "end-building" && options?.trueEnd) {
-        return "end-true.json"; // Use the true end template
-    }
 
     for (const variant of config.variants) {
         random -= variant.weight;
@@ -253,12 +255,18 @@ export class CityBlockGenerator implements WorldGenerator {
     }
 
     constructor(options: CityBlockGeneratorOptions = { layoutType: 'generate' }) {
-        // Make a deep copy of the options to ensure all properties are preserved
-        this.options = {
-            ...options,
-            spawnProbabilities: options.spawnProbabilities ? { ...options.spawnProbabilities } : undefined,
-            trueEnd: options.trueEnd // Explicitly copy the trueEnd property
-        };
+        // Copy the options
+        this.options = { ...options };
+        
+        // Infer trueEnd based on map size and helicopter
+        // Check if width exists and is 10+ (medium or large)
+        const width = this.options.width || 0; // Default to 0 if undefined
+        const isMediumOrLarge = width >= 10;
+        const hasHelicopter = this.options.spawnHelicopter === true;
+        
+        // Set trueEnd flag
+        this.options.trueEnd = isMediumOrLarge && hasHelicopter;
+        // this.options.trueEnd = true;
         
         // Log the options for debugging
         logger.warn(`CityBlockGenerator options: ${JSON.stringify(this.options)}`);
