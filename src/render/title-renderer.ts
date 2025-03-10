@@ -878,34 +878,33 @@ export class TitleRenderer implements Renderer {
         // City size section
         this.display.createString(
             4,
-            7,
+            5,
             "{w}CITY SIZE{/}",
             10000,
-            { fontWeight: 'bold' }
         );
         
         // Map size options with visual toggles
-        const smallColor = this.difficultySettings.mapSize === 'small' ? "{y}" : "{g}";
-        const mediumColor = this.difficultySettings.mapSize === 'medium' ? "{y}" : "{g}";
-        const largeColor = this.difficultySettings.mapSize === 'large' ? "{y}" : "{g}";
+        const smallColor = this.difficultySettings.mapSize === 'small' ? "{#ffffff, #FF194D}" : "{w}";
+        const mediumColor = this.difficultySettings.mapSize === 'medium' ? "{#ffffff, #FF194D}" : "{w}";
+        const largeColor = this.difficultySettings.mapSize === 'large' ? "{#ffffff, #FF194D}" : "{w}";
         
         this.display.createString(
-            4,
-            9,
+            5,
+            7,
             `${smallColor}1 - small{/}`,
             10000
         );
         
         this.display.createString(
-            4,
-            10,
+            5,
+            8,
             `${mediumColor}2 - medium{/}`,
             10000
         );
         
         this.display.createString(
-            4,
-            11,
+            5,
+            9,
             `${largeColor}3 - large{/}`,
             10000
         );
@@ -913,19 +912,19 @@ export class TitleRenderer implements Renderer {
         // Challenges section
         this.display.createString(
             4,
-            14,
+            11,
             "{w}CHALLENGE{/}",
             10000,
             { fontWeight: 'bold' }
         );
         
         // Helicopter toggle
-        const helicopterColor = this.difficultySettings.helicopter ? "{y}" : "{g}";
+        const helicopterColor = this.difficultySettings.helicopter ? "{#ffffff, #FF194D}" : "{w}";
         const helicopterStatus = this.difficultySettings.helicopter ? "ON" : "OFF";
         
         this.display.createString(
-            4,
-            16,
+            5,
+            13,
             `${helicopterColor}h - helicopter ${helicopterStatus}{/}`,
             10000
         );
