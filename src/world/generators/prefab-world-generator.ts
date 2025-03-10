@@ -105,7 +105,7 @@ export class PrefabWorldGenerator implements WorldGenerator {
                         case 'follower':
                             return new FollowerComponent();
                         case 'turn':
-                            return new TurnComponent(def.direction);
+                            return new TurnComponent();
                         case 'lightEmitter':
                             return new LightEmitterComponent(def);
                         case 'enemyAI':
