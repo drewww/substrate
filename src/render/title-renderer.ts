@@ -329,16 +329,16 @@ export class TitleRenderer implements Renderer {
     private renderTrueVictoryScreen(): void {
 
         this.createDarkBackground(
-            this.display.getViewportWidth() - 44,
-            this.display.getViewportWidth() - 4,
             2,
+            31,
+            1,
             this.display.getViewportHeight() - 2
         );
 
-        const rightX = this.display.getViewportWidth() - 42;
+        const rightX = 2;
         
         // Display "TRUE VICTORY" instead of "MISSION COMPLETE"
-        this.display.createString(rightX, 3, '{#55CE4A}TRUE VICTORY{/}', 1000, {
+        this.display.createString(rightX+1, 2, '{#55CE4A}TRUE VICTORY{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -348,7 +348,7 @@ export class TitleRenderer implements Renderer {
         });
         
         // Add "OPERATOR ESCAPES" subtitle
-        this.display.createString(rightX, 5, '{#55CE4A}OPERATOR ESCAPES{/}', 1000, {
+        this.display.createString(rightX+1, 3, '{#ffffff}OPERATOR ESCAPES{/}', 1000, {
             backgroundColor: '#00000000',
             animate: {
                 delayBetweenChars: 0.05,
@@ -357,10 +357,10 @@ export class TitleRenderer implements Renderer {
         });
 
         // Render metrics starting 2 rows lower to accommodate the subtitle
-        this.renderMetrics(rightX, 8, '#FFFFFF', '#55CE4A');
+        this.renderMetrics(rightX+2, 5, '#FFFFFF', '#55CE4A');
         
         // Add "B to go back" instruction at the bottom
-        this.display.createString(rightX, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
+        this.display.createString(rightX+2, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
             backgroundColor: '#00000000'
         });
     }
@@ -870,7 +870,7 @@ export class TitleRenderer implements Renderer {
         metricsData.forEach((metric, index) => {
             this.display.createString(
                 startX,
-                startY + (index * 2),
+                startY + (index),
                 `{${labelColor}}${metric.label}:{/}`,
                 1000,
                 {
@@ -884,7 +884,7 @@ export class TitleRenderer implements Renderer {
 
             this.display.createString(
                 startX + metric.label.length + 2,
-                startY + (index * 2),
+                startY + (index),
                 `{${valueColor}}${metric.value}{/}`,
                 1000,
                 {
