@@ -42,16 +42,16 @@ export class TitleRenderer implements Renderer {
                 objectiveCount = 3;    // Fewer objectives for small maps
                 break;
             case 'medium':
-                width = 10;
-                height = 10;
+                width = 8;
+                height = 8;
                 layoutType = 'generate';
-                objectiveCount = 2;    // Medium number of objectives
+                objectiveCount = 5;    // Medium number of objectives
                 break;
             case 'large':
-                width = 15;
-                height = 15;
+                width = 12;
+                height = 12;
                 layoutType = 'generate';
-                objectiveCount = 6;    // More objectives for large maps
+                objectiveCount = 5;    // More objectives for large maps
                 break;
             default:
                 width = 10;
@@ -74,10 +74,14 @@ export class TitleRenderer implements Renderer {
             spawnHelicopter: this.difficultySettings.helicopter,
             trueEnd: trueEnd,
             spawnProbabilities: {
-                pedestrian: 0.3,
-                camera: 0.6,
-                boomer: 0.0,
-                turret: 0.0
+                pedestrian: this.difficultySettings.mapSize === 'small' ? 0.4 :
+                           this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.3,
+                camera: this.difficultySettings.mapSize === 'small' ? 0.7 :
+                        this.difficultySettings.mapSize === 'medium' ? 0.5 : 0.5,
+                boomer: this.difficultySettings.mapSize === 'small' ? 0.0 :
+                        this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.3,
+                turret: this.difficultySettings.mapSize === 'small' ? 0.0 :
+                        this.difficultySettings.mapSize === 'medium' ? 0.0 : 0.0
             }
         };
     }

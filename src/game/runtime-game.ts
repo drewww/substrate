@@ -248,7 +248,7 @@ export class RuntimeGame extends Game {
             logger.warn("Player death event triggered");
             logger.warn('Player death:', data);
             this.engine?.stop();
-
+            this.soundRenderer?.stopAllSounds();
             this.titleRenderer?.prepare(TitleMode.DEATH);
             
             // Create black tile wipe effect
@@ -299,32 +299,30 @@ export class RuntimeGame extends Game {
             }
 
             this.objectiveCount++;
-
-            switch (this.objectiveCount) {
-                // case 4:
-                // case 3:
-                // case 2:
-                case 1:
-                    this.selectObjective(this.world!, false);
-                    break;
-                case 2:
-                    this.selectObjective(this.world!, true);
-                    break;
-                case 3:
-                    this.engine?.stop();
-                    this.titleRenderer?.prepare(TitleMode.VICTORY);
-                    this.wipeDownDisplay();
             
-                    setTimeout(() => {
-                        if (this.titleRenderer) {
-                            this.titleRenderer.show(TitleMode.VICTORY);
-                        }
-                    }, 50);
-        
-                    // TODO this is where "level victory" should be handled
+            // Get the max objectives from metrics
+            const maxObjectives = metrics?.maxObjectivesThisLevel || 3;
+            
+            // If we're at the second-to-last objective, select the exit
+            if (this.objectiveCount === maxObjectives - 1) {
+                this.selectObjective(this.world!, true);
+            }
+            // If we're not at the last objective, select a new regular objective
+            else if (this.objectiveCount < maxObjectives - 1) {
+                this.selectObjective(this.world!, false);
+            }
+            // If we've completed all objectives, show victory
+            else if (this.objectiveCount >= maxObjectives) {
+                this.engine?.stop();
+                this.titleRenderer?.prepare(TitleMode.VICTORY);
+                this.wipeDownDisplay();
+                this.soundRenderer?.stopAllSounds();
 
-                    // TODO this is where "level victory" should be handled
-                    break;
+                setTimeout(() => {
+                    if (this.titleRenderer) {
+                        this.titleRenderer.show(TitleMode.VICTORY);
+                    }
+                }, 50);
             }
         });
 
