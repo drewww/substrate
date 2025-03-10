@@ -301,15 +301,15 @@ export class TitleRenderer implements Renderer {
 
     private renderVictoryScreen(): void {
         this.createDarkBackground(
-            this.display.getViewportWidth() - 44,
-            this.display.getViewportWidth() - 4,
-            2,
-            this.display.getViewportHeight() - 2
+            this.display.getViewportWidth() - 30,
+            this.display.getViewportWidth() - 2,
+            1,
+            this.display.getViewportHeight() - 1
         );
 
-        const rightX = this.display.getViewportWidth() - 42;
+        const rightX = this.display.getViewportWidth() - 30;
         
-        this.display.createString(rightX, 3, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
+        this.display.createString(rightX+1, 2, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -318,10 +318,10 @@ export class TitleRenderer implements Renderer {
             }
         });
 
-        this.renderMetrics(rightX, 6, '#FFFFFF', '#55CE4A');
+        this.renderMetrics(rightX+2, 3, '#FFFFFF', '#55CE4A');
         
         // Add "B to go back" instruction at the bottom
-        this.display.createString(rightX, this.display.getViewportHeight() - 4, '{#666666}Press [b] to go back{/}', 1000, {
+        this.display.createString(rightX+2, this.display.getViewportHeight() - 2, '{#666666}Press [b] to go back{/}', 1000, {
             backgroundColor: '#00000000'
         });
     }
@@ -814,10 +814,10 @@ export class TitleRenderer implements Renderer {
         this.objectiveIndex++;
     }
 
-    private createDarkBackground(startX: number, endX: number, startY: number, endY: number): void {
+    private createDarkBackground(startX: number, endX: number, startY: number, endY: number, color?: string): void {
         for (let y = startY; y < endY; y++) {
             for (let x = startX; x < endX; x++) {
-                this.display.createTile(x, y, ' ', '#FFFFFF00', '#000000cc', 1000);
+                this.display.createTile(x, y, ' ', '#FFFFFF00', color ?? '#000000cc', 1000);
             }
         }
     }
@@ -1011,7 +1011,7 @@ export class TitleRenderer implements Renderer {
         const height = this.display.getViewportHeight();
         
         // Create dark background
-        // this.createDarkBackground(2, 30, 2, height-2);
+        this.createDarkBackground(2, 38, 2, height-2, "#000000");
         
         // Title at the top
         const titleX = Math.floor(width / 2) - 6; // Center "PREPARE RUN" (11 characters)
@@ -1084,7 +1084,7 @@ export class TitleRenderer implements Renderer {
         const instructionsY = height - 6;
         this.display.createString(
             5,
-            instructionsY,
+            instructionsY+1,
             "{w}Press R to run, B to go back{/}",
             10000
         );
