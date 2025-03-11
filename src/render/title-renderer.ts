@@ -874,49 +874,50 @@ export class TitleRenderer implements Renderer {
             { 
                 label: "Time", 
                 value: formatTime(totalTimeSeconds),
-                // If no best metrics exist, or current is better, mark as best
-                isBest: !bestMetrics || (totalTimeSeconds > 0 && totalTimeSeconds < bestMetrics.duration),
+                // Now considers equal times as best
+                isBest: !bestMetrics || (totalTimeSeconds > 0 && totalTimeSeconds <= bestMetrics.duration),
                 lowerIsBetter: true
             },
             { 
                 label: "Objectives", 
                 value: `${metrics.objectivesSecured}/${metrics.maxObjectivesThisLevel}`,
-                // If no best metrics exist, or current is better, mark as best
-                isBest: !bestMetrics || metrics.objectivesSecured > bestMetrics.objectivesSecured,
+                // Now considers equal objectives as best
+                isBest: !bestMetrics || metrics.objectivesSecured >= bestMetrics.objectivesSecured,
                 lowerIsBetter: false
             },
             { 
                 label: "Tiles Traveled", 
                 value: metrics.tilesTraveled.toString(),
-                // If no best metrics exist, or current is better, mark as best
-                isBest: !bestMetrics || (metrics.tilesTraveled < bestMetrics.tilesTraveled && metrics.tilesTraveled > 0),
+                // Now considers equal tiles as best
+                isBest: !bestMetrics || (metrics.tilesTraveled <= bestMetrics.tilesTraveled && metrics.tilesTraveled > 0),
                 lowerIsBetter: true
             },
             { 
                 label: "Times Crashed", 
                 value: metrics.timesCrashed.toString(),
-                // If no best metrics exist, or current is better, mark as best
-                isBest: !bestMetrics || metrics.timesCrashed < bestMetrics.timesCrashed,
+                // Now considers equal crashes as best
+                isBest: !bestMetrics || metrics.timesCrashed <= bestMetrics.timesCrashed,
                 lowerIsBetter: true
             },
             { 
                 label: "Crashless Streak", 
                 value: tilesBetweenCrashes.toString(),
-                isBest: !bestMetrics || tilesBetweenCrashes > bestMetrics.bestTilesBetweenCrashes,
+                // Now considers equal streaks as best
+                isBest: !bestMetrics || tilesBetweenCrashes >= bestMetrics.bestTilesBetweenCrashes,
                 lowerIsBetter: false
             },
             { 
                 label: "Turbo Tiles", 
                 value: metrics.turboTilesTraveled.toString(),
-                // If no best metrics exist, or current is better, mark as best
-                isBest: !bestMetrics || metrics.turboTilesTraveled > bestMetrics.turboTilesTraveled,
+                // Now considers equal turbo tiles as best
+                isBest: !bestMetrics || metrics.turboTilesTraveled >= bestMetrics.turboTilesTraveled,
                 lowerIsBetter: false
             },
             { 
                 label: "Tiles Drifted", 
                 value: metrics.tilesDrifted.toString(),
-                // If no best metrics exist, or current is better, mark as best
-                isBest: !bestMetrics || metrics.tilesDrifted > bestMetrics.tilesDrifted,
+                // Now considers equal drift tiles as best
+                isBest: !bestMetrics || metrics.tilesDrifted >= bestMetrics.tilesDrifted,
                 lowerIsBetter: false
             }
         ];
