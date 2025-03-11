@@ -1,5 +1,7 @@
 import { Component } from "../../entity/component";
 import { RegisterComponent } from "../../entity/component-registry";
+import { CitySize } from "../../render/title-renderer";
+import { GameMode } from "../../render/title-renderer";
 
 
 export interface BestMetrics {

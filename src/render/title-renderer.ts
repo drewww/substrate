@@ -318,7 +318,7 @@ export class TitleRenderer implements Renderer {
 
         const rightX = this.display.getViewportWidth() - 37;
         
-        this.display.createString(rightX+2, 1, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
+        this.display.createString(rightX+2, 2, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -327,7 +327,7 @@ export class TitleRenderer implements Renderer {
             }
         });
 
-        this.renderMetrics(rightX+2, 2, '#FFFFFF', '#55CE4A');
+        this.renderMetrics(rightX+2, 3, '#FFFFFF', '#55CE4A');
         
         // Add "B to go back" instruction at the bottom
         this.display.createString(rightX+2, this.display.getViewportHeight() - 2, '{#666666}Press [b] to go back{/}', 1000, {
@@ -845,6 +845,16 @@ export class TitleRenderer implements Renderer {
         
         // Get best metrics for comparison
         const bestMetrics = MetricsComponent.getBestMetrics(citySize, helicopterMode);
+        // Temporary fake best metrics for testing rendering
+        // const bestMetrics = {
+        //     duration: 100, // Make current time better
+        //     objectivesSecured: 10, // Make current objectives better
+        //     tilesTraveled: 100, // Make current tiles better
+        //     timesCrashed: 5, // Make current crashes better
+        //     tilesBetweenCrashes: 50, // Make current tiles between crashes better
+        //     turboTilesTraveled: 20, // Make current turbo better
+        //     tilesDrifted: 10 // Make current drift better
+        // };
         
         // Format time in minutes:seconds with proper error handling
         const formatTime = (timeInSeconds: number): string => {
@@ -926,7 +936,7 @@ export class TitleRenderer implements Renderer {
         // Find the longest label to align everything properly
         const labelColumnWidth = Math.max(...metricsData.map(item => item.label.length)) + 2; // +2 for spacing
         const valueX = startX + labelColumnWidth; // Position where values start
-        const bestLabelX = valueX + 10; // Position where "BEST" labels start
+        const bestLabelX = valueX + 6; // Position where "BEST" labels start
         const bestLabelColor = '#FFCC00'; // Yellow color for "BEST" labels
         
         // Render each metric

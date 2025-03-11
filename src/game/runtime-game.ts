@@ -257,6 +257,8 @@ export class RuntimeGame extends Game {
             this.soundRenderer?.stopAllSounds();
             this.titleRenderer?.prepare(TitleMode.DEATH);
             
+            this.handleGameEnd();
+            
             // Create black tile wipe effect
             this.wipeDownDisplay();
             
@@ -349,6 +351,8 @@ export class RuntimeGame extends Game {
                     }
                     player.setComponent(metrics);
                 }
+
+                this.handleGameEnd();
                 
                 const trueEnd = this.world && this.world.getWorldWidth() >= 12*10 && this.world.getEntitiesWithComponent('aoe-damage').length > 0;
                 console.log('OBJECTIVE trueEnd', trueEnd);
@@ -1227,7 +1231,7 @@ export class RuntimeGame extends Game {
                         );
 
                         // adapt limit to distance
-                        const minDistance = (this.world?.getWorldHeight()?? 0) <= 5 ? 2 : 15;
+                        const minDistance = this.currentDifficultySettings?.size === 'small' ? 2 : 15;
 
                         return objective?.eligible && !objective?.active && objective?.objectiveType !== 'end' && distance > minDistance;
                     } else {
