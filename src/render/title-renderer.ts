@@ -300,7 +300,7 @@ export class TitleRenderer implements Renderer {
             }
         });
 
-        this.renderMetrics(3, 3, '#999999', '#FF4444');
+        this.renderMetrics(3, 3, '#999999', '#FF4444', false);
         
         // Add "B to go back" instruction at the bottom
         this.display.createString(35, this.display.getViewportHeight() - 1, '{#666666}Press [b] to go back{/}', 1000, {
@@ -835,7 +835,7 @@ export class TitleRenderer implements Renderer {
         return this.currentMode;
     }
 
-    private renderMetrics(startX: number, startY: number, labelColor: string, valueColor: string): void {
+    private renderMetrics(startX: number, startY: number, labelColor: string, valueColor: string, showBest: boolean = true): void {
         const metrics = this.world.getPlayer().getComponent('metrics') as MetricsComponent;
         if (!metrics) return;
 
@@ -956,7 +956,7 @@ export class TitleRenderer implements Renderer {
             createdTileIds.push(...valueTileIds);
             
             // If this is a best metric, add the "BEST" label
-            if (item.isBest) {
+            if (item.isBest && showBest) {
                 const bestTileIds = this.display.createString(
                     bestLabelX, 
                     currentY, 

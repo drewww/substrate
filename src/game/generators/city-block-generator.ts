@@ -613,12 +613,12 @@ export class CityBlockGenerator implements WorldGenerator {
 
         const symbol = new SymbolComponent();
         symbol.char = '🜛';
-        symbol.foreground = '#FFFFFFFF';
+        symbol.foreground = '#FFFFFFAA';
         symbol.background = '#FF194D00';
         symbol.zIndex = 500;
-        symbol.scaleSymbolX = 1.1;
-        symbol.scaleSymbolY = 1.1;
-        symbol.offsetSymbolY = -0.1;
+        symbol.scaleSymbolX = 1.0;
+        symbol.scaleSymbolY = 1.0;
+        // symbol.offsetSymbolY = -0.1;
         symbol.fontWeight = 'bold';
         symbol.alwaysRenderIfExplored = false;
 

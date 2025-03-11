@@ -82,7 +82,8 @@ export class EnemyAISystem {
             symbol.foreground = '#FFFFFFFF';
 
             if(ai.aiType === EnemyAIType.HELICOPTER) {
-                symbol.background = '#FF194DFF';
+                symbol.foreground = '#FFFFFFFF';        
+                symbol.background = '#FF194DAA';
             } else {
                 symbol.background = '#FF194DFF';
             }
