@@ -289,7 +289,7 @@ export class TitleRenderer implements Renderer {
     }
 
     private renderDeathScreen(): void {
-        this.createDarkBackground(4, 30, 2, this.display.getViewportHeight() - 2);
+        this.createDarkBackground(4, 32, 2, this.display.getViewportHeight() - 2);
 
         this.display.createString(2, 1, '{w}GAME OVER{/}', 1000, {
             fontWeight: 'bold',
@@ -310,15 +310,15 @@ export class TitleRenderer implements Renderer {
 
     private renderVictoryScreen(): void {
         this.createDarkBackground(
-            this.display.getViewportWidth() - 30,
+            this.display.getViewportWidth() - 37,
             this.display.getViewportWidth() - 2,
             1,
             this.display.getViewportHeight() - 1
         );
 
-        const rightX = this.display.getViewportWidth() - 30;
+        const rightX = this.display.getViewportWidth() - 37;
         
-        this.display.createString(rightX+1, 2, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
+        this.display.createString(rightX+2, 1, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -327,7 +327,7 @@ export class TitleRenderer implements Renderer {
             }
         });
 
-        this.renderMetrics(rightX+2, 3, '#FFFFFF', '#55CE4A');
+        this.renderMetrics(rightX+2, 2, '#FFFFFF', '#55CE4A');
         
         // Add "B to go back" instruction at the bottom
         this.display.createString(rightX+2, this.display.getViewportHeight() - 2, '{#666666}Press [b] to go back{/}', 1000, {
@@ -339,7 +339,7 @@ export class TitleRenderer implements Renderer {
 
         this.createDarkBackground(
             2,
-            31,
+            34,
             1,
             this.display.getViewportHeight() - 2
         );
@@ -839,6 +839,13 @@ export class TitleRenderer implements Renderer {
         const metrics = this.world.getPlayer().getComponent('metrics') as MetricsComponent;
         if (!metrics) return;
 
+        // Get the current game configuration
+        const citySize: CitySize = this.game.currentDifficultySettings?.size || 'medium';
+        const helicopterMode: GameMode = this.game.currentDifficultySettings?.spawnHelicopter ? 'helicopter-on' : 'helicopter-off';
+        
+        // Get best metrics for comparison
+        const bestMetrics = MetricsComponent.getBestMetrics(citySize, helicopterMode);
+        
         // Format time in minutes:seconds with proper error handling
         const formatTime = (timeInSeconds: number): string => {
             if (isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
@@ -859,20 +866,68 @@ export class TitleRenderer implements Renderer {
             totalTimeSeconds = (endTime - metrics.timeStarted) / 1000;
         }
 
+        // Current metrics for comparison
+        const currentMetrics = {
+            time: totalTimeSeconds,
+            objectives: metrics.objectivesSecured,
+            tilesTraveled: metrics.tilesTraveled,
+            timesCrashed: metrics.timesCrashed,
+            tilesBetweenCrashes: tilesBetweenCrashes,
+            turboTiles: metrics.turboTilesTraveled,
+            tilesDrifted: metrics.tilesDrifted
+        };
+
         // Define our metrics data with labels (without colons) and values
         const metricsData = [
-            { label: "Run Time", value: formatTime(totalTimeSeconds) },
-            { label: "Objectives", value: `${metrics.objectivesSecured}/${metrics.maxObjectivesThisLevel}` },
-            { label: "Tiles Traveled", value: metrics.tilesTraveled.toString() },
-            { label: "Turbo Tiles", value: metrics.turboTilesTraveled.toString() },
-            { label: "Tiles Drifted", value: metrics.tilesDrifted.toString() },
-            { label: "Crashes", value: metrics.timesCrashed.toString() },
-            { label: "Tiles Between Crashes", value: tilesBetweenCrashes.toString() },
+            { 
+                label: "Time", 
+                value: formatTime(totalTimeSeconds),
+                isBest: bestMetrics && totalTimeSeconds > 0 && totalTimeSeconds < bestMetrics.duration,
+                lowerIsBetter: true
+            },
+            { 
+                label: "Objectives", 
+                value: `${metrics.objectivesSecured}/${metrics.maxObjectivesThisLevel}`,
+                isBest: bestMetrics && metrics.objectivesSecured > bestMetrics.objectivesSecured,
+                lowerIsBetter: false
+            },
+            { 
+                label: "Tiles Traveled", 
+                value: metrics.tilesTraveled.toString(),
+                isBest: bestMetrics && metrics.tilesTraveled < bestMetrics.tilesTraveled && metrics.tilesTraveled > 0,
+                lowerIsBetter: true
+            },
+            { 
+                label: "Times Crashed", 
+                value: metrics.timesCrashed.toString(),
+                isBest: bestMetrics && metrics.timesCrashed < bestMetrics.timesCrashed,
+                lowerIsBetter: true
+            },
+            { 
+                label: "Crashless Streak", 
+                value: tilesBetweenCrashes.toString(),
+                isBest: bestMetrics && tilesBetweenCrashes > bestMetrics.bestTilesBetweenCrashes,
+                lowerIsBetter: false
+            },
+            { 
+                label: "Turbo Tiles", 
+                value: metrics.turboTilesTraveled.toString(),
+                isBest: bestMetrics && metrics.turboTilesTraveled > bestMetrics.turboTilesTraveled,
+                lowerIsBetter: false
+            },
+            { 
+                label: "Tiles Drifted", 
+                value: metrics.tilesDrifted.toString(),
+                isBest: bestMetrics && metrics.tilesDrifted > bestMetrics.tilesDrifted,
+                lowerIsBetter: false
+            }
         ];
 
         // Find the longest label to align everything properly
         const labelColumnWidth = Math.max(...metricsData.map(item => item.label.length)) + 2; // +2 for spacing
         const valueX = startX + labelColumnWidth; // Position where values start
+        const bestLabelX = valueX + 10; // Position where "BEST" labels start
+        const bestLabelColor = '#FFCC00'; // Yellow color for "BEST" labels
         
         // Render each metric
         let currentY = startY;
@@ -886,9 +941,9 @@ export class TitleRenderer implements Renderer {
             const labelTileIds = this.display.createString(
                 labelStartX, 
                 currentY, 
-                "{" + labelColor + "}" + item.label + "{/}", 
+                item.label, 
                 1000, 
-                { backgroundColor: '#00000000' }
+                { backgroundColor: 'transparent' }
             );
             createdTileIds.push(...labelTileIds);
             
@@ -896,29 +951,52 @@ export class TitleRenderer implements Renderer {
             const valueTileIds = this.display.createString(
                 valueX, 
                 currentY, 
-                "{" + valueColor + "}" + item.value + "{/}", 
-                1000,
-                { backgroundColor: '#00000000' }
+                item.value, 
+                1000, 
+                { backgroundColor: 'transparent' }
             );
             createdTileIds.push(...valueTileIds);
+            
+            // If this is a best metric, add the "BEST" label
+            if (item.isBest) {
+                const bestTileIds = this.display.createString(
+                    bestLabelX, 
+                    currentY, 
+                    "BEST", 
+                    1000, 
+                    { backgroundColor: 'transparent' }
+                );
+                
+                // Update the color of the "BEST" label tiles
+                bestTileIds.forEach(tileId => {
+                    this.display.updateTile(tileId, {
+                        fg: bestLabelColor
+                    });
+                });
+                
+                createdTileIds.push(...bestTileIds);
+            }
             
             currentY++;
         });
         
-        // Update the colors of all created tiles
-        // createdTileIds.forEach(tileId => {
-        //     const tile = this.display.getTile(tileId);
-        //     if (tile) {
-        //         // Check if this is a label or value tile
-        //         const isLabel = metricsData.some(item => 
-        //             tile.x < valueX && tile.y >= startY && tile.y < startY + metricsData.length
-        //         );
+        // Update the colors of all created tiles (except "BEST" labels which were already colored)
+        createdTileIds.forEach(tileId => {
+            const tile = this.display.getTile(tileId);
+            if (tile) {
+                // Check if this is a label or value tile (not a "BEST" label)
+                const isLabel = metricsData.some(item => 
+                    tile.x < valueX && tile.y >= startY && tile.y < startY + metricsData.length
+                );
                 
-        //         this.display.updateTile(tileId, {
-        //             fg: isLabel ? labelColor : valueColor
-        //         });
-        //     }
-        // });
+                // Only update if it's not already a "BEST" label
+                if (tile.color !== bestLabelColor) {
+                    this.display.updateTile(tileId, {
+                        fg: isLabel ? labelColor : valueColor
+                    });
+                }
+            }
+        });
     }
 
     public hide(): void {
