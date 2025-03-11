@@ -110,7 +110,7 @@ export class WorldSystem {
                         // Red and impassable
                         symbol.foreground = '#FF194D';
                         symbol.background = '#590426';
-                        light.setComponent(new ImpassableComponent());
+                        light.setComponent(new ImpathableComponent());
                         light.removeComponent('impathable');
                     }
                     
