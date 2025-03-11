@@ -855,56 +855,70 @@ export class TitleRenderer implements Renderer {
         // Calculate total time safely
         let totalTimeSeconds = 0;
         if (metrics.timeStarted > 0) {
-            // If timeEnded is set and valid, use it, otherwise use current time
-            const endTime = (metrics.timeEnded > 0) ? metrics.timeEnded : performance.now();
+            const endTime = metrics.timeEnded > 0 ? metrics.timeEnded : performance.now();
             totalTimeSeconds = (endTime - metrics.timeStarted) / 1000;
         }
-        
-        // Calculate tiles per second with 2 decimal places
-        const tilesPerSecond = totalTimeSeconds > 0
-            ? (metrics.tilesTraveled / totalTimeSeconds).toFixed(2)
-            : "0.00";
 
+        // Define our metrics data with labels (without colons) and values
         const metricsData = [
-            { label: 'Tiles Traveled', value: metrics.tilesTraveled },
-            { label: 'Times Crashed', value: metrics.timesCrashed },
-            { label: 'Objectives Secured', value: metrics.objectivesSecured },
-            { label: 'Tiles Drifted', value: metrics.tilesDrifted },
-            { label: 'Turbo Tiles', value: metrics.turboTilesTraveled },
-            { label: 'Tiles Between Crashes', value: tilesBetweenCrashes },
-            { label: 'Total Time', value: formatTime(totalTimeSeconds) },
-            { label: 'Tiles / Second', value: tilesPerSecond }
+            { label: "Run Time", value: formatTime(totalTimeSeconds) },
+            { label: "Objectives", value: `${metrics.objectivesSecured}/${metrics.maxObjectivesThisLevel}` },
+            { label: "Tiles Traveled", value: metrics.tilesTraveled.toString() },
+            { label: "Turbo Tiles", value: metrics.turboTilesTraveled.toString() },
+            { label: "Tiles Drifted", value: metrics.tilesDrifted.toString() },
+            { label: "Crashes", value: metrics.timesCrashed.toString() },
+            { label: "Tiles Between Crashes", value: tilesBetweenCrashes.toString() },
         ];
 
-        metricsData.forEach((metric, index) => {
-            this.display.createString(
-                startX,
-                startY + (index),
-                `{${labelColor}}${metric.label}:{/}`,
-                1000,
-                {
-                    backgroundColor: '#00000000',
-                    animate: {
-                        delayBetweenChars: 0.05,
-                        initialDelay: 0.5 + (index * 0.3)
-                    }
-                }
+        // Find the longest label to align everything properly
+        const labelColumnWidth = Math.max(...metricsData.map(item => item.label.length)) + 2; // +2 for spacing
+        const valueX = startX + labelColumnWidth; // Position where values start
+        
+        // Render each metric
+        let currentY = startY;
+        const createdTileIds: string[] = [];
+        
+        metricsData.forEach(item => {
+            // Calculate the starting position for the label to right-align it
+            const labelStartX = valueX - item.label.length - 2; // -2 for spacing
+            
+            // Render the label (right-aligned)
+            const labelTileIds = this.display.createString(
+                labelStartX, 
+                currentY, 
+                "{" + labelColor + "}" + item.label + "{/}", 
+                1000, 
+                { backgroundColor: '#00000000' }
             );
-
-            this.display.createString(
-                startX + metric.label.length + 2,
-                startY + (index),
-                `{${valueColor}}${metric.value}{/}`,
+            createdTileIds.push(...labelTileIds);
+            
+            // Render the value (left-aligned at the consistent valueX position)
+            const valueTileIds = this.display.createString(
+                valueX, 
+                currentY, 
+                "{" + valueColor + "}" + item.value + "{/}", 
                 1000,
-                {
-                    backgroundColor: '#00000000',
-                    animate: {
-                        delayBetweenChars: 0.05,
-                        initialDelay: 0.5 + (index * 0.3) + 0.2
-                    }
-                }
+                { backgroundColor: '#00000000' }
             );
+            createdTileIds.push(...valueTileIds);
+            
+            currentY++;
         });
+        
+        // Update the colors of all created tiles
+        // createdTileIds.forEach(tileId => {
+        //     const tile = this.display.getTile(tileId);
+        //     if (tile) {
+        //         // Check if this is a label or value tile
+        //         const isLabel = metricsData.some(item => 
+        //             tile.x < valueX && tile.y >= startY && tile.y < startY + metricsData.length
+        //         );
+                
+        //         this.display.updateTile(tileId, {
+        //             fg: isLabel ? labelColor : valueColor
+        //         });
+        //     }
+        // });
     }
 
     public hide(): void {
