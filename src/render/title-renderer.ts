@@ -30,6 +30,10 @@ export enum TitleMode {
     TRUE_VICTORY
 }
 
+
+export type CitySize = 'small' | 'medium' | 'large';
+export type GameMode = 'helicopter-on' | 'helicopter-off';
+
 export class TitleRenderer implements Renderer {
     getDifficultySettings(): CityBlockGeneratorOptions {
         // Convert map size to actual dimensions and set layout type
@@ -76,14 +80,16 @@ export class TitleRenderer implements Renderer {
             trueEnd: trueEnd,
             spawnProbabilities: {
                 pedestrian: this.difficultySettings.mapSize === 'small' ? 0.5 :
-                           this.difficultySettings.mapSize === 'medium' ? 0.5 : 0.5,
-                camera: this.difficultySettings.mapSize === 'small' ? 0.6 :
-                        this.difficultySettings.mapSize === 'medium' ? 0.7 : 0.8,
-                boomer: this.difficultySettings.mapSize === 'small' ? 0.0 :
+                           this.difficultySettings.mapSize === 'medium' ? 0.4 : 0.4,
+                camera: this.difficultySettings.mapSize === 'small' ? 0.4 :
+                        this.difficultySettings.mapSize === 'medium' ? 0.6 : 0.8,
+                boomer: this.difficultySettings.mapSize === 'small' ? 0.1 :
                         this.difficultySettings.mapSize === 'medium' ? 0.3 : 0.3,
                 turret: this.difficultySettings.mapSize === 'small' ? 0.0 :
                         this.difficultySettings.mapSize === 'medium' ? 0.0 : 0.0
-            }
+            },
+
+            size: this.difficultySettings.mapSize as 'small' | 'medium' | 'large'
         };
     }
     private titleBackgrounds: {[key: string]: HTMLImageElement} = {};

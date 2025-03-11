@@ -226,6 +226,7 @@ export type CityBlockGeneratorOptions = {
     spawnHelicopter?: boolean; // Whether to spawn a helicopter
     width?: number;
     height?: number;
+    size?: 'small' | 'medium' | 'large';
     objectiveCount?: number;   // Number of objectives to generate
     trueEnd?: boolean;         // Whether to use the true end template
 };

@@ -59,9 +59,10 @@ import { HealthComponent } from '../entity/components/health.component.ts';
 import { SymbolComponent } from '../entity/components/symbol-component.ts';
 import { PlayerComponent } from '../entity/components/player-component.ts';
 import { BASE_MAX_SPEED } from './systems/movement-predictor.ts';
-import { TitleRenderer } from '../render/title-renderer.ts';
+import { CitySize, GameMode, TitleRenderer } from '../render/title-renderer.ts';
 import { MetricsComponent } from './components/metrics.component';
 import { TitleMode } from '../render/title-renderer';
+import { MetricsTrackerService } from './services/metrics-tracker.service.ts';
 
 const DEFAULT_INPUT_CONFIG = `
 mode: game
@@ -120,6 +121,7 @@ export class RuntimeGame extends Game {
     private lastDirection: Direction = Direction.None;
     private turnsInSameDirection: number = 0;
     private readonly MAX_LOOK_AHEAD = 5;
+    public currentDifficultySettings: CityBlockGeneratorOptions | null = null;
     // private world!: World;
 
     constructor(private readonly canvasId: string) {
@@ -603,8 +605,23 @@ export class RuntimeGame extends Game {
         }
 
         // Add the title screen cycle button
-        // this.addTitleScreenCycleButton();
+        this.addTitleScreenCycleButton();
     }
+
+    public handleGameEnd() {
+        const player = this.world!.getPlayer();
+        const metricsComponent = player.getComponent('metrics') as MetricsComponent;
+        
+        if (metricsComponent.timeEnded === 0) {
+            metricsComponent.timeEnded = performance.now();
+        }
+        
+        const citySize: CitySize = this.currentDifficultySettings?.size || 'medium';
+        const helicopterMode: GameMode = this.currentDifficultySettings?.spawnHelicopter ? 'helicopter-on' : 'helicopter-off';
+        
+        const metricsTracker = MetricsTrackerService.getInstance();
+        metricsTracker.checkAndUpdateBestMetrics(metricsComponent, citySize, helicopterMode);
+    } 
 
     // Update the Game's prepare method to call setupAfterDisplay
     public async prepare(): Promise<void> {
@@ -762,13 +779,13 @@ export class RuntimeGame extends Game {
 
                 this.starting = true;
 
-                const difficultySettings = this.titleRenderer?.getDifficultySettings();
-                logger.warn(`difficultySettings: ${JSON.stringify(difficultySettings)}`);
+                this.currentDifficultySettings = this.titleRenderer?.getDifficultySettings();
+                logger.warn(`difficultySettings: ${JSON.stringify(this.currentDifficultySettings)}`);
 
-                if (difficultySettings) {
+                if (this.currentDifficultySettings) {
                     this.initializeWorld({ 
                         type: 'city', 
-                        difficultySettings: difficultySettings 
+                        difficultySettings: this.currentDifficultySettings 
                     })
                     .then(() => {
                         this.startGame();
@@ -778,7 +795,7 @@ export class RuntimeGame extends Game {
                         const metrics = player.getComponent('metrics') as MetricsComponent;
                         
                         // Use the objectiveCount from difficulty settings if available
-                        metrics.maxObjectivesThisLevel = difficultySettings.objectiveCount || 3;
+                        metrics.maxObjectivesThisLevel = this.currentDifficultySettings?.objectiveCount || 3;
                         player.setComponent(metrics);
 
                         this.setupMinimap(this.world!);
