@@ -1,5 +1,6 @@
 import { GameMode } from '../../render/title-renderer';
 import { CitySize } from '../../render/title-renderer';
+import { logger } from '../../util/logger';
 import { MetricsComponent, BestMetrics } from '../components/metrics.component';
 
 export class MetricsTrackerService {
@@ -22,6 +23,10 @@ export class MetricsTrackerService {
     ): void {
         const currentMetrics = metrics.getCurrentMetricsForComparison();
         const bestMetrics = MetricsComponent.getBestMetrics(citySize, helicopterMode);
+
+        logger.warn('Current metrics:', currentMetrics);
+        logger.warn('Best metrics:', bestMetrics);
+        
 
         if (!bestMetrics) {
             // No previous best metrics, save current as best

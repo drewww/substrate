@@ -52,7 +52,7 @@ export class MetricsComponent extends Component {
             timesCrashed: this.timesCrashed,
             objectivesSecured: this.objectivesSecured,
             duration: this.getDuration(),
-            bestTilesBetweenCrashes: this.bestTilesBetweenCrashes,
+            bestTilesBetweenCrashes: this.bestTilesBetweenCrashes, // Match the property name used in the interface
             turboTilesTraveled: this.turboTilesTraveled,
             tilesDrifted: this.tilesDrifted
         };

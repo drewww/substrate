@@ -310,15 +310,15 @@ export class TitleRenderer implements Renderer {
 
     private renderVictoryScreen(): void {
         this.createDarkBackground(
-            this.display.getViewportWidth() - 37,
+            this.display.getViewportWidth() - 39,
             this.display.getViewportWidth() - 2,
             1,
             this.display.getViewportHeight() - 1
         );
 
-        const rightX = this.display.getViewportWidth() - 37;
+        const rightX = this.display.getViewportWidth() - 39;
         
-        this.display.createString(rightX+2, 2, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
+        this.display.createString(rightX+1, 1, '{#55CE4A}MISSION COMPLETE{/}', 1000, {
             fontWeight: 'bold',
             backgroundColor: '#00000000',
             animate: {
@@ -843,19 +843,12 @@ export class TitleRenderer implements Renderer {
         const citySize: CitySize = this.game.currentDifficultySettings?.size || 'medium';
         const helicopterMode: GameMode = this.game.currentDifficultySettings?.spawnHelicopter ? 'helicopter-on' : 'helicopter-off';
         
-        // Get best metrics for comparison
+        // Get best metrics for comparison (but don't save them yet)
         const bestMetrics = MetricsComponent.getBestMetrics(citySize, helicopterMode);
-        // Temporary fake best metrics for testing rendering
-        // const bestMetrics = {
-        //     duration: 100, // Make current time better
-        //     objectivesSecured: 10, // Make current objectives better
-        //     tilesTraveled: 100, // Make current tiles better
-        //     timesCrashed: 5, // Make current crashes better
-        //     tilesBetweenCrashes: 50, // Make current tiles between crashes better
-        //     turboTilesTraveled: 20, // Make current turbo better
-        //     tilesDrifted: 10 // Make current drift better
-        // };
         
+        logger.warn('Current metrics:', metrics);
+        logger.warn('Best metrics:', bestMetrics);
+
         // Format time in minutes:seconds with proper error handling
         const formatTime = (timeInSeconds: number): string => {
             if (isNaN(timeInSeconds) || timeInSeconds < 0) return "0:00";
@@ -876,59 +869,54 @@ export class TitleRenderer implements Renderer {
             totalTimeSeconds = (endTime - metrics.timeStarted) / 1000;
         }
 
-        // Current metrics for comparison
-        const currentMetrics = {
-            time: totalTimeSeconds,
-            objectives: metrics.objectivesSecured,
-            tilesTraveled: metrics.tilesTraveled,
-            timesCrashed: metrics.timesCrashed,
-            tilesBetweenCrashes: tilesBetweenCrashes,
-            turboTiles: metrics.turboTilesTraveled,
-            tilesDrifted: metrics.tilesDrifted
-        };
-
         // Define our metrics data with labels (without colons) and values
         const metricsData = [
             { 
                 label: "Time", 
                 value: formatTime(totalTimeSeconds),
-                isBest: bestMetrics && totalTimeSeconds > 0 && totalTimeSeconds < bestMetrics.duration,
+                // If no best metrics exist, or current is better, mark as best
+                isBest: !bestMetrics || (totalTimeSeconds > 0 && totalTimeSeconds < bestMetrics.duration),
                 lowerIsBetter: true
             },
             { 
                 label: "Objectives", 
                 value: `${metrics.objectivesSecured}/${metrics.maxObjectivesThisLevel}`,
-                isBest: bestMetrics && metrics.objectivesSecured > bestMetrics.objectivesSecured,
+                // If no best metrics exist, or current is better, mark as best
+                isBest: !bestMetrics || metrics.objectivesSecured > bestMetrics.objectivesSecured,
                 lowerIsBetter: false
             },
             { 
                 label: "Tiles Traveled", 
                 value: metrics.tilesTraveled.toString(),
-                isBest: bestMetrics && metrics.tilesTraveled < bestMetrics.tilesTraveled && metrics.tilesTraveled > 0,
+                // If no best metrics exist, or current is better, mark as best
+                isBest: !bestMetrics || (metrics.tilesTraveled < bestMetrics.tilesTraveled && metrics.tilesTraveled > 0),
                 lowerIsBetter: true
             },
             { 
                 label: "Times Crashed", 
                 value: metrics.timesCrashed.toString(),
-                isBest: bestMetrics && metrics.timesCrashed < bestMetrics.timesCrashed,
+                // If no best metrics exist, or current is better, mark as best
+                isBest: !bestMetrics || metrics.timesCrashed < bestMetrics.timesCrashed,
                 lowerIsBetter: true
             },
             { 
                 label: "Crashless Streak", 
                 value: tilesBetweenCrashes.toString(),
-                isBest: bestMetrics && tilesBetweenCrashes > bestMetrics.bestTilesBetweenCrashes,
+                isBest: !bestMetrics || tilesBetweenCrashes > bestMetrics.bestTilesBetweenCrashes,
                 lowerIsBetter: false
             },
             { 
                 label: "Turbo Tiles", 
                 value: metrics.turboTilesTraveled.toString(),
-                isBest: bestMetrics && metrics.turboTilesTraveled > bestMetrics.turboTilesTraveled,
+                // If no best metrics exist, or current is better, mark as best
+                isBest: !bestMetrics || metrics.turboTilesTraveled > bestMetrics.turboTilesTraveled,
                 lowerIsBetter: false
             },
             { 
                 label: "Tiles Drifted", 
                 value: metrics.tilesDrifted.toString(),
-                isBest: bestMetrics && metrics.tilesDrifted > bestMetrics.tilesDrifted,
+                // If no best metrics exist, or current is better, mark as best
+                isBest: !bestMetrics || metrics.tilesDrifted > bestMetrics.tilesDrifted,
                 lowerIsBetter: false
             }
         ];

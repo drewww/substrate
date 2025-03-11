@@ -257,7 +257,7 @@ export class RuntimeGame extends Game {
             this.soundRenderer?.stopAllSounds();
             this.titleRenderer?.prepare(TitleMode.DEATH);
             
-            this.handleGameEnd();
+            // this.handleGameEnd();
             
             // Create black tile wipe effect
             this.wipeDownDisplay();
@@ -352,7 +352,7 @@ export class RuntimeGame extends Game {
                     player.setComponent(metrics);
                 }
 
-                this.handleGameEnd();
+       
                 
                 const trueEnd = this.world && this.world.getWorldWidth() >= 12*10 && this.world.getEntitiesWithComponent('aoe-damage').length > 0;
                 console.log('OBJECTIVE trueEnd', trueEnd);
@@ -372,6 +372,8 @@ export class RuntimeGame extends Game {
                         } else {
                             this.titleRenderer?.show(TitleMode.VICTORY);
                         }                    }
+
+                        this.updateSavedMetrics();
                 }, 50);
             }
         });
@@ -612,7 +614,7 @@ export class RuntimeGame extends Game {
         this.addTitleScreenCycleButton();
     }
 
-    public handleGameEnd() {
+    public updateSavedMetrics() {
         const player = this.world!.getPlayer();
         const metricsComponent = player.getComponent('metrics') as MetricsComponent;
         
