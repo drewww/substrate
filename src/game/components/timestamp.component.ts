@@ -4,7 +4,7 @@ import { RegisterComponent } from "../../entity/component-registry";
 @RegisterComponent('timestamp')
 export class TimestampComponent extends Component {
     type: 'timestamp' = 'timestamp';
-    private static bestTime: number | null = null;
+    public bestTime: number | null = null;
     public finalTime: number | null = null;
 
     constructor(public start: number = 0) {
@@ -14,14 +14,10 @@ export class TimestampComponent extends Component {
     public checkAndUpdateBestTime(endTime: number): void {
         const currentTime = endTime - this.start;
         
-        if (TimestampComponent.bestTime === null || currentTime < TimestampComponent.bestTime) {
-            TimestampComponent.bestTime = currentTime;
+        if (this.bestTime === null || currentTime < this.bestTime) {
+            this.bestTime = currentTime;
         }
         this.finalTime = currentTime;
-    }
-
-    public static getBestTime(): number | null {
-        return TimestampComponent.bestTime;
     }
 
     static fromJSON(data: any): TimestampComponent {

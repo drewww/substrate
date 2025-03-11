@@ -42,6 +42,9 @@ interface EntityMoveActionData {
 //     });
 // }
 
+// Add this constant at the top of the file
+const BEST_TIME_STORAGE_KEY = 'best_time';
+
 export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
     canExecute(world: World, action: BaseAction<EntityMoveActionData>): boolean {
         const entity = world.getEntity(action.entityId);
@@ -222,11 +225,7 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
             }
         }
 
-        // check to see if the tile we're entering has components that need to be checkd
-        // right now those are 
-        // EMP (currently handled elsewhere, need to migrate here)
-        // ApplyTimestamp
-
+        // check to see if the tile we're entering has components that need to be check
         const entitiesAtNewPos = world.getEntitiesAt(action.data.to);
 
         // logger.info(`entities at new pos: ${entitiesAtNewPos.length}`);
@@ -234,16 +233,32 @@ export const EntityMoveAction: ActionClass<EntityMoveActionData> = {
         // check to see if the tile we're entering has components that need to be check
         for (const destinationEntity of entitiesAtNewPos) {
             if (destinationEntity.hasComponent('applyTimestamp')) {
-
                 
                 const applyTimestampComponent = destinationEntity.getComponent('applyTimestamp') as ApplyTimestampComponent;
                 if (applyTimestampComponent.apply === ApplyTimestampType.Start) {
-                    entity.setComponent(new TimestampComponent(performance.now()));
-                } else if (applyTimestampComponent.apply === ApplyTimestampType.Stop) {
 
+                    // Load best time from localStorage if not already loaded
+                    const bestTime = localStorage.getItem(BEST_TIME_STORAGE_KEY);
+                    const timestamp = new TimestampComponent(performance.now());
+                    if (bestTime) {
+                        timestamp.bestTime = Number(bestTime);
+                    }
+
+                    entity.setComponent(timestamp);
+                } else if (applyTimestampComponent.apply === ApplyTimestampType.Stop) {
                     const timestamp = entity.getComponent('timestamp') as TimestampComponent;
                     if (timestamp) {
+                        // Load best time from localStorage if not already loaded
+                       
+                        // Check and update best time
                         timestamp.checkAndUpdateBestTime(performance.now());
+                        
+                        // If this is a new best time, save it to localStorage
+                        const currentTime = timestamp.finalTime;
+                        const bestTime = timestamp.bestTime;
+                        if (bestTime !== null && currentTime === bestTime) {
+                            localStorage.setItem(BEST_TIME_STORAGE_KEY, String(bestTime));
+                        }
                     }
                 }
             } else if (entity.hasComponent('player') && destinationEntity.hasComponent('objective')) {

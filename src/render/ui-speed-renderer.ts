@@ -468,7 +468,7 @@ export class UISpeedRenderer implements Renderer {
             }
 
             // Show best time if it exists
-            const bestTime = TimestampComponent.getBestTime();
+            const bestTime = timestamp.bestTime;
             if (bestTime !== null) {
                 const bestTimeStr = (bestTime / 1000).toFixed(2);
                 const newBestTimeTileIds = this.uiDisplay.createString(
