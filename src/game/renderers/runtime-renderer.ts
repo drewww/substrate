@@ -139,21 +139,31 @@ export class RuntimeRenderer extends GameRenderer {
         const tileId = this.entityTiles.get(entity.getId());
         if (tileId) {
             const isPlayer = entity.hasComponent('player');
+            // const duration = isPlayer ? 0.20 : 0.5;
+
+            const cooldowns = entity.getComponent('cooldown') as CooldownComponent;
+            // const baseCooldown = cooldowns?.getCooldown('move')?.base ?? 2;
+            // const duration = isPlayer ? (((baseCooldown) * TICK_MS) / 1000) : 0.5;
+
             const duration = isPlayer ? 0.20 : 0.5;
+
+            this.display.updateTile(tileId, {
+                noClip: true
+            });
 
             this.display.addValueAnimation(tileId, {
                 x: {
                     start: from.x,
                     end: to.x,
                     duration: duration,
-                    easing: Easing.quadOut,
-                    loop: false
+                    easing: Easing.linear,
+                    loop: false,
                 },
                 y: {
                     start: from.y,
                     end: to.y,
                     duration: duration,
-                    easing: Easing.quadOut,
+                    easing: Easing.linear,
                     loop: false
                 }
             });
