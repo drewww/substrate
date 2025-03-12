@@ -76,6 +76,11 @@ export class MetricsTrackerService {
             hasImprovement = true;
         }
 
+        if (currentMetrics.damageTaken < bestMetrics.damageTaken) {
+            newBestMetrics.damageTaken = currentMetrics.damageTaken;
+            hasImprovement = true;
+        }
+
         // If any metric improved, save the new best metrics
         if (hasImprovement) {
             this.saveBestMetrics(newBestMetrics, citySize, helicopterMode);

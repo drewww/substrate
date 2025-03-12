@@ -303,6 +303,14 @@ export class RuntimeGame extends Game {
 
         this.world.on('damage', (data: { entityId: string }) => {
             this.soundRenderer?.playSound('laser', {volume: 0.05});
+
+            const player = this.world!.getPlayer();
+            const metrics = player.getComponent('metrics') as MetricsComponent;
+            if (metrics) {
+                metrics.damageTaken += 1;
+                player.setComponent(metrics);
+            }
+            
         });
 
         // we're not using any parameters here

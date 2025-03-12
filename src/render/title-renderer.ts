@@ -920,6 +920,13 @@ export class TitleRenderer implements Renderer {
                 // Now considers equal drift tiles as best
                 isBest: !bestMetrics || metrics.tilesDrifted >= bestMetrics.tilesDrifted,
                 lowerIsBetter: false
+            },
+            { 
+                label: "Damage Taken", 
+                value: metrics.damageTaken.toString(),
+                // Now considers equal damage as best
+                isBest: !bestMetrics || metrics.damageTaken <= bestMetrics.damageTaken,
+                lowerIsBetter: true
             }
         ];
 

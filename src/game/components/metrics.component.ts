@@ -12,6 +12,7 @@ export interface BestMetrics {
     bestTilesBetweenCrashes: number;
     turboTilesTraveled: number;
     tilesDrifted: number;
+    damageTaken: number;
 }
 
 @RegisterComponent('metrics')
@@ -31,6 +32,8 @@ export class MetricsComponent extends Component {
         public currentTilesBetweenCrashes: number = 0,
         public bestTilesBetweenCrashes: number = 0,
         public turboTilesTraveled: number = 0,
+
+        public damageTaken: number = 0,
 
         public tilesDrifted: number = 0
     ) {
@@ -54,7 +57,8 @@ export class MetricsComponent extends Component {
             duration: this.getDuration(),
             bestTilesBetweenCrashes: this.bestTilesBetweenCrashes, // Match the property name used in the interface
             turboTilesTraveled: this.turboTilesTraveled,
-            tilesDrifted: this.tilesDrifted
+            tilesDrifted: this.tilesDrifted,
+            damageTaken: this.damageTaken
         };
     }
 
