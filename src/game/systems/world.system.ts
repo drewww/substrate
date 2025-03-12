@@ -111,7 +111,7 @@ export class WorldSystem {
                         symbol.foreground = '#FF194D';
                         symbol.background = '#590426';
                         light.setComponent(new ImpathableComponent());
-                        light.removeComponent('impathable');
+                        light.removeComponent('impassable');
                     }
                     
                     light.setComponent(trafficLight);

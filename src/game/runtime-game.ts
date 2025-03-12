@@ -611,7 +611,7 @@ export class RuntimeGame extends Game {
         }
 
         // Add the title screen cycle button
-        this.addTitleScreenCycleButton();
+        // this.addTitleScreenCycleButton();
     }
 
     public updateSavedMetrics() {
