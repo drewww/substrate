@@ -492,7 +492,7 @@ export class TitleRenderer implements Renderer {
 
             if(this.objectiveIndex === 8) {
                 this.display.clear();
-                this.display.createString(19, this.display.getViewportHeight() - 2,
+                this.display.createString(17, this.display.getViewportHeight() -  4,
                 '{w}Hold SPACE to brake.{/}', 1000, {
                     backgroundColor: '#000000',
                     animate: {
@@ -506,7 +506,7 @@ export class TitleRenderer implements Renderer {
             if(this.objectiveIndex === 10) {
                 this.display.clear();
 
-                this.display.createString(19, this.display.getViewportHeight() - 4,
+                this.display.createString(13, this.display.getViewportHeight() - 4,
                 '{w}Slide past objective vehicles to steal their DATA CORES.{/}', 1000, {
                     backgroundColor: '#000000',
                     animate: {
@@ -880,6 +880,7 @@ export class TitleRenderer implements Renderer {
             },
             { 
                 label: "Objectives", 
+                // -1 because it counts exit as an objective
                 value: `${metrics.objectivesSecured}/${metrics.maxObjectivesThisLevel}`,
                 // Now considers equal objectives as best
                 isBest: !bestMetrics || metrics.objectivesSecured >= bestMetrics.objectivesSecured,
